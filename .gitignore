@@ -1,48 +1,37 @@
-# Wordpress - ignore core, configuration, examples, uploads and logs.
-# https://github.com/github/gitignore/blob/main/WordPress.gitignore
+# Node.js dependencies
+node_modules/
 
-# Core
-#
-# Note: if you want to stage/commit WP core files
-# you can delete this whole section/until Configuration.
-/wp-admin/
-/wp-content/index.php
-/wp-content/languages
-/wp-content/plugins/index.php
-/wp-content/themes/index.php
-/wp-includes/
-/index.php
-/license.txt
-/readme.html
-/wp-*.php
-/xmlrpc.php
+# NPM/Yarn log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Configuration
-wp-config.php
+# Bower components (if you use Bower)
+bower_components/
 
-# Example themes
-/wp-content/themes/twenty*/
+# Gulp generated output directories (adjust as needed)
+dist/
+build/
 
-# Example plugin
-/wp-content/plugins/hello.php
+#Images
+assets/img/
 
-# Uploads
-/wp-content/uploads/
+# Sass cache (if applicable)
+.sass-cache/
 
-# Log files
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Editor and IDE specific files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Temporary files and logs
+tmp/
 *.log
 
-# htaccess
-/.htaccess
-
-# All plugins
-#
-# Note: If you wish to whitelist plugins,
-# uncomment the next line
-#/wp-content/plugins
-
-# All themes
-#
-# Note: If you wish to whitelist themes,
-# uncomment the next line
-#/wp-content/themes
+# Environment variables (if you keep a local .env file)
+.env
