@@ -17,10 +17,10 @@ jobs:
           cat ~/.ssh/known_hosts  # Debug
       - name: Test SSH Connection
         run: |
-          ssh -i key -o IdentitiesOnly=yes -o KexAlgorithms=diffie-hellman-group-exchange-sha256 -o UserKnownHostsFile=~/.ssh/known_hosts -v ezfjslmy@${{ secrets.BLUEHOST_HOST }} "whoami"
+          ssh -i key -o IdentitiesOnly=yes -o KexAlgorithms=diffie-hellman-group-exchange-sha256 -o UserKnownHostsFile=~/.ssh/known_hosts -o StrictHostKeyChecking=accept-new -v ezfjslmy@${{ secrets.BLUEHOST_HOST }} "whoami"
       - name: Deploy via SSH
         run: |
-          ssh -i key -o IdentitiesOnly=yes -o KexAlgorithms=diffie-hellman-group-exchange-sha256 -o UserKnownHostsFile=~/.ssh/known_hosts ezfjslmy@${{ secrets.BLUEHOST_HOST }} "cd ~/public_html/website_4a620043/wp-content/themes/sudoku && git pull origin main"
+          ssh -i key -o IdentitiesOnly=yes -o KexAlgorithms=diffie-hellman-group-exchange-sha256 -o UserKnownHostsFile=~/.ssh/known_hosts -o StrictHostKeyChecking=accept-new ezfjslmy@${{ secrets.BLUEHOST_HOST }} "cd ~/public_html/website_4a620043/wp-content/themes/sudoku && git pull origin main"
       - name: Clean Up
         if: always()
         run: |
