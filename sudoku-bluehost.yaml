@@ -1,1 +1,18 @@
-
+name: Deploy Ethan Ede to Bluehost
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.BLUEHOST_HOST }}
+          username: ${{ secrets.BLUEHOST_USERNAME }}
+          key: ${{ secrets.BLUEHOST_SSH_KEY }}
+          script: |
+            cd ~/public_html/website_4a620043/wp-content/themes/ethanede
+            git pull origin main
