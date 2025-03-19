@@ -14,5 +14,5 @@ jobs:
           username: ${{ secrets.BLUEHOST_USERNAME }}
           key: ${{ secrets.BLUEHOST_SSH_KEY }}
           script: |
-            cd /public_html/[ethanede-site-dir]/wp-content/themes/ethanede
+            cd /public_html/wp-content/themes/ethanede
             git pull origin main
