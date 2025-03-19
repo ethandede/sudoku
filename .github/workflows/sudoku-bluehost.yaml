@@ -13,11 +13,11 @@ jobs:
           echo "${{ secrets.BLUEHOST_SSH_KEY }}" > key
           chmod 600 key
           mkdir -p ~/.ssh
-          echo "ezf.jsl.mybluehost.me ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBGpD5qSkB9/oDNox4FSrXojhibEFanP/auwJZiY3mw7+XwNISRh3XwM/76I0cTXQzb1qoCtikFr/wduIkDfVDsE=" > ~/.ssh/known_hosts
-          cat ~/.ssh/known_hosts  # Debug: Show the file contents
+          echo "ezf.jsl.mybluehost.me ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILym/yVa3ddENwpcvknWOcIwJ/0AbKVlHb7a4aD1CVoz" > ~/.ssh/known_hosts
+          cat ~/.ssh/known_hosts  # Debug: Confirm it’s written
       - name: Test SSH Connection
         run: |
-          ssh -i key -o IdentitiesOnly=yes -o KexAlgorithms=diffie-hellman-group-exchange-sha256 -v ezfjslmy@${{ secrets.BLUEHOST_HOST }} "whoami"  # Debug with verbose output
+          ssh -i key -o IdentitiesOnly=yes -o KexAlgorithms=diffie-hellman-group-exchange-sha256 -v ezfjslmy@${{ secrets.BLUEHOST_HOST }} "whoami"
       - name: Deploy via SSH
         run: |
           ssh -i key -o IdentitiesOnly=yes -o KexAlgorithms=diffie-hellman-group-exchange-sha256 ezfjslmy@${{ secrets.BLUEHOST_HOST }} "cd ~/public_html/website_4a620043/wp-content/themes/sudoku && git pull origin main"
