@@ -1,0 +1,16 @@
+{
+  "devDependencies": {
+    "gulp": "^5.0.0",
+    "gulp-autoprefixer": "^9.0.0",
+    "gulp-clean-css": "^4.3.0",
+    "gulp-rev": "^11.0.0",
+    "gulp-rev-replace": "^0.4.4",
+    "gulp-sass": "^6.0.0",
+    "gulp-sourcemaps": "^3.0.0",
+    "sass": "^1.81.0"
+  },
+  "scripts": {
+    "build-css": "sass assets/scss/main.scss assets/css/style.css --style compressed",
+    "watch-css": "sass --watch assets/scss/main.scss:assets/css/style.css"
+  }
+}

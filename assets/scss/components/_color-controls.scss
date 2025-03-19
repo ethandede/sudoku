@@ -1,0 +1,40 @@
+#color-controls {
+  display: none;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem 0;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    color: var(--primary-color); // Uses your defined primary color
+
+    input[type="color"] {
+      border: none;
+      background: transparent;
+      width: 1.5rem;
+      height: 1.5rem;
+      padding: 0;
+      cursor: pointer;
+      -webkit-appearance: none;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+
+      &::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+      
+      &::-webkit-color-swatch {
+        border: none;
+      }
+    }
+  }
+  @media screen and (min-width:1024px) {
+    display:flex
+  }
+}

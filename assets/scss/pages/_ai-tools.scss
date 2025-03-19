@@ -1,0 +1,62 @@
+@use "../abstracts/variables" as vars;
+
+.ai-tools {
+  padding: 0;
+  background: transparent;
+  color: vars.$primary-color;
+  z-index: 1;
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0;
+  }
+
+  h2 {
+    font-size: 2.441rem;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+    color: vars.$primary-color;
+  }
+
+  .supporting-text {
+    font-size: 1rem;
+    font-style: italic;
+    text-align: left;
+    padding-left: 1rem;
+    border-left: 4px solid vars.$accent-color;
+    margin-bottom: 2.5rem;
+    max-width: 600px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+  }
+
+  .item {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    h4 {
+      margin-bottom: 10px;
+      color: vars.$primary-color;
+    }
+
+    p {
+      color: #ddd;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+  }
+}

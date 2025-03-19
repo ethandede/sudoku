@@ -1,0 +1,41 @@
+@use "sass:color";
+
+// Global Colors
+$primary-color: #fff;
+$secondary-color: #1f1c2c;
+$accent-color: #45748C;
+$highlight-color: #BF3978;
+$accent-color-light: color.adjust($accent-color, $lightness: 10%);
+$initial-color: #999;   // Gray for initial numbers (renamed from $solved-color)
+
+// Output as CSS variables for runtime use
+:root {
+  --primary-color: #{$primary-color};
+  --primary-color-rgb: #{color.channel($primary-color, "red", $space: rgb)}, #{color.channel($primary-color, "green", $space: rgb)}, #{color.channel($primary-color, "blue", $space: rgb)};
+  --secondary-color: #{$secondary-color};
+  --secondary-color-rgb: #{color.channel($secondary-color, "red", $space: rgb)}, #{color.channel($secondary-color, "green", $space: rgb)}, #{color.channel($secondary-color, "blue", $space: rgb)};
+  --accent-color: #{$accent-color};
+  --accent-color-rgb: #{color.channel($accent-color, "red", $space: rgb)}, #{color.channel($accent-color, "green", $space: rgb)}, #{color.channel($accent-color, "blue", $space: rgb)};
+  --accent-color-light: #{$accent-color-light};
+  --highlight-color: #{$highlight-color};
+  --highlight-color-rgb: #{color.channel($highlight-color, "red", $space: rgb)}, #{color.channel($highlight-color, "green", $space: rgb)}, #{color.channel($highlight-color, "blue", $space: rgb)};
+  --initial-color: #{$initial-color}; // New variable for initial numbers
+  --initial-color-rgb: #{color.channel($initial-color, "red", $space: rgb)}, #{color.channel($initial-color, "green", $space: rgb)}, #{color.channel($initial-color, "blue", $space: rgb)};}
+
+// Typography Variables & Global Settings
+$base-font-size: 17px;   // 1rem
+$scale-ratio: 1.25;
+
+// Typographical Scale
+$font-xxs: 0.75rem;    // ~12px
+$font-xs: 0.875rem;    // ~14px
+$font-sm: 1rem;        // 17px (base)
+$font-md: 1.25rem;     // 21px
+$font-lg: 1.563rem;    // 26px
+$font-xl: 1.953rem;    // 33px
+$font-xxl: 2.441rem;   // 41px
+$font-xxxl: 3.052rem;  // 51px
+
+// Font Families
+$header-font: "Roboto", sans-serif;
+$body-font: "Roboto", sans-serif;

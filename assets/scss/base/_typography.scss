@@ -1,0 +1,56 @@
+@use "../abstracts/variables" as vars;
+
+body {
+  font-family: vars.$body-font;
+  font-size: vars.$font-sm;
+  line-height: 1.5;
+  color: var(--primary-color);
+  background: linear-gradient(to bottom, #000, #1f1c2c);
+}
+
+// Global Typography for Headings and Paragraphs
+h1, h2, h3, h4, h5, h6 {
+  font-family: vars.$header-font;
+}
+
+h1 {
+  font-size: vars.$font-xxxl;
+  line-height: 1.1;
+  margin-bottom: 0.5rem;
+}
+h2 {
+  font-size: vars.$font-xxl;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+h3 {
+  font-size: vars.$font-xl;
+  margin-bottom: 0.4rem;
+}
+h4 {
+  font-size: vars.$font-lg;
+  margin-bottom: 0.3rem;
+}
+h5 {
+  font-size: vars.$font-md;
+  margin-bottom: 0.25rem;
+}
+h6 {
+  font-size: vars.$font-xs;
+  margin-bottom: 0.15rem;
+}
+
+p {
+  font-size: vars.$font-sm;
+  margin-bottom: 1rem;
+}
+
+.supporting-text {
+  font-size: 1rem;
+  font-style: italic;
+  text-align: left;
+  padding-left: 1rem;
+  border-left: 4px solid var(--accent-color);
+  margin-bottom: 2.5rem;
+  max-width: 600px;
+}

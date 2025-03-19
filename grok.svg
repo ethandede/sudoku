@@ -1,0 +1,49 @@
+<svg width="600" height="400" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect width="100%" height="100%" fill="#e0e7e9"/>
+
+    <!-- Group of People (Abstract Representation) -->
+    <g transform="translate(50, 50) scale(0.8)">
+        <!-- Person 1 (Blue Patterned Dress) -->
+        <g>
+            <path d="M50,300 Q70,250 90,300 T130,300 L130,400 Q110,380 90,400 T50,400 Z" fill="#3498db" stroke="#2c3e50" stroke-width="2"/>
+            <circle cx="90" cy="300" r="20" fill="#f1c40f"/> <!-- Baby -->
+        </g>
+
+        <!-- Person 2 (Purple Suit) -->
+        <g transform="translate(120, 0)">
+            <rect x="150" y="250" width="60" height="150" fill="#8e44ad" stroke="#2c3e50" stroke-width="2"/>
+            <circle cx="180" cy="250" r="30" fill="#ecf0f1"/> <!-- Head -->
+        </g>
+
+        <!-- Person 3 (Patterned Outfit) -->
+        <g transform="translate(240, 0)">
+            <path d="M250,250 Q270,300 290,250 T330,250 L330,400 Q310,380 290,400 T250,400 Z" fill="#ecf0f1" stroke="#2c3e50" stroke-width="2"/>
+            <pattern id="pattern" x="250" y="250" width="80" height="150" patternUnits="userSpaceOnUse">
+                <circle cx="40" cy="40" r="20" fill="#e74c3c"/>
+                <circle cx="60" cy="60" r="20" fill="#3498db"/>
+            </pattern>
+            <rect x="250" y="250" width="80" height="150" fill="url(#pattern)"/>
+        </g>
+
+        <!-- Person 4 (Striped Shirt) -->
+        <g transform="translate(360, 0)">
+            <rect x="350" y="250" width="60" height="150" fill="url(#stripes)" stroke="#2c3e50" stroke-width="2"/>
+            <circle cx="380" cy="250" r="30" fill="#ecf0f1"/> <!-- Head -->
+            <circle cx="400" cy="300" r="20" fill="#e67e22"/> <!-- Baby -->
+        </g>
+        <defs>
+            <pattern id="stripes" patternUnits="userSpaceOnUse" width="10" height="20">
+                <rect width="5" height="20" fill="#2ecc71"/>
+                <rect x="5" width="5" height="20" fill="#ecf0f1"/>
+            </pattern>
+        </defs>
+
+        <!-- Person 5 (Blue Jacket) -->
+        <g transform="translate(480, 0)">
+            <rect x="450" y="250" width="60" height="150" fill="#3498db" stroke="#2c3e50" stroke-width="2"/>
+            <circle cx="480" cy="250" r="30" fill="#ecf0f1"/> <!-- Head -->
+            <circle cx="500" cy="300" r="20" fill="#f1c40f"/> <!-- Baby -->
+        </g>
+    </g>
+</svg>

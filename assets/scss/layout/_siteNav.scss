@@ -1,0 +1,103 @@
+// Sticky Navigation
+.site-nav {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  background: rgba(31, 28, 44, 0.95); // Slightly transparent secondary-color
+  backdrop-filter: blur(5px); // Subtle blur for modern feel
+  z-index: 1000;
+  padding: 15px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 35px;
+  }
+
+  .nav-content {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 2rem;
+
+    .nav-title {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+
+    .nav-links {
+      list-style: none;
+      display: flex;
+      gap: 1.5rem;
+      margin: 0;
+
+      li {
+        a {
+          color: var(--primary-color);
+          text-decoration: none;
+          font-size: 1rem;
+          font-family: "Roboto", sans-serif;
+          transition: color 0.3s ease;
+
+          &:hover {
+            color: var(--accent-color-light);
+          }
+        }
+      }
+    }
+  }
+
+  .persistent-cta {
+    display: flex;
+    justify-content: flex-start;
+    opacity: 0; // Initially hidden
+    transform: translateY(-100%); // Start above nav
+    transition: opacity 0.5s ease, transform 0.5s ease;
+
+    &.visible {
+      opacity: 1;
+      transform: translateY(0); // Slide down below nav
+    }
+
+    .cta-button {
+      // Inherits your existing CTA styles
+      background-color: var(--accent-color);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      padding: 10px 20px;
+
+      &:hover {
+        background-color: var(--accent-color-light);
+      }
+    }
+  }
+
+  // Mobile adjustments
+  @media (max-width: 767px) {
+    padding: 10px 0;
+
+    .nav-content {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+
+      .nav-title {
+        font-size: 1.25rem;
+      }
+      
+
+      .nav-links {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+    }
+
+    .persistent-cta {
+      justify-content: center;
+    }
+  }
+}

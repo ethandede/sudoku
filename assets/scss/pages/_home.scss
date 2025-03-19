@@ -1,0 +1,62 @@
+@use "../abstracts/variables" as vars;
+
+// Remove ReCaptcha badge
+.grecaptcha-badge {
+  display:none;
+}
+
+#home {
+  max-width: 1300px;
+  margin: 0 auto;
+  position: relative;
+  
+  .hero {
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+    text-align: left;
+    padding: 200px 0;
+
+    @media screen and (max-width: 768px) {
+      padding:3.5rem 0;
+    }
+    
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0;
+    }
+    
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      font-family: vars.$header-font;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .rotating-word-break {
+      @media screen and (min-width: 1024px) {
+        display:none;
+        
+      }
+    }
+    
+    .rotating-word {
+      color: var(--highlight-color);
+      display: inline-block;
+      transition: opacity 0.5s ease-in-out;
+      opacity: 1;
+    }
+    
+    .rotating-word.fade-out {
+      opacity: 0;
+    }
+  }
+  
+  .content-wrapper {
+    position: absolute;
+    top: 400px;
+    width: 100%;
+  }
+}

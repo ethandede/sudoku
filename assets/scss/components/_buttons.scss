@@ -1,0 +1,39 @@
+@use "../abstracts/variables" as vars;
+@use "sass:color";
+
+
+@mixin cta-button-styles {
+  display: inline-block;
+  font-size: 1rem;
+  padding: 10px 20px;
+  background-color: var(--accent-color);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: #fff;
+  border-radius: 7px;
+  text-decoration: none;
+  font-family: vars.$header-font;
+  transition: background-color 0.3s ease;
+
+  &.sm {
+    font-size: 0.83rem;
+    padding: 7px 15px;
+  }
+
+  i {
+    margin-left: 0.5rem;
+    transition: transform 0.3s ease-in-out;
+  }
+
+  &:hover {
+    background-color: var(--accent-color-light);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+
+    i {
+      transform: translateX(5px);
+    }
+  }
+}
+
+.cta-button {
+  @include cta-button-styles;
+}

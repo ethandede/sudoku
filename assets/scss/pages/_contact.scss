@@ -1,0 +1,71 @@
+@use "../abstracts/variables" as vars;
+@use "../components/buttons" as *;
+
+.contact-page {
+  padding: 60px 35px;
+
+  .contact-form-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+
+    .wpcf7-form {
+      .wpcf7-form-control-wrap {
+        margin-bottom: 20px; // Increase spacing between fields
+
+        label {
+          display: block;
+          margin-bottom: 5px;
+          font-family: vars.$header-font;
+          color: #fff;
+        }
+
+        input,
+        textarea {
+          width: 100%;
+          padding: 10px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          font-family: vars.$body-font;
+          font-size: 1rem;
+          background: rgba(255, 255, 255, 0.2);
+          color: #fff;
+          transition: border-color 0.3s ease, background 0.3s ease;
+          margin-bottom:20px;
+
+          &:focus {
+            border-color: var(--accent-color);
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+          }
+        }
+      }
+
+      .wpcf7-submit {
+        @include cta-button-styles;
+        width: 100%;
+        text-align: center;
+        cursor: pointer;
+      }
+    }
+
+    .wpcf7-response-output {
+      margin-bottom: 15px;
+      font-size: 1rem;
+      font-family: vars.$body-font;
+
+      &.wpcf7-mail-sent-ok {
+        color: green;
+      }
+
+      &.wpcf7-validation-errors,
+      &.wpcf7-mail-sent-ng {
+        color: red;
+      }
+    }
+  }
+}
+

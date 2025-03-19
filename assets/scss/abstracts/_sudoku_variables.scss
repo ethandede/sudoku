@@ -1,0 +1,50 @@
+
+@use "sass:color"; // Import the color module
+
+// Core theme colors
+$background-start: #ffffff;        // Pure white start
+$background-end: #e0e0e0;          // Light gray end
+$primary-text: #333333;            // Dark gray text
+$accent: #4a90e2;                  // Soft blue for buttons/highlights
+$highlight: #e94e77;               // Coral for invalid/button-solved
+
+// Cell states
+$cell-background: #f5f5f5;         // Off-white cells
+$cell-initial-text: #666666;       // Medium gray for pre-populated
+$cell-user-solved-text: #333333;   // Dark gray for user guesses
+// $cell-button-solved-text: $highlight; // Coral for auto-solved
+$cell-invalid-text: $highlight;    // Coral for invalid
+
+// Highlights
+$highlight-cell: rgba($accent, 0.5);    // Soft blue selected cell
+$highlight-border: $accent;             // Blue border
+$highlight-subgrid: rgba($accent, 0.2); // Light blue subgrid
+$highlight-row: rgba(#9b59b6, 0.2);     // Light purple row
+$highlight-column: rgba(#2ecc71, 0.2);  // Light green column
+$highlight-number: rgba($accent, 0.4);  // Blue for same-number highlights
+
+// Notes
+$notes-text: #333333;
+
+// Buttons
+// _sudoku_variables.scss
+$button-background: $accent;
+$button-hover: color.adjust($accent, $lightness: 10%);
+$button-close: #e94e77;
+$button-close-hover: color.adjust(#e94e77, $lightness: 10%);
+
+// Overlays
+$overlay-background: rgba(75, 144, 226, 0.15);
+// $overlay-background: rgba(75, 144, 126, 0.15);
+$notes-overlay-background: rgba(#e0e0e0, 0.9);
+$notes-text: #333333; // Darker for contrast (was #555555)
+
+$solved-color: #26a69a; // Teal for solved numbers
+
+
+// Fonts (unchanged)
+$header-font: 'Noto+Sans+KR', sans-serif;
+$body-font: 'Noto+Sans+KR', sans-serif;
+$font-sm: 16px;
+$font-xl: 32px;
+$font-xxl: 40px;
