@@ -227,7 +227,7 @@ function editCell(index, event) {
   const isMobile = window.innerWidth <= 991;
   console.log("editCell: index=", index, "isMobile=", isMobile, "cell=", cell);
 
-  // Clear highlights
+  // Clear highlights in the main grid
   document.querySelectorAll(".cell").forEach((c) => {
     if (c !== cell)
       c.classList.remove(
@@ -241,26 +241,98 @@ function editCell(index, event) {
     if (overlay) overlay.remove();
   });
 
+  // De-select any currently selected number in the number-status-grid
+  document.querySelectorAll('.number-status-grid .number-cell').forEach(c => c.classList.remove('selected'));
+
   selectedCell = cell;
   cell.classList.add("highlighted");
   highlightRelatedCells(index);
 
   if (board[index] !== 0) {
     toggleHighlight(board[index]);
-  } else if (isMobile) {
-    console.log("Mobile mode: awaiting number input, mode=", inputMode);
+    const numberCell = document.querySelector(`.number-status-grid .number-cell[data-number="${board[index]}"]`);
+    if (numberCell) {
+      numberCell.classList.add('selected');
+    }
   } else {
-    cell.contentEditable = true;
-    cell.focus();
-    cell.textContent = "";
-    cell.addEventListener("keydown", (e) => handleKeydown(e, index), {
-      once: true,
-    });
-    cell.addEventListener("blur", () => handleBlur(index), { once: true });
-    showNotesOverlay(index, cell);
+    highlightedNumber = null;
+    if (isMobile) {
+      console.log("Mobile mode: awaiting number input, mode=", inputMode);
+    } else {
+      // Flag to track if the overlay should be shown
+      let shouldShowOverlay = true;
+
+      cell.contentEditable = true;
+      cell.focus();
+      cell.textContent = "";
+
+      // Cancel the overlay if the user starts typing
+      cell.addEventListener("keydown", (e) => {
+        shouldShowOverlay = false; // Cancel overlay on keydown
+        handleKeydown(e, index);
+      }, { once: true });
+
+      // Cancel the overlay if the cell loses focus
+      cell.addEventListener("blur", () => {
+        shouldShowOverlay = false; // Cancel overlay on blur
+        handleBlur(index);
+      }, { once: true });
+
+      // Show the overlay after a delay, if not cancelled
+      showNotesOverlay(index, cell, shouldShowOverlay);
+    }
   }
 
   updateGrid();
+}
+
+function showNotesOverlay(index, cell, shouldShowOverlay) {
+  // Remove any existing overlay
+  const existingOverlay = cell.querySelector(".notes-overlay");
+  if (existingOverlay) existingOverlay.remove();
+
+  // Delay the appearance of the overlay by 300ms
+  setTimeout(() => {
+    // Only proceed if the overlay hasn't been cancelled
+    if (!shouldShowOverlay) {
+      console.log("Notes overlay cancelled due to user action");
+      return;
+    }
+
+    const overlay = document.createElement("div");
+    overlay.classList.add("notes-overlay");
+    overlay.style.display = "grid";
+    overlay.style.position = "absolute";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100%";
+    overlay.style.height = "100%";
+    overlay.style.background = "rgba(224, 224, 224, 0.9)";
+    overlay.style.zIndex = "10";
+
+    function updateOverlay() {
+      overlay.innerHTML = "";
+      for (let num = 1; num <= 9; num++) {
+        const option = document.createElement("div");
+        option.classList.add("note-option");
+        option.textContent = num;
+        if (notes[index].has(num)) option.classList.add("selected");
+        option.addEventListener("click", (e) => {
+          e.preventDefault();
+          console.log("Note overlay clicked, toggling:", num, "at index:", index);
+          toggleNote(index, num);
+          updateOverlay();
+          updateGrid();
+        });
+        overlay.appendChild(option);
+      }
+    }
+
+    updateOverlay();
+    cell.appendChild(overlay);
+    console.log("Notes overlay appended to cell:", cell);
+    console.log("Cell innerHTML after append:", cell.innerHTML);
+  }, 10000); // 300ms delay
 }
 
 function createNumberStatusGrid() {
@@ -349,8 +421,17 @@ function createNumberStatusGrid() {
           "selectedCell:",
           selectedCell
         );
+
+        // Apply the 'selected' class to the clicked number-cell
+        document.querySelectorAll('.number-status-grid .number-cell').forEach(c => c.classList.remove('selected'));
+        cell.classList.add('selected');
+
         if (selectedCell !== null) {
+          // If a cell is selected in the main grid, enter the number
           handleNumberInput(num);
+        } else {
+          // If no cell is selected, highlight the number in the main grid
+          toggleHighlight(num);
         }
       }
     });
@@ -363,6 +444,7 @@ function updateNumberStatusGrid() {
   const isMobile = window.innerWidth <= 991;
 
   if (isMobile) {
+    // Mobile logic (unchanged)
     const guessBtn = document.querySelector(".guess-option");
     const candidateBtn = document.querySelector(".candidate-option");
     if (guessBtn && candidateBtn) {
@@ -380,20 +462,48 @@ function updateNumberStatusGrid() {
       }
     });
   } else {
-    const numberCounts = Array(10).fill(0);
+    // Desktop logic: Map segments to subgrids
     const noteCounts = Array(10).fill(0);
-    board.forEach((val) => numberCounts[val]++);
     notes.forEach((noteSet) => noteSet.forEach((num) => noteCounts[num]++));
+
+    // Define the indices for each 3x3 subgrid in the main 9x9 grid
+    const subgridIndices = [
+      // Subgrid 0 (top-left)
+      [0, 1, 2, 9, 10, 11, 18, 19, 20],
+      // Subgrid 1 (top-center)
+      [3, 4, 5, 12, 13, 14, 21, 22, 23],
+      // Subgrid 2 (top-right)
+      [6, 7, 8, 15, 16, 17, 24, 25, 26],
+      // Subgrid 3 (middle-left)
+      [27, 28, 29, 36, 37, 38, 45, 46, 47],
+      // Subgrid 4 (middle-center)
+      [30, 31, 32, 39, 40, 41, 48, 49, 50],
+      // Subgrid 5 (middle-right)
+      [33, 34, 35, 42, 43, 44, 51, 52, 53],
+      // Subgrid 6 (bottom-left)
+      [54, 55, 56, 63, 64, 65, 72, 73, 74],
+      // Subgrid 7 (bottom-center)
+      [57, 58, 59, 66, 67, 68, 75, 76, 77],
+      // Subgrid 8 (bottom-right)
+      [60, 61, 62, 69, 70, 71, 78, 79, 80],
+    ];
 
     numberCells.forEach((cell) => {
       const num = parseInt(cell.dataset.number);
-      const count = numberCounts[num];
       const segments = cell.querySelectorAll(".segment");
-      segments.forEach((segment, index) => {
-        segment.classList.toggle("filled", index < count);
+
+      // Check each subgrid for the presence of the number
+      let totalCount = 0; // For .solved class
+      subgridIndices.forEach((indices, segmentIndex) => {
+        // Check if the number 'num' appears in this subgrid
+        const hasNumber = indices.some((index) => board[index] === num);
+        segments[segmentIndex].classList.toggle("filled", hasNumber);
+        if (hasNumber) totalCount++;
       });
-      cell.classList.toggle("solved", count === 9);
-      cell.classList.toggle("noted", noteCounts[num] > 0 && count < 9);
+
+      // Update cell classes
+      cell.classList.toggle("solved", totalCount === 9);
+      cell.classList.toggle("noted", noteCounts[num] > 0 && totalCount < 9);
       cell.classList.remove("guess-mode", "notes-mode");
       if (selectedCell !== null) {
         cell.classList.add(inputMode === "guess" ? "guess-mode" : "notes-mode");
@@ -1454,6 +1564,15 @@ document.addEventListener("DOMContentLoaded", () => {
       debouncedUpdateGrid();
     }
   });
+
+  // document.addEventListener('DOMContentLoaded', () => {
+  //   document.querySelectorAll('.number-status-grid .number-cell').forEach(cell => {
+  //     cell.addEventListener('click', () => {
+  //       document.querySelectorAll('.number-status-grid .number-cell').forEach(c => c.classList.remove('selected'));
+  //       cell.classList.add('selected');
+  //     });
+  //   });
+  // });
 
   window.addEventListener("resize", () => {
     createNumberStatusGrid();

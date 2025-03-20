@@ -1,4 +1,4 @@
-name: Deploy Ethan Ede to Bluehost
+name: Deploy Sudoku to Bluehost
 on:
   push:
     branches:
@@ -14,5 +14,5 @@ jobs:
           username: ${{ secrets.BLUEHOST_USERNAME }}
           key: ${{ secrets.BLUEHOST_SSH_KEY }}
           script: |
-            cd ~/public_html/website_4a620043/wp-content/themes/ethanede
+            cd ~/public_html/website_4a620043/wp-content/themes/sudoku
             git pull origin main

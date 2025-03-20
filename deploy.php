@@ -17,6 +17,6 @@ if ($signature) {
 }
 
 // Change directory to your theme folder and pull the latest code
-$output = shell_exec('git --git-dir=/home/ezfjslmy/repositories/ethanede.com.git --work-tree=/home/ezfjslmy/public_html/wp-content/themes/ethanede checkout -f HEAD 2>&1');
+$output = shell_exec('git --git-dir=/home/ezfjslmy/repositories/sudoku.com.git --work-tree=/home/ezfjslmy/public_html/wp-content/themes/sudoku checkout -f HEAD 2>&1');
 echo "<pre>$output</pre>";
 ?>

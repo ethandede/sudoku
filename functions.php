@@ -30,9 +30,9 @@ function ee_enqueue_assets() {
 add_action('wp_enqueue_scripts', 'ee_enqueue_assets');
 
 // Register menus
-function ee_register_menus() {
+function ee_register_menus(): void {
     register_nav_menus([
-        'main_navigation' => __('Main Navigation', 'ethanede'),
+        'main_navigation' => __('Main Navigation', 'sudoku'),
     ]);
 }
 add_action('init', 'ee_register_menus');
