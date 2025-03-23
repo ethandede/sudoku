@@ -15,6 +15,15 @@ get_header();
       <p class="supporting-text">A little puzzle-solving fun built with pure JavaScript—test your skills and try the harder levels when you're ready...with only 4 mistakes allowed!</p>
 
       <div class="sudoku-layout">
+        <!-- Skyscraper Ad Column -->
+        <div class="ad-skyscraper-column">
+          <div id="ad-skyscraper" class="skyscraper-placeholder">
+            <div style="width: 160px; height: 600px; background: #ccc; display: flex; text-align:center; justify-content: center; align-items: center;">
+              Skyscraper Ad (160x600)
+            </div>
+          </div>
+        </div>
+
         <!-- Grid Wrapper -->
         <div class="grid-wrapper">
           <!-- Status Bar -->
@@ -28,47 +37,19 @@ get_header();
           <!-- Grid -->
           <div id="sudoku-grid" class="sudoku-grid"></div>
         </div>
+
         <!-- Controls Column -->
         <div class="controls-column">
           <!-- Number Status Grid -->
-          <div id="number-status-grid" class="number-status-grid">
-            <?php
-            $used_numbers = [2, 5, 8]; // Example: numbers fully used
-            $selected_number = 1; // Example: currently selected number
-            // Example: valid guess positions for each number (row, col) in the main grid
-            $valid_guesses = [
-              1 => [], // No valid guesses for 1
-              2 => [[1, 2], [2, 1], [3, 3], [4, 5], [5, 4], [6, 6], [7, 8], [8, 7], [9, 9]], // All positions for 2
-              3 => [[2, 3], [5, 6]], // Example positions for 3
-              // ... add for other numbers
-            ];
-            for ($num = 1; $num <= 9; $num++):
-              // Map main grid positions to sub-grid positions
-              $filled_segments = [];
-              if (isset($valid_guesses[$num])) {
-                foreach ($valid_guesses[$num] as $pos) {
-                  $row = $pos[0];
-                  $col = $pos[1];
-                  // Map the 9x9 grid position to the 3x3 sub-grid position
-                  $sub_row = ceil($row / 3);
-                  $sub_col = ceil($col / 3);
-                  $segment_index = ($sub_row - 1) * 3 + $sub_col;
-                  $filled_segments[] = $segment_index;
-                }
-              }
-            ?>
-              <div class="number-cell <?php echo in_array($num, $used_numbers) ? 'used' : ''; ?> <?php echo $num === $selected_number ? 'selected' : ''; ?>">
-                <span class="number-text"><?php echo $num; ?></span>
-                <?php for ($i = 1; $i <= 9; $i++): ?>
-                  <div class="segment <?php echo in_array($i, $filled_segments) ? 'filled' : ''; ?>"></div>
-                <?php endfor; ?>
-              </div>
-            <?php endfor; ?>
-          </div>
+          <div id="number-status-grid" class="number-status-grid"></div>
 
           <!-- Unified Controls -->
           <div id="sudoku-controls" class="sudoku-controls">
-            <!-- New Puzzle Info Section -->
+            <div class="control-row toggle-row auto-candidates-row">
+              <label for="auto-candidates">Auto-Candidates:</label>
+              <input type="checkbox" id="auto-candidates" class="auto-candidates-checkbox">
+            </div>
+            <!-- Puzzle Info Section -->
             <div class="puzzle-info">
               <div class="info-item">
                 <span class="label">Clues:</span>
@@ -83,33 +64,34 @@ get_header();
                 <span id="solution-count">1</span>
               </div>
             </div>
-
             <button class="cta-button new-game" id="new-game">
               New Game <i class="fas fa-caret-up"></i>
             </button>
             <div class="difficulty-dropup" id="difficulty-dropup">
               <div class="difficulty-option" data-value="quick">
-                <i class="fas fa-bolt"></i> Quick
+                <i class="fas fa-bolt"></i><span>Quick</span>
+                <div class="loading-spinner"></div>
               </div>
               <div class="difficulty-option" data-value="easy">
-                <i class="fas fa-feather"></i> Easy
+                <i class="fas fa-feather"></i><span>Easy</span>
+                <div class="loading-spinner"></div>
               </div>
               <div class="difficulty-option" data-value="not easy">
-                <i class="fas fa-wind"></i> Not Easy
+                <i class="fas fa-wind"></i><span>Not Easy</span>
+                <div class="loading-spinner"></div>
               </div>
               <div class="difficulty-option" data-value="hard">
-                <i class="fas fa-hammer"></i> Hard
+                <i class="fas fa-hammer"></i><span>Hard</span>
+                <div class="loading-spinner"></div>
               </div>
               <div class="difficulty-option" data-value="expert">
-                <i class="fas fa-brain"></i> Expert
+                <i class="fas fa-brain"></i><span>Expert</span>
+                <div class="loading-spinner"></div>
               </div>
               <div class="difficulty-option" data-value="mental">
-                <i class="fas fa-skull"></i> Mental
+                <i class="fas fa-skull"></i><span>Mental</span>
+                <div class="loading-spinner"></div>
               </div>
-            </div>
-            <div class="control-row toggle-row auto-candidates-row">
-              <label for="auto-candidates">Auto-Candidates:</label>
-              <input type="checkbox" id="auto-candidates" class="auto-candidates-checkbox">
             </div>
             <div class="control-row action-row">
               <button class="cta-button reset-puzzle">Reset Puzzle</button>
@@ -117,8 +99,44 @@ get_header();
             </div>
           </div>
         </div>
+
+        <!-- Square Ads Column -->
+        <div class="ad-square-column">
+          <div class="ad-square-wrapper">
+            <div id="ad-square-1" class="aside-placeholder">
+              <div style="width: 300px; height: 250px; background: #ccc; display: flex; justify-content: center; align-items: center; margin-bottom: 20px;">
+                Square Ad 1 (300x250)
+              </div>
+            </div>
+            <div id="ad-square-2" class="aside-placeholder">
+              <div style="width: 300px; height: 250px; background: #ccc; display: flex; justify-content: center; align-items: center;">
+                Square Ad 2 (300x250)
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leaderboard Ad -->
+      <div class="ad-leaderboard">
+        <div id="ad-leaderboard" class="horizontal-placeholder">
+          <div style="width: 728px; height: 90px; background: #ccc; display: flex; justify-content: center; align-items: center;">
+            Leaderboard Ad (728x90)
+          </div>
+        </div>
       </div>
     </div>
   </section>
 </main>
+
+<!-- Sudoku Module Scripts -->
+<script type="module" src="<?php echo get_template_directory_uri(); ?>/assets/js/sudoku.state.js"></script>
+<script type="module" src="<?php echo get_template_directory_uri(); ?>/assets/js/sudoku.events.js"></script>
+<script type="module" src="<?php echo get_template_directory_uri(); ?>/assets/js/sudoku.generator.js"></script>
+<script type="module" src="<?php echo get_template_directory_uri(); ?>/assets/js/sudoku.solver.js"></script>
+<script type="module" src="<?php echo get_template_directory_uri(); ?>/assets/js/sudoku.optimizer.js"></script>
+<script type="module" src="<?php echo get_template_directory_uri(); ?>/assets/js/sudoku.ui.js"></script>
+<script type="module" src="<?php echo get_template_directory_uri(); ?>/assets/js/sudoku.test.js"></script>
+<script type="module" src="<?php echo get_template_directory_uri(); ?>/assets/js/sudoku.js"></script>
+
 <?php get_footer(); ?>
