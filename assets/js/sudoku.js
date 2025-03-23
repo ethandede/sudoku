@@ -225,6 +225,7 @@ function editCell(index, event) {
   const cell = event.target.closest(".cell");
   const isMobile = window.innerWidth <= 991;
 
+  // Clear highlights except for matching numbers
   document.querySelectorAll(".cell").forEach((c) => {
     if (c !== cell) {
       c.classList.remove(
@@ -234,8 +235,10 @@ function editCell(index, event) {
         "highlight-column"
       );
     }
+    // Preserve .highlight class for matching numbers
   });
 
+  // De-select any currently selected number in the number-status-grid
   document
     .querySelectorAll(".number-status-grid .number-cell")
     .forEach((c) => c.classList.remove("selected"));
@@ -245,21 +248,19 @@ function editCell(index, event) {
   highlightRelatedCells(index);
 
   if (board[index] !== 0) {
+    // Highlight all cells with the same number
     toggleHighlight(board[index]);
     const numberCell = document.querySelector(
       `.number-status-grid .number-cell[data-number="${board[index]}"]`
     );
-    if (numberCell) numberCell.classList.add("selected");
+    if (numberCell) {
+      numberCell.classList.add("selected");
+    }
+    // No need to make it editable since it has a value
   } else {
     highlightedNumber = null;
     if (isMobile) {
-      console.log(
-        "Mobile mode: awaiting number input, mode=",
-        inputMode,
-        "index=",
-        index
-      );
-      // Ensure selectedCell remains set until a number is clicked
+      console.log("Mobile mode: awaiting number input, mode=", inputMode);
     } else {
       let shouldShowOverlay = true;
       cell.contentEditable = true;
@@ -345,25 +346,6 @@ function showNotesOverlay(index, cell, shouldShowOverlay) {
   }, 10000); // 300ms delay
 }
 
-function setupNumberStatusGridListeners() {
-  numberStatusGrid.removeEventListener("click", handleNumberStatusClick);
-  numberStatusGrid.addEventListener("click", handleNumberStatusClick);
-}
-
-function handleNumberStatusClick(e) {
-  const cell = e.target.closest(".number-cell");
-  if (!cell) return;
-  e.stopPropagation();
-  const num = parseInt(cell.dataset.number);
-  const isMobile = window.innerWidth <= 991;
-  console.log(`${isMobile ? "Mobile" : "Desktop"} number clicked:`, num, "mode:", inputMode, "selectedCell:", selectedCell ? selectedCell.dataset.index : "none");
-  if (selectedCell) {
-    handleNumberInput(num);
-  } else if (!isMobile) {
-    toggleHighlight(num); // Desktop-only: highlight numbers if no cell selected
-  }
-}
-
 function createNumberStatusGrid() {
   if (!numberStatusGrid) return console.error("Number status grid not found");
   numberStatusGrid.innerHTML = "";
@@ -406,6 +388,10 @@ function createNumberStatusGrid() {
       numberRow.appendChild(cell);
     }
     numberStatusGrid.appendChild(numberRow);
+
+    // Remove old listeners to prevent duplicates
+    numberStatusGrid.removeEventListener("click", handleNumberClick);
+    numberStatusGrid.addEventListener("click", handleNumberClick);
   } else {
     for (let num = 1; num <= 9; num++) {
       const cell = document.createElement("div");
@@ -453,24 +439,7 @@ function createNumberStatusGrid() {
       }
     });
   }
-  setupNumberStatusGridListeners();
   updateNumberStatusGrid();
-}
-
-function handleNumberClick(e) {
-  const cell = e.target.closest(".number-cell");
-  if (cell) {
-    const num = parseInt(cell.dataset.number);
-    console.log(
-      "Mobile number clicked:",
-      num,
-      "mode:",
-      inputMode,
-      "selectedCell:",
-      selectedCell ? selectedCell.dataset.index : "none"
-    );
-    handleNumberInput(num);
-  }
 }
 
 function updateNumberStatusGrid() {
@@ -547,10 +516,7 @@ function updateNumberStatusGrid() {
 }
 
 function handleNumberInput(num) {
-  if (!selectedCell) {
-    console.log("No cell selected, ignoring input:", num);
-    return;
-  }
+  if (!selectedCell) return;
   const index = parseInt(selectedCell.dataset.index);
   console.log(
     "handleNumberInput: num=",
@@ -581,8 +547,8 @@ function handleNumberInput(num) {
       selectedCell.classList.add("invalid");
       setTimeout(() => {
         board[index] = 0;
+        selectedCell.classList.remove("invalid");
         selectedCell.classList.remove(
-          "invalid",
           "highlighted",
           "highlight-subgrid",
           "highlight-row",
@@ -595,12 +561,8 @@ function handleNumberInput(num) {
     updateGrid();
     checkForWin();
   } else if (inputMode === "notes") {
-    if (board[index] === 0 && initialBoard[index] === 0) {
-      // Only toggle notes in empty cells
-      toggleNote(index, num);
-      console.log("Notes after toggle:", notes[index]);
-      updateGrid();
-    }
+    toggleNote(index, num);
+    updateGrid();
   }
 }
 
@@ -635,31 +597,55 @@ function computeAutoCandidates() {
       }
     }
   }
-  console.log("Computed auto-candidates:", autoCandidates.filter(set => set.size > 0));
 }
 
-function updateGrid() {
+function updateGrid(clickedIndex = null) {
   const cells = document.querySelectorAll(".cell");
   cells.forEach((cell, index) => {
-    const value = board[index];
-    
-    // Handle notes
-    if (notes[index].size > 0) {
-      cell.classList.add("notes");
-      let notesHtml = "";
-      for (let num = 1; num <= 9; num++) {
-        notesHtml += `<span${notes[index].has(num) ? " class='filled'" : ""}>${num}</span>`;
-      }
-      cell.innerHTML = notesHtml;
-    } else {
-      cell.classList.remove("notes");
-      cell.innerHTML = value ? value : ""; // Explicitly reset content
-    }
+    const overlay = cell.querySelector(".notes-overlay");
+    cell.innerHTML = "";
+    if (overlay) cell.appendChild(overlay);
+    cell.classList.remove(
+      "notes",
+      "highlight",
+      "user-solved",
+      "button-solved",
+      "initial",
+      "invalid"
+    );
 
-    // Update classes
-    cell.classList.toggle("initial", initialBoard[index] !== 0);
-    cell.classList.toggle("user-solved", value && !initialBoard[index]);
+    if (board[index] !== 0) {
+      cell.textContent = board[index];
+      if (initialBoard[index] !== 0) cell.classList.add("initial");
+      else if (userSolved[index]) cell.classList.add("user-solved");
+      else cell.classList.add("button-solved");
+    } else {
+      const displayNotes = new Set(notes[index]);
+      if (isAutoCandidatesEnabled)
+        autoCandidates[index].forEach((n) => displayNotes.add(n));
+      if (displayNotes.size > 0 && !overlay) {
+        cell.classList.add("notes");
+        for (let num = 1; num <= 9; num++) {
+          const span = document.createElement("span");
+          span.textContent = displayNotes.has(num) ? num : "";
+          cell.appendChild(span);
+        }
+      }
+    }
+    // Apply highlight for matching numbers
+    if (highlightedNumber && board[index] === highlightedNumber) {
+      cell.classList.add("highlight");
+    }
   });
+
+  if (selectedCell) {
+    const index = parseInt(selectedCell.dataset.index);
+    selectedCell.classList.add("highlighted");
+    highlightRelatedCells(index);
+  }
+
+  updateMistakeCounter();
+  updateNumberStatusGrid();
 }
 
 function updateMistakeCounter() {
@@ -972,50 +958,17 @@ function generateFullGrid(grid) {
   return true;
 }
 
-function solveSudoku(board) {
+function solvePuzzle(board) {
   const empty = board.indexOf(0);
   if (empty === -1) return true;
   for (let num = 1; num <= 9; num++) {
     if (isValidMove(empty, num, board)) {
       board[empty] = num;
-      if (solveSudoku(board)) return true;
+      if (solvePuzzle(board)) return true;
       board[empty] = 0;
     }
   }
   return false;
-}
-
-function solvePuzzle() {
-  if (gameOver || gameWon) return;
-  console.log("Solve Puzzle clicked");
-
-  // Stop the timer
-  if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
-  }
-
-  // Clear notes and user-solved state
-  notes = Array(81)
-    .fill()
-    .map(() => new Set());
-  userSolved = Array(81).fill(false);
-
-  // Solve the puzzle starting from the initial board
-  let solvedBoard = initialBoard.slice();
-  if (solveSudoku(solvedBoard)) {
-    board = solvedBoard;
-    gameWon = true;
-    console.log("Puzzle solved successfully");
-    updateGrid();
-    updateNumberStatusGrid();
-    updateMistakeCounter();
-    showSuccessAnimation();
-  } else {
-    console.error("No solution exists for this puzzle");
-    gameOver = true;
-    showGameOver();
-  }
 }
 
 function shuffleArray(array) {
@@ -1466,21 +1419,14 @@ function resetGame() {
   notes = Array(81)
     .fill()
     .map(() => new Set());
-  userSolved = Array(81).fill(false);
   mistakeCount = 0;
   secondsElapsed = 0;
-  gameOver = false;
-  gameWon = false;
-  selectedCell = null;
-  highlightedNumber = null;
 
-  console.log("Reset game: board, notes, and state cleared");
   updateGrid();
   updateNumberStatusGrid();
   mistakeCounter.innerHTML = "";
   document.getElementById("timer").textContent = "0:00";
   hideStartOverlay();
-  removeOverlays();
 }
 
 function removeOverlays() {
@@ -1592,16 +1538,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-document.getElementById("auto-candidates").addEventListener("click", (e) => {
-  isAutoCandidatesEnabled = e.target.checked;
-  if (isAutoCandidatesEnabled) {
-    computeAutoCandidates();
-    console.log("Auto-candidates enabled and computed:", autoCandidates.filter(set => set.size > 0));
-  } else {
-    console.log("Auto-candidates disabled");
-  }
-  debouncedUpdateGrid(); // Ensure grid updates immediately
-});
+  document.getElementById("auto-candidates").addEventListener("click", (e) => {
+    isAutoCandidatesEnabled = e.target.checked;
+    if (isAutoCandidatesEnabled) {
+      computeAutoCandidates();
+      console.log("Auto-candidates enabled and computed");
+    } else {
+      console.log("Auto-candidates disabled");
+    }
+    debouncedUpdateGrid();
+  });
 
   document.querySelector(".reset-puzzle").addEventListener("click", resetGame);
 
@@ -1643,7 +1589,6 @@ document.getElementById("auto-candidates").addEventListener("click", (e) => {
 
   window.addEventListener("resize", () => {
     createNumberStatusGrid();
-    updateGrid();
   });
 });
 

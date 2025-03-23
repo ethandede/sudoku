@@ -129,14 +129,4 @@ get_header();
   </section>
 </main>
 
-<!-- Sudoku Module Scripts -->
-<script type="module" src="<?php echo get_template_directory_uri(); ?>/assets/js/sudoku.state.js"></script>
-<script type="module" src="<?php echo get_template_directory_uri(); ?>/assets/js/sudoku.events.js"></script>
-<script type="module" src="<?php echo get_template_directory_uri(); ?>/assets/js/sudoku.generator.js"></script>
-<script type="module" src="<?php echo get_template_directory_uri(); ?>/assets/js/sudoku.solver.js"></script>
-<script type="module" src="<?php echo get_template_directory_uri(); ?>/assets/js/sudoku.optimizer.js"></script>
-<script type="module" src="<?php echo get_template_directory_uri(); ?>/assets/js/sudoku.ui.js"></script>
-<script type="module" src="<?php echo get_template_directory_uri(); ?>/assets/js/sudoku.test.js"></script>
-<script type="module" src="<?php echo get_template_directory_uri(); ?>/assets/js/sudoku.js"></script>
-
 <?php get_footer(); ?>
