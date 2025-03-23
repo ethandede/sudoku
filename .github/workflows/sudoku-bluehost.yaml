@@ -16,7 +16,7 @@ jobs:
           echo "ezf.jsl.mybluehost.me ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILym/yVa3ddENwpcvknWOcIwJ/0AbKVlHb7a4aD1CVoz" > ~/.ssh/known_hosts
       - name: Deploy via SSH
         run: |
-          ssh -i key -o IdentitiesOnly=yes -o KexAlgorithms=diffie-hellman-group-exchange-sha256 -o UserKnownHostsFile=~/.ssh/known_hosts -o StrictHostKeyChecking=accept-new ezfjslmy@${{ secrets.BLUEHOST_HOST }} "cd ~/public_html/website_4a620043/wp-content/themes/sudoku && git pull origin main"
+          ssh -i key -o IdentitiesOnly=yes -o KexAlgorithms=diffie-hellman-group-exchange-sha256 -o UserKnownHostsFile=~/.ssh/known_hosts -o StrictHostKeyChecking=accept-new ezfjslmy@${{ secrets.BLUEHOST_HOST }} "cd ~/public_html/website_4a620043/wp-content/themes/sudoku && git remote set-url origin https://github.com/ethandede/sudoku.git && git fetch origin && git reset --hard origin/main"
       - name: Clean Up
         if: always()
         run: |
