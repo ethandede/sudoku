@@ -11,8 +11,8 @@ get_header();
 <main id="sudoku" class="sudoku-page">
   <section class="sudoku-container">
     <div class="container">
-      <h2>Sudoku Know!</h2>
-      <p class="supporting-text">A little puzzle-solving fun built with JavaScript—test your skills with only 4 mistakes allowed!</p>
+      <h2>Sudoku - Sudoku Online</h2>
+      <p class="supporting-text">A little puzzle-solving fun built with pure JavaScript—test your skills and try the harder levels when you're ready...with only 4 mistakes allowed!</p>
 
       <div class="sudoku-layout">
         <!-- Grid Wrapper -->
