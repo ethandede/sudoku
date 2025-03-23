@@ -945,7 +945,7 @@ p {
   cursor: pointer;
   transition: border-color 0.3s ease, color 0.3s ease, background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
   position: relative;
-  box-shadow: 3px 3px 15px 0.15px rgba(0, 0, 0, 0.1);
+  box-shadow: 3px 3px 5px 0.15px rgba(0, 0, 0, 0.1);
   padding: 6px;
   box-sizing: border-box;
   aspect-ratio: 1/1;
@@ -970,7 +970,7 @@ p {
   transform: translate(-50%, -50%);
   z-index: 1;
   transition: color 0.3s ease;
-  color: #4a90e2;
+  color: #0f335c;
 }
 .sudoku-page .sudoku-container .number-status-grid .number-cell .segment {
   background: #F5F5F5;
@@ -1362,8 +1362,9 @@ p {
   background: rgba(74, 144, 226, 0.5);
   border: 2px solid #4a90e2;
 }
-.sudoku-page .sudoku-container .cell.highlight-subgrid {
-  background: rgba(74, 144, 226, 0.2);
+.sudoku-page .sudoku-container .cell.highlighted:not(.notes):not(:empty) {
+  background: rgba(74, 144, 226, 0.4);
+  border: 2px solid #4a90e2;
 }
 .sudoku-page .sudoku-container .cell.highlight-row {
   background: rgba(155, 89, 182, 0.2) !important;
@@ -1371,9 +1372,18 @@ p {
 .sudoku-page .sudoku-container .cell.highlight-column {
   background: rgba(46, 204, 113, 0.2) !important;
 }
-.sudoku-page .sudoku-container .cell.highlighted.highlight-subgrid, .sudoku-page .sudoku-container .cell.highlighted.highlight-row, .sudoku-page .sudoku-container .cell.highlighted.highlight-column {
-  background: rgba(74, 144, 226, 0.5);
+.sudoku-page .sudoku-container .cell.highlight-subgrid {
+  background: rgba(74, 144, 226, 0.2);
+}
+.sudoku-page .sudoku-container .cell.highlighted.highlight {
+  background: rgba(74, 144, 226, 0.4);
   border: 2px solid #4a90e2;
+}
+.sudoku-page .sudoku-container .cell.highlighted.highlight-subgrid:not(.notes):not(:empty), .sudoku-page .sudoku-container .cell.highlighted.highlight-row:not(.notes):not(:empty), .sudoku-page .sudoku-container .cell.highlighted.highlight-column:not(.notes):not(:empty) {
+  background: rgba(74, 144, 226, 0.4);
+}
+.sudoku-page .sudoku-container .cell.highlight {
+  background: rgba(74, 144, 226, 0.4) !important;
 }
 .sudoku-page .sudoku-container .cell.thinking-type {
   transform-origin: center;
@@ -1404,6 +1414,7 @@ p {
   min-width: 0;
   min-height: 0;
   line-height: 1;
+  visibility: visible !important;
 }
 .sudoku-page .sudoku-container .cell:nth-child(3n+3):not(:nth-child(9n)), .sudoku-page .sudoku-container .cell:nth-child(3n+6):not(:nth-child(9n)) {
   border-right: 3px solid #aaa;
@@ -1438,7 +1449,7 @@ p {
   border-bottom: 1px solid rgba(51, 51, 51, 0.8);
 }
 .sudoku-page .sudoku-container .cell.initial {
-  color: #333333;
+  color: #0f335c;
   background-color: #e5e5e5;
 }
 .sudoku-page .sudoku-container .cell.button-solved {

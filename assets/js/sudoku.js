@@ -25,7 +25,6 @@ let isLoading = false;
 let secondsElapsed = 0;
 let currentDifficulty = "easy";
 
-
 function initializeGame() {
   console.log("Initializing game");
   createGrid();
@@ -225,24 +224,21 @@ function editCell(index, event) {
   if (gameOver || gameWon) return;
   const cell = event.target.closest(".cell");
   const isMobile = window.innerWidth <= 991;
-  console.log("editCell: index=", index, "isMobile=", isMobile, "cell=", cell);
 
-  // Clear highlights in the main grid
   document.querySelectorAll(".cell").forEach((c) => {
-    if (c !== cell)
+    if (c !== cell) {
       c.classList.remove(
         "highlighted",
         "highlight-subgrid",
         "highlight-row",
         "highlight-column"
       );
-    c.classList.remove("highlight");
-    const overlay = c.querySelector(".notes-overlay");
-    if (overlay) overlay.remove();
+    }
   });
 
-  // De-select any currently selected number in the number-status-grid
-  document.querySelectorAll('.number-status-grid .number-cell').forEach(c => c.classList.remove('selected'));
+  document
+    .querySelectorAll(".number-status-grid .number-cell")
+    .forEach((c) => c.classList.remove("selected"));
 
   selectedCell = cell;
   cell.classList.add("highlighted");
@@ -250,35 +246,44 @@ function editCell(index, event) {
 
   if (board[index] !== 0) {
     toggleHighlight(board[index]);
-    const numberCell = document.querySelector(`.number-status-grid .number-cell[data-number="${board[index]}"]`);
-    if (numberCell) {
-      numberCell.classList.add('selected');
-    }
+    const numberCell = document.querySelector(
+      `.number-status-grid .number-cell[data-number="${board[index]}"]`
+    );
+    if (numberCell) numberCell.classList.add("selected");
   } else {
     highlightedNumber = null;
     if (isMobile) {
-      console.log("Mobile mode: awaiting number input, mode=", inputMode);
+      console.log(
+        "Mobile mode: awaiting number input, mode=",
+        inputMode,
+        "index=",
+        index
+      );
+      // Ensure selectedCell remains set until a number is clicked
     } else {
-      // Flag to track if the overlay should be shown
       let shouldShowOverlay = true;
-
       cell.contentEditable = true;
       cell.focus();
       cell.textContent = "";
 
-      // Cancel the overlay if the user starts typing
-      cell.addEventListener("keydown", (e) => {
-        shouldShowOverlay = false; // Cancel overlay on keydown
-        handleKeydown(e, index);
-      }, { once: true });
+      cell.addEventListener(
+        "keydown",
+        (e) => {
+          shouldShowOverlay = false;
+          handleKeydown(e, index);
+        },
+        { once: true }
+      );
 
-      // Cancel the overlay if the cell loses focus
-      cell.addEventListener("blur", () => {
-        shouldShowOverlay = false; // Cancel overlay on blur
-        handleBlur(index);
-      }, { once: true });
+      cell.addEventListener(
+        "blur",
+        () => {
+          shouldShowOverlay = false;
+          handleBlur(index);
+        },
+        { once: true }
+      );
 
-      // Show the overlay after a delay, if not cancelled
       showNotesOverlay(index, cell, shouldShowOverlay);
     }
   }
@@ -319,7 +324,12 @@ function showNotesOverlay(index, cell, shouldShowOverlay) {
         if (notes[index].has(num)) option.classList.add("selected");
         option.addEventListener("click", (e) => {
           e.preventDefault();
-          console.log("Note overlay clicked, toggling:", num, "at index:", index);
+          console.log(
+            "Note overlay clicked, toggling:",
+            num,
+            "at index:",
+            index
+          );
           toggleNote(index, num);
           updateOverlay();
           updateGrid();
@@ -335,10 +345,28 @@ function showNotesOverlay(index, cell, shouldShowOverlay) {
   }, 10000); // 300ms delay
 }
 
+function setupNumberStatusGridListeners() {
+  numberStatusGrid.removeEventListener("click", handleNumberStatusClick);
+  numberStatusGrid.addEventListener("click", handleNumberStatusClick);
+}
+
+function handleNumberStatusClick(e) {
+  const cell = e.target.closest(".number-cell");
+  if (!cell) return;
+  e.stopPropagation();
+  const num = parseInt(cell.dataset.number);
+  const isMobile = window.innerWidth <= 991;
+  console.log(`${isMobile ? "Mobile" : "Desktop"} number clicked:`, num, "mode:", inputMode, "selectedCell:", selectedCell ? selectedCell.dataset.index : "none");
+  if (selectedCell) {
+    handleNumberInput(num);
+  } else if (!isMobile) {
+    toggleHighlight(num); // Desktop-only: highlight numbers if no cell selected
+  }
+}
+
 function createNumberStatusGrid() {
   if (!numberStatusGrid) return console.error("Number status grid not found");
   numberStatusGrid.innerHTML = "";
-
   const isMobile = window.innerWidth <= 991;
   if (isMobile) {
     const modeRow = document.createElement("div");
@@ -350,6 +378,7 @@ function createNumberStatusGrid() {
     guessBtn.textContent = "Guess";
     guessBtn.addEventListener("click", () => {
       inputMode = "guess";
+      console.log("Mode switched to guess");
       updateNumberStatusGrid();
     });
 
@@ -359,6 +388,7 @@ function createNumberStatusGrid() {
     candidateBtn.textContent = "Candidate";
     candidateBtn.addEventListener("click", () => {
       inputMode = "notes";
+      console.log("Mode switched to notes");
       updateNumberStatusGrid();
     });
 
@@ -376,21 +406,6 @@ function createNumberStatusGrid() {
       numberRow.appendChild(cell);
     }
     numberStatusGrid.appendChild(numberRow);
-
-    // Event delegation for mobile
-    numberStatusGrid.addEventListener("click", (e) => {
-      const cell = e.target.closest(".number-cell");
-      if (cell) {
-        const num = parseInt(cell.dataset.number);
-        console.log(
-          "Mobile number clicked:",
-          num,
-          "selectedCell:",
-          selectedCell
-        );
-        handleNumberInput(num);
-      }
-    });
   } else {
     for (let num = 1; num <= 9; num++) {
       const cell = document.createElement("div");
@@ -423,8 +438,10 @@ function createNumberStatusGrid() {
         );
 
         // Apply the 'selected' class to the clicked number-cell
-        document.querySelectorAll('.number-status-grid .number-cell').forEach(c => c.classList.remove('selected'));
-        cell.classList.add('selected');
+        document
+          .querySelectorAll(".number-status-grid .number-cell")
+          .forEach((c) => c.classList.remove("selected"));
+        cell.classList.add("selected");
 
         if (selectedCell !== null) {
           // If a cell is selected in the main grid, enter the number
@@ -436,7 +453,24 @@ function createNumberStatusGrid() {
       }
     });
   }
+  setupNumberStatusGridListeners();
   updateNumberStatusGrid();
+}
+
+function handleNumberClick(e) {
+  const cell = e.target.closest(".number-cell");
+  if (cell) {
+    const num = parseInt(cell.dataset.number);
+    console.log(
+      "Mobile number clicked:",
+      num,
+      "mode:",
+      inputMode,
+      "selectedCell:",
+      selectedCell ? selectedCell.dataset.index : "none"
+    );
+    handleNumberInput(num);
+  }
 }
 
 function updateNumberStatusGrid() {
@@ -513,7 +547,10 @@ function updateNumberStatusGrid() {
 }
 
 function handleNumberInput(num) {
-  if (!selectedCell) return;
+  if (!selectedCell) {
+    console.log("No cell selected, ignoring input:", num);
+    return;
+  }
   const index = parseInt(selectedCell.dataset.index);
   console.log(
     "handleNumberInput: num=",
@@ -544,8 +581,8 @@ function handleNumberInput(num) {
       selectedCell.classList.add("invalid");
       setTimeout(() => {
         board[index] = 0;
-        selectedCell.classList.remove("invalid");
         selectedCell.classList.remove(
+          "invalid",
           "highlighted",
           "highlight-subgrid",
           "highlight-row",
@@ -558,8 +595,12 @@ function handleNumberInput(num) {
     updateGrid();
     checkForWin();
   } else if (inputMode === "notes") {
-    toggleNote(index, num);
-    updateGrid();
+    if (board[index] === 0 && initialBoard[index] === 0) {
+      // Only toggle notes in empty cells
+      toggleNote(index, num);
+      console.log("Notes after toggle:", notes[index]);
+      updateGrid();
+    }
   }
 }
 
@@ -594,32 +635,16 @@ function computeAutoCandidates() {
       }
     }
   }
+  console.log("Computed auto-candidates:", autoCandidates.filter(set => set.size > 0));
 }
 
 function updateGrid(clickedIndex = null) {
-  console.log(
-    "updateGrid called, selectedCell:",
-    selectedCell ? selectedCell.dataset.index : "null",
-    "board sample:",
-    board.slice(0, 9)
-  );
   const cells = document.querySelectorAll(".cell");
-  if (!cells.length) {
-    console.error("No cells found in grid");
-    return;
-  }
   cells.forEach((cell, index) => {
     const overlay = cell.querySelector(".notes-overlay");
     cell.innerHTML = "";
     if (overlay) cell.appendChild(overlay);
-    cell.classList.remove(
-      "notes",
-      "highlight",
-      "user-solved",
-      "button-solved",
-      "initial",
-      "invalid"
-    );
+    cell.classList.remove("notes", "highlight", "user-solved", "button-solved", "initial", "invalid");
 
     if (board[index] !== 0) {
       cell.textContent = board[index];
@@ -637,6 +662,7 @@ function updateGrid(clickedIndex = null) {
           span.textContent = displayNotes.has(num) ? num : "";
           cell.appendChild(span);
         }
+        console.log("Displaying notes at index", index, ":", [...displayNotes], "cell HTML:", cell.innerHTML);
       }
     }
     if (highlightedNumber && board[index] === highlightedNumber)
@@ -649,10 +675,6 @@ function updateGrid(clickedIndex = null) {
     highlightRelatedCells(index);
   }
 
-  console.log(
-    "Post-updateGrid cell 44 innerHTML:",
-    document.querySelector('[data-index="44"]').innerHTML
-  );
   updateMistakeCounter();
   updateNumberStatusGrid();
 }
@@ -683,12 +705,6 @@ function checkForWin() {
 function toggleHighlight(num) {
   if (gameOver || gameWon) return;
   highlightedNumber = highlightedNumber === num ? null : num;
-  console.log(
-    "Toggling highlight for number:",
-    num,
-    "highlightedNumber:",
-    highlightedNumber
-  );
   updateGrid();
 }
 
@@ -948,7 +964,9 @@ function generatePuzzle(difficulty) {
     difficultyTargets
   );
   if (finalAnalysis.hardestTechnique < minTechnique) {
-    console.log(`Technique too low: ${finalAnalysis.hardestTechnique}, retrying`);
+    console.log(
+      `Technique too low: ${finalAnalysis.hardestTechnique}, retrying`
+    );
     return generatePuzzle(difficulty);
   }
   return puzzle;
@@ -1090,7 +1108,8 @@ function applyTechnique(level, board, analyzeOnly = false) {
     return candidates;
   }
 
-  if (level === 0) { // Singles (Naked & Hidden)
+  if (level === 0) {
+    // Singles (Naked & Hidden)
     for (let i = 0; i < 81; i++) {
       if (tempBoard[i] === 0) {
         const candidates = getCandidates(i);
@@ -1107,7 +1126,9 @@ function applyTechnique(level, board, analyzeOnly = false) {
     for (let unit = 0; unit < 27; unit++) {
       const cells = getUnitCells(unit);
       const counts = Array(10).fill(0);
-      const positions = Array(10).fill().map(() => []);
+      const positions = Array(10)
+        .fill()
+        .map(() => []);
       cells.forEach((i) => {
         if (tempBoard[i] === 0) {
           getCandidates(i).forEach((num) => {
@@ -1129,13 +1150,16 @@ function applyTechnique(level, board, analyzeOnly = false) {
         }
       }
     }
-  } else if (level === 1) { // Locked Candidates
+  } else if (level === 1) {
+    // Locked Candidates
     for (let box = 0; box < 9; box++) {
       const boxStart = Math.floor(box / 3) * 27 + (box % 3) * 3;
       const boxCells = [];
       for (let i = 0; i < 9; i++)
         boxCells.push(boxStart + Math.floor(i / 3) * 9 + (i % 3));
-      const boxCands = Array(10).fill().map(() => new Set());
+      const boxCands = Array(10)
+        .fill()
+        .map(() => new Set());
       boxCells.forEach((i) => {
         if (tempBoard[i] === 0)
           getCandidates(i).forEach((num) => boxCands[num].add(i));
@@ -1153,10 +1177,13 @@ function applyTechnique(level, board, analyzeOnly = false) {
         }
       }
     }
-  } else if (level === 2) { // Naked/Hidden Pairs
+  } else if (level === 2) {
+    // Naked/Hidden Pairs
     for (let unit = 0; unit < 27; unit++) {
       const cells = getUnitCells(unit);
-      const cands = cells.map((i) => (tempBoard[i] === 0 ? getCandidates(i) : new Set()));
+      const cands = cells.map((i) =>
+        tempBoard[i] === 0 ? getCandidates(i) : new Set()
+      );
       for (let i = 0; i < 9; i++) {
         if (cands[i].size === 2) {
           for (let j = i + 1; j < 9; j++) {
@@ -1175,9 +1202,12 @@ function applyTechnique(level, board, analyzeOnly = false) {
         }
       }
     }
-  } else if (level === 3) { // X-Wing (simplified)
+  } else if (level === 3) {
+    // X-Wing (simplified)
     for (let num = 1; num <= 9; num++) {
-      const rowCands = Array(9).fill().map(() => new Set());
+      const rowCands = Array(9)
+        .fill()
+        .map(() => new Set());
       for (let i = 0; i < 81; i++) {
         if (tempBoard[i] === 0 && getCandidates(i).has(num))
           rowCands[Math.floor(i / 9)].add(i % 9);
@@ -1185,7 +1215,10 @@ function applyTechnique(level, board, analyzeOnly = false) {
       for (let r1 = 0; r1 < 8; r1++) {
         if (rowCands[r1].size === 2) {
           for (let r2 = r1 + 1; r2 < 9; r2++) {
-            if (rowCands[r2].size === 2 && setsEqual(rowCands[r1], rowCands[r2])) {
+            if (
+              rowCands[r2].size === 2 &&
+              setsEqual(rowCands[r1], rowCands[r2])
+            ) {
               progress = true;
               console.log(`X-Wing for ${num} in rows ${r1}, ${r2}`);
               if (!analyzeOnly) {
@@ -1195,9 +1228,12 @@ function applyTechnique(level, board, analyzeOnly = false) {
         }
       }
     }
-  } else if (level === 4) { // Swordfish
+  } else if (level === 4) {
+    // Swordfish
     for (let num = 1; num <= 9; num++) {
-      const rowCands = Array(9).fill().map(() => new Set());
+      const rowCands = Array(9)
+        .fill()
+        .map(() => new Set());
       for (let i = 0; i < 81; i++) {
         if (tempBoard[i] === 0 && getCandidates(i).has(num))
           rowCands[Math.floor(i / 9)].add(i % 9);
@@ -1215,7 +1251,9 @@ function applyTechnique(level, board, analyzeOnly = false) {
                   ]);
                   if (cols.size === 3) {
                     progress = true;
-                    console.log(`Swordfish for ${num} in rows ${r1}, ${r2}, ${r3}`);
+                    console.log(
+                      `Swordfish for ${num} in rows ${r1}, ${r2}, ${r3}`
+                    );
                     if (!analyzeOnly) {
                     }
                   }
@@ -1480,7 +1518,10 @@ document.addEventListener("DOMContentLoaded", () => {
     currentDifficulty: document.getElementById("current-difficulty"),
   };
   if (Object.values(required).some((el) => !el)) {
-    console.error("Missing elements:", Object.keys(required).filter((k) => !required[k]));
+    console.error(
+      "Missing elements:",
+      Object.keys(required).filter((k) => !required[k])
+    );
     return;
   }
   initializeGame();
@@ -1510,7 +1551,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const difficultyOptions = document.querySelectorAll(".difficulty-option");
-  if (difficultyOptions.length === 0) console.error("No difficulty options found");
+  if (difficultyOptions.length === 0)
+    console.error("No difficulty options found");
   difficultyOptions.forEach((option) => {
     option.addEventListener("click", () => {
       currentDifficulty = option.dataset.value;
@@ -1527,20 +1569,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  document.getElementById("auto-candidates").addEventListener("click", (e) => {
-    isAutoCandidatesEnabled = e.target.checked;
-    if (isAutoCandidatesEnabled) {
-      computeAutoCandidates();
-      console.log("Auto-candidates enabled and computed");
-    } else {
-      console.log("Auto-candidates disabled");
-    }
-    debouncedUpdateGrid();
-  });
+document.getElementById("auto-candidates").addEventListener("click", (e) => {
+  isAutoCandidatesEnabled = e.target.checked;
+  if (isAutoCandidatesEnabled) {
+    computeAutoCandidates();
+    console.log("Auto-candidates enabled and computed:", autoCandidates.filter(set => set.size > 0));
+  } else {
+    console.log("Auto-candidates disabled");
+  }
+  debouncedUpdateGrid(); // Ensure grid updates immediately
+});
 
   document.querySelector(".reset-puzzle").addEventListener("click", resetGame);
 
-  document.getElementById("solve-puzzle").addEventListener("click", solvePuzzle);
+  document
+    .getElementById("solve-puzzle")
+    .addEventListener("click", solvePuzzle);
 
   grid.addEventListener("click", (e) => {
     const cell = e.target.closest(".cell");
@@ -1576,6 +1620,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.addEventListener("resize", () => {
     createNumberStatusGrid();
+    updateGrid();
   });
 });
 
