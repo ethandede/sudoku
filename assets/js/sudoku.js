@@ -638,45 +638,28 @@ function computeAutoCandidates() {
   console.log("Computed auto-candidates:", autoCandidates.filter(set => set.size > 0));
 }
 
-function updateGrid(clickedIndex = null) {
+function updateGrid() {
   const cells = document.querySelectorAll(".cell");
   cells.forEach((cell, index) => {
-    const overlay = cell.querySelector(".notes-overlay");
-    cell.innerHTML = "";
-    if (overlay) cell.appendChild(overlay);
-    cell.classList.remove("notes", "highlight", "user-solved", "button-solved", "initial", "invalid");
-
-    if (board[index] !== 0) {
-      cell.textContent = board[index];
-      if (initialBoard[index] !== 0) cell.classList.add("initial");
-      else if (userSolved[index]) cell.classList.add("user-solved");
-      else cell.classList.add("button-solved");
-    } else {
-      const displayNotes = new Set(notes[index]);
-      if (isAutoCandidatesEnabled)
-        autoCandidates[index].forEach((n) => displayNotes.add(n));
-      if (displayNotes.size > 0 && !overlay) {
-        cell.classList.add("notes");
-        for (let num = 1; num <= 9; num++) {
-          const span = document.createElement("span");
-          span.textContent = displayNotes.has(num) ? num : "";
-          cell.appendChild(span);
-        }
-        console.log("Displaying notes at index", index, ":", [...displayNotes], "cell HTML:", cell.innerHTML);
+    const value = board[index];
+    
+    // Handle notes
+    if (notes[index].size > 0) {
+      cell.classList.add("notes");
+      let notesHtml = "";
+      for (let num = 1; num <= 9; num++) {
+        notesHtml += `<span${notes[index].has(num) ? " class='filled'" : ""}>${num}</span>`;
       }
+      cell.innerHTML = notesHtml;
+    } else {
+      cell.classList.remove("notes");
+      cell.innerHTML = value ? value : ""; // Explicitly reset content
     }
-    if (highlightedNumber && board[index] === highlightedNumber)
-      cell.classList.add("highlight");
+
+    // Update classes
+    cell.classList.toggle("initial", initialBoard[index] !== 0);
+    cell.classList.toggle("user-solved", value && !initialBoard[index]);
   });
-
-  if (selectedCell) {
-    const index = parseInt(selectedCell.dataset.index);
-    selectedCell.classList.add("highlighted");
-    highlightRelatedCells(index);
-  }
-
-  updateMistakeCounter();
-  updateNumberStatusGrid();
 }
 
 function updateMistakeCounter() {
@@ -989,17 +972,50 @@ function generateFullGrid(grid) {
   return true;
 }
 
-function solvePuzzle(board) {
+function solveSudoku(board) {
   const empty = board.indexOf(0);
   if (empty === -1) return true;
   for (let num = 1; num <= 9; num++) {
     if (isValidMove(empty, num, board)) {
       board[empty] = num;
-      if (solvePuzzle(board)) return true;
+      if (solveSudoku(board)) return true;
       board[empty] = 0;
     }
   }
   return false;
+}
+
+function solvePuzzle() {
+  if (gameOver || gameWon) return;
+  console.log("Solve Puzzle clicked");
+
+  // Stop the timer
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+
+  // Clear notes and user-solved state
+  notes = Array(81)
+    .fill()
+    .map(() => new Set());
+  userSolved = Array(81).fill(false);
+
+  // Solve the puzzle starting from the initial board
+  let solvedBoard = initialBoard.slice();
+  if (solveSudoku(solvedBoard)) {
+    board = solvedBoard;
+    gameWon = true;
+    console.log("Puzzle solved successfully");
+    updateGrid();
+    updateNumberStatusGrid();
+    updateMistakeCounter();
+    showSuccessAnimation();
+  } else {
+    console.error("No solution exists for this puzzle");
+    gameOver = true;
+    showGameOver();
+  }
 }
 
 function shuffleArray(array) {
@@ -1450,14 +1466,21 @@ function resetGame() {
   notes = Array(81)
     .fill()
     .map(() => new Set());
+  userSolved = Array(81).fill(false);
   mistakeCount = 0;
   secondsElapsed = 0;
+  gameOver = false;
+  gameWon = false;
+  selectedCell = null;
+  highlightedNumber = null;
 
+  console.log("Reset game: board, notes, and state cleared");
   updateGrid();
   updateNumberStatusGrid();
   mistakeCounter.innerHTML = "";
   document.getElementById("timer").textContent = "0:00";
   hideStartOverlay();
+  removeOverlays();
 }
 
 function removeOverlays() {
