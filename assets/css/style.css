@@ -704,7 +704,7 @@ p {
 .sudoku-page {
   font-family: "Open Sans", sans-serif;
   background: linear-gradient(to bottom, #ffffff, #e0e0e0);
-  color: #333333;
+  color: #0f335c;
   min-height: 100vh;
   padding: 2.5rem 0;
 }
@@ -737,7 +737,7 @@ p {
   border-radius: 8px;
   text-align: center;
   max-width: 90%;
-  color: #333333;
+  color: #0f335c;
 }
 .sudoku-page .sudoku-container .start-overlay .start-message h2 {
   font-size: clamp(20px, 4vw, 32px);
@@ -752,7 +752,7 @@ p {
   font-size: clamp(24px, 5vw, 40px);
   line-height: 1.2;
   margin-bottom: 1rem;
-  color: #333333;
+  color: #0f335c;
   text-shadow: none;
   font-family: "Open Sans", sans-serif;
   text-align: left;
@@ -771,7 +771,7 @@ p {
   border-left: 4px solid #4a90e2;
   margin-bottom: 2rem;
   max-width: 600px;
-  color: #666666;
+  color: rgb(29.2990654206, 99.6168224299, 179.7009345794);
   font-family: "Open Sans", sans-serif;
 }
 @media (max-width: 991px) {
@@ -901,14 +901,14 @@ p {
 }
 .sudoku-page .sudoku-container .status-bar .status-item .label {
   font-size: 16px;
-  color: #333333;
+  color: #0f335c;
   font-family: "Open Sans", sans-serif;
   font-weight: bold;
 }
 .sudoku-page .sudoku-container .status-bar .status-item .timer,
 .sudoku-page .sudoku-container .status-bar .status-item #timer {
   font-size: 16px;
-  color: #333333;
+  color: #0f335c;
   font-family: "Open Sans", sans-serif;
 }
 .sudoku-page .sudoku-container .status-bar .status-item .current-difficulty {
@@ -927,7 +927,7 @@ p {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: rgba(51, 51, 51, 0.3);
+  background: rgba(15, 51, 92, 0.3);
 }
 .sudoku-page .sudoku-container .status-bar .status-item .mistake-counter .dot.filled,
 .sudoku-page .sudoku-container .status-bar .status-item #mistake-counter .dot.filled {
@@ -935,7 +935,7 @@ p {
 }
 @media (max-width: 991px) {
   .sudoku-page .sudoku-container .status-bar {
-    padding: 8px 1px 0;
+    padding: 0 0 5px;
     background: transparent;
     border-bottom: none;
     margin-bottom: 1px;
@@ -944,6 +944,7 @@ p {
     gap: 4px;
   }
   .sudoku-page .sudoku-container .status-bar .status-item .label {
+    font-size: clamp(14px, 2.5vw, 16px);
     font-weight: 400;
   }
   .sudoku-page .sudoku-container .status-bar .status-item .label.difficulty {
@@ -989,7 +990,7 @@ p {
   font-size: clamp(24px, 5vw, 36px);
   font-family: "Open Sans", sans-serif;
   font-weight: 700;
-  color: #333333;
+  color: #0f335c;
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -1002,7 +1003,7 @@ p {
 }
 .sudoku-page .sudoku-container .number-status-grid .number-cell.used {
   opacity: 0.3;
-  color: black;
+  color: rgb(0.7009345794, 2.3831775701, 4.2990654206);
 }
 .sudoku-page .sudoku-container .number-status-grid .number-cell.selected {
   background: #0f335c;
@@ -1048,10 +1049,10 @@ p {
   opacity: 0.7;
 }
 .sudoku-page .sudoku-container .number-status-grid .number-cell.guess-mode {
-  border-color: #4a90e2;
+  border-color: #999999;
 }
 .sudoku-page .sudoku-container .number-status-grid .number-cell.notes-mode {
-  border-color: #333333;
+  border-color: #999999;
 }
 @media (max-width: 991px) {
   .sudoku-page .sudoku-container .number-status-grid {
@@ -1072,17 +1073,16 @@ p {
     width: 100%;
   }
   .sudoku-page .sudoku-container .number-status-grid .mode-option {
-    padding: 8px 0;
+    padding: 0.5rem 2rem;
     font-size: 16px;
     font-weight: bold;
     background: rgb(249.5, 249.5, 249.5);
-    border: 1px solid rgba(51, 51, 51, 0.2);
+    border: 1px solid #999999;
     border-right: none;
-    color: #333333;
+    color: #0f335c;
     cursor: pointer;
     transition: background-color 0.3s ease, color 0.3s ease;
-    width: 100px;
-    max-width: 100px;
+    width: fit-content;
     text-align: center;
   }
   .sudoku-page .sudoku-container .number-status-grid .mode-option:last-child {
@@ -1090,11 +1090,11 @@ p {
   }
   .sudoku-page .sudoku-container .number-status-grid .mode-option.guess-option.active {
     background: rgba(74, 144, 226, 0.2);
-    color: #333333;
+    color: #0f335c;
   }
   .sudoku-page .sudoku-container .number-status-grid .mode-option.candidate-option.active {
-    background: rgba(51, 51, 51, 0.2);
-    color: #333333;
+    background: #cccccc;
+    color: #0f335c;
   }
   .sudoku-page .sudoku-container .number-status-grid .mode-option:hover:not(.active) {
     background: rgb(236.75, 236.75, 236.75);
@@ -1143,10 +1143,10 @@ p {
     display: none;
   }
   .sudoku-page .sudoku-container .number-status-grid .number-cell.guess-mode {
-    border: 1px solid rgba(51, 51, 51, 0.8);
+    border: 1px solid #999999;
   }
   .sudoku-page .sudoku-container .number-status-grid .number-cell.notes-mode {
-    background: rgba(51, 51, 51, 0.2);
+    background: #cccccc;
   }
 }
 .sudoku-page .sudoku-container .sudoku-controls {
@@ -1175,7 +1175,7 @@ p {
   padding: 10px;
   border-radius: 5px;
   font-family: "Open Sans", sans-serif;
-  color: #333333;
+  color: #0f335c;
 }
 .sudoku-page .sudoku-container .sudoku-controls .puzzle-info.visible {
   display: flex;
@@ -1189,11 +1189,11 @@ p {
 .sudoku-page .sudoku-container .sudoku-controls .puzzle-info .info-item .label {
   font-size: 16px;
   font-weight: bold;
-  color: rgb(76.5, 76.5, 76.5);
+  color: rgb(22.1495327103, 75.308411215, 135.8504672897);
 }
 .sudoku-page .sudoku-container .sudoku-controls .puzzle-info .info-item span:not(.label) {
   font-size: 16px;
-  color: #333333;
+  color: #0f335c;
 }
 .sudoku-page .sudoku-container .sudoku-controls .puzzle-info .info-item #techniques-list {
   font-style: italic;
@@ -1219,7 +1219,7 @@ p {
 }
 .sudoku-page .sudoku-container .sudoku-controls .cta-button {
   background: #0f335c;
-  border: 1px solid rgba(51, 51, 51, 0.5);
+  border: 1px solid rgba(15, 51, 92, 0.5);
   padding: 8px 16px;
   font-size: clamp(10px, 2vw, 16px);
   min-width: 80px;
@@ -1270,7 +1270,7 @@ p {
   width: 20px;
   height: 20px;
   border: 3px solid rgba(51, 51, 51, 0.3);
-  border-top: 3px solid #333333;
+  border-top: 3px solid #0f335c;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   transform: translate(-50%, -50%);
@@ -1294,7 +1294,7 @@ p {
   width: 20px;
   height: 20px;
   border: 3px solid rgba(51, 51, 51, 0.3);
-  border-top: 3px solid #333333;
+  border-top: 3px solid #0f335c;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   transform: translate(-50%, -50%);
@@ -1324,12 +1324,35 @@ p {
   display: flex;
   align-items: center;
   padding: 15px 20px;
+  min-height: 50px;
   font-size: clamp(16px, 2.5vw, 20px);
   font-weight: bold;
-  color: #333333;
+  color: #0f335c;
   cursor: pointer;
   transition: background 0.3s ease;
   gap: 1rem;
+}
+.sudoku-page .sudoku-container .sudoku-controls .difficulty-dropup .difficulty-option .spinner-container {
+  display: none;
+  width: 20px;
+  height: 20px;
+  margin-left: auto;
+  align-self: center;
+  position: relative;
+}
+.sudoku-page .sudoku-container .sudoku-controls .difficulty-dropup .difficulty-option .loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(51, 51, 51, 0.3);
+  border-top: 3px solid #4a90e2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  box-sizing: border-box;
+  position: absolute;
+  top: 10px;
+}
+.sudoku-page .sudoku-container .sudoku-controls .difficulty-dropup .difficulty-option.loading .spinner-container {
+  display: block !important;
 }
 .sudoku-page .sudoku-container .sudoku-controls .difficulty-dropup .difficulty-option:hover {
   background: rgba(74, 144, 226, 0.1);
@@ -1368,7 +1391,7 @@ p {
 }
 .sudoku-page .sudoku-container .sudoku-controls .control-row label {
   font-size: 16px;
-  color: #333333;
+  color: #0f335c;
   font-family: "Open Sans", sans-serif;
 }
 .sudoku-page .sudoku-container .sudoku-controls .auto-candidates-checkbox {
@@ -1436,6 +1459,8 @@ p {
 }
 .sudoku-page .sudoku-container .cell.highlight {
   background: rgba(74, 144, 226, 0.4) !important;
+  border: 2px solid #4a90e2 !important;
+  z-index: 1;
 }
 .sudoku-page .sudoku-container .cell.thinking-type {
   transform-origin: center;
@@ -1496,10 +1521,10 @@ p {
   }
 }
 .sudoku-page .sudoku-container .cell:nth-child(-n+9) {
-  border-top: 1px solid rgba(51, 51, 51, 0.8);
+  border-top: 1px solid rgba(15, 51, 92, 0.8);
 }
 .sudoku-page .sudoku-container .cell:nth-last-child(-n+9) {
-  border-bottom: 1px solid rgba(51, 51, 51, 0.8);
+  border-bottom: 1px solid rgba(15, 51, 92, 0.8);
 }
 .sudoku-page .sudoku-container .cell.initial {
   color: #0f335c;
@@ -1601,7 +1626,7 @@ p {
 .sudoku-page .sudoku-container .success-overlay .game-over-message p,
 .sudoku-page .sudoku-container .success-overlay .success-message p {
   font-size: clamp(12px, 2.5vw, 16px);
-  color: #333333;
+  color: #0f335c;
   margin-bottom: 15px;
 }
 .sudoku-page .sudoku-container .game-over-overlay .game-over-message .cta-button,
@@ -1612,7 +1637,7 @@ p {
   border: none;
   padding: 10px 20px;
   font-size: clamp(12px, 2.5vw, 16px);
-  color: #333333;
+  color: #0f335c;
 }
 .sudoku-page .sudoku-container .game-over-overlay .game-over-message .cta-button:hover,
 .sudoku-page .sudoku-container .game-over-overlay .success-message .cta-button:hover,

@@ -70,27 +70,27 @@ get_header();
             <div class="difficulty-dropup" id="difficulty-dropup">
               <div class="difficulty-option" data-value="quick">
                 <i class="fas fa-bolt"></i><span>Quick</span>
-                <div class="loading-spinner"></div>
+                  <div class="spinner-container"><div class="loading-spinner"></div></div>
               </div>
               <div class="difficulty-option" data-value="easy">
                 <i class="fas fa-feather"></i><span>Easy</span>
-                <div class="loading-spinner"></div>
+                  <div class="spinner-container"><div class="loading-spinner"></div></div>
               </div>
               <div class="difficulty-option" data-value="not easy">
                 <i class="fas fa-wind"></i><span>Not Easy</span>
-                <div class="loading-spinner"></div>
+                  <div class="spinner-container"><div class="loading-spinner"></div></div>
               </div>
               <div class="difficulty-option" data-value="hard">
                 <i class="fas fa-hammer"></i><span>Hard</span>
-                <div class="loading-spinner"></div>
+                  <div class="spinner-container"><div class="loading-spinner"></div></div>
               </div>
               <div class="difficulty-option" data-value="expert">
                 <i class="fas fa-brain"></i><span>Expert</span>
-                <div class="loading-spinner"></div>
+                  <div class="spinner-container"><div class="loading-spinner"></div></div>
               </div>
               <div class="difficulty-option" data-value="mental">
                 <i class="fas fa-skull"></i><span>Mental</span>
-                <div class="loading-spinner"></div>
+                  <div class="spinner-container"><div class="loading-spinner"></div></div>
               </div>
             </div>
             <div class="control-row action-row">
