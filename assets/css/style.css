@@ -718,11 +718,6 @@ p {
   margin: 0 auto;
   padding: 0;
 }
-@media (max-width: 991px) {
-  .sudoku-page .sudoku-container .container {
-    padding: 0 15px;
-  }
-}
 .sudoku-page .sudoku-container .start-overlay {
   position: absolute;
   top: 0;
@@ -944,7 +939,6 @@ p {
     background: transparent;
     border-bottom: none;
     margin-bottom: 1px;
-    max-width: 400px;
   }
   .sudoku-page .sudoku-container .status-bar .status-item {
     gap: 4px;
@@ -969,8 +963,8 @@ p {
 }
 @media (max-width: 991px) {
   .sudoku-page .sudoku-container .sudoku-grid {
-    width: 400px;
-    height: 400px;
+    width: 87vw;
+    height: 87vw;
   }
 }
 .sudoku-page .sudoku-container .number-status-grid {
@@ -1248,6 +1242,7 @@ p {
   font-weight: bold;
   gap: 10px;
   width: 100%;
+  max-width: 500px;
 }
 .sudoku-page .sudoku-container .sudoku-controls .cta-button.new-game i {
   font-size: clamp(14px, 2vw, 18px);
@@ -1400,7 +1395,7 @@ p {
 }
 @media (max-width: 991px) {
   .sudoku-page .sudoku-container .cell {
-    font-size: clamp(14px, 2.5vw, 24px);
+    font-size: clamp(18px, 5vw, 24px);
     cursor: pointer;
   }
 }
@@ -1452,13 +1447,14 @@ p {
   gap: 0.25px !important;
   padding: 0 !important;
   font-size: clamp(10px, 1.5vw, 12px) !important;
+  font-weight: 400;
   overflow: hidden;
 }
 @media (max-width: 991px) {
   .sudoku-page .sudoku-container .cell.notes {
     gap: 0px !important;
     padding: 0 !important;
-    font-size: clamp(8px, 1vw, 10px) !important;
+    font-size: clamp(8px, 2.5vw, 10px) !important;
   }
 }
 .sudoku-page .sudoku-container .cell.notes span {
@@ -1528,9 +1524,8 @@ p {
   background: rgba(224, 224, 224, 0.9);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
-  padding: 2px;
-  border-radius: 5px;
+  gap: 0;
+  padding: 0%;
   z-index: 10;
 }
 @media (max-width: 991px) {
@@ -1542,14 +1537,14 @@ p {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(10px, 1.5vw, 14px);
+  font-size: clamp(9px, 1.5vw, 11px);
   color: transparent;
   cursor: pointer;
   transition: color 0.4s ease;
 }
 @media (max-width: 991px) {
   .sudoku-page .sudoku-container .notes-overlay .note-option {
-    font-size: 10px;
+    font-size: 9px;
   }
 }
 .sudoku-page .sudoku-container .notes-overlay .note-option:hover {

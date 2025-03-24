@@ -346,6 +346,11 @@ function showNotesOverlay(index, cell, shouldShowOverlay) {
   }, 10000); // 300ms delay
 }
 
+
+function setupNumberStatusGridListeners() {
+  numberStatusGrid.removeEventListener("click", handleNumberStatusClick);
+  numberStatusGrid.addEventListener("click", handleNumberStatusClick);
+}
 function createNumberStatusGrid() {
   if (!numberStatusGrid) return console.error("Number status grid not found");
   numberStatusGrid.innerHTML = "";
@@ -388,10 +393,6 @@ function createNumberStatusGrid() {
       numberRow.appendChild(cell);
     }
     numberStatusGrid.appendChild(numberRow);
-
-    // Remove old listeners to prevent duplicates
-    numberStatusGrid.removeEventListener("click", handleNumberClick);
-    numberStatusGrid.addEventListener("click", handleNumberClick);
   } else {
     for (let num = 1; num <= 9; num++) {
       const cell = document.createElement("div");
@@ -439,7 +440,22 @@ function createNumberStatusGrid() {
       }
     });
   }
+  setupNumberStatusGridListeners(); // This uses handleNumberStatusClick
   updateNumberStatusGrid();
+}
+
+function handleNumberStatusClick(e) {
+  const cell = e.target.closest(".number-cell");
+  if (!cell) return;
+  e.stopPropagation();
+  const num = parseInt(cell.dataset.number);
+  const isMobile = window.innerWidth <= 991;
+  console.log(`${isMobile ? "Mobile" : "Desktop"} number clicked:`, num, "mode:", inputMode, "selectedCell:", selectedCell ? selectedCell.dataset.index : "none");
+  if (selectedCell) {
+    handleNumberInput(num);
+  } else if (!isMobile) {
+    toggleHighlight(num); // Desktop-only: highlight numbers if no cell selected
+  }
 }
 
 function updateNumberStatusGrid() {

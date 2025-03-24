@@ -21,7 +21,6 @@ $overgrid-border-color: rgba($primary-text, 0.8);
       padding: 0;
 
       @media (max-width: 991px) {
-        padding: 0 15px;
       }
     }
 
@@ -281,7 +280,6 @@ $overgrid-border-color: rgba($primary-text, 0.8);
         background: transparent;
         border-bottom: none;
         margin-bottom: 1px;
-        max-width: 400px;
 
         .status-item {
           gap: 4px;
@@ -310,8 +308,8 @@ $overgrid-border-color: rgba($primary-text, 0.8);
       box-sizing: border-box;
 
       @media (max-width: 991px) {
-        width: 400px;
-        height: 400px;
+        width: 87vw;
+        height: 87vw  ;
       }
     }
 
@@ -626,6 +624,7 @@ $overgrid-border-color: rgba($primary-text, 0.8);
           font-weight: bold;
           gap: 10px;
           width: 100%;
+          max-width: 500px;
 
           i {
             font-size: clamp(14px, 2vw, 18px);
@@ -806,7 +805,7 @@ $overgrid-border-color: rgba($primary-text, 0.8);
       box-sizing: border-box;
 
       @media (max-width: 991px) {
-        font-size: clamp(14px, 2.5vw, 24px);
+        font-size: clamp(18px, 5vw, 24px);
         cursor: pointer;
       }
 
@@ -872,12 +871,13 @@ $overgrid-border-color: rgba($primary-text, 0.8);
         gap: 0.25px !important;
         padding: 0 !important;
         font-size: clamp(10px, 1.5vw, 12px) !important;
+        font-weight: 400;
         overflow: hidden;
 
         @media (max-width: 991px) {
           gap: 0px !important;
           padding: 0 !important;
-          font-size: clamp(8px, 1vw, 10px) !important;
+          font-size: clamp(8px, 2.5vw, 10px) !important;
         }
 
         span {
@@ -965,9 +965,8 @@ $overgrid-border-color: rgba($primary-text, 0.8);
       background: $notes-overlay-background;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 2px;
-      padding: 2px;
-      border-radius: 5px;
+      gap: 0;
+      padding: 0%;
       z-index: 10;
 
       @media (max-width: 991px) {
@@ -978,13 +977,13 @@ $overgrid-border-color: rgba($primary-text, 0.8);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: clamp(10px, 1.5vw, 14px);
+        font-size: clamp(9px, 1.5vw, 11px);
         color: transparent;
         cursor: pointer;
         transition: color 0.4s ease;
 
         @media (max-width: 991px) {
-          font-size: clamp(9px, 10px, 11px);
+          font-size: clamp(8px, 9px, 10px);
         }
 
         &:hover {
