@@ -128,7 +128,6 @@ $overgrid-border-color: rgba($primary-text, 0.8);
         }
       }
 
-
       // Breakpoint: Replace square ads with skyscraper below 1155px
       // Total width at this point: 510px (grid) + 325px (controls) + 300px (square ads) + 10px * 2 gaps = 1155px
       // @media (max-width: 1155px) {
@@ -310,7 +309,7 @@ $overgrid-border-color: rgba($primary-text, 0.8);
 
       @media (max-width: 991px) {
         width: 87vw;
-        height: 87vw  ;
+        height: 87vw;
       }
     }
 
@@ -330,14 +329,14 @@ $overgrid-border-color: rgba($primary-text, 0.8);
       cursor: default; // No pointer cursor during loading
       user-select: none; // Prevent text selection
       opacity: 1; // Dimmed to indicate inactivity
-    
+
       &.loaded {
         pointer-events: auto; // Enable interaction when loaded
         cursor: auto; // Restore normal cursor (adjust if pointer is desired)
         user-select: auto; // Restore selection if needed
         opacity: 1; // Full visibility
       }
-    
+
       .number-cell {
         background: rgba($background-start, 1);
         display: grid;
@@ -356,24 +355,24 @@ $overgrid-border-color: rgba($primary-text, 0.8);
         padding: 4px;
         box-sizing: border-box;
         aspect-ratio: 1 / 1;
-    
+
         &:hover {
           transform: none; // No hover effect until loaded
         }
-    
+
         &.used {
           opacity: 0.3;
           color: color.adjust($primary-text, $lightness: -20%);
         }
-    
+
         &.selected {
           background: #0f335c;
         }
-    
+
         &.solved {
           box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.3);
         }
-    
+
         .number-text {
           position: absolute;
           top: 50%;
@@ -383,28 +382,29 @@ $overgrid-border-color: rgba($primary-text, 0.8);
           transition: color 0.3s ease;
           color: #0f335c;
         }
-    
+
         .segment {
-          background: #F5F5F5;
-          border: 1px solid #AAAAAA;
+          background: #f5f5f5;
+          border: 1px solid #aaaaaa;
           transition: background-color 0.3s ease;
           min-height: 8px;
           min-width: 8px;
-    
+
           &.filled {
             background: #dde8f9 !important;
           }
         }
       }
-    
+
       &.loaded .number-cell {
-        transition: border-color 0.3s ease, color 0.3s ease, background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease; // Restore transitions
-    
+        transition: border-color 0.3s ease, color 0.3s ease,
+          background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease; // Restore transitions
+
         &:hover {
           transform: scale(1.05); // Restore hover effect
           border-color: $accent;
         }
-    
+
         &.solved {
           color: $highlight;
           .number-text {
@@ -414,20 +414,20 @@ $overgrid-border-color: rgba($primary-text, 0.8);
             border: 1px solid #fff;
           }
         }
-    
+
         &.noted {
           opacity: 0.7;
         }
-    
+
         &.guess-mode {
           border-color: color.adjust($primary-border, $lightness: 40%);
         }
-    
+
         &.notes-mode {
           border-color: color.adjust($primary-border, $lightness: 40%);
         }
       }
-    
+
       @media (max-width: 991px) {
         display: flex;
         flex-direction: column;
@@ -437,7 +437,7 @@ $overgrid-border-color: rgba($primary-text, 0.8);
         width: 100%;
         min-height: 0;
         height: auto;
-    
+
         .mode-row {
           display: flex;
           justify-content: center;
@@ -445,9 +445,9 @@ $overgrid-border-color: rgba($primary-text, 0.8);
           gap: 0;
           width: 100%;
         }
-    
+
         .mode-option {
-          padding: .5rem 2rem;
+          padding: 0.5rem 2rem;
           font-size: $font-sm;
           font-weight: bold;
           background: color.adjust($background-end, $lightness: 10%);
@@ -458,26 +458,26 @@ $overgrid-border-color: rgba($primary-text, 0.8);
           transition: background-color 0.3s ease, color 0.3s ease;
           width: fit-content;
           text-align: center;
-    
+
           &:last-child {
             border-right: 1px solid rgba($primary-border, 0.2);
           }
-    
+
           &.guess-option.active {
             background: rgba($accent, 0.2);
             color: $primary-text;
           }
-    
+
           &.candidate-option.active {
             background: color.adjust($primary-border, $lightness: 60%);
             color: $primary-text;
           }
-    
+
           &:hover:not(.active) {
             background: color.adjust($background-end, $lightness: 5%);
           }
         }
-    
+
         .number-row {
           display: flex;
           flex-wrap: nowrap;
@@ -488,7 +488,7 @@ $overgrid-border-color: rgba($primary-text, 0.8);
           padding: 0;
           border-radius: 0;
         }
-    
+
         .number-cell {
           width: calc((400px - 10px) / 9);
           height: calc((400px - 10px) / 9);
@@ -505,37 +505,37 @@ $overgrid-border-color: rgba($primary-text, 0.8);
           box-shadow: none;
           border: 1px solid rgba($primary-border, 0.8);
           border-radius: 0;
-    
+
           &.used {
             opacity: 0.5;
           }
-    
+
           &.selected {
             background: rgba($accent, 0.3);
           }
-    
+
           &:hover {
             transform: none; // No hover on mobile during loading
           }
-    
+
           .number-text {
             position: static;
             transform: none;
           }
-    
+
           .segment {
             display: none;
           }
-    
+
           &.guess-mode {
             border: 1px solid color.adjust($primary-border, $lightness: 40%);
           }
-    
+
           &.notes-mode {
             background: color.adjust($primary-border, $lightness: 60%);
           }
         }
-    
+
         &.loaded .number-cell {
           &:hover {
             transform: none; // Mobile typically doesn’t use hover, but included for consistency
@@ -543,7 +543,7 @@ $overgrid-border-color: rgba($primary-text, 0.8);
         }
       }
     }
-    
+
     .sudoku-controls {
       display: flex;
       flex-direction: column;
@@ -752,7 +752,7 @@ $overgrid-border-color: rgba($primary-text, 0.8);
           cursor: pointer;
           transition: background 0.3s ease;
           gap: 1rem;
-        
+
           .spinner-container {
             display: none; // Hidden by default
             width: 20px;
@@ -761,7 +761,7 @@ $overgrid-border-color: rgba($primary-text, 0.8);
             align-self: center; // Center the container
             position: relative;
           }
-        
+
           .loading-spinner {
             width: 20px;
             height: 20px;
@@ -773,21 +773,21 @@ $overgrid-border-color: rgba($primary-text, 0.8);
             position: absolute;
             top: 10px;
           }
-          
+
           &.loading {
             .spinner-container {
               display: block !important; // Show container when loading
             }
           }
-        
+
           &:hover {
             background: rgba($accent, 0.1);
           }
-        
+
           &:not(:last-child) {
             border-bottom: 1px solid rgba($accent, 0.2);
           }
-        
+
           i {
             margin-right: 15px;
             color: $accent;
@@ -825,14 +825,14 @@ $overgrid-border-color: rgba($primary-text, 0.8);
           visibility: hidden; // Hidden by default
           opacity: 0; // Optional: fade effect
           transition: opacity 0.3s ease; // Smooth reveal
-          height:0;
-        
+          height: 0;
+
           &.visible {
             visibility: visible;
             opacity: 1;
             height: unset;
           }
-        
+
           #auto-candidates {
             padding: 0.5rem 1rem;
             font-size: $font-sm;
@@ -841,11 +841,11 @@ $overgrid-border-color: rgba($primary-text, 0.8);
             border: 1px solid $primary-border;
             cursor: pointer;
             transition: background-color 0.3s ease;
-        
+
             &.active {
               background: rgba($accent, 0.2);
             }
-        
+
             &:hover:not(.active) {
               background: color.adjust($background-end, $lightness: 5%);
             }
@@ -871,8 +871,9 @@ $overgrid-border-color: rgba($primary-text, 0.8);
     }
 
     .cell {
-      color: $accent;
+      color: $primary-text;
       position: relative;
+      overflow: hidden;
       background: $cell-background;
       display: flex;
       align-items: center;
@@ -883,6 +884,7 @@ $overgrid-border-color: rgba($primary-text, 0.8);
       font-weight: 700;
       padding: 1px;
       box-sizing: border-box;
+      z-index: 0;
 
       @media (max-width: 991px) {
         font-size: clamp(18px, 5vw, 24px);
@@ -944,6 +946,8 @@ $overgrid-border-color: rgba($primary-text, 0.8);
 
       &.thinking-type {
         transform-origin: center;
+        contain: size;
+        background-color: #e5e5e5 !important;
       }
 
       &.notes {
@@ -1082,7 +1086,13 @@ $overgrid-border-color: rgba($primary-text, 0.8);
     }
 
     .thinking-type {
-      animation: growFromCenter 0.4s ease-out forwards;
+      animation: fadeInContent 0.4s ease-out forwards;
+      z-index: 1;
+      background-color: #e5e5e5;
+      // border: none !important;
+      // background: transparent;
+      // max-width:90%;
+      // max-height: 90%;
     }
 
     .game-over-overlay,
@@ -1143,14 +1153,14 @@ $overgrid-border-color: rgba($primary-text, 0.8);
     }
   }
 
-  @keyframes growFromCenter {
+  @keyframes fadeInContent {
     0% {
-      transform: scale(0);
-      opacity: 0;
+      opacity: 0; /* Start fully transparent */
+      background-color: transparent; /* Start with no background */
     }
     100% {
-      transform: scale(1);
-      opacity: 1;
+      opacity: 1; /* Fully visible */
+      background-color: $cell-background; /* End with default background */
     }
   }
 
@@ -1193,5 +1203,37 @@ $overgrid-border-color: rgba($primary-text, 0.8);
     100% {
       opacity: 1;
     }
+  }
+}
+
+
+.sudoku-copy {
+  max-width: 90vw;
+  margin: 2rem auto;
+  padding: 1rem;
+  color: $primary-text;
+  font-family: $body-font;
+
+  h2 {
+    font-size: clamp(20px, 4vw, $font-xl);
+    color: $accent;
+    margin-bottom: 1rem;
+  }
+
+  h3 {
+    font-size: clamp(16px, 3vw, $font-lg);
+    color: $primary-text;
+    margin: 1.5rem 0 0.5rem;
+  }
+
+  p {
+    font-size: clamp(14px, 2.5vw, $font-sm);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  a {
+    color: $accent;
+    text-decoration: underline;
   }
 }

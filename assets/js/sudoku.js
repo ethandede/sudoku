@@ -1243,7 +1243,7 @@ async function thinkingAnimation(finalBoard) {
     cells[index].textContent = finalBoard[index];
     cells[index].classList.add("thinking-type");
     // console.log(`Animating cell ${index} with value ${finalBoard[index]}`);
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 25));
     cells[index].classList.remove("thinking-type");
   }
   console.log("Thinking animation completed");

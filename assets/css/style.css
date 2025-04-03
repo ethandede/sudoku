@@ -740,16 +740,16 @@ p {
   color: #0f335c;
 }
 .sudoku-page .sudoku-container .start-overlay .start-message h2 {
-  font-size: clamp(20px, 4vw, 32px);
+  font-size: clamp(20px, 4vw, 1.953rem);
   margin-bottom: 10px;
   color: #4a90e2;
 }
 .sudoku-page .sudoku-container .start-overlay .start-message p {
-  font-size: clamp(12px, 2.5vw, 16px);
+  font-size: clamp(12px, 2.5vw, 1rem);
   margin-bottom: 15px;
 }
 .sudoku-page .sudoku-container h2 {
-  font-size: clamp(24px, 5vw, 40px);
+  font-size: clamp(24px, 5vw, 2.441rem);
   line-height: 1.2;
   margin-bottom: 1rem;
   color: #0f335c;
@@ -759,12 +759,12 @@ p {
 }
 @media (max-width: 991px) {
   .sudoku-page .sudoku-container h2 {
-    font-size: clamp(20px, 4vw, 32px);
+    font-size: clamp(20px, 4vw, 1.953rem);
     text-align: center;
   }
 }
 .sudoku-page .sudoku-container .supporting-text {
-  font-size: clamp(12px, 2.5vw, 16px);
+  font-size: clamp(12px, 2.5vw, 1rem);
   font-style: italic;
   text-align: left;
   padding-left: 1rem;
@@ -900,14 +900,14 @@ p {
   gap: 6px;
 }
 .sudoku-page .sudoku-container .status-bar .status-item .label {
-  font-size: 16px;
+  font-size: 1rem;
   color: #0f335c;
   font-family: "Open Sans", sans-serif;
   font-weight: bold;
 }
 .sudoku-page .sudoku-container .status-bar .status-item .timer,
 .sudoku-page .sudoku-container .status-bar .status-item #timer {
-  font-size: 16px;
+  font-size: 1rem;
   color: #0f335c;
   font-family: "Open Sans", sans-serif;
 }
@@ -1033,8 +1033,8 @@ p {
   color: #0f335c;
 }
 .sudoku-page .sudoku-container .number-status-grid .number-cell .segment {
-  background: #F5F5F5;
-  border: 1px solid #AAAAAA;
+  background: #f5f5f5;
+  border: 1px solid #aaaaaa;
   transition: background-color 0.3s ease;
   min-height: 8px;
   min-width: 8px;
@@ -1087,7 +1087,7 @@ p {
   }
   .sudoku-page .sudoku-container .number-status-grid .mode-option {
     padding: 0.5rem 2rem;
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: bold;
     background: rgb(249.5, 249.5, 249.5);
     border: 1px solid #999999;
@@ -1203,12 +1203,12 @@ p {
   align-items: center;
 }
 .sudoku-page .sudoku-container .sudoku-controls .puzzle-info .info-item .label {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: bold;
   color: rgb(22.1495327103, 75.308411215, 135.8504672897);
 }
 .sudoku-page .sudoku-container .sudoku-controls .puzzle-info .info-item span:not(.label) {
-  font-size: 16px;
+  font-size: 1rem;
   color: #0f335c;
 }
 .sudoku-page .sudoku-container .sudoku-controls .puzzle-info .info-item #techniques-list {
@@ -1237,7 +1237,7 @@ p {
   background: #0f335c;
   border: 1px solid rgba(15, 51, 92, 0.5);
   padding: 8px 16px;
-  font-size: clamp(10px, 2vw, 16px);
+  font-size: clamp(10px, 2vw, 1rem);
   min-width: 80px;
   border-radius: 5px;
   position: relative;
@@ -1416,7 +1416,7 @@ p {
 }
 .sudoku-page .sudoku-container .sudoku-controls .control-row.auto-candidates-row #auto-candidates {
   padding: 0.5rem 1rem;
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: bold;
   background: #e0e0e0;
   border: 1px solid #333333;
@@ -1430,7 +1430,7 @@ p {
   background: rgb(236.75, 236.75, 236.75);
 }
 .sudoku-page .sudoku-container .sudoku-controls .control-row label {
-  font-size: 16px;
+  font-size: 1rem;
   color: #0f335c;
   font-family: "Open Sans", sans-serif;
 }
@@ -1443,8 +1443,9 @@ p {
   opacity: 0.8;
 }
 .sudoku-page .sudoku-container .cell {
-  color: #4a90e2;
+  color: #0f335c;
   position: relative;
+  overflow: hidden;
   background: #f5f5f5;
   display: flex;
   align-items: center;
@@ -1455,6 +1456,7 @@ p {
   font-weight: 700;
   padding: 1px;
   box-sizing: border-box;
+  z-index: 0;
 }
 @media (max-width: 991px) {
   .sudoku-page .sudoku-container .cell {
@@ -1504,6 +1506,8 @@ p {
 }
 .sudoku-page .sudoku-container .cell.thinking-type {
   transform-origin: center;
+  contain: size;
+  background-color: #e5e5e5 !important;
 }
 .sudoku-page .sudoku-container .cell.notes {
   display: grid !important;
@@ -1621,7 +1625,9 @@ p {
   background: rgba(74, 144, 226, 0.4) !important;
 }
 .sudoku-page .sudoku-container .thinking-type {
-  animation: growFromCenter 0.4s ease-out forwards;
+  animation: fadeInContent 0.4s ease-out forwards;
+  z-index: 1;
+  background-color: #e5e5e5;
 }
 .sudoku-page .sudoku-container .game-over-overlay,
 .sudoku-page .sudoku-container .success-overlay {
@@ -1650,7 +1656,7 @@ p {
 .sudoku-page .sudoku-container .game-over-overlay .success-message h2,
 .sudoku-page .sudoku-container .success-overlay .game-over-message h2,
 .sudoku-page .sudoku-container .success-overlay .success-message h2 {
-  font-size: clamp(20px, 4vw, 32px);
+  font-size: clamp(20px, 4vw, 1.953rem);
   margin-bottom: 10px;
   color: #e94e77;
 }
@@ -1664,7 +1670,7 @@ p {
 .sudoku-page .sudoku-container .game-over-overlay .success-message p,
 .sudoku-page .sudoku-container .success-overlay .game-over-message p,
 .sudoku-page .sudoku-container .success-overlay .success-message p {
-  font-size: clamp(12px, 2.5vw, 16px);
+  font-size: clamp(12px, 2.5vw, 1rem);
   color: #0f335c;
   margin-bottom: 15px;
 }
@@ -1675,7 +1681,7 @@ p {
   background: #4a90e2;
   border: none;
   padding: 10px 20px;
-  font-size: clamp(12px, 2.5vw, 16px);
+  font-size: clamp(12px, 2.5vw, 1rem);
   color: #0f335c;
 }
 .sudoku-page .sudoku-container .game-over-overlay .game-over-message .cta-button:hover,
@@ -1690,14 +1696,14 @@ p {
   display: flex;
   justify-content: center;
 }
-@keyframes growFromCenter {
+@keyframes fadeInContent {
   0% {
-    transform: scale(0);
-    opacity: 0;
+    opacity: 0; /* Start fully transparent */
+    background-color: transparent; /* Start with no background */
   }
   100% {
-    transform: scale(1);
-    opacity: 1;
+    opacity: 1; /* Fully visible */
+    background-color: #f5f5f5; /* End with default background */
   }
 }
 @keyframes successFlash {
@@ -1736,6 +1742,33 @@ p {
   100% {
     opacity: 1;
   }
+}
+
+.sudoku-copy {
+  max-width: 90vw;
+  margin: 2rem auto;
+  padding: 1rem;
+  color: #0f335c;
+  font-family: "Open Sans", sans-serif;
+}
+.sudoku-copy h2 {
+  font-size: clamp(20px, 4vw, 1.953rem);
+  color: #4a90e2;
+  margin-bottom: 1rem;
+}
+.sudoku-copy h3 {
+  font-size: clamp(16px, 3vw, 1.563rem);
+  color: #0f335c;
+  margin: 1.5rem 0 0.5rem;
+}
+.sudoku-copy p {
+  font-size: clamp(14px, 2.5vw, 1rem);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+.sudoku-copy a {
+  color: #4a90e2;
+  text-decoration: underline;
 }
 
 .contact-page {
