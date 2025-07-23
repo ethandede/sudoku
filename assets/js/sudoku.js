@@ -236,9 +236,7 @@ function editCell(index, event) {
     return;
   }
   const isMobile = window.innerWidth <= 991;
-  // TEMP: Force notes mode for testing
-  inputMode = "notes";
-  console.log("editCell: index=", index, "isMobile=", isMobile, "inputMode FORCED TO=", inputMode);
+  console.log("editCell: index=", index, "isMobile=", isMobile, "inputMode=", inputMode);
 
   console.log("Clearing other cell highlights");
   document.querySelectorAll(".cell").forEach((c) => {
@@ -273,13 +271,8 @@ function editCell(index, event) {
         console.log("Removing existing overlay");
         existingOverlay.remove();
       }
-      console.log("Checking inputMode for notes: inputMode=", inputMode);
-      if (inputMode === "notes") {
-        console.log("Notes mode confirmed, calling showNotesOverlay");
-        showNotesOverlay(index, cell, true);
-      } else {
-        console.log("Guess mode, skipping overlay");
-      }
+      console.log("Desktop mode: showing notes overlay for empty cell");
+      showNotesOverlay(index, cell, true);
       cell.setAttribute("tabindex", "0");
       cell.removeEventListener("keydown", cell.keydownHandler);
       cell.keydownHandler = (e) => handleKeydown(e, index);
@@ -325,7 +318,15 @@ function showNotesOverlay(index, cell, shouldShowOverlay) {
       const option = document.createElement("div");
       option.classList.add("note-option");
       option.textContent = num;
+      
+      // Show user notes as selected
       if (notes[index].has(num)) option.classList.add("selected");
+      
+      // Show auto-candidates with different styling
+      if (isAutoCandidatesEnabled && autoCandidates[index] && autoCandidates[index].has(num)) {
+        option.classList.add("auto-candidate");
+      }
+      
       option.addEventListener("click", (e) => {
         e.preventDefault();
         console.log("Note overlay clicked, toggling:", num, "at index:", index);
@@ -430,29 +431,33 @@ function handleNumberStatusClick(event) {
   const now = Date.now();
 
   if (now - lastClickTime < clickCooldown) {
-    console.log("Click ignored due to debounce");
     return;
   }
   lastClickTime = now;
 
-  console.log("Number clicked:", num, "selectedCell:", selectedCell ? selectedCell.dataset.index : "none");
 
   document.querySelectorAll(".number-status-grid .number-cell").forEach((c) => c.classList.remove("selected"));
   numberCell.classList.add("selected");
 
-  if (!isMobile && selectedCell && initialBoard[selectedCell.dataset.index] === 0) {
-    console.log("Number clicked:", num, "mode:", inputMode, "selectedCell:", selectedCell.dataset.index);
+  // If we have a selected editable cell, enter the number or note
+  if (selectedCell && initialBoard[selectedCell.dataset.index] === 0) {
     if (inputMode === "guess") {
-      console.log("Selected cell is editable, calling handleNumberInput");
       handleNumberInput(num);
-    } else {
-      console.log("Calling toggleHighlight for notes mode");
-      toggleHighlight(num);
+      // handleNumberInput already clears selectedCell, no need to clear again
+    } else if (inputMode === "notes") {
+      toggleNote(selectedCell.dataset.index, num);
+      // Keep cell selected for continued note entry
     }
   } else {
-    console.log("No editable cell selected, highlighting all instances of", num);
-    toggleHighlight(num);
+    // No editable cell selected, clear any selection and just highlight number
+    if (selectedCell) {
+      selectedCell.classList.remove("highlighted");
+      selectedCell = null;
+    }
   }
+
+  // Always highlight the clicked number
+  toggleHighlight(num);
 }
 
 function updateNumberStatusGrid() {
@@ -577,11 +582,11 @@ function computeAutoCandidates() {
 
 function updateGrid(clickedIndex = null) {
   const cells = document.querySelectorAll(".cell");
-  console.log("updateGrid called, highlightedNumber:", highlightedNumber);
   cells.forEach((cell, index) => {
     const overlay = cell.querySelector(".notes-overlay");
-    console.log("Cell[", index, "] has overlay:", !!overlay);
-    if (!overlay) cell.innerHTML = "";
+    if (!overlay) {
+      cell.innerHTML = "";
+    }
     cell.classList.remove(
       "notes", "highlight", "user-solved", "button-solved", "initial",
       "highlighted", "highlight-subgrid", "highlight-row", "highlight-column"
@@ -596,22 +601,54 @@ function updateGrid(clickedIndex = null) {
         console.log("Removing overlay from filled cell[", index, "]");
         overlay.remove();
       }
-    } else if (!overlay) {
-      const displayNotes = new Set(notes[index]);
-      if (isAutoCandidatesEnabled && autoCandidates[index]) {
-        autoCandidates[index].forEach((n) => displayNotes.add(n));
-      }
-      if (displayNotes.size > 0) {
+    } else {
+      // Handle cells without filled values (empty cells)
+      
+      // Combine user notes and auto-candidates
+      const hasUserNotes = notes[index].size > 0;
+      const hasAutoCandidates = isAutoCandidatesEnabled && autoCandidates[index] && autoCandidates[index].size > 0;
+      
+      // Only rebuild notes if no overlay and we have notes/auto-candidates to show
+      if (!overlay && (hasUserNotes || hasAutoCandidates)) {
         cell.classList.add("notes");
         for (let num = 1; num <= 9; num++) {
           const span = document.createElement("span");
-          span.textContent = displayNotes.has(num) ? num : "";
+          const isUserNote = notes[index].has(num);
+          const isAutoCandidate = isAutoCandidatesEnabled && autoCandidates[index] && autoCandidates[index].has(num);
+          
+          if (isUserNote || isAutoCandidate) {
+            span.textContent = num;
+            if (isAutoCandidate && !isUserNote) {
+              span.classList.add("auto-candidate");
+            }
+          } else {
+            span.textContent = "";
+          }
           cell.appendChild(span);
         }
-        console.log("Inline notes added to cell[", index, "]:", [...displayNotes]);
+      } else if (overlay) {
+        // When overlay is present, update it to reflect current auto-candidates state
+        const noteOptions = overlay.querySelectorAll('.note-option');
+        noteOptions.forEach((option, num) => {
+          const number = num + 1;
+          // Remove existing auto-candidate class
+          option.classList.remove('auto-candidate');
+          // Add auto-candidate class if this number is an auto-candidate
+          if (isAutoCandidatesEnabled && autoCandidates[index] && autoCandidates[index].has(number)) {
+            option.classList.add('auto-candidate');
+          }
+        });
+        
+        // When overlay is present, check if we have existing spans that need the notes class
+        const existingSpans = cell.querySelectorAll('span');
+        if (existingSpans.length > 0) {
+          cell.classList.add("notes");
+        }
+        
+        // Clear any loose textContent that might interfere
+        const textNodes = Array.from(cell.childNodes).filter(node => node.nodeType === Node.TEXT_NODE);
+        textNodes.forEach(node => node.remove());
       }
-    } else {
-      console.log("Preserving overlay for cell[", index, "]");
     }
 
     if (highlightedNumber && board[index] === highlightedNumber) {
@@ -662,9 +699,7 @@ function checkForWin() {
 
 function toggleHighlight(num) {
   if (gameOver || gameWon) return;
-  console.log("toggleHighlight called with num:", num, "gameOver:", gameOver, "gameWon:", gameWon);
   highlightedNumber = num; // Always set, no toggle
-  console.log("highlightedNumber set to:", highlightedNumber);
   updateGrid();
 }
 
@@ -1450,6 +1485,9 @@ document.addEventListener("DOMContentLoaded", () => {
         autoCandidatesBtn.classList.toggle("active", isAutoCandidatesEnabled);
         if (isAutoCandidatesEnabled) {
           computeAutoCandidates();
+        } else {
+          // Clear auto-candidates when disabled
+          autoCandidates = Array(81).fill().map(() => new Set());
         }
         updateGrid();
         updateNumberStatusGrid();
