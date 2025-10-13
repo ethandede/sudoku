@@ -7,7 +7,16 @@
 ?>
 <footer class="site-footer">
   <div class="container">
-    <p>&copy; <?php echo date('Y'); ?> Sudoku Sudoku Online. All rights reserved.</p>
+    <nav class="footer-nav">
+      <ul class="footer-links">
+        <li><a href="<?php echo home_url('/about'); ?>">About</a></li>
+        <li><a href="<?php echo home_url('/articles'); ?>">Articles</a></li>
+        <li><a href="<?php echo home_url('/links'); ?>">Links</a></li>
+        <li><a href="<?php echo home_url('/contact'); ?>">Contact</a></li>
+        <li><a href="<?php echo home_url('/privacy-policy'); ?>">Privacy Policy</a></li>
+      </ul>
+    </nav>
+    <p class="copyright">&copy; <?php echo date('Y'); ?> Sudoku Online. All rights reserved.</p>
   </div>
 </footer>
 <?php wp_footer(); ?>
