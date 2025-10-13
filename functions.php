@@ -46,3 +46,20 @@ function enqueue_custom_scripts() {
     wp_enqueue_script('sudoku', get_template_directory_uri() . '/assets/js/sudoku.js', array(), '1.2', true);
 }
 add_action('wp_enqueue_scripts', 'enqueue_custom_scripts');
+
+// Calculate reading time for articles
+function sudoku_reading_time() {
+    $content = get_post_field('post_content', get_the_ID());
+    $word_count = str_word_count(strip_tags($content));
+    $reading_time = ceil($word_count / 200); // Average reading speed: 200 words per minute
+    return $reading_time;
+}
+
+// Add featured image support
+add_theme_support('post-thumbnails');
+
+// Set excerpt length
+function sudoku_excerpt_length($length) {
+    return 25;
+}
+add_filter('excerpt_length', 'sudoku_excerpt_length');

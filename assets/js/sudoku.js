@@ -1410,9 +1410,37 @@ function debounce(func, wait) {
 }
 const debouncedUpdateGrid = debounce(updateGrid, 50);
 
+// Navigation Toggle
+function initNavigation() {
+  const mobileToggle = document.querySelector('.mobile-menu-toggle');
+  const navMenu = document.querySelector('.nav-menu');
+  const dropdownToggles = document.querySelectorAll('.has-dropdown');
+
+  if (mobileToggle && navMenu) {
+    mobileToggle.addEventListener('click', () => {
+      mobileToggle.classList.toggle('active');
+      navMenu.classList.toggle('active');
+    });
+  }
+
+  // Mobile dropdown toggle
+  dropdownToggles.forEach(dropdown => {
+    const toggle = dropdown.querySelector('.dropdown-toggle');
+    if (toggle && window.innerWidth <= 768) {
+      toggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        dropdown.classList.toggle('active');
+      });
+    }
+  });
+}
+
 // Event Listeners (at the end)
 document.addEventListener("DOMContentLoaded", () => {
   console.log("DOM loaded");
+
+  // Initialize navigation
+  initNavigation();
   const required = {
     grid: document.getElementById("sudoku-grid"),
     mistakeCounter: document.getElementById("mistake-counter"),

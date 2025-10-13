@@ -1,0 +1,134 @@
+@use "../abstracts/variables" as vars;
+
+// Standard Page Template (About, Contact, etc.)
+.standard-page {
+  padding: 4rem 0;
+  background: #f8f9fa;
+  min-height: 60vh;
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  .page-content {
+    background: white;
+    border-radius: 8px;
+    padding: 3rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .page-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 3px solid vars.$accent-color;
+
+    .page-title {
+      font-size: 2.5rem;
+      color: vars.$secondary-color;
+      line-height: 1.2;
+      margin: 0;
+    }
+  }
+
+  .page-body {
+    line-height: 1.8;
+    color: #333;
+    font-size: 1.1rem;
+
+    h2 {
+      font-size: 1.75rem;
+      color: vars.$secondary-color;
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
+      padding-top: 0.5rem;
+    }
+
+    h3 {
+      font-size: 1.35rem;
+      color: vars.$text-color;
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      margin-bottom: 1.5rem;
+    }
+
+    ul, ol {
+      margin-bottom: 1.5rem;
+      padding-left: 2rem;
+
+      li {
+        margin-bottom: 0.75rem;
+      }
+    }
+
+    a {
+      color: vars.$accent-color;
+      text-decoration: underline;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: vars.$highlight-color;
+      }
+    }
+
+    strong {
+      font-weight: 600;
+      color: vars.$secondary-color;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #e0e0e0;
+      margin: 2rem 0;
+    }
+
+    blockquote {
+      border-left: 4px solid vars.$accent-color;
+      padding-left: 1.5rem;
+      margin: 2rem 0;
+      font-style: italic;
+      color: #666;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin: 2rem 0;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .standard-page {
+    padding: 2rem 0;
+
+    .page-content {
+      padding: 2rem 1.5rem;
+    }
+
+    .page-header .page-title {
+      font-size: 2rem;
+    }
+
+    .page-body {
+      font-size: 1rem;
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      h3 {
+        font-size: 1.25rem;
+      }
+    }
+  }
+}

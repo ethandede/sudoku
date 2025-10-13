@@ -11,6 +11,8 @@
   },
   "scripts": {
     "build-css": "sass assets/scss/main.scss assets/css/style.css --style compressed",
-    "watch-css": "sass --watch assets/scss/main.scss:assets/css/style.css"
+    "watch-css": "sass --watch assets/scss/main.scss:assets/css/style.css",
+    "import-articles": "php includes/article-importer.php",
+    "publish": "npm run build-css && npm run import-articles"
   }
 }

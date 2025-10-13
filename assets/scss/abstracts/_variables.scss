@@ -38,4 +38,9 @@ $font-xxxl: 3.052rem;  // 51px
 
 // Font Families
 $header-font: "Open Sans", sans-serif;
+$heading-font: "Open Sans", sans-serif; // Alias for compatibility
 $body-font: "Open Sans", sans-serif;
+
+// Additional UI Colors
+$text-color: #333;
+$light-background: #f5f5f5;

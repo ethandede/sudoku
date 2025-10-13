@@ -21,10 +21,40 @@
      crossorigin="anonymous"></script>
 
 <header class="site-header">
-  <!-- <div class="container">
-    <div class="header-content">
-      <p class="header-tagline">Where creative strategy meets technical mastery.</p>
-      <a href="#contact" class="cta-button">Let's Work Together</a>
-    </div>
-  </div> -->
+  <div class="container">
+    <nav class="main-navigation" role="navigation">
+      <div class="nav-brand">
+        <a href="<?php echo home_url('/'); ?>" class="site-logo">Sudoku</a>
+      </div>
+      <button class="mobile-menu-toggle" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div class="nav-menu">
+        <ul class="nav-primary">
+          <li class="menu-item has-dropdown">
+            <a href="<?php echo home_url('/'); ?>" class="dropdown-toggle">Play Sudoku <span class="arrow">▼</span></a>
+            <ul class="dropdown-menu">
+              <li><a href="<?php echo home_url('/?difficulty=quick'); ?>">Quick</a></li>
+              <li><a href="<?php echo home_url('/?difficulty=easy'); ?>">Easy</a></li>
+              <li><a href="<?php echo home_url('/?difficulty=not-easy'); ?>">Not Easy</a></li>
+              <li><a href="<?php echo home_url('/?difficulty=hard'); ?>">Hard</a></li>
+              <li><a href="<?php echo home_url('/?difficulty=expert'); ?>">Expert</a></li>
+              <li><a href="<?php echo home_url('/?difficulty=mental'); ?>">Mental</a></li>
+            </ul>
+          </li>
+          <li class="menu-item">
+            <a href="<?php echo home_url('/links'); ?>">Links</a>
+          </li>
+          <li class="menu-item">
+            <a href="<?php echo home_url('/articles'); ?>">Articles</a>
+          </li>
+          <li class="menu-item">
+            <a href="<?php echo home_url('/about'); ?>">About</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </div>
 </header>
