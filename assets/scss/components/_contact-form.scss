@@ -1,0 +1,225 @@
+@use "../abstracts/variables" as vars;
+
+// Contact Form 7 Styling
+.wpcf7 {
+  margin: 2rem 0;
+
+  // Form wrapper
+  .wpcf7-form {
+    background: white;
+    padding: 0;
+  }
+
+  // Form fields
+  p {
+    margin-bottom: 1.5rem;
+  }
+
+  label {
+    display: block;
+    font-weight: 600;
+    color: vars.$text-color;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  // Text inputs, email, textarea
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="url"],
+  textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: vars.$body-font;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    background: white;
+
+    &:focus {
+      outline: none;
+      border-color: vars.$accent-color;
+      box-shadow: 0 0 0 3px rgba(69, 116, 140, 0.1);
+    }
+
+    &::placeholder {
+      color: #999;
+    }
+  }
+
+  textarea {
+    min-height: 150px;
+    resize: vertical;
+  }
+
+  // Select dropdowns
+  select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: vars.$body-font;
+    background: white;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+
+    &:focus {
+      outline: none;
+      border-color: vars.$accent-color;
+    }
+  }
+
+  // Checkboxes and radio buttons
+  input[type="checkbox"],
+  input[type="radio"] {
+    margin-right: 0.5rem;
+  }
+
+  // Submit button
+  input[type="submit"],
+  button[type="submit"] {
+    background: vars.$accent-color;
+    color: white;
+    padding: 0.875rem 2rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: vars.$body-font;
+
+    &:hover {
+      background: vars.$highlight-color;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(69, 116, 140, 0.3);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+  }
+
+  // Validation messages
+  .wpcf7-not-valid-tip {
+    color: #d32f2f;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+    display: block;
+  }
+
+  // Required field indicator
+  .wpcf7-form-control-wrap {
+    position: relative;
+    display: block;
+  }
+
+  // Response messages
+  .wpcf7-response-output {
+    margin: 1.5rem 0;
+    padding: 1rem 1.25rem;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    border-left: 4px solid;
+
+    &.wpcf7-validation-errors {
+      background: #fff3cd;
+      border-color: #ffc107;
+      color: #856404;
+    }
+
+    &.wpcf7-mail-sent-ok {
+      background: #d4edda;
+      border-color: #28a745;
+      color: #155724;
+    }
+
+    &.wpcf7-mail-sent-ng {
+      background: #f8d7da;
+      border-color: #dc3545;
+      color: #721c24;
+    }
+
+    &.wpcf7-spam-blocked {
+      background: #f8d7da;
+      border-color: #dc3545;
+      color: #721c24;
+    }
+  }
+
+  // Spinner (loading)
+  .wpcf7-spinner {
+    margin-left: 1rem;
+    vertical-align: middle;
+  }
+
+  // Ajax loader
+  .ajax-loader {
+    display: inline-block;
+    margin-left: 1rem;
+  }
+}
+
+// Acceptance checkbox (terms & conditions)
+.wpcf7-acceptance {
+  margin: 1rem 0;
+
+  label {
+    display: flex;
+    align-items: flex-start;
+    font-weight: normal;
+    cursor: pointer;
+
+    input {
+      margin-top: 0.25rem;
+      flex-shrink: 0;
+    }
+
+    .wpcf7-list-item-label {
+      margin-left: 0.5rem;
+    }
+  }
+}
+
+// Quiz/Captcha fields
+.wpcf7-quiz,
+.wpcf7-captcha {
+  margin: 1.5rem 0;
+
+  label {
+    font-weight: 600;
+  }
+}
+
+// File upload
+.wpcf7-file {
+  padding: 0.5rem;
+  border: 2px dashed #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+
+  &:hover {
+    border-color: vars.$accent-color;
+  }
+}
+
+// Mobile responsiveness
+@media (max-width: 768px) {
+  .wpcf7 {
+    input[type="submit"],
+    button[type="submit"] {
+      width: 100%;
+      padding: 1rem;
+    }
+  }
+}
