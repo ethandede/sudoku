@@ -1,8 +1,5 @@
-name: Deploy Sudoku to Bluehost
+name: Deploy Sudoku to Bluehost (DISABLED - migrated to Hetzner)
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 jobs:
   deploy:
