@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { marked } from "marked";
@@ -33,9 +33,7 @@ function escapeHtml(value) {
 }
 
 function layout({ title, description, main, game = false }) {
-  const fontAwesome = game
-    ? '<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/js/all.min.js" crossorigin="anonymous"></script>'
-    : "";
+  const fontAwesome = "";
   const descriptionTag = description
     ? `<meta name="description" content="${escapeHtml(description)}">`
     : "";
@@ -51,6 +49,8 @@ function layout({ title, description, main, game = false }) {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-TFNKPH6DNY"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -77,6 +77,7 @@ function layout({ title, description, main, game = false }) {
           <li class="menu-item has-dropdown">
             <a href="/" class="dropdown-toggle">Play Sudoku <span class="arrow">▼</span></a>
             <ul class="dropdown-menu">
+              <li><a href="/?daily">Daily</a></li>
               <li><a href="/?difficulty=quick">Quick</a></li>
               <li><a href="/?difficulty=easy">Easy</a></li>
               <li><a href="/?difficulty=not-easy">Not Easy</a></li>
@@ -115,6 +116,7 @@ ${main}
     <p class="copyright">&copy; ${year} Sudoku Online. All rights reserved.</p>
   </div>
 </footer>
+${game ? '<script src="/assets/js/generator.js"></script>' : ""}
 <script src="/assets/js/sudoku.js"></script>
 </body>
 </html>
@@ -194,9 +196,12 @@ const compiled = sass.compile(join(root, "assets/scss/main.scss"), {
   style: "compressed",
 });
 write("assets/css/style.css", compiled.css);
+write("assets/js/generator.js", read("assets/js/generator.js"));
 write("assets/js/sudoku.js", read("assets/js/sudoku.js"));
 write("ads.txt", read("ads.txt").trim() + "\n");
 write("_redirects", read("src/_redirects"));
+copyFileSync(join(root, "src/favicon.ico"), join(dist, "favicon.ico"));
+copyFileSync(join(root, "src/favicon.svg"), join(dist, "favicon.svg"));
 
 const parsedArticles = articles.map((article) => ({
   ...article,
