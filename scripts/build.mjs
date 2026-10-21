@@ -72,7 +72,21 @@ function structuredData(extra) {
   return { "@context": "https://schema.org", "@graph": graph };
 }
 
-function layout({ title, description, main, game = false, canonical, jsonLd, demo = false, skills = false, ads = true, robots = "", contact = false }) {
+function layout({
+  title,
+  description,
+  main,
+  game = false,
+  canonical,
+  jsonLd,
+  demo = false,
+  skills = false,
+  ads = true,
+  analytics = true,
+  privacyChoices = true,
+  robots = "",
+  contact = false,
+}) {
   const descriptionTag = description
     ? `<meta name="description" content="${escapeHtml(description)}">`
     : "";
@@ -86,6 +100,63 @@ function layout({ title, description, main, game = false, canonical, jsonLd, dem
   const image = `${SITE}/og.png`;
   const adsTag = ads
     ? `  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9345046210950956" crossorigin="anonymous"></script>\n`
+    : "";
+  const analyticsTags = analytics
+    ? `  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('consent', 'default', {
+      ad_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied',
+      analytics_storage: 'denied',
+      wait_for_update: 500,
+      region: ${JSON.stringify(CONSENT_REGIONS)}
+    });
+    gtag('consent', 'default', {
+      ad_storage: 'granted',
+      ad_user_data: 'granted',
+      ad_personalization: 'granted',
+      analytics_storage: 'granted'
+    });
+    gtag('js', new Date());
+    gtag('config', 'G-TFNKPH6DNY');
+  </script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TFNKPH6DNY"></script>
+`
+    : "";
+  const privacyChoiceItem = privacyChoices
+    ? `        <li><button type="button" class="privacy-choices" id="privacy-choices">Privacy choices</button></li>\n`
+    : "";
+  const privacyChoiceNote = privacyChoices
+    ? `    <p id="privacy-choices-note" class="privacy-choices-note" hidden>The privacy message did not load on this page. Open the home page and use Privacy choices there.</p>\n`
+    : "";
+  const privacyChoiceScript = privacyChoices
+    ? `<script>
+(function () {
+  var button = document.getElementById("privacy-choices");
+  if (!button) return;
+  button.addEventListener("click", function () {
+    window.googlefc = window.googlefc || {};
+    googlefc.callbackQueue = googlefc.callbackQueue || [];
+    var waited = 0;
+    var timer = window.setInterval(function () {
+      if (typeof googlefc.showRevocationMessage === "function") {
+        window.clearInterval(timer);
+        googlefc.callbackQueue.push(googlefc.showRevocationMessage);
+        return;
+      }
+      waited += 100;
+      if (waited >= 1200) {
+        window.clearInterval(timer);
+        var note = document.getElementById("privacy-choices-note");
+        if (note) note.hidden = false;
+      }
+    }, 100);
+  });
+})();
+</script>
+`
     : "";
 
   return `<!DOCTYPE html>
@@ -136,28 +207,7 @@ function layout({ title, description, main, game = false, canonical, jsonLd, dem
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/icons/icon-192.png" type="image/png" sizes="192x192">
   <link rel="icon" href="/icons/icon-512.png" type="image/png" sizes="512x512">
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('consent', 'default', {
-      ad_storage: 'denied',
-      ad_user_data: 'denied',
-      ad_personalization: 'denied',
-      analytics_storage: 'denied',
-      wait_for_update: 500,
-      region: ${JSON.stringify(CONSENT_REGIONS)}
-    });
-    gtag('consent', 'default', {
-      ad_storage: 'granted',
-      ad_user_data: 'granted',
-      ad_personalization: 'granted',
-      analytics_storage: 'granted'
-    });
-    gtag('js', new Date());
-    gtag('config', 'G-TFNKPH6DNY');
-  </script>
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TFNKPH6DNY"></script>
-${adsTag}</head>
+${analyticsTags}${adsTag}</head>
 <body>
 <div id="app-update" class="app-update" hidden>
   <p>A new version is ready.</p>
@@ -220,10 +270,9 @@ ${main}
         <li><a href="/links/">Links</a></li>
         <li><a href="/contact/">Contact</a></li>
         <li><a href="/privacy-policy/">Privacy Policy</a></li>
-        <li><button type="button" class="privacy-choices" id="privacy-choices">Privacy choices</button></li>
-      </ul>
+${privacyChoiceItem}      </ul>
     </nav>
-    <p id="privacy-choices-note" class="privacy-choices-note" hidden>The privacy message did not load on this page. Open the home page and use Privacy choices there.</p>
+${privacyChoiceNote}
     <p class="copyright">&copy; ${year} SudokuSudoku. All rights reserved.</p>
   </div>
 </footer>
@@ -233,31 +282,7 @@ ${skills ? '<script src="/assets/js/progress.js"></script>' : ""}
 ${skills ? '<script src="/assets/js/skills.js"></script>' : ""}
 ${demo ? '<script src="/assets/js/technique-demo.js"></script>' : ""}
 ${contact ? '<script src="/assets/js/contact.js"></script>' : ""}
-<script>
-(function () {
-  var button = document.getElementById("privacy-choices");
-  if (!button) return;
-  button.addEventListener("click", function () {
-    window.googlefc = window.googlefc || {};
-    googlefc.callbackQueue = googlefc.callbackQueue || [];
-    var waited = 0;
-    var timer = window.setInterval(function () {
-      if (typeof googlefc.showRevocationMessage === "function") {
-        window.clearInterval(timer);
-        googlefc.callbackQueue.push(googlefc.showRevocationMessage);
-        return;
-      }
-      waited += 100;
-      if (waited >= 1200) {
-        window.clearInterval(timer);
-        var note = document.getElementById("privacy-choices-note");
-        if (note) note.hidden = false;
-      }
-    }, 100);
-  });
-})();
-</script>
-</body>
+${privacyChoiceScript}</body>
 </html>
 `;
 }
@@ -269,6 +294,8 @@ function standardPage(title, bodyHtml, description, path, options = {}) {
     description,
     canonical: path ? `${SITE}${canonicalPath}` : "",
     ads: options.ads !== false,
+    analytics: options.analytics !== false,
+    privacyChoices: options.privacyChoices !== false,
     robots: options.robots || "",
     contact: Boolean(options.contact),
     main: `<main class="standard-page">
@@ -463,7 +490,8 @@ publish(
     "Privacy Policy",
     read("privacy-policy-content.html").trim(),
     "How SudokuSudoku handles on-device puzzle data, Google Analytics, AdSense consent, and messages sent through the contact form.",
-    "/privacy-policy/"
+    "/privacy-policy/",
+    { ads: false, analytics: false, privacyChoices: false }
   ),
   "/privacy-policy"
 );
