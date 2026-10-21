@@ -1,4 +1,5 @@
-import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { copyFileSync, cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { marked } from "marked";
@@ -56,17 +57,38 @@ function layout({ title, description, main, game = false, canonical, jsonLd, dem
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f4ef">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141218">
+  <meta name="color-scheme" content="light dark">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Sudoku">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>${escapeHtml(title)}</title>
   ${descriptionTag}
   ${canonicalTag}
   ${jsonLdTag}
+  <script>
+    try {
+      var storedTheme = JSON.parse(localStorage.getItem("sudoku-settings") || "{}").theme || "system";
+      var themeDark = storedTheme === "dark" || (storedTheme !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.dataset.theme = themeDark ? "dark" : "light";
+      if (matchMedia("(display-mode: standalone)").matches || navigator.standalone) {
+        document.documentElement.classList.add("is-standalone");
+      }
+    } catch (e) {}
+  </script>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/style.css">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/icons/icon-192.png" type="image/png" sizes="192x192">
+  <link rel="icon" href="/icons/icon-512.png" type="image/png" sizes="512x512">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-TFNKPH6DNY"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -77,6 +99,10 @@ function layout({ title, description, main, game = false, canonical, jsonLd, dem
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9345046210950956" crossorigin="anonymous"></script>
 </head>
 <body>
+<div id="app-update" class="app-update" hidden>
+  <p>A new version is ready.</p>
+  <button type="button" id="app-update-go">Refresh</button>
+</div>
 <header class="site-header">
   <div class="container">
     <nav class="main-navigation" role="navigation">
@@ -586,6 +612,118 @@ Allow: /
 
 Sitemap: ${SITE}/sitemap.xml
 `
+);
+
+cpSync(join(root, "src/icons"), join(dist, "icons"), { recursive: true });
+
+const iconSizes = [48, 72, 96, 128, 144, 152, 180, 192, 256, 384, 512];
+const manifestIcons = [
+  ...iconSizes.map((size) => ({
+    src: `/icons/icon-${size}.png`,
+    sizes: `${size}x${size}`,
+    type: "image/png",
+    purpose: "any",
+  })),
+  ...[192, 512].map((size) => ({
+    src: `/icons/maskable-${size}.png`,
+    sizes: `${size}x${size}`,
+    type: "image/png",
+    purpose: "maskable",
+  })),
+];
+write(
+  "manifest.webmanifest",
+  JSON.stringify(
+    {
+      id: "/",
+      name: "Sudoku Sudoku",
+      short_name: "Sudoku",
+      description: "Play Sudoku offline. Quick through mental, plus a daily puzzle.",
+      lang: "en",
+      start_url: "/",
+      scope: "/",
+      display: "standalone",
+      orientation: "portrait",
+      background_color: "#f7f4ef",
+      theme_color: "#f7f4ef",
+      categories: ["games"],
+      icons: manifestIcons,
+    },
+    null,
+    2
+  ) + "\n"
+);
+write(
+  "offline.html",
+  `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f4ef">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141218">
+  <title>Offline - Sudoku</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<main class="standard-page">
+  <div class="container">
+    <article class="page-content">
+      <header class="page-header">
+        <h1 class="page-title">You're offline</h1>
+      </header>
+      <div class="page-body">
+        <p>The puzzle is saved on this device. Open Sudoku to keep playing, including a new game or today's daily.</p>
+        <p><a href="/">Play Sudoku</a></p>
+      </div>
+    </article>
+  </div>
+</main>
+</body>
+</html>
+`
+);
+write(
+  "_headers",
+  `/sw.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Content-Type: application/manifest+json
+  Cache-Control: no-cache
+`
+);
+
+const shellPaths = [
+  "index.html",
+  "offline.html",
+  "manifest.webmanifest",
+  "favicon.ico",
+  "favicon.svg",
+  "assets/css/style.css",
+  "assets/js/solver.js",
+  "assets/js/pools.js",
+  "assets/js/generator.js",
+  "assets/js/sudoku.js",
+  ...iconSizes.map((size) => `icons/icon-${size}.png`),
+  "icons/maskable-192.png",
+  "icons/maskable-512.png",
+  "icons/apple-touch-icon.png",
+];
+const versionHash = createHash("sha256");
+shellPaths.forEach((relativePath) => {
+  versionHash.update(relativePath);
+  versionHash.update(readFileSync(join(dist, relativePath)));
+});
+versionHash.update(read("assets/js/sw.js"));
+const version = versionHash.digest("hex").slice(0, 12);
+const shellUrls = ["/", ...shellPaths.filter((relativePath) => relativePath !== "index.html").map((relativePath) => `/${relativePath}`)];
+write(
+  "sw.js",
+  read("assets/js/sw.js")
+    .replaceAll("__SUDOKU_PWA_VERSION__", version)
+    .replace("__SUDOKU_PWA_SHELL__", JSON.stringify(shellUrls))
 );
 
 console.log(`Built ${dist}`);

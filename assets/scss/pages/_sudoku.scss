@@ -284,6 +284,7 @@ html[data-theme="dark"] .difficulty-tabs button[aria-selected="true"] {
   background: var(--board-bg);
   user-select: none;
   touch-action: manipulation;
+  overscroll-behavior: none;
 }
 
 .grid-row {
@@ -1113,6 +1114,93 @@ button:disabled {
   .sudoku-copy h2 {
     font-size: 1.35rem;
   }
+}
+
+.install-prompt {
+  margin-top: 0.9rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--thin);
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.install-title {
+  margin: 0 0 0.2rem;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.install-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+
+  .text-btn {
+    min-height: 44px;
+    font-size: 1rem;
+  }
+}
+
+@mixin standalone-app {
+  background: #f7f4ef;
+  overscroll-behavior: none;
+
+  body {
+    background: #f7f4ef;
+    overscroll-behavior: none;
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+  }
+
+  &[data-theme="dark"] {
+    background: #141218;
+
+    body {
+      background: #141218;
+    }
+  }
+
+  .site-header,
+  .site-footer {
+    display: none;
+  }
+
+  .sudoku-page {
+    padding-top: 0.35rem;
+  }
+
+  .game-intro {
+    margin-bottom: 0.25rem;
+
+    .supporting-text {
+      display: none;
+    }
+
+    h1 {
+      font-size: 1.35rem;
+    }
+  }
+
+  .sudoku-grid,
+  .board-wrap,
+  .play-surface {
+    overscroll-behavior: none;
+  }
+}
+
+@media (display-mode: standalone) {
+  html {
+    @include standalone-app;
+  }
+}
+
+html.is-standalone {
+  @include standalone-app;
 }
 
 @media (prefers-reduced-motion: reduce) {
