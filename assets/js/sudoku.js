@@ -68,6 +68,7 @@
     highlightBox: true,
     highlightSame: true,
     highlightConflicts: true,
+    showBoxMap: true,
   };
 
   let settings = loadSettings();
@@ -281,7 +282,20 @@
     for (let n = 1; n <= 9; n += 1) {
       const button = document.createElement("button");
       button.type = "button";
-      button.textContent = String(n);
+      button.dataset.number = String(n);
+      const map = document.createElement("span");
+      map.className = "box-map";
+      map.setAttribute("aria-hidden", "true");
+      for (let box = 0; box < 9; box += 1) {
+        const segment = document.createElement("i");
+        map.appendChild(segment);
+      }
+      const digit = document.createElement("span");
+      digit.className = "pad-digit";
+      const glyph = document.createElement("span");
+      glyph.textContent = String(n);
+      digit.appendChild(glyph);
+      button.append(map, digit);
       button.setAttribute("aria-label", `Number ${n}`);
       button.addEventListener("click", () => onNumber(n));
       pad.appendChild(button);
@@ -861,12 +875,29 @@
     document.getElementById("mode-normal").setAttribute("aria-pressed", state.mode === "normal");
     document.getElementById("mode-notes").setAttribute("aria-pressed", state.mode === "notes");
     undoBtn.disabled = state.undo.length === 0;
-    const counts = Array(10).fill(0);
-    state.board.forEach((value) => {
-      if (value) counts[value] += 1;
+    const boxHas = Array.from({ length: 10 }, () => Array(9).fill(false));
+    state.board.forEach((value, index) => {
+      if (!value || state.slashed.has(index)) return;
+      const row = Math.floor(index / 9);
+      const col = index % 9;
+      const box = Math.floor(row / 3) * 3 + Math.floor(col / 3);
+      boxHas[value][box] = true;
     });
-    pad.querySelectorAll("button").forEach((button, index) => {
-      button.classList.toggle("complete", counts[index + 1] >= 9);
+    pad.classList.toggle("map-off", !settings.showBoxMap);
+    pad.querySelectorAll("button").forEach((button) => {
+      const number = Number(button.dataset.number);
+      const segments = button.querySelectorAll(".box-map i");
+      let filled = 0;
+      segments.forEach((segment, box) => {
+        const on = boxHas[number][box];
+        segment.classList.toggle("on", on);
+        if (on) filled += 1;
+      });
+      button.classList.toggle("complete", filled === 9);
+      button.setAttribute(
+        "aria-label",
+        settings.showBoxMap ? `Number ${number}, in ${filled} of 9 boxes` : `Number ${number}`
+      );
     });
     pauseBtn.textContent = state.running ? "Pause" : "Resume";
     pauseBtn.setAttribute("aria-label", state.running ? "Pause timer" : "Resume timer");

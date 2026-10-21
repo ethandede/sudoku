@@ -15,6 +15,8 @@
   --pad: #f6f3ee;
   --pad-ink: #1c1a22;
   --pad-border: #d9d3c8;
+  --map-empty: rgba(28, 26, 34, 0.1);
+  --map-fill: #b7d4e4;
   --muted: #5e584e;
   --card: #fff;
   --page: #f7f4ef;
@@ -50,6 +52,8 @@ html[data-theme="dark"] .sudoku-page {
   --pad: #26232c;
   --pad-ink: #f4efe6;
   --pad-border: #5c5666;
+  --map-empty: rgba(244, 239, 230, 0.14);
+  --map-fill: #3f7388;
   --muted: #c8c0b4;
   --card: #241f2a;
   --page: #141218;
@@ -464,16 +468,77 @@ kbd {
   gap: 0.4rem;
 
   button {
+    position: relative;
     border: 1px solid var(--pad-border);
     background: var(--pad);
     color: var(--pad-ink);
     border-radius: 0.45rem;
-    font-size: 1.35rem;
     font-weight: 700;
     min-width: 44px;
+    min-height: 44px;
+    aspect-ratio: 1;
+    padding: 0;
+    container-type: inline-size;
 
     &.complete {
-      opacity: 0.35;
+      opacity: 0.38;
+    }
+  }
+
+  .box-map {
+    position: absolute;
+    inset: 3px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 2px;
+    pointer-events: none;
+
+    i {
+      display: block;
+      border-radius: 1px;
+      background: var(--map-empty);
+      font-style: normal;
+    }
+
+    i.on {
+      background: var(--map-fill);
+    }
+  }
+
+  .pad-digit {
+    position: absolute;
+    inset: 3px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    pointer-events: none;
+    z-index: 1;
+
+    span {
+      grid-area: 2 / 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(1rem, 30cqi, 1.45rem);
+      line-height: 1;
+    }
+  }
+
+  &.map-off {
+    .box-map {
+      display: none;
+    }
+
+    .pad-digit {
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      span {
+        font-size: 1.35rem;
+      }
     }
   }
 }
