@@ -719,7 +719,36 @@ function stepWidth(state, singleCount, rankCap) {
       widths: info.widths,
       clues: state.clues,
       values: state.v,
+      path: info.path,
     };
+  }
+
+  // Page slugs, in the order the solver actually applied them. `techniques`
+  // and `hardestName` stay on the coarse grader names.
+  const PATH_SLUG = {
+    single: "naked-single",
+    hidden_box: "hidden-single",
+    hidden_line: "hidden-single",
+    pointing: "pointing",
+    claiming: "claiming",
+    naked_pair: "naked-pair",
+    hidden_pair: "hidden-pair",
+    naked_triple: "naked-triple",
+    hidden_triple: "hidden-triple",
+    naked_quad: "quads",
+    hidden_quad: "quads",
+    xwing: "x-wing",
+    swordfish: "swordfish",
+    xywing: "xy-wing",
+    coloring: "coloring",
+    xychain: "xy-chain",
+  };
+
+  function notePath(info, type) {
+    const slug = PATH_SLUG[type];
+    if (!slug || info.seenPath[slug]) return;
+    info.seenPath[slug] = 1;
+    info.path.push(slug);
   }
 
   function tooHard(state, info) {
@@ -745,6 +774,8 @@ function stepWidth(state, singleCount, rankCap) {
       placedBeforeStall: 0,
       filledAtFirstStall: -1,
       widths: opt.exactWidths ? [] : null,
+      path: [],
+      seenPath: {},
     };
     let inStall = false;
     let guard = 0;
@@ -768,6 +799,7 @@ function stepWidth(state, singleCount, rankCap) {
           info.rank = 2;
           info.hardestName = "hidden_line";
         }
+        notePath(info, kind);
         place(state, singles.place.i, singles.place.d, solution);
         inStall = false;
         continue;
@@ -787,6 +819,7 @@ function stepWidth(state, singleCount, rankCap) {
         const hits = tech.find(state);
         if (!hits.length) continue;
         applyHit(state, hits[0], solution);
+        notePath(info, hits[0].type);
         info.steps++;
         info.techniques.push(tech.name);
         info.used[tech.name] = (info.used[tech.name] || 0) + 1;

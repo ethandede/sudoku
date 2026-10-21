@@ -6,7 +6,8 @@
   },
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test:grader": "node scripts/test-grader.mjs"
+    "test:grader": "node scripts/test-grader.mjs",
+    "test:progress": "node scripts/test-progress.mjs"
   },
   "devDependencies": {
     "marked": "^15.0.12",

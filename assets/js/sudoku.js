@@ -160,6 +160,10 @@
 
   let settings = loadSettings();
   let stats = loadStats();
+  if (window.SudokuProgress) {
+    const caught = window.SudokuProgress.prepare(stats);
+    if (caught.unlocked.length) window.SudokuProgress.celebrate(caught.unlocked);
+  }
   let cells = [];
   let state = blankState();
   let lastTick = 0;
@@ -212,6 +216,8 @@
       auto: false,
       metadata: null,
       removed: [],
+      hintSlugs: [],
+      train: null,
     };
   }
 
@@ -311,6 +317,9 @@
 
   function requestFromUrl() {
     const params = new URLSearchParams(window.location.search);
+    const train = (params.get("train") || "").trim().toLowerCase();
+    const trainLevel = window.SudokuGenerator && window.SudokuGenerator.trainLevel(train);
+    if (trainLevel) return { kind: trainLevel, train };
     if (params.has("daily")) return { kind: "daily" };
     const raw = params.get("difficulty");
     if (!raw) return null;
@@ -328,7 +337,8 @@
 
   function writeUrl(kind) {
     const url = new URL(window.location.href);
-    url.search = kind === "daily" ? "?daily" : `?difficulty=${kind.replace(/\s+/g, "-")}`;
+    if (state.train) url.search = `?train=${encodeURIComponent(state.train)}`;
+    else url.search = kind === "daily" ? "?daily" : `?difficulty=${kind.replace(/\s+/g, "-")}`;
     history.replaceState(null, "", url);
   }
 
@@ -516,13 +526,18 @@
       if (token !== generation) return;
       const seeded = kind === "daily";
       const difficulty = seeded ? DAILY : kind;
-      const result = window.SudokuGenerator.generate(
-        difficulty,
-        seeded ? `daily:${date}` : undefined
-      );
+      const train = request.train || null;
+      let result;
+      if (train && window.SudokuGenerator.generateForTechnique) {
+        const allowed = window.SudokuProgress ? window.SudokuProgress.comfortableSlugs() : [];
+        result = window.SudokuGenerator.generateForTechnique(train, { allowed });
+      } else {
+        result = window.SudokuGenerator.generate(difficulty, seeded ? `daily:${date}` : undefined);
+      }
       const already = seeded && stats.daily.completed[date];
       state = blankState();
       state.kind = kind;
+      state.train = train;
       state.dailyDate = seeded ? date : null;
       state.puzzle = result.puzzle.slice();
       state.solution = result.solution.slice();
@@ -549,7 +564,13 @@
       render();
       setCover(false);
       resume();
-      announce(`${labelFor(kind)} puzzle ready`);
+      const approximate = train && result.metadata && result.metadata.trainApproximate;
+      const trainName = train && window.SudokuProgress ? window.SudokuProgress.nameOf(train) : "";
+      announce(
+        approximate
+          ? `No puzzle stopped at ${trainName}. ${labelFor(kind)} is ready.`
+          : `${labelFor(kind)} puzzle ready`
+      );
       writeSave();
     }, 30);
   }
@@ -562,7 +583,7 @@
   }
 
   function recordWin() {
-    if (state.revealed) return;
+    if (state.revealed) return [];
     const key = state.kind === "daily" ? "daily" : state.kind;
     const bucket = stats[key];
     if (state.scored) {
@@ -575,7 +596,7 @@
         }
       }
       saveStats();
-      return;
+      return [];
     }
     if (key === "daily") {
       if (!stats.daily.completed[state.dailyDate]) {
@@ -592,6 +613,34 @@
     if (bucket.best == null || state.elapsed < bucket.best) bucket.best = state.elapsed;
     state.scored = true;
     saveStats();
+    return awardSolve(key);
+  }
+
+  function solutionPath() {
+    const meta = state.metadata;
+    if (meta && Array.isArray(meta.path) && meta.path.length) return meta.path.slice();
+    if (!window.SudokuSolver || !window.SudokuSolver.grade) return [];
+    try {
+      return window.SudokuSolver.grade(state.puzzle).path || [];
+    } catch {
+      return [];
+    }
+  }
+
+  function awardSolve(level) {
+    if (!window.SudokuProgress) return [];
+    const result = window.SudokuProgress.recordSolve(
+      {
+        level,
+        seconds: state.elapsed,
+        mistakes: state.mistakes,
+        hintSlugs: state.hintSlugs || [],
+        path: solutionPath(),
+        at: new Date().toISOString(),
+      },
+      stats
+    );
+    return result.unlocked || [];
   }
 
   function select(index, focus) {
@@ -752,7 +801,9 @@
       return;
     }
     hintView = { kind: "step", stage: 1, step, key: hintKey() };
+    if (step.slug) state.hintSlugs.push(step.slug);
     showHint();
+    writeSave();
   }
 
   function showHint() {
@@ -975,9 +1026,10 @@
     state.userPaused = false;
     state.hidePaused = false;
     pause(false);
-    if (!revealed) recordWin();
+    const unlocked = revealed ? [] : recordWin();
     render();
     showSolved(false);
+    if (unlocked.length && window.SudokuProgress) window.SudokuProgress.celebrate(unlocked);
     try {
       localStorage.removeItem(SAVE_KEY);
     } catch {
@@ -1241,6 +1293,8 @@
   }
 
   function labelFor(kind) {
+    const approximate = state.metadata && state.metadata.trainApproximate;
+    if (state.train && window.SudokuProgress && !approximate) return `Train · ${window.SudokuProgress.nameOf(state.train)}`;
     if (kind === "daily" && state.dailyDate) return `Daily · ${formatDay(state.dailyDate)}`;
     return LABELS[kind] || "Easy";
   }
@@ -1387,10 +1441,26 @@
       state.kind === "daily"
         ? `Streak ${currentStreak()} · best ${bucket.best == null ? "–" : formatTime(bucket.best)} · won ${bucket.won}`
         : `Won ${bucket.won} of ${bucket.played} · best ${bucket.best == null ? "–" : formatTime(bucket.best)} · average ${average}`;
+    paintPractice();
     paintConfetti();
     showModal("solved-modal");
     if (!state.revealed && !already) offerInstall();
     announce(title.textContent);
+  }
+
+  function paintPractice() {
+    const line = document.getElementById("solved-practice");
+    if (!line) return;
+    const api = window.SudokuProgress;
+    const hints = state.revealed ? [] : [...new Set(state.hintSlugs || [])];
+    if (api && hints.length) {
+      const slug = api.hardest(hints);
+      const name = api.nameOf(slug);
+      line.innerHTML = `You used ${api.article(name)} ${api.escapeHtml(name)} hint. <a href="/?train=${encodeURIComponent(slug)}">Practice it?</a> <a href="/skills">Skill ladder</a>`;
+    } else {
+      line.innerHTML = `<a href="/skills">Skill ladder</a>`;
+    }
+    line.hidden = false;
   }
 
   function isIos() {
@@ -1486,7 +1556,7 @@
       .join("");
     body.innerHTML = `<table class="stats-table"><thead><tr><th>Puzzle</th><th>Played</th><th>Won</th><th>Best</th><th>Average</th></tr></thead><tbody>${table}</tbody></table><p class="streak-line">Daily streak ${currentStreak()} · longest ${
       stats.daily.longestStreak || 0
-    }</p>`;
+    }</p><p class="streak-line"><a href="/skills">Skill ladder</a></p>`;
     showModal("stats-modal");
   }
 
@@ -1529,6 +1599,8 @@
       counted: state.counted,
       scored: state.scored,
       metadata: state.metadata,
+      hintSlugs: state.hintSlugs || [],
+      train: state.train || null,
     };
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
@@ -1571,6 +1643,8 @@
     state.counted = true;
     state.scored = Boolean(saved.scored);
     state.metadata = saved.metadata;
+    state.hintSlugs = Array.isArray(saved.hintSlugs) ? saved.hintSlugs.filter((slug) => typeof slug === "string") : [];
+    state.train = typeof saved.train === "string" ? saved.train : null;
     autoBox.checked = state.auto;
     writeUrl(state.kind);
     render();
