@@ -15,6 +15,7 @@
         <button type="button" role="tab" data-difficulty="expert" aria-selected="false">Expert</button>
         <button type="button" role="tab" data-difficulty="mental" aria-selected="false">Mental</button>
       </div>
+      <p id="community-line" class="community-line" hidden></p>
 
       <div class="status-bar">
         <div class="timer-group">
@@ -99,7 +100,7 @@
     <p>Puzzles are generated in the browser and graded by the same solver that writes the hints. The level is the hardest step the solve needs.</p>
     <p>Quick leaves 40 to 45 givens and uses singles only. A hidden single, when one appears, is inside a box. Most Quick puzzles are naked singles. Easy leaves 36 to 38 givens, usually 38. It is still singles only, and a hidden single may be in a row or column. There are no pairs. Not Easy needs pointing or claiming. It aims for 23 to 25 givens, inside 22 to 27, with at most three steps that are not singles and a few spots where only one placement is legal. Hard needs a naked pair, a hidden pair, or a triple, and at least four steps that are not singles. Expert needs a quad, an X-wing, an XY-wing, or a swordfish. Mental needs coloring or an XY-chain.</p>
     <h3>The daily puzzle</h3>
-    <p>Daily is that Not Easy puzzle, the same one for a UTC date. The seed is <code>daily:YYYY-MM-DD</code>, and it changes at midnight UTC. Open it from the Daily tab. Once the game has loaded, a new puzzle and the daily both work offline.</p>
+    <p>Daily is that Not Easy puzzle, the same one for a UTC date. The seed is <code>daily:YYYY-MM-DD</code>, and it changes at midnight UTC. Open it from the Daily tab. Once the game has loaded, a new puzzle and the daily both work offline. Anonymous medians and solve rates are on the <a href="/stats/">stats page</a>.</p>
     <p>The <a href="/techniques/">technique library</a> shows each step on a board from this solver. <a href="/articles/nyt-medium-vs-hard/">Why NYT Medium sometimes feels harder than Hard</a> is the measurement those Not Easy and Hard targets come from.</p>
   </div>
 
@@ -139,6 +140,7 @@
       <h2 id="solved-title">Solved</h2>
       <p id="solved-summary"></p>
       <p id="solved-stats" class="solved-stats"></p>
+      <p id="solved-community" class="solved-community" hidden></p>
       <p id="solved-practice" class="solved-practice" hidden></p>
       <div class="modal-actions">
         <button type="button" id="solved-new" class="primary-btn">New Game</button>
@@ -194,7 +196,12 @@
         <label><input type="checkbox" data-setting="highlightConflicts"> Highlight conflicts</label>
         <label><input type="checkbox" data-setting="showBoxMap"> Show box map on number pad</label>
       </fieldset>
-      <p class="key-help">Press N to toggle Normal and Notes. With checking on, a wrong entry counts toward the 4-mistake limit. With it off, there is no limit.</p>
+      <fieldset>
+        <legend>Community</legend>
+        <label><input type="checkbox" data-setting="shareStats"> <span>Share anonymous play stats</span></label>
+        <label><input type="checkbox" data-setting="showCommunityStats"> <span>Show community times on the difficulty tabs</span></label>
+      </fieldset>
+      <p class="key-help">Press N to toggle Normal and Notes. With checking on, a wrong entry counts toward the 4-mistake limit. With it off, there is no limit. Sharing sends the level, time, and outcome with a random id stored on this device. It does not include a name. Turn sharing off to delete that id. <a href="/stats/">Community stats</a> · <a href="/privacy-policy/">Privacy</a></p>
     </div>
   </div>
 

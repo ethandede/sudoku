@@ -156,6 +156,8 @@
     highlightConflicts: true,
     showBoxMap: true,
     haptics: true,
+    shareStats: true,
+    showCommunityStats: true,
   };
 
   let settings = loadSettings();
@@ -182,9 +184,15 @@
   setInterval(tick, 250);
   document.addEventListener("visibilitychange", onVisibility);
 
-  const saved = readSave();
-  pendingRequest = requestFromUrl();
-  if (saved) {
+    const saved = readSave();
+    pendingRequest = requestFromUrl();
+    if (window.SudokuCommunity) {
+      window.SudokuCommunity.reconcile(saved);
+      window.SudokuCommunity.boot().then(() => {
+        window.SudokuCommunity.paintLine(saved && !state.counted ? saved.kind : state.kind);
+      });
+    }
+    if (saved) {
     showModal("resume-modal");
     document.getElementById("resume-detail").textContent = resumeText(saved);
   } else {
@@ -218,6 +226,8 @@
       removed: [],
       hintSlugs: [],
       train: null,
+      anonPlayId: null,
+      notesUsed: false,
     };
   }
 
@@ -399,6 +409,7 @@
     document.querySelectorAll(".difficulty-tabs button").forEach((button) => {
       button.addEventListener("click", () => {
         const kind = button.dataset.difficulty;
+        if (window.SudokuCommunity) window.SudokuCommunity.paintLine(kind);
         beginNew({ kind }, { count: true });
       });
     });
@@ -425,6 +436,7 @@
     document.getElementById("resume-btn").addEventListener("click", resume);
     autoBox.addEventListener("change", () => {
       state.auto = autoBox.checked;
+      if (state.auto) state.notesUsed = true;
       render();
       writeSave();
     });
@@ -496,6 +508,13 @@
     if (input.name === "theme") settings.theme = input.value;
     else if (input.dataset.setting) settings[input.dataset.setting] = input.checked;
     saveSettings();
+    if (input.dataset.setting === "shareStats" && window.SudokuCommunity) {
+      window.SudokuCommunity.setSharing(input.checked);
+      if (!input.checked) state.anonPlayId = null;
+    }
+    if (input.dataset.setting === "showCommunityStats" && window.SudokuCommunity) {
+      window.SudokuCommunity.paintLine(state.kind);
+    }
     applyTheme();
     if (input.dataset.setting === "autoCandidates" && !state.won) {
       state.auto = settings.autoCandidates;
@@ -523,56 +542,79 @@
     state.running = false;
     setCover(true, "Shuffling a puzzle…", false);
     window.setTimeout(() => {
-      if (token !== generation) return;
-      const seeded = kind === "daily";
-      const difficulty = seeded ? DAILY : kind;
-      const train = request.train || null;
-      let result;
-      if (train && window.SudokuGenerator.generateForTechnique) {
-        const allowed = window.SudokuProgress ? window.SudokuProgress.comfortableSlugs() : [];
-        result = window.SudokuGenerator.generateForTechnique(train, { allowed });
-      } else {
-        result = window.SudokuGenerator.generate(difficulty, seeded ? `daily:${date}` : undefined);
-      }
-      const already = seeded && stats.daily.completed[date];
-      state = blankState();
-      state.kind = kind;
-      state.train = train;
-      state.dailyDate = seeded ? date : null;
-      state.puzzle = result.puzzle.slice();
-      state.solution = result.solution.slice();
-      state.board = result.puzzle.slice();
-      state.metadata = result.metadata;
-      state.auto = settings.autoCandidates;
-      state.selected = firstEmpty();
-      autoBox.checked = state.auto;
-      writeUrl(kind);
-      if (already) {
-        state.board = result.solution.slice();
-        state.won = true;
-        state.elapsed = already.time || 0;
-        state.counted = true;
-        busy = false;
-        render();
-        setCover(false);
-        showSolved(true);
-        return;
-      }
-      if (count) recordStart();
+      void launchNew(request, kind, date, token, count);
+    }, 30);
+  }
+
+  async function launchNew(request, kind, date, token, count) {
+    if (token !== generation) return;
+    const seeded = kind === "daily";
+    const difficulty = seeded ? DAILY : kind;
+    const train = request.train || null;
+    let result;
+    if (train && window.SudokuGenerator.generateForTechnique) {
+      const allowed = window.SudokuProgress ? window.SudokuProgress.comfortableSlugs() : [];
+      result = window.SudokuGenerator.generateForTechnique(train, { allowed });
+    } else {
+      result = window.SudokuGenerator.generate(difficulty, seeded ? `daily:${date}` : undefined);
+    }
+    if (token !== generation) return;
+    const already = seeded && stats.daily.completed[date];
+    state = blankState();
+    state.kind = kind;
+    state.train = train;
+    state.dailyDate = seeded ? date : null;
+    state.puzzle = result.puzzle.slice();
+    state.solution = result.solution.slice();
+    state.board = result.puzzle.slice();
+    state.metadata = result.metadata;
+    state.auto = settings.autoCandidates;
+    if (state.auto) state.notesUsed = true;
+    state.selected = firstEmpty();
+    autoBox.checked = state.auto;
+    writeUrl(kind);
+    if (already) {
+      state.board = result.solution.slice();
+      state.won = true;
+      state.elapsed = already.time || 0;
       state.counted = true;
       busy = false;
       render();
       setCover(false);
-      resume();
-      const approximate = train && result.metadata && result.metadata.trainApproximate;
-      const trainName = train && window.SudokuProgress ? window.SudokuProgress.nameOf(train) : "";
-      announce(
-        approximate
-          ? `No puzzle stopped at ${trainName}. ${labelFor(kind)} is ready.`
-          : `${labelFor(kind)} puzzle ready`
-      );
-      writeSave();
-    }, 30);
+      showSolved(true);
+      return;
+    }
+    if (count) recordStart();
+    state.counted = true;
+    const level = (result.metadata && result.metadata.difficulty) || difficulty;
+    if (window.SudokuCommunity) {
+      try {
+        state.anonPlayId = await window.SudokuCommunity.onNewGame({
+          level,
+          isDaily: seeded,
+          date: seeded ? date : null,
+          seed: result.metadata && result.metadata.seed,
+          givens: result.puzzle,
+          notesUsed: state.notesUsed,
+        });
+      } catch {
+        state.anonPlayId = null;
+      }
+    }
+    if (token !== generation) return;
+    busy = false;
+    render();
+    setCover(false);
+    resume();
+    const approximate = train && result.metadata && result.metadata.trainApproximate;
+    const trainName = train && window.SudokuProgress ? window.SudokuProgress.nameOf(train) : "";
+    announce(
+      approximate
+        ? `No puzzle stopped at ${trainName}. ${labelFor(kind)} is ready.`
+        : `${labelFor(kind)} puzzle ready`
+    );
+    writeSave();
+    if (window.SudokuCommunity) window.SudokuCommunity.paintLine(kind);
   }
 
   function recordStart() {
@@ -697,7 +739,10 @@
     if (state.puzzle[index] !== 0 || state.board[index] !== 0) return;
     pushUndo();
     if (state.notes[index].has(number)) state.notes[index].delete(number);
-    else state.notes[index].add(number);
+    else {
+      state.notes[index].add(number);
+      state.notesUsed = true;
+    }
     render();
     writeSave();
   }
@@ -1016,6 +1061,22 @@
     if (state.undo.length > 80) state.undo.shift();
   }
 
+  function communitySnapshot(outcome) {
+    const slugs = state.hintSlugs || [];
+    const hardest =
+      window.SudokuProgress && slugs.length ? window.SudokuProgress.hardest(slugs) || "" : "";
+    return {
+      outcome,
+      elapsed: Math.round(state.elapsed || 0),
+      mistakes: state.mistakes || 0,
+      hintsUsed: slugs.length,
+      hardestHint: hardest,
+      notesUsed: Boolean(state.notesUsed || state.auto),
+      kind: state.kind,
+      isDaily: state.kind === "daily",
+    };
+  }
+
   function finish(revealed) {
     hintView = null;
     const hintSheet = document.getElementById("hint-sheet");
@@ -1026,15 +1087,18 @@
     state.userPaused = false;
     state.hidePaused = false;
     pause(false);
-    const unlocked = revealed ? [] : recordWin();
-    render();
-    showSolved(false);
-    if (unlocked.length && window.SudokuProgress) window.SudokuProgress.celebrate(unlocked);
+    const snapshot = communitySnapshot(revealed ? "revealed" : "solved");
+    if (window.SudokuCommunity) window.SudokuCommunity.rememberFinish(snapshot);
     try {
       localStorage.removeItem(SAVE_KEY);
     } catch {
       /* private mode */
     }
+    const unlocked = revealed ? [] : recordWin();
+    render();
+    showSolved(false);
+    if (window.SudokuCommunity) window.SudokuCommunity.completeFinish(snapshot);
+    if (unlocked.length && window.SudokuProgress) window.SudokuProgress.celebrate(unlocked);
   }
 
   function isSolved() {
@@ -1443,6 +1507,12 @@
         : `Won ${bucket.won} of ${bucket.played} · best ${bucket.best == null ? "–" : formatTime(bucket.best)} · average ${average}`;
     paintPractice();
     paintConfetti();
+    if (already && window.SudokuCommunity) {
+      window.SudokuCommunity.paintPublicSolved({
+        kind: state.kind,
+        isDaily: state.kind === "daily",
+      });
+    }
     showModal("solved-modal");
     if (!state.revealed && !already) offerInstall();
     announce(title.textContent);
@@ -1601,7 +1671,13 @@
       metadata: state.metadata,
       hintSlugs: state.hintSlugs || [],
       train: state.train || null,
+      anonPlayId: state.anonPlayId || null,
+      notesUsed: Boolean(state.notesUsed),
+      over: Boolean(state.over),
     };
+    if (window.SudokuCommunity && state.anonPlayId) {
+      window.SudokuCommunity.noteProgress(communitySnapshot(state.over ? "failed" : "abandoned"));
+    }
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
     } catch {
@@ -1645,10 +1721,13 @@
     state.metadata = saved.metadata;
     state.hintSlugs = Array.isArray(saved.hintSlugs) ? saved.hintSlugs.filter((slug) => typeof slug === "string") : [];
     state.train = typeof saved.train === "string" ? saved.train : null;
+    state.anonPlayId = typeof saved.anonPlayId === "string" ? saved.anonPlayId : null;
+    state.notesUsed = Boolean(saved.notesUsed || saved.auto);
     autoBox.checked = state.auto;
     writeUrl(state.kind);
     render();
     resume();
+    if (window.SudokuCommunity) window.SudokuCommunity.paintLine(state.kind);
     announce("Game resumed");
   }
 

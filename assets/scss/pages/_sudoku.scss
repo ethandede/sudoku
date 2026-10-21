@@ -126,6 +126,21 @@ html[data-theme="dark"] .difficulty-tabs button[aria-selected="true"] {
   color: #1a1208;
 }
 
+.community-line,
+.solved-community {
+  margin: -0.15rem 0 0.75rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.solved-community {
+  margin: 0.35rem 0 0;
+}
+
+.settings-card label span {
+  min-width: 0;
+}
+
 .status-bar {
   display: flex;
   flex-wrap: wrap;

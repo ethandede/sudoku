@@ -86,6 +86,7 @@ function layout({
   privacyChoices = true,
   robots = "",
   contact = false,
+  stats = false,
 }) {
   const descriptionTag = description
     ? `<meta name="description" content="${escapeHtml(description)}">`
@@ -245,6 +246,9 @@ ${analyticsTags}${adsTag}</head>
             <a href="/skills/">Skills</a>
           </li>
           <li class="menu-item">
+            <a href="/stats/">Stats</a>
+          </li>
+          <li class="menu-item">
             <a href="/links/">Links</a>
           </li>
           <li class="menu-item">
@@ -266,6 +270,7 @@ ${main}
         <li><a href="/about/">About</a></li>
         <li><a href="/techniques/">Techniques</a></li>
         <li><a href="/skills/">Skills</a></li>
+        <li><a href="/stats/">Stats</a></li>
         <li><a href="/articles/">Articles</a></li>
         <li><a href="/links/">Links</a></li>
         <li><a href="/contact/">Contact</a></li>
@@ -276,12 +281,13 @@ ${privacyChoiceNote}
     <p class="copyright">&copy; ${year} SudokuSudoku. All rights reserved.</p>
   </div>
 </footer>
-${game ? '<script src="/assets/js/solver.js"></script>\n<script src="/assets/js/pools.js"></script>\n<script src="/assets/js/generator.js"></script>\n<script src="/assets/js/progress.js"></script>' : ""}
+${game ? '<script src="/assets/js/solver.js"></script>\n<script src="/assets/js/pools.js"></script>\n<script src="/assets/js/generator.js"></script>\n<script src="/assets/js/progress.js"></script>\n<script src="/assets/js/community.js"></script>' : ""}
 ${skills ? '<script src="/assets/js/progress.js"></script>' : ""}
 <script src="/assets/js/sudoku.js"></script>
 ${skills ? '<script src="/assets/js/skills.js"></script>' : ""}
 ${demo ? '<script src="/assets/js/technique-demo.js"></script>' : ""}
 ${contact ? '<script src="/assets/js/contact.js"></script>' : ""}
+${stats ? '<script src="/assets/js/stats-page.js"></script>' : ""}
 ${privacyChoiceScript}</body>
 </html>
 `;
@@ -394,6 +400,8 @@ write("assets/js/technique-demo.js", read("assets/js/technique-demo.js"));
 write("assets/js/progress.js", read("assets/js/progress.js"));
 write("assets/js/skills.js", read("assets/js/skills.js"));
 write("assets/js/contact.js", read("assets/js/contact.js"));
+write("assets/js/community.js", read("assets/js/community.js"));
+write("assets/js/stats-page.js", read("assets/js/stats-page.js"));
 write("ads.txt", read("ads.txt").trim() + "\n");
 cpSync(join(root, "assets/fonts"), join(dist, "assets/fonts"), { recursive: true });
 cpSync(join(root, "articles/images"), join(dist, "articles/images"), { recursive: true });
@@ -489,7 +497,7 @@ publish(
   standardPage(
     "Privacy Policy",
     read("privacy-policy-content.html").trim(),
-    "How SudokuSudoku handles on-device puzzle data, Google Analytics, AdSense consent, and messages sent through the contact form.",
+    "How SudokuSudoku handles on-device puzzle data, anonymous community stats, Google Analytics, AdSense consent, and the contact form.",
     "/privacy-policy/",
     { ads: false, analytics: false, privacyChoices: false }
   ),
@@ -685,6 +693,46 @@ publish(
 </main>`,
   }),
   "/techniques"
+);
+
+publish(
+  "stats/index.html",
+  layout({
+    title: "Stats | SudokuSudoku",
+    description:
+      "Anonymous SudokuSudoku stats by difficulty: median solve time, how often puzzles are solved or given up, and the hints players use most.",
+    canonical: `${SITE}/stats/`,
+    stats: true,
+    jsonLd: {
+      "@type": "Dataset",
+      name: "SudokuSudoku community puzzle stats",
+      description:
+        "Anonymous solve times and outcomes by Sudoku difficulty, from plays on SudokuSudoku. No account and no IP address are stored.",
+      url: `${SITE}/stats/`,
+      creator: { "@type": "Organization", name: "SudokuSudoku" },
+    },
+    main: `<main class="standard-page stats-page">
+  <div class="container">
+    <article class="page-content">
+      <header class="page-header">
+        <h1 class="page-title">Community stats</h1>
+      </header>
+      <div class="page-body">
+        ${read("stats-page-content.html").trim()}
+        <p id="stats-today" class="stats-today">Today's daily: not enough data yet.</p>
+        <div class="stats-switch" role="group" aria-label="Time window">
+          <button type="button" data-stats-window="30d" aria-pressed="true">Last 30 days</button>
+          <button type="button" data-stats-window="all" aria-pressed="false">All time</button>
+        </div>
+        <div id="stats-root">
+          <p class="stats-empty">Loading community stats…</p>
+        </div>
+      </div>
+    </article>
+  </div>
+</main>`,
+  }),
+  "/stats"
 );
 
 publish(
@@ -899,6 +947,7 @@ const shellPaths = [
   "assets/js/progress.js",
   "assets/js/skills.js",
   "assets/js/sudoku.js",
+  "assets/js/community.js",
   ...iconSizes.map((size) => `icons/icon-${size}.png`),
   "icons/maskable-192.png",
   "icons/maskable-512.png",
