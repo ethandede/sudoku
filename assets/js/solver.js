@@ -236,8 +236,8 @@
           if (ROW_OF[pos[t]] !== r0) sameRow = false;
           if (COL_OF[pos[t]] !== c0) sameCol = false;
         }
-        if (sameRow) pushLine(state, ROWS[r0], b, bit, true, hits);
-        if (sameCol) pushLine(state, COLS[c0], b, bit, true, hits);
+        if (sameRow) pushLine(state, ROWS[r0], b, bit, true, hits, pos, "row", r0);
+        if (sameCol) pushLine(state, COLS[c0], b, bit, true, hits, pos, "column", c0);
       }
     }
     for (let li = 0; li < 9; li++) claim(state, ROWS[li], li, true, hits);
@@ -245,14 +245,24 @@
     return hits;
   }
 
-  function pushLine(state, line, boxIndex, bit, pointing, hits) {
+  function pushLine(state, line, boxIndex, bit, pointing, hits, pattern, lineKind, lineIndex) {
     const targets = [];
     for (let k = 0; k < 9; k++) {
       const x = line[k];
       if (pointing && BOX_OF[x] === boxIndex) continue;
       if (state.c[x] & bit) targets.push(x);
     }
-    if (targets.length) hits.push({ targets, bit });
+    if (targets.length) {
+      hits.push({
+        targets,
+        bit,
+        type: "pointing",
+        pattern: pattern.slice(),
+        box: boxIndex,
+        lineKind,
+        lineIndex,
+      });
+    }
   }
 
   function claim(state, line, lineIndex, isRow, hits) {
@@ -277,7 +287,17 @@
         const onLine = isRow ? ROW_OF[x] === lineIndex : COL_OF[x] === lineIndex;
         if (!onLine && state.c[x] & bit) targets.push(x);
       }
-      if (targets.length) hits.push({ targets, bit });
+      if (targets.length) {
+        hits.push({
+          targets,
+          bit,
+          type: "claiming",
+          pattern: pos.slice(),
+          box: b0,
+          lineKind: isRow ? "row" : "column",
+          lineIndex,
+        });
+      }
     }
   }
 
@@ -305,7 +325,15 @@
           if (state.v[x] || skip[x]) continue;
           if (state.c[x] & union) targets.push(x);
         }
-        if (targets.length) hits.push({ targets, mask: union });
+        if (targets.length) {
+          hits.push({
+            targets,
+            mask: union,
+            type: n === 2 ? "naked_pair" : n === 3 ? "naked_triple" : "naked_quad",
+            pattern: combo.slice(),
+            unit: u,
+          });
+        }
         return false;
       });
     }
@@ -339,7 +367,16 @@
             break;
           }
         }
-        if (extra) hits.push({ cells, mask, kind: "hidden" });
+        if (extra) {
+          hits.push({
+            cells,
+            mask,
+            kind: "hidden",
+            type: n === 2 ? "hidden_pair" : n === 3 ? "hidden_triple" : "hidden_quad",
+            pattern: cells.slice(),
+            unit: u,
+          });
+        }
         return false;
       });
     }
@@ -370,7 +407,7 @@
           mask |= m;
         }
       }
-      if (cnt >= 2 && cnt <= n) lines.push({ line, mask });
+      if (cnt >= 2 && cnt <= n) lines.push({ line, mask, index: li });
     }
     if (lines.length < n) return;
     eachCombo(lines, n, (combo) => {
@@ -394,7 +431,23 @@
           if (!inBase[i] && state.c[i] & bit) targets.push(i);
         }
       }
-      if (targets.length) hits.push({ targets, bit });
+      if (targets.length) {
+        const pattern = [];
+        const lineIndexes = [];
+        for (let i = 0; i < n; i++) {
+          lineIndexes.push(combo[i].index);
+          const fishLine = combo[i].line;
+          for (let k = 0; k < 9; k++) if (state.c[fishLine[k]] & bit) pattern.push(fishLine[k]);
+        }
+        hits.push({
+          targets,
+          bit,
+          type: n === 2 ? "xwing" : "swordfish",
+          pattern,
+          fishBase: base === ROWS ? "row" : "column",
+          lineIndexes,
+        });
+      }
       return false;
     });
   }
@@ -427,7 +480,15 @@
             const cell = peers[i];
             if (cell !== p && SEES[b * 81 + cell] && state.c[cell] & za) targets.push(cell);
           }
-          if (targets.length) hits.push({ targets, bit: za });
+          if (targets.length) {
+            hits.push({
+              targets,
+              bit: za,
+              type: "xywing",
+              pattern: [p, a, b],
+              pivot: p,
+            });
+          }
         }
       }
     }
@@ -497,7 +558,7 @@
           for (let i = 0; i < comp.length; i++) {
             if (color[comp[i]] === falseColor && state.c[comp[i]] & bit) targets.push(comp[i]);
           }
-          if (targets.length) hits.push({ targets, bit });
+          if (targets.length) hits.push({ targets, bit, type: "coloring", pattern: comp.slice() });
           continue;
         }
         for (let i = 0; i < 81; i++) {
@@ -509,7 +570,7 @@
             if (color[comp[j]] === 1) see1 = true;
             else see2 = true;
           }
-          if (see1 && see2) hits.push({ targets: [i], bit });
+          if (see1 && see2) hits.push({ targets: [i], bit, type: "coloring", pattern: comp.slice() });
         }
       }
     }
@@ -539,7 +600,9 @@
             const cell = peers[i];
             if (SEES[nxt * 81 + cell] && state.c[cell] & target) targets.push(cell);
           }
-          if (targets.length) hits.push({ targets, bit: target });
+          if (targets.length) {
+            hits.push({ targets, bit: target, type: "xychain", pattern: path.concat(nxt) });
+          }
         } else if (other !== target && path.length < 7) {
           onPath[nxt] = 1;
           path.push(nxt);
@@ -867,11 +930,286 @@ function stepWidth(state, singleCount, rankCap) {
     return Array.from(values);
   }
 
+  function maskDigits(mask) {
+    const digits = [];
+    let bits = mask & FULL;
+    while (bits) {
+      const bit = bits & -bits;
+      bits ^= bit;
+      digits.push(digitOf(bit));
+    }
+    return digits;
+  }
+
+  function joinDigits(digits) {
+    if (digits.length <= 1) return String(digits[0] || "");
+    if (digits.length === 2) return `${digits[0]} and ${digits[1]}`;
+    return `${digits.slice(0, -1).join(", ")}, and ${digits[digits.length - 1]}`;
+  }
+
+  function housePhrase(kind, index) {
+    const n = index + 1;
+    if (kind === "row") return `row ${n}`;
+    if (kind === "column") return `column ${n}`;
+    return `box ${n}`;
+  }
+
+  function unitPhrase(unit) {
+    if (unit < 9) return housePhrase("row", unit);
+    if (unit < 18) return housePhrase("column", unit - 9);
+    return housePhrase("box", unit - 18);
+  }
+
+  function candidateSnapshot(state, indexes) {
+    const seen = new Uint8Array(81);
+    const out = [];
+    for (let n = 0; n < indexes.length; n++) {
+      const index = indexes[n];
+      if (index == null || index < 0 || seen[index] || state.v[index]) continue;
+      seen[index] = 1;
+      const digits = maskDigits(state.c[index]);
+      if (digits.length) out.push({ index, digits });
+    }
+    return out;
+  }
+
+  function eliminationList(state, hit) {
+    const out = [];
+    if (hit.kind === "hidden") {
+      for (let i = 0; i < hit.cells.length; i++) {
+        const cell = hit.cells[i];
+        const extra = state.c[cell] & ~hit.mask & FULL;
+        const digits = maskDigits(extra);
+        for (let d = 0; d < digits.length; d++) out.push({ index: cell, digit: digits[d] });
+      }
+      return out;
+    }
+    const mask = hit.mask || hit.bit;
+    for (let i = 0; i < hit.targets.length; i++) {
+      const cell = hit.targets[i];
+      const gone = state.c[cell] & mask;
+      const digits = maskDigits(gone);
+      for (let d = 0; d < digits.length; d++) out.push({ index: cell, digit: digits[d] });
+    }
+    return out;
+  }
+
+  function resultingPlace(state, hit) {
+    const indexes = hit.kind === "hidden" ? hit.cells : hit.targets;
+    const saved = snapshot(state, indexes);
+    applyHit(state, hit, null);
+    const place = findSingles(state, false).place;
+    restore(state, indexes, saved);
+    if (!place) return null;
+    return { index: place.i, digit: place.d };
+  }
+
+  const STEP_SLUG = {
+    pointing: "pointing",
+    claiming: "claiming",
+    naked_pair: "naked-pair",
+    hidden_pair: "hidden-pair",
+    naked_triple: "naked-triple",
+    hidden_triple: "hidden-triple",
+    naked_quad: "quads",
+    hidden_quad: "quads",
+    xwing: "x-wing",
+    swordfish: "swordfish",
+    xywing: "xy-wing",
+    coloring: "coloring",
+    xychain: "xy-chain",
+  };
+
+  const STEP_NAME = {
+    pointing: "Pointing",
+    claiming: "Claiming",
+    naked_pair: "Naked pair",
+    hidden_pair: "Hidden pair",
+    naked_triple: "Naked triple",
+    hidden_triple: "Hidden triple",
+    naked_quad: "Naked quad",
+    hidden_quad: "Hidden quad",
+    xwing: "X-wing",
+    swordfish: "Swordfish",
+    xywing: "XY-wing",
+    coloring: "Simple coloring",
+    xychain: "XY-chain",
+  };
+
+  function copyList(list) {
+    return list.slice();
+  }
+
+  function describeSingle(state, place) {
+    const index = place.i;
+    const digit = place.d;
+    const row = ROW_OF[index] + 1;
+    const col = COL_OF[index] + 1;
+    if (place.kind === "single") {
+      return {
+        slug: "naked-single",
+        name: "Naked single",
+        look: "Look at this cell.",
+        explain: `Every other digit is already used in row ${row}, column ${col}, or their box, so this cell has to be ${digit}.`,
+        pattern: [index],
+        region: [index],
+        eliminate: [],
+        place: { index, digit },
+        candidates: [{ index, digits: [digit] }],
+      };
+    }
+    const bit = 1 << (digit - 1);
+    let unit;
+    let phrase;
+    if (place.kind === "hidden_box") {
+      unit = BOXS[BOX_OF[index]];
+      phrase = housePhrase("box", BOX_OF[index]);
+    } else {
+      let rowCount = 0;
+      const rowCells = ROWS[ROW_OF[index]];
+      for (let k = 0; k < 9; k++) if (state.c[rowCells[k]] & bit) rowCount++;
+      if (rowCount === 1) {
+        unit = rowCells;
+        phrase = housePhrase("row", ROW_OF[index]);
+      } else {
+        unit = COLS[COL_OF[index]];
+        phrase = housePhrase("column", COL_OF[index]);
+      }
+    }
+    const house = phrase.split(" ")[0];
+    const extras = maskDigits(state.c[index] & ~bit);
+    return {
+      slug: "hidden-single",
+      name: "Hidden single",
+      look: `Look at the ${digit}s in this ${house}.`,
+      explain: `${digit} fits in only one cell of ${phrase}, so it goes in row ${row}, column ${col}.`,
+      pattern: [index],
+      region: copyList(unit),
+      eliminate: extras.map((extra) => ({ index, digit: extra })),
+      place: { index, digit },
+      candidates: [{ index, digits: maskDigits(state.c[index]) }],
+    };
+  }
+
+  function describeHit(state, hit) {
+    const type = hit.type;
+    const digit = hit.bit ? digitOf(hit.bit) : 0;
+    const eliminate = eliminationList(state, hit);
+    const place = resultingPlace(state, hit);
+    let look = "Look at these cells.";
+    let explain = "This step removes candidates.";
+    let region = hit.pattern ? hit.pattern.slice() : [];
+
+    if (type === "pointing") {
+      const line = housePhrase(hit.lineKind, hit.lineIndex);
+      look = `Look at the ${digit}s in this box.`;
+      explain = `The ${digit}s in box ${hit.box + 1} are all in ${line}, so ${digit} can't go anywhere else in ${line}.`;
+      region = BOXS[hit.box].slice();
+    } else if (type === "claiming") {
+      const line = housePhrase(hit.lineKind, hit.lineIndex);
+      look = `Look at the ${digit}s in this ${hit.lineKind}.`;
+      explain = `Every ${digit} in ${line} sits in box ${hit.box + 1}, so ${digit} can't go in the rest of box ${hit.box + 1}.`;
+      region = (hit.lineKind === "row" ? ROWS[hit.lineIndex] : COLS[hit.lineIndex]).slice();
+    } else if (type === "naked_pair" || type === "naked_triple" || type === "naked_quad") {
+      const digits = maskDigits(hit.mask);
+      const word = hit.pattern.length === 2 ? "two" : hit.pattern.length === 3 ? "three" : "four";
+      const house = unitPhrase(hit.unit);
+      look = `Look at these ${word} cells.`;
+      explain =
+        hit.pattern.length === 2
+          ? `These two cells are the only ones that can hold ${joinDigits(digits)}, so those digits come out of the rest of ${house}.`
+          : `These ${word} cells hold only ${joinDigits(digits)} between them, so those digits come out of the rest of ${house}.`;
+      region = UNITS[hit.unit].slice();
+    } else if (type === "hidden_pair" || type === "hidden_triple" || type === "hidden_quad") {
+      const digits = maskDigits(hit.mask);
+      const word = hit.pattern.length === 2 ? "two" : hit.pattern.length === 3 ? "three" : "four";
+      const house = unitPhrase(hit.unit);
+      look = `Look at these ${word} cells.`;
+      explain = `Only these ${word} cells in ${house} can hold ${joinDigits(digits)}, so every other digit comes out of them.`;
+      region = UNITS[hit.unit].slice();
+    } else if (type === "xwing" || type === "swordfish") {
+      const cover = hit.fishBase === "row" ? "column" : "row";
+      const many = type === "xwing" ? "two" : "three";
+      look = `Look at the ${digit}s in these ${many} ${hit.fishBase}s.`;
+      explain =
+        type === "xwing"
+          ? `Those ${digit}s form a rectangle, so ${digit} comes out of the rest of those ${cover}s.`
+          : `Those ${digit}s cover only three ${cover}s, so ${digit} comes out of the rest of those ${cover}s.`;
+      region = hit.pattern.slice();
+    } else if (type === "xywing") {
+      look = "Look at these three cells.";
+      explain = `The middle cell links two pairs. One of the wings has to be ${digit}, so ${digit} can't go in a cell that sees both wings.`;
+      region = hit.pattern.slice();
+    } else if (type === "coloring") {
+      const outside = hit.targets.some((index) => hit.pattern.indexOf(index) === -1);
+      look = `Look at the ${digit}s in this chain.`;
+      explain = outside
+        ? `This cell sees both colors of ${digit}, so ${digit} can't go there.`
+        : `Two cells of the same color see each other, so ${digit} is impossible on that color.`;
+      region = hit.pattern.slice();
+    } else if (type === "xychain") {
+      look = "Look at this chain of pairs.";
+      explain = `The chain starts and ends on ${digit}, so ${digit} can't go in a cell that sees both ends.`;
+      region = hit.pattern.slice();
+    }
+
+    const indexes = region.concat(hit.pattern || [], eliminate.map((item) => item.index));
+    if (place) indexes.push(place.index);
+    return {
+      slug: STEP_SLUG[type] || type,
+      name: STEP_NAME[type] || type,
+      look,
+      explain,
+      pattern: hit.pattern ? hit.pattern.slice() : [],
+      region,
+      eliminate,
+      place,
+      candidates: candidateSnapshot(state, indexes),
+    };
+  }
+
+  function applyRemoved(state, removed) {
+    if (!removed) return;
+    for (let i = 0; i < removed.length; i++) {
+      const item = removed[i];
+      if (!item || state.v[item.index]) continue;
+      const bit = 1 << (item.digit - 1);
+      if (state.c[item.index] & bit) state.c[item.index] &= ~bit;
+    }
+  }
+
+  function explainState(state) {
+    const singles = findSingles(state, false);
+    if (singles.place) return describeSingle(state, singles.place);
+    for (let t = 0; t < TECHNIQUES.length; t++) {
+      const hits = TECHNIQUES[t].find(state);
+      if (!hits.length) continue;
+      return describeHit(state, hits[0]);
+    }
+    return null;
+  }
+
+  // Next logical step on the current digits. `removed` is a list of
+  // {index, digit} candidates already eliminated by an earlier hint.
+  // Pass full=true to attach the candidate grid used for that step.
+  function explain(puzzle, removed, full) {
+    const state = load(puzzle);
+    applyRemoved(state, removed);
+    const step = explainState(state);
+    if (full && step) {
+      const pencil = [];
+      for (let i = 0; i < 81; i++) pencil.push(state.v[i] ? [] : maskDigits(state.c[i]));
+      step.pencil = pencil;
+    }
+    return step;
+  }
+
   root.SudokuSolver = {
     grade,
     countSolutions,
     nextStep,
     fillGrid,
+    explain,
     RANK_NAME,
   };
 })(typeof globalThis !== "undefined" ? globalThis : window);

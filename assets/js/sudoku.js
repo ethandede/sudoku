@@ -39,6 +39,27 @@
     });
   }
 
+  function savedTheme() {
+    try {
+      const stored = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+      return stored.theme || "system";
+    } catch {
+      return "system";
+    }
+  }
+
+  function applyDocumentTheme(theme) {
+    const dark =
+      theme === "dark" ||
+      (theme !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+  }
+
+  applyDocumentTheme(savedTheme());
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    applyDocumentTheme(savedTheme());
+  });
+
   initNavigation();
 
   const grid = document.getElementById("sudoku-grid");
@@ -80,6 +101,7 @@
   let pendingRequest = null;
   let generation = 0;
   let busy = false;
+  let hintView = null;
 
   applyTheme();
   buildGrid();
@@ -123,6 +145,7 @@
       counted: false,
       auto: false,
       metadata: null,
+      removed: [],
     };
   }
 
@@ -310,6 +333,10 @@
     document.getElementById("mode-normal").addEventListener("click", () => setMode("normal"));
     document.getElementById("mode-notes").addEventListener("click", () => setMode("notes"));
     document.getElementById("erase-btn").addEventListener("click", () => erase(state.selected));
+    document.getElementById("hint-btn").addEventListener("click", () => advanceHint());
+    document.getElementById("hint-next").addEventListener("click", () => advanceHint());
+    document.getElementById("hint-dismiss").addEventListener("click", () => dismissHint());
+    bindHintSwipe();
     undoBtn.addEventListener("click", undo);
     pauseBtn.addEventListener("click", () => {
       if (state.running) pause(true);
@@ -408,6 +435,7 @@
   }
 
   function beginNew(request, { count }) {
+    dismissHint();
     const kind = request.kind || "easy";
     const date = todayString();
     const token = ++generation;
@@ -517,12 +545,15 @@
 
   function place(index, number) {
     if (state.puzzle[index] !== 0 || state.board[index] === number) return;
+    dismissHint();
     pushUndo();
+    if (number !== state.solution[index]) state.removed = [];
     state.board[index] = number;
     state.notes[index].clear();
     peerIndexes(index).forEach((other) => state.notes[other].delete(number));
     if (number === state.solution[index]) state.slashed.delete(index);
-    else if (settings.checkGuesses) {
+    else state.removed = state.removed.filter((item) => state.board[item.index] === 0);
+    if (settings.checkGuesses && number !== state.solution[index]) {
       state.slashed.add(index);
       state.mistakes += 1;
       announce("That number conflicts");
@@ -554,7 +585,9 @@
   function erase(index) {
     if (blocked() || state.puzzle[index] !== 0) return;
     if (state.board[index] === 0 && state.notes[index].size === 0) return;
+    dismissHint();
     pushUndo();
+    state.removed = [];
     state.board[index] = 0;
     state.notes[index].clear();
     state.slashed.delete(index);
@@ -573,42 +606,184 @@
     else if (action === "reset") resetPuzzle();
   }
 
-  function placeHint(index, message) {
-    select(index, false);
-    pushUndo();
-    const digit = state.solution[index];
-    state.board[index] = digit;
-    state.notes[index].clear();
-    state.slashed.delete(index);
-    peerIndexes(index).forEach((other) => state.notes[other].delete(digit));
+  function hintKey() {
+    const removed = state.removed.map((item) => `${item.index}:${item.digit}`).join(",");
+    return `${state.board.join(",")}|${removed}`;
+  }
+
+  function dismissHint() {
+    hintView = null;
+    const sheet = document.getElementById("hint-sheet");
+    if (sheet) sheet.hidden = true;
+    if (cells.length) render();
+  }
+
+  function bindHintSwipe() {
+    const sheet = document.getElementById("hint-sheet");
+    let swipe = null;
+    sheet.addEventListener("pointerdown", (event) => {
+      if (event.target.closest("button, a")) return;
+      swipe = { x: event.clientX, y: event.clientY, x2: event.clientX, y2: event.clientY };
+    });
+    sheet.addEventListener("pointermove", (event) => {
+      if (!swipe) return;
+      swipe.x2 = event.clientX;
+      swipe.y2 = event.clientY;
+    });
+    const finish = () => {
+      if (!swipe) return;
+      const dy = swipe.y2 - swipe.y;
+      const dx = swipe.x2 - swipe.x;
+      swipe = null;
+      if (dy > 40 && Math.abs(dy) > Math.abs(dx)) dismissHint();
+    };
+    sheet.addEventListener("pointerup", finish);
+    sheet.addEventListener("pointercancel", finish);
+  }
+
+  function firstWrong() {
+    for (let index = 0; index < 81; index += 1) {
+      if (state.board[index] && state.board[index] !== state.solution[index]) return index;
+    }
+    return -1;
+  }
+
+  function advanceHint() {
+    if (blocked()) return;
+    if (hintView && hintView.key !== hintKey()) hintView = null;
+    if (!hintView) {
+      openHint();
+      return;
+    }
+    if (hintView.stage === 1) {
+      hintView.stage = 2;
+      showHint();
+      return;
+    }
+    if (hintView.stage === 2) {
+      applyHint();
+      return;
+    }
+    dismissHint();
+  }
+
+  function openHint() {
+    const wrong = firstWrong();
+    if (wrong >= 0) {
+      hintView = { kind: "wrong", stage: 1, index: wrong, key: hintKey() };
+      showHint();
+      return;
+    }
+    const solverApi = window.SudokuSolver;
+    const step = solverApi && solverApi.explain ? solverApi.explain(state.board, state.removed) : null;
+    if (!step) {
+      announce("No logical step from here");
+      return;
+    }
+    hintView = { kind: "step", stage: 1, step, key: hintKey() };
+    showHint();
+  }
+
+  function showHint() {
+    const sheet = document.getElementById("hint-sheet");
+    const text = document.getElementById("hint-text");
+    const kicker = document.getElementById("hint-kicker");
+    const next = document.getElementById("hint-next");
+    const learn = document.getElementById("hint-learn");
+    sheet.hidden = false;
+    next.hidden = false;
+    if (hintView.kind === "wrong") {
+      const index = hintView.index;
+      const digit = state.board[index];
+      const row = Math.floor(index / 9) + 1;
+      const col = (index % 9) + 1;
+      learn.hidden = true;
+      kicker.textContent = "Check the board";
+      if (hintView.stage === 1) {
+        text.textContent = "A digit on the board is wrong, so the next technique wouldn't be trustworthy.";
+        next.textContent = "Show it";
+      } else if (hintView.stage === 2) {
+        text.textContent = `The ${digit} in row ${row}, column ${col} doesn't belong.`;
+        next.textContent = "Clear it";
+      } else {
+        text.textContent = `Cleared the wrong digit in row ${row}, column ${col}.`;
+        next.hidden = true;
+      }
+    } else {
+      const step = hintView.step;
+      kicker.textContent = step.name;
+      learn.hidden = false;
+      learn.href = `/techniques/${step.slug}`;
+      if (hintView.stage === 1) {
+        text.textContent = step.look;
+        next.textContent = "Show why";
+      } else if (hintView.stage === 2) {
+        text.textContent = step.explain;
+        next.textContent = step.place ? "Place it" : "Apply";
+      } else {
+        text.textContent = step.place
+          ? `${step.explain} Placed ${step.place.digit}.`
+          : `${step.explain} Those candidates are gone.`;
+        next.hidden = true;
+      }
+    }
     render();
-    announce(message);
+    announce(text.textContent);
+  }
+
+  function applyHint() {
+    if (!hintView) return;
+    if (hintView.kind === "wrong") {
+      const index = hintView.index;
+      pushUndo();
+      state.board[index] = 0;
+      state.notes[index].clear();
+      state.slashed.delete(index);
+      state.removed = [];
+      hintView.stage = 3;
+      hintView.key = hintKey();
+      showHint();
+      writeSave();
+      return;
+    }
+    const step = hintView.step;
+    pushUndo();
+    (step.eliminate || []).forEach((item) => {
+      state.notes[item.index].delete(item.digit);
+      if (!state.removed.some((kept) => kept.index === item.index && kept.digit === item.digit)) {
+        state.removed.push({ index: item.index, digit: item.digit });
+      }
+    });
+    if (
+      step.place &&
+      state.puzzle[step.place.index] === 0 &&
+      step.place.digit === state.solution[step.place.index] &&
+      state.board[step.place.index] !== step.place.digit
+    ) {
+      const digit = step.place.digit;
+      const index = step.place.index;
+      state.board[index] = digit;
+      state.notes[index].clear();
+      state.slashed.delete(index);
+      peerIndexes(index).forEach((other) => state.notes[other].delete(digit));
+    }
+    state.removed = state.removed.filter((item) => state.board[item.index] === 0);
+    hintView.stage = 3;
+    hintView.key = hintKey();
     if (isSolved()) finish(false);
-    else writeSave();
+    else {
+      showHint();
+      writeSave();
+    }
   }
 
   function hint() {
-    if (blocked()) return;
-    const solverApi = window.SudokuSolver;
-    if (solverApi && typeof solverApi.nextStep === "function") {
-      const step = solverApi.nextStep(state.board);
-      if (
-        step &&
-        state.puzzle[step.index] === 0 &&
-        step.digit === state.solution[step.index] &&
-        state.board[step.index] !== step.digit
-      ) {
-        placeHint(step.index, "Hint: that cell is a single");
-        return;
-      }
-    }
-    const index = nextHelpCell(state.selected);
-    if (index < 0) return;
-    placeHint(index, "Hint placed");
+    advanceHint();
   }
 
   function revealCell() {
     if (blocked()) return;
+    dismissHint();
     const index = state.selected;
     if (state.puzzle[index] !== 0) return;
     pushUndo();
@@ -627,6 +802,7 @@
     state.board = state.solution.slice();
     state.notes = emptyNotes();
     state.slashed.clear();
+    state.removed = [];
     render();
     finish(true);
   }
@@ -663,8 +839,10 @@
     state.board = state.puzzle.slice();
     state.notes = emptyNotes();
     state.slashed.clear();
+    state.removed = [];
     state.undo = [];
     state.mistakes = 0;
+    dismissHint();
     state.elapsed = 0;
     state.over = false;
     state.won = false;
@@ -686,8 +864,10 @@
   function undo() {
     const snap = state.undo.pop();
     if (!snap) return;
+    dismissHint();
     state.board = snap.board;
     state.notes = snap.notes.map((list) => new Set(list));
+    state.removed = (snap.removed || []).map((item) => ({ index: item.index, digit: item.digit }));
     state.mistakes = snap.mistakes;
     state.slashed = new Set(snap.slashed);
     state.won = snap.won;
@@ -706,6 +886,7 @@
       notes: state.notes.map((set) => [...set]),
       mistakes: state.mistakes,
       slashed: [...state.slashed],
+      removed: state.removed.map((item) => ({ index: item.index, digit: item.digit })),
       won: state.won,
       revealed: state.revealed,
       over: state.over,
@@ -714,6 +895,9 @@
   }
 
   function finish(revealed) {
+    hintView = null;
+    const hintSheet = document.getElementById("hint-sheet");
+    if (hintSheet) hintSheet.hidden = true;
     state.revealed = revealed;
     state.won = true;
     state.undo = [];
@@ -778,7 +962,7 @@
           break;
         }
       }
-      if (ok) found.add(number);
+      if (ok && !state.removed.some((item) => item.index === index && item.digit === number)) found.add(number);
     }
     return found;
   }
@@ -828,19 +1012,50 @@
   function render() {
     const dots = conflictDots();
     const selectedValue = state.board[state.selected] || 0;
+    const hint = hintView && hintView.key === hintKey() ? hintView : null;
+    const hintPattern = new Set();
+    const hintRegion = new Set();
+    const hintEliminate = new Set();
+    const hintStruck = new Map();
+    const hintCandidates = new Map();
+    let hintPlace = -1;
+    if (hint && hint.kind === "wrong" && hint.stage >= 2) hintPlace = hint.index;
+    if (hint && hint.kind === "step") {
+      hint.step.region.forEach((index) => hintRegion.add(index));
+      hint.step.pattern.forEach((index) => hintPattern.add(index));
+      if (hint.stage >= 2) {
+        hint.step.eliminate.forEach((item) => {
+          hintEliminate.add(item.index);
+          if (!hintStruck.has(item.index)) hintStruck.set(item.index, new Set());
+          hintStruck.get(item.index).add(item.digit);
+        });
+        hint.step.candidates.forEach((item) => hintCandidates.set(item.index, new Set(item.digits)));
+        if (hint.step.place) hintPlace = hint.step.place.index;
+      }
+    }
     cells.forEach((cell, index) => {
       const value = state.board[index];
       const given = state.puzzle[index] !== 0;
       const selected = index === state.selected;
+      const hinted =
+        hintPattern.has(index) || hintRegion.has(index) || hintEliminate.has(index) || index === hintPlace;
       const same =
-        settings.highlightSame && selectedValue !== 0 && value === selectedValue && !selected;
-      const peer = !selected && !same && isPeer(index);
+        !hinted &&
+        settings.highlightSame &&
+        selectedValue !== 0 &&
+        value === selectedValue &&
+        !selected;
+      const peer = !hinted && !selected && !same && isPeer(index);
       cell.classList.toggle("given", given);
       cell.classList.toggle("user", !given && value !== 0);
       cell.classList.toggle("selected", selected);
       cell.classList.toggle("same", same);
       cell.classList.toggle("peer", peer);
       cell.classList.toggle("wrong", state.slashed.has(index) && value !== 0);
+      cell.classList.toggle("hint-region", hintRegion.has(index));
+      cell.classList.toggle("hint-pattern", hintPattern.has(index));
+      cell.classList.toggle("hint-eliminate", hint && hint.stage >= 2 && hintEliminate.has(index));
+      cell.classList.toggle("hint-place", hint && hint.stage >= 2 && index === hintPlace);
       cell.setAttribute("aria-selected", selected ? "true" : "false");
       cell.replaceChildren();
       if (value) {
@@ -850,10 +1065,14 @@
         marks.className = "marks";
         marks.setAttribute("aria-hidden", "true");
         const auto = state.auto ? candidatesFor(index) : new Set();
+        const ghost = hint && hint.stage === 2 ? hintCandidates.get(index) : null;
+        const struck = hint && hint.stage === 2 ? hintStruck.get(index) : null;
         for (let number = 1; number <= 9; number += 1) {
           const mark = document.createElement("span");
           mark.textContent = String(number);
-          if (state.notes[index].has(number)) mark.classList.add("on", "user-note");
+          if (struck && struck.has(number)) mark.classList.add("on", "struck");
+          else if (ghost && ghost.has(number)) mark.classList.add("on", "hint-note");
+          else if (state.notes[index].has(number)) mark.classList.add("on", "user-note");
           else if (auto.has(number)) mark.classList.add("on", "auto");
           marks.appendChild(mark);
         }
@@ -1161,6 +1380,7 @@
       solution: state.solution,
       board: state.board,
       notes: state.notes.map((set) => [...set]),
+      removed: state.removed,
       mistakes: state.mistakes,
       slashed: [...state.slashed],
       undo: state.undo,
@@ -1200,6 +1420,9 @@
     state.solution = saved.solution.slice();
     state.board = saved.board.slice();
     state.notes = saved.notes.map((list) => new Set(list));
+    state.removed = Array.isArray(saved.removed)
+      ? saved.removed.map((item) => ({ index: item.index, digit: item.digit }))
+      : [];
     state.mistakes = saved.mistakes || 0;
     state.slashed = new Set(saved.slashed || []);
     state.undo = Array.isArray(saved.undo) ? saved.undo : [];

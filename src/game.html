@@ -52,6 +52,18 @@
               <button type="button" id="resume-btn">Resume</button>
             </div>
           </div>
+          <section id="hint-sheet" class="hint-sheet" hidden>
+            <div class="hint-grab" aria-hidden="true"></div>
+            <div class="hint-head">
+              <p id="hint-kicker" class="hint-kicker"></p>
+              <button type="button" id="hint-dismiss" class="text-btn hint-dismiss">Close</button>
+            </div>
+            <p id="hint-text" class="hint-text"></p>
+            <div class="hint-actions">
+              <button type="button" id="hint-next" class="primary-btn">Show why</button>
+              <a id="hint-learn" class="hint-learn" href="/techniques">Learn this technique →</a>
+            </div>
+          </section>
         </div>
 
         <div class="controls">
@@ -59,6 +71,7 @@
             <button type="button" id="mode-normal" aria-pressed="true">Normal</button>
             <button type="button" id="mode-notes" aria-pressed="false" aria-keyshortcuts="N" title="Press N to toggle notes">Notes <kbd>N</kbd></button>
           </div>
+          <button type="button" id="hint-btn" class="pad-wide hint-launch">Hint</button>
           <div class="number-pad" id="number-pad" role="group" aria-label="Number pad"></div>
           <div class="pad-actions">
             <button type="button" id="erase-btn" class="pad-wide" aria-label="Erase selected cell">Erase</button>

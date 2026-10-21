@@ -1,4 +1,5 @@
-.sudoku-page {
+.sudoku-page,
+.technique-page {
   --board-bg: #fff;
   --cell-bg: #fff;
   --given-bg: #ece7df;
@@ -23,6 +24,11 @@
   --accent-btn: #1f4d63;
   --focus: #1d5c78;
   --danger: #d01212;
+  --hint-pattern: #0b6e5f;
+  --hint-eliminate: #b42318;
+  --hint-place: #0b6e5f;
+  --hint-place-bg: #d7f3ec;
+  --hint-region: #e7f6f2;
 
   background: var(--page);
   color: var(--ink);
@@ -35,7 +41,8 @@
   }
 }
 
-html[data-theme="dark"] .sudoku-page {
+html[data-theme="dark"] .sudoku-page,
+html[data-theme="dark"] .technique-page {
   --board-bg: #1b1920;
   --cell-bg: #26232c;
   --given-bg: #332f3a;
@@ -60,6 +67,11 @@ html[data-theme="dark"] .sudoku-page {
   --accent-btn: #8ec8dc;
   --focus: #f4efe6;
   --danger: #ff5c5c;
+  --hint-pattern: #7ddec8;
+  --hint-eliminate: #ff8b80;
+  --hint-place: #7ddec8;
+  --hint-place-bg: #1a3c34;
+  --hint-region: #24312e;
 }
 
 .sudoku-shell {
@@ -252,7 +264,8 @@ html[data-theme="dark"] .difficulty-tabs button[aria-selected="true"] {
   flex: 1 1 18rem;
   min-width: 0;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
 }
 
 .board-wrap {
@@ -270,6 +283,7 @@ html[data-theme="dark"] .difficulty-tabs button[aria-selected="true"] {
   border: 3px solid var(--line);
   background: var(--board-bg);
   user-select: none;
+  touch-action: manipulation;
 }
 
 .grid-row {
@@ -301,6 +315,7 @@ html[data-theme="dark"] .difficulty-tabs button[aria-selected="true"] {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  touch-action: manipulation;
 
   &.border-right {
     border-right: 3px solid var(--line);
@@ -332,6 +347,37 @@ html[data-theme="dark"] .difficulty-tabs button[aria-selected="true"] {
     background: var(--selected);
     color: var(--selected-ink);
     z-index: 1;
+  }
+
+  &.hint-region {
+    background: var(--hint-region);
+  }
+
+  &.hint-pattern {
+    box-shadow: inset 0 0 0 3px var(--hint-pattern);
+    z-index: 2;
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--hint-pattern);
+      pointer-events: none;
+    }
+  }
+
+  &.hint-eliminate {
+    box-shadow: inset 0 0 0 3px var(--hint-eliminate);
+    z-index: 2;
+  }
+
+  &.hint-place {
+    box-shadow: inset 0 0 0 3px var(--hint-place);
+    background: var(--hint-place-bg);
+    z-index: 3;
   }
 
   &.wrong {
@@ -395,6 +441,27 @@ html[data-theme="dark"] .difficulty-tabs button[aria-selected="true"] {
     opacity: 1;
     color: var(--user-ink);
   }
+
+  span.hint-note {
+    visibility: visible;
+    color: var(--ink);
+    font-weight: 800;
+    opacity: 1;
+  }
+
+  span.struck {
+    visibility: visible;
+    color: var(--slash);
+    font-weight: 800;
+    opacity: 1;
+    text-decoration: line-through;
+  }
+}
+
+.cell.hint-pattern .marks,
+.cell.hint-eliminate .marks,
+.cell.hint-place .marks {
+  font-size: clamp(0.68rem, 2.8cqi, 0.9rem);
 }
 
 .board-cover {
@@ -466,6 +533,7 @@ kbd {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.4rem;
+  touch-action: manipulation;
 
   button {
     position: relative;
@@ -543,10 +611,186 @@ kbd {
   }
 }
 
+.hint-launch {
+  width: 100%;
+}
+
 .pad-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.4rem;
+}
+
+.hint-sheet {
+  width: 100%;
+  max-width: 540px;
+  margin-top: 0.3rem;
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--pad-border);
+  border-radius: 0.75rem;
+  padding: 0.2rem 0.65rem 0.45rem;
+  touch-action: none;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.hint-grab {
+  width: 2.4rem;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--thin);
+  margin: 0.05rem auto 0.25rem;
+}
+
+.hint-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 44px;
+}
+
+.hint-kicker {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: var(--user-ink);
+}
+
+.hint-text {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.hint-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.15rem;
+}
+
+.hint-next,
+.hint-learn,
+.hint-dismiss {
+  touch-action: manipulation;
+}
+
+.hint-next {
+  width: 100%;
+}
+
+.hint-learn {
+  font-size: 1rem;
+  font-weight: 700;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--user-ink);
+}
+
+.hint-dismiss {
+  min-height: 44px;
+  min-width: 44px;
+  flex: 0 0 auto;
+}
+
+.sudoku-page input,
+.sudoku-page select,
+.sudoku-page textarea,
+.technique-page input,
+.technique-page select,
+.technique-page textarea {
+  font-size: 1rem;
+}
+
+.technique-board {
+  width: 100%;
+  max-width: 100%;
+  margin: 0.5rem 0 0.75rem;
+  touch-action: manipulation;
+}
+
+.technique-step-label {
+  margin: 0.75rem 0 0.15rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--user-ink, #1d5c78);
+}
+
+.technique-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin: 0.35rem 0 1rem;
+
+  button {
+    min-height: 48px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    border-radius: 0.6rem;
+    border: 1px solid var(--pad-border, #d9d3c8);
+    background: var(--pad, #f6f3ee);
+    color: var(--pad-ink, #1c1a22);
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+
+  button:disabled {
+    opacity: 0.45;
+  }
+}
+
+.play-technique,
+.related-techniques a {
+  font-weight: 800;
+}
+
+.play-technique {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 1rem;
+  border-radius: 0.6rem;
+  background: var(--accent-btn, #1f4d63);
+  color: #fff;
+  text-decoration: none;
+}
+
+html[data-theme="dark"] .play-technique {
+  color: #1a1208;
+}
+
+.technique-index {
+  list-style: decimal;
+  padding-left: 1.2rem;
+
+  li {
+    margin: 0 0 0.85rem;
+  }
+
+  a {
+    font-weight: 800;
+  }
+
+  span {
+    display: block;
+    margin-top: 0.15rem;
+  }
+}
+
+.technique-level {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 700;
 }
 
 .pad-wide,
@@ -639,6 +883,13 @@ button:disabled {
   max-width: 760px;
   margin: 2.5rem auto 0;
   color: var(--ink);
+  min-width: 0;
+
+  h2,
+  h3,
+  p {
+    overflow-wrap: anywhere;
+  }
 
   a {
     color: var(--user-ink);
@@ -777,7 +1028,7 @@ button:disabled {
 
 @media (max-width: 860px) {
   .sudoku-shell {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .ad-rail {
@@ -813,14 +1064,17 @@ button:disabled {
   }
 
   .game-intro {
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.35rem;
 
     .supporting-text {
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+      display: none;
     }
+  }
+
+  .status-bar,
+  .difficulty-tabs {
+    min-width: 0;
+    max-width: 100%;
   }
 
   .status-bar {
@@ -854,6 +1108,10 @@ button:disabled {
 
   .key-help {
     display: none;
+  }
+
+  .sudoku-copy h2 {
+    font-size: 1.35rem;
   }
 }
 
