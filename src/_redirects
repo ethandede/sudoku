@@ -1,0 +1,4 @@
+# Retired WordPress URLs. The game is the front page.
+# The old landing page linked to /sudoku; that template is gone.
+/sudoku / 301
+/sudoku/ / 301
