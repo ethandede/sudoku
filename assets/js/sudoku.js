@@ -180,25 +180,23 @@
   }
 
   function todayString(date = new Date()) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
+    return date.toISOString().slice(0, 10);
   }
 
   function shiftDate(iso, days) {
     const [y, m, d] = iso.split("-").map(Number);
-    const date = new Date(y, m - 1, d);
-    date.setDate(date.getDate() + days);
-    return todayString(date);
+    const date = new Date(Date.UTC(y, m - 1, d));
+    date.setUTCDate(date.getUTCDate() + days);
+    return date.toISOString().slice(0, 10);
   }
 
   function formatDay(iso) {
     const [y, m, d] = iso.split("-").map(Number);
-    return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+    return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString(undefined, {
       month: "long",
       day: "numeric",
       year: "numeric",
+      timeZone: "UTC",
     });
   }
 
@@ -575,20 +573,38 @@
     else if (action === "reset") resetPuzzle();
   }
 
-  function hint() {
-    if (blocked()) return;
-    const index = nextHelpCell(state.selected);
-    if (index < 0) return;
+  function placeHint(index, message) {
     select(index, false);
     pushUndo();
-    state.board[index] = state.solution[index];
+    const digit = state.solution[index];
+    state.board[index] = digit;
     state.notes[index].clear();
     state.slashed.delete(index);
-    peerIndexes(index).forEach((other) => state.notes[other].delete(state.solution[index]));
+    peerIndexes(index).forEach((other) => state.notes[other].delete(digit));
     render();
-    announce("Hint placed");
+    announce(message);
     if (isSolved()) finish(false);
     else writeSave();
+  }
+
+  function hint() {
+    if (blocked()) return;
+    const solverApi = window.SudokuSolver;
+    if (solverApi && typeof solverApi.nextStep === "function") {
+      const step = solverApi.nextStep(state.board);
+      if (
+        step &&
+        state.puzzle[step.index] === 0 &&
+        step.digit === state.solution[step.index] &&
+        state.board[step.index] !== step.digit
+      ) {
+        placeHint(step.index, "Hint: that cell is a single");
+        return;
+      }
+    }
+    const index = nextHelpCell(state.selected);
+    if (index < 0) return;
+    placeHint(index, "Hint placed");
   }
 
   function revealCell() {

@@ -116,7 +116,7 @@ ${main}
     <p class="copyright">&copy; ${year} Sudoku Online. All rights reserved.</p>
   </div>
 </footer>
-${game ? '<script src="/assets/js/generator.js"></script>' : ""}
+${game ? '<script src="/assets/js/solver.js"></script>\n<script src="/assets/js/pools.js"></script>\n<script src="/assets/js/generator.js"></script>' : ""}
 <script src="/assets/js/sudoku.js"></script>
 </body>
 </html>
@@ -196,6 +196,8 @@ const compiled = sass.compile(join(root, "assets/scss/main.scss"), {
   style: "compressed",
 });
 write("assets/css/style.css", compiled.css);
+write("assets/js/solver.js", read("assets/js/solver.js"));
+write("assets/js/pools.js", read("assets/js/pools.js"));
 write("assets/js/generator.js", read("assets/js/generator.js"));
 write("assets/js/sudoku.js", read("assets/js/sudoku.js"));
 write("ads.txt", read("ads.txt").trim() + "\n");
