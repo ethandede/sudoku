@@ -1,6 +1,8 @@
 # Sudoku Sudoku
 
-Static site for [sudokusudoku.com](https://sudokusudoku.com). The game, header, footer, and styles are the old WordPress theme, served as plain HTML, CSS, and JavaScript.
+Static site for [sudokusudoku.com](https://sudokusudoku.com). The game runs entirely in the browser: a playable puzzle on first load, notes, undo, a daily puzzle, and stats saved on the device. Header, footer, and the rest of the site stay static HTML, CSS, and JavaScript.
+
+Puzzles come from `SudokuGenerator.generate(difficulty, seed)`, which returns the puzzle, its solution, and metadata. The daily puzzle uses that same generator with the visitor's calendar date as the seed.
 
 ## Cloudflare Pages
 
