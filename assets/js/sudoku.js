@@ -1379,12 +1379,14 @@ function removeOverlays() {
 function countSolutions(board) {
   let solutions = 0;
   function solveAll(b) {
+    if (solutions > 1) return;
     const empty = b.indexOf(0);
     if (empty === -1) {
       solutions++;
       return;
     }
     for (let num = 1; num <= 9; num++) {
+      if (solutions > 1) return;
       if (isValidMove(empty, num, b)) {
         b[empty] = num;
         solveAll(b);
@@ -1435,6 +1437,26 @@ function initNavigation() {
   });
 }
 
+// URL slugs use hyphens. The generator still keys "Not Easy" as "not easy".
+const DIFFICULTY_FROM_SLUG = {
+  quick: "quick",
+  easy: "easy",
+  "not-easy": "not easy",
+  hard: "hard",
+  expert: "expert",
+  mental: "mental",
+};
+
+function difficultyFromSlug(slug) {
+  if (!slug) return null;
+  const key = slug.trim().toLowerCase().replace(/\s+/g, "-");
+  return DIFFICULTY_FROM_SLUG[key] || null;
+}
+
+function difficultyToSlug(difficulty) {
+  return String(difficulty).trim().toLowerCase().replace(/\s+/g, "-");
+}
+
 // Event Listeners (at the end)
 document.addEventListener("DOMContentLoaded", () => {
   console.log("DOM loaded");
@@ -1483,7 +1505,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   difficultyOptions.forEach((option) => {
     option.addEventListener("click", async () => {
-      currentDifficulty = option.dataset.value;
+      const selected = difficultyFromSlug(option.dataset.value);
+      if (!selected) return;
+      currentDifficulty = selected;
+      const url = new URL(window.location.href);
+      url.searchParams.set("difficulty", difficultyToSlug(currentDifficulty));
+      history.replaceState(null, "", url);
       console.log("Difficulty selected:", currentDifficulty);
       option.classList.add("loading");
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -1572,6 +1599,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const savedTheme = localStorage.getItem("theme");
   if (savedTheme === "dark") {
     document.body.classList.add("dark-theme");
+  }
+
+  const requestedDifficulty = difficultyFromSlug(
+    new URLSearchParams(window.location.search).get("difficulty")
+  );
+  if (requestedDifficulty) {
+    currentDifficulty = requestedDifficulty;
+    newGame();
   }
 });
 

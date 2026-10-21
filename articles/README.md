@@ -1,3 +1,7 @@
+# Sudoku Articles
+
+`npm run build` turns `01-beginners-guide.md`, `02-common-mistakes.md`, and `03-advanced-techniques.md` into pages under `/articles`. The WordPress importer and the Bluehost deploy steps below are retired.
+
 # Sudoku Articles - Implementation Guide
 
 ## Completed Work
