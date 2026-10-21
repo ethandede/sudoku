@@ -63,7 +63,7 @@
       <p>${blurb}</p>
       <div class="next-actions">
         <a class="primary-btn" href="/?train=${encodeURIComponent(slug)}">Train</a>
-        <a class="secondary-btn" href="/techniques/${slug}">Technique page</a>
+        <a class="secondary-btn" href="/techniques/${slug}/">Technique page</a>
       </div>
     </section>`;
   }
@@ -77,7 +77,7 @@
       const note = tech.slug === next ? '<span class="next-flag">Your next technique</span>' : "";
       return `<li class="ladder-row${mark}">
         <span class="status status-${status}">${progress.STATUS_LABEL[status]}</span>
-        <a href="/techniques/${tech.slug}">${progress.escapeHtml(tech.name)}</a>
+        <a href="/techniques/${tech.slug}/">${progress.escapeHtml(tech.name)}</a>
         ${note}
         <span class="ladder-count">${row.clean} clean</span>
       </li>`;

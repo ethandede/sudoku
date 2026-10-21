@@ -25,7 +25,8 @@
       gap: 1.5rem;
 
       li {
-        a {
+        a,
+        .privacy-choices {
           color: #fff;
           text-decoration: none;
           transition: color 0.3s ease;
@@ -35,6 +36,16 @@
             color: #BF3978;
           }
         }
+
+        .privacy-choices {
+          background: none;
+          border: 0;
+          font: inherit;
+          font-size: 0.95rem;
+          cursor: pointer;
+          min-height: 44px;
+          padding: 0.35rem 0;
+        }
       }
     }
   }
@@ -43,6 +54,12 @@
     margin: 0;
     color: rgba(255, 255, 255, 0.7);
     font-size: 0.85rem;
+  }
+
+  .privacy-choices-note {
+    margin: 0.75rem auto 0;
+    max-width: 36rem;
+    color: rgba(255, 255, 255, 0.8);
   }
 }
 

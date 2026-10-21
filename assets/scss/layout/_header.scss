@@ -194,8 +194,16 @@
       padding: 0.55rem 0;
     }
 
+    .nav-brand .site-logo {
+      font-size: 1.15rem;
+    }
+
     .mobile-menu-toggle {
       display: flex;
+      min-width: 44px;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
     }
 
     .nav-menu {

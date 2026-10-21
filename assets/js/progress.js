@@ -714,8 +714,8 @@
     const extra = badges.length - shown.length;
     const more =
       extra > 0
-        ? `<a href="/skills#badges">and ${extra} more</a>`
-        : `<a href="/skills#badges">Badge gallery</a>`;
+        ? `<a href="/skills/#badges">and ${extra} more</a>`
+        : `<a href="/skills/#badges">Badge gallery</a>`;
     toast.innerHTML = `<div class="badge-toast-icons">${shown
       .map((badge) => `<span class="badge-toast-icon">${icon(badge.icon)}</span>`)
       .join("")}</div><div class="badge-toast-copy"><p class="badge-toast-kicker">${

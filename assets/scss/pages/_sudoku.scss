@@ -75,12 +75,9 @@ html[data-theme="dark"] .technique-page {
 }
 
 .sudoku-shell {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 180px;
-  gap: 1.5rem;
+  display: block;
   max-width: 1040px;
   margin: 0 auto;
-  align-items: start;
 }
 
 .play-column {
@@ -847,38 +844,8 @@ button:disabled {
   line-height: 1.4;
 }
 
-.ad-rail {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.ad-slot {
-  background: #d5d5d5;
-  color: #333;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-size: 0.85rem;
-  padding: 0.5rem;
-}
-
-.ad-skyscraper {
-  width: 160px;
-  height: 600px;
-}
-
-.ad-square {
-  width: 160px;
-  min-height: 120px;
-}
-
-.ad-leaderboard {
-  width: min(728px, 100%);
-  height: 90px;
-  margin: 1.5rem auto 0;
-}
+// Placeholder ad boxes are gone. A future in-content unit is commented out
+// in src/game.html, below .sudoku-copy, and should reserve min-height: 280px.
 
 .sudoku-copy {
   max-width: 760px;
@@ -1028,27 +995,6 @@ button:disabled {
 }
 
 @media (max-width: 860px) {
-  .sudoku-shell {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .ad-rail {
-    order: 2;
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-
-  .play-column {
-    order: 1;
-  }
-
-  .ad-skyscraper,
-  .ad-square {
-    width: 100%;
-    height: auto;
-    min-height: 72px;
-  }
-
   .game-intro .supporting-text {
     font-size: 0.85rem;
   }
@@ -1066,10 +1012,6 @@ button:disabled {
 
   .game-intro {
     margin-bottom: 0.35rem;
-
-    .supporting-text {
-      display: none;
-    }
   }
 
   .status-bar,

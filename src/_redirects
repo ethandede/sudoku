@@ -2,3 +2,5 @@
 # The old landing page linked to /sudoku; that template is gone.
 /sudoku / 301
 /sudoku/ / 301
+/articles/advanced-techniques /techniques/ 301
+/articles/advanced-techniques/ /techniques/ 301

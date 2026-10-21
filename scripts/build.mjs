@@ -16,7 +16,6 @@ const sitemap = [];
 const articles = [
   { file: "articles/01-beginners-guide.md", slug: "beginners-guide" },
   { file: "articles/02-common-mistakes.md", slug: "common-mistakes" },
-  { file: "articles/03-advanced-techniques.md", slug: "advanced-techniques" },
   { file: "articles/04-nyt-medium-vs-hard.md", slug: "nyt-medium-vs-hard" },
 ];
 
@@ -32,7 +31,7 @@ function write(relativePath, contents) {
 
 function publish(relativePath, contents, path) {
   write(relativePath, contents);
-  if (path) sitemap.push(path);
+  if (path) sitemap.push(withSlash(path));
 }
 
 function escapeHtml(value) {
@@ -43,14 +42,50 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;");
 }
 
-function layout({ title, description, main, game = false, canonical, jsonLd, demo = false, skills = false }) {
-  const fontAwesome = "";
+const CONSENT_REGIONS = ["AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU","IS","IE","IT","LV","LI","LT","LU","MT","NL","NO","PL","PT","RO","SK","SI","ES","SE","GB","CH"];
+
+function withSlash(path) {
+  if (!path || path === "/") return "/";
+  if (path.endsWith(".html") || path.endsWith("/")) return path;
+  return `${path}/`;
+}
+
+function structuredData(extra) {
+  const graph = [
+    {
+      "@type": "WebSite",
+      name: "SudokuSudoku",
+      url: `${SITE}/`,
+    },
+    {
+      "@type": "Organization",
+      name: "SudokuSudoku",
+      url: `${SITE}/`,
+      logo: `${SITE}/icons/icon-512.png`,
+    },
+  ];
+  if (extra) {
+    const node = { ...extra };
+    delete node["@context"];
+    graph.push(node);
+  }
+  return { "@context": "https://schema.org", "@graph": graph };
+}
+
+function layout({ title, description, main, game = false, canonical, jsonLd, demo = false, skills = false, ads = true, robots = "", contact = false }) {
   const descriptionTag = description
     ? `<meta name="description" content="${escapeHtml(description)}">`
     : "";
-  const canonicalTag = canonical ? `<link rel="canonical" href="${escapeHtml(canonical)}">` : "";
-  const jsonLdTag = jsonLd
-    ? `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, "\\u003c")}</script>`
+  const canonicalHref = canonical ? withSlash(canonical) : "";
+  const canonicalTag = canonicalHref ? `<link rel="canonical" href="${escapeHtml(canonicalHref)}">` : "";
+  const robotsTag = robots ? `<meta name="robots" content="${escapeHtml(robots)}">` : "";
+  const jsonLdTag = `<script type="application/ld+json">${JSON.stringify(structuredData(jsonLd)).replace(/</g, "\\u003c")}</script>`;
+  const shareTitle = escapeHtml(title);
+  const shareDescription = escapeHtml(description || "Free daily Sudoku with teaching hints.");
+  const shareUrl = escapeHtml(canonicalHref || `${SITE}/`);
+  const image = `${SITE}/og.png`;
+  const adsTag = ads
+    ? `  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9345046210950956" crossorigin="anonymous"></script>\n`
     : "";
 
   return `<!DOCTYPE html>
@@ -63,11 +98,25 @@ function layout({ title, description, main, game = false, canonical, jsonLd, dem
   <meta name="color-scheme" content="light dark">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Sudoku">
+  <meta name="apple-mobile-web-app-title" content="SudokuSudoku">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>${escapeHtml(title)}</title>
   ${descriptionTag}
+  ${robotsTag}
   ${canonicalTag}
+  <meta property="og:title" content="${shareTitle}">
+  <meta property="og:description" content="${shareDescription}">
+  <meta property="og:url" content="${shareUrl}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="SudokuSudoku">
+  <meta property="og:image" content="${image}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="SudokuSudoku board beside a number-pad box map">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${shareTitle}">
+  <meta name="twitter:description" content="${shareDescription}">
+  <meta name="twitter:image" content="${image}">
   ${jsonLdTag}
   <script>
     try {
@@ -81,23 +130,34 @@ function layout({ title, description, main, game = false, canonical, jsonLd, dem
   </script>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="preload" href="/assets/fonts/open-sans-latin-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/assets/css/style.css">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/icons/icon-192.png" type="image/png" sizes="192x192">
   <link rel="icon" href="/icons/icon-512.png" type="image/png" sizes="512x512">
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TFNKPH6DNY"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
+    gtag('consent', 'default', {
+      ad_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied',
+      analytics_storage: 'denied',
+      wait_for_update: 500,
+      region: ${JSON.stringify(CONSENT_REGIONS)}
+    });
+    gtag('consent', 'default', {
+      ad_storage: 'granted',
+      ad_user_data: 'granted',
+      ad_personalization: 'granted',
+      analytics_storage: 'granted'
+    });
     gtag('js', new Date());
     gtag('config', 'G-TFNKPH6DNY');
   </script>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9345046210950956" crossorigin="anonymous"></script>
-</head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TFNKPH6DNY"></script>
+${adsTag}</head>
 <body>
 <div id="app-update" class="app-update" hidden>
   <p>A new version is ready.</p>
@@ -107,7 +167,7 @@ function layout({ title, description, main, game = false, canonical, jsonLd, dem
   <div class="container">
     <nav class="main-navigation" role="navigation">
       <div class="nav-brand">
-        <a href="/" class="site-logo">Sudoku</a>
+        <a href="/" class="site-logo">SudokuSudoku</a>
       </div>
       <button class="mobile-menu-toggle" aria-label="Toggle menu">
         <span></span>
@@ -129,41 +189,42 @@ function layout({ title, description, main, game = false, canonical, jsonLd, dem
             </ul>
           </li>
           <li class="menu-item">
-            <a href="/techniques">Techniques</a>
+            <a href="/techniques/">Techniques</a>
           </li>
           <li class="menu-item">
-            <a href="/skills">Skills</a>
+            <a href="/skills/">Skills</a>
           </li>
           <li class="menu-item">
-            <a href="/links">Links</a>
+            <a href="/links/">Links</a>
           </li>
           <li class="menu-item">
-            <a href="/articles">Articles</a>
+            <a href="/articles/">Articles</a>
           </li>
           <li class="menu-item">
-            <a href="/about">About</a>
+            <a href="/about/">About</a>
           </li>
         </ul>
       </div>
     </nav>
   </div>
 </header>
-${fontAwesome}
 ${main}
 <footer class="site-footer">
   <div class="container">
     <nav class="footer-nav">
       <ul class="footer-links">
-        <li><a href="/about">About</a></li>
-        <li><a href="/techniques">Techniques</a></li>
-        <li><a href="/skills">Skills</a></li>
-        <li><a href="/articles">Articles</a></li>
-        <li><a href="/links">Links</a></li>
-        <li><a href="/contact">Contact</a></li>
-        <li><a href="/privacy-policy">Privacy Policy</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/techniques/">Techniques</a></li>
+        <li><a href="/skills/">Skills</a></li>
+        <li><a href="/articles/">Articles</a></li>
+        <li><a href="/links/">Links</a></li>
+        <li><a href="/contact/">Contact</a></li>
+        <li><a href="/privacy-policy/">Privacy Policy</a></li>
+        <li><button type="button" class="privacy-choices" id="privacy-choices">Privacy choices</button></li>
       </ul>
     </nav>
-    <p class="copyright">&copy; ${year} Sudoku Online. All rights reserved.</p>
+    <p id="privacy-choices-note" class="privacy-choices-note" hidden>The privacy message did not load on this page. Open the home page and use Privacy choices there.</p>
+    <p class="copyright">&copy; ${year} SudokuSudoku. All rights reserved.</p>
   </div>
 </footer>
 ${game ? '<script src="/assets/js/solver.js"></script>\n<script src="/assets/js/pools.js"></script>\n<script src="/assets/js/generator.js"></script>\n<script src="/assets/js/progress.js"></script>' : ""}
@@ -171,16 +232,45 @@ ${skills ? '<script src="/assets/js/progress.js"></script>' : ""}
 <script src="/assets/js/sudoku.js"></script>
 ${skills ? '<script src="/assets/js/skills.js"></script>' : ""}
 ${demo ? '<script src="/assets/js/technique-demo.js"></script>' : ""}
+${contact ? '<script src="/assets/js/contact.js"></script>' : ""}
+<script>
+(function () {
+  var button = document.getElementById("privacy-choices");
+  if (!button) return;
+  button.addEventListener("click", function () {
+    window.googlefc = window.googlefc || {};
+    googlefc.callbackQueue = googlefc.callbackQueue || [];
+    var waited = 0;
+    var timer = window.setInterval(function () {
+      if (typeof googlefc.showRevocationMessage === "function") {
+        window.clearInterval(timer);
+        googlefc.callbackQueue.push(googlefc.showRevocationMessage);
+        return;
+      }
+      waited += 100;
+      if (waited >= 1200) {
+        window.clearInterval(timer);
+        var note = document.getElementById("privacy-choices-note");
+        if (note) note.hidden = false;
+      }
+    }, 100);
+  });
+})();
+</script>
 </body>
 </html>
 `;
 }
 
-function standardPage(title, bodyHtml, description, path) {
+function standardPage(title, bodyHtml, description, path, options = {}) {
+  const canonicalPath = withSlash(path);
   return layout({
-    title: `${title} - Sudoku Sudoku Online`,
+    title: `${title} | SudokuSudoku`,
     description,
-    canonical: path ? `${SITE}${path}` : "",
+    canonical: path ? `${SITE}${canonicalPath}` : "",
+    ads: options.ads !== false,
+    robots: options.robots || "",
+    contact: Boolean(options.contact),
     main: `<main class="standard-page">
   <div class="container">
     <article class="page-content">
@@ -216,10 +306,14 @@ function parseArticle(markdown) {
   const imageMatch = content.match(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)/);
   let image = null;
   if (imageMatch) {
+    const title = imageMatch[3] || "";
+    const size = title.match(/^(\d+)x(\d+)$/);
     image = {
       alt: imageMatch[1],
       src: imageMatch[2],
-      title: imageMatch[3] || "",
+      title: size ? "" : title,
+      width: size ? size[1] : "",
+      height: size ? size[2] : "",
     };
     content = content.replace(imageMatch[0], "");
   }
@@ -233,14 +327,29 @@ function parseArticle(markdown) {
     tags,
     image,
     minutes,
-    html: marked.parse(content.trim()),
+    html: sizeImages(marked.parse(content.trim())),
   };
 }
 
 function imageTag(image) {
   if (!image) return "";
   const title = image.title ? ` title="${escapeHtml(image.title)}"` : "";
-  return `<img src="${escapeHtml(image.src)}" alt="${escapeHtml(image.alt)}"${title}>`;
+  const width = image.width ? ` width="${escapeHtml(image.width)}"` : "";
+  const height = image.height ? ` height="${escapeHtml(image.height)}"` : "";
+  return `<img src="${escapeHtml(image.src)}" alt="${escapeHtml(image.alt)}"${width}${height}${title} loading="lazy">`;
+}
+
+function sizeImages(html) {
+  return html.replace(/<img\b([^>]*?)>/g, (tag, attrs) => {
+    const size = attrs.match(/\btitle="(\d+)x(\d+)"/);
+    let next = attrs;
+    if (size) {
+      next = next.replace(/\s*title="\d+x\d+"/, "");
+      if (!/\bwidth=/.test(next)) next += ` width="${size[1]}" height="${size[2]}"`;
+    }
+    if (!/\bloading=/.test(next)) next += ` loading="lazy"`;
+    return `<img${next}>`;
+  });
 }
 
 rmSync(dist, { recursive: true, force: true });
@@ -257,7 +366,11 @@ write("assets/js/sudoku.js", read("assets/js/sudoku.js"));
 write("assets/js/technique-demo.js", read("assets/js/technique-demo.js"));
 write("assets/js/progress.js", read("assets/js/progress.js"));
 write("assets/js/skills.js", read("assets/js/skills.js"));
+write("assets/js/contact.js", read("assets/js/contact.js"));
 write("ads.txt", read("ads.txt").trim() + "\n");
+cpSync(join(root, "assets/fonts"), join(dist, "assets/fonts"), { recursive: true });
+cpSync(join(root, "articles/images"), join(dist, "articles/images"), { recursive: true });
+copyFileSync(join(root, "src/og.png"), join(dist, "og.png"));
 write("_redirects", read("src/_redirects"));
 copyFileSync(join(root, "src/favicon.ico"), join(dist, "favicon.ico"));
 copyFileSync(join(root, "src/favicon.svg"), join(dist, "favicon.svg"));
@@ -265,15 +378,15 @@ copyFileSync(join(root, "src/favicon.svg"), join(dist, "favicon.svg"));
 const parsedArticles = articles.map((article) => ({
   ...article,
   ...parseArticle(read(article.file)),
-  href: `/articles/${article.slug}`,
+  href: `/articles/${article.slug}/`,
 }));
 
 publish(
   "index.html",
   layout({
-    title: "Sudoku Sudoku Online",
+    title: "SudokuSudoku: Free Daily Sudoku with Teaching Hints",
     description:
-      "Play free Sudoku online. Quick, easy, hard, expert, and mental puzzles in the browser.",
+      "Play a daily Sudoku graded by the same solver that teaches the hint. Six levels from Quick to Mental, a box map on the number pad, and notes, undo, and a four-mistake limit.",
     canonical: `${SITE}/`,
     game: true,
     main: read("src/game.html").trim(),
@@ -284,8 +397,11 @@ publish(
 write(
   "404.html",
   layout({
-    title: "Page not found - Sudoku Sudoku Online",
-    description: "That page does not exist.",
+    title: "Page not found | SudokuSudoku",
+    description: "That page is not on SudokuSudoku.",
+    canonical: `${SITE}/404.html`,
+    robots: "noindex",
+    ads: false,
     main: `<main class="standard-page">
   <div class="container">
     <article class="page-content">
@@ -294,7 +410,7 @@ write(
       </header>
       <div class="page-body">
         <p>That page doesn't exist. The puzzle is still here.</p>
-        <p><a href="/">Play Sudoku</a>, or browse the <a href="/articles">articles</a>.</p>
+        <p><a href="/">Play Sudoku</a>, or browse the <a href="/articles/">articles</a>.</p>
       </div>
     </article>
   </div>
@@ -308,7 +424,12 @@ const aboutMarkdown = read("about-page-content.md")
   .trim();
 publish(
   "about/index.html",
-  standardPage("About", marked.parse(aboutMarkdown), "About Sudoku Sudoku Online.", "/about"),
+  standardPage(
+    "About",
+    marked.parse(aboutMarkdown),
+    "Ethan, a daily NYT Sudoku player, on why he built SudokuSudoku: a box map, honest difficulty, and hints that teach the step.",
+    "/about/"
+  ),
   "/about"
 );
 
@@ -317,8 +438,9 @@ publish(
   standardPage(
     "Links",
     read("links-page-content.html").trim(),
-    "Sudoku websites, tutorials, apps, and communities.",
-    "/links"
+    "Other Sudoku sites, books, and communities, listed separately from the puzzles on SudokuSudoku.",
+    "/links/",
+    { ads: false }
   ),
   "/links"
 );
@@ -328,8 +450,9 @@ publish(
   standardPage(
     "Contact",
     read("contact-page-content.html").trim(),
-    "Contact Sudoku Sudoku Online.",
-    "/contact"
+    "Send a note about a bug, a technique page, or the site. The form uses a spam check and does not show an email address.",
+    "/contact/",
+    { contact: true }
   ),
   "/contact"
 );
@@ -339,8 +462,8 @@ publish(
   standardPage(
     "Privacy Policy",
     read("privacy-policy-content.html").trim(),
-    "Privacy policy for Sudoku Sudoku Online.",
-    "/privacy-policy"
+    "How SudokuSudoku handles on-device puzzle data, Google Analytics, AdSense consent, and messages sent through the contact form.",
+    "/privacy-policy/"
   ),
   "/privacy-policy"
 );
@@ -367,14 +490,14 @@ const cards = parsedArticles
 publish(
   "articles/index.html",
   layout({
-    title: "Sudoku Articles & Guides - Sudoku Sudoku Online",
-    description: "Learn strategies, tips, and everything you need to master Sudoku.",
-    canonical: `${SITE}/articles`,
+    title: "Articles | SudokuSudoku",
+    description: "How to play, mistakes that create a contradiction later, and a measurement of New York Times Medium and Hard.",
+    canonical: `${SITE}/articles/`,
     main: `<main id="articles" class="articles-page">
   <div class="container">
     <header class="page-header">
       <h1>Sudoku Articles &amp; Guides</h1>
-      <p class="page-description">Learn strategies, tips, and everything you need to master Sudoku</p>
+      <p class="page-description">How to play, a few mistakes worth catching early, and what NYT Medium and Hard actually contain.</p>
     </header>
     <div class="articles-grid">
       ${cards}
@@ -413,15 +536,19 @@ parsedArticles.forEach((article, index) => {
           mainEntityOfPage: `${SITE}${article.href}`,
           datePublished: "2026-10-21",
           dateModified: "2026-10-21",
-          author: { "@type": "Organization", name: "Sudoku Sudoku Online" },
-          publisher: { "@type": "Organization", name: "Sudoku Sudoku Online" },
+          author: { "@type": "Organization", name: "SudokuSudoku" },
+          publisher: {
+            "@type": "Organization",
+            name: "SudokuSudoku",
+            logo: { "@type": "ImageObject", url: `${SITE}/icons/icon-512.png` },
+          },
         }
       : null;
 
   publish(
     `articles/${article.slug}/index.html`,
     layout({
-      title: `${article.title} - Sudoku Sudoku Online`,
+      title: `${article.title} | SudokuSudoku`,
       description: article.excerpt,
       canonical: `${SITE}${article.href}`,
       jsonLd: articleLd,
@@ -441,7 +568,7 @@ parsedArticles.forEach((article, index) => {
       <footer class="article-footer">
         <div class="article-tags"><span class="tags-label">Tags:</span> ${tags}</div>
         <div class="article-navigation">${navigation}</div>
-        <div class="back-to-articles"><a href="/articles" class="cta-button">← Back to All Articles</a></div>
+        <div class="back-to-articles"><a href="/articles/" class="cta-button">← Back to All Articles</a></div>
       </footer>
     </div>
   </article>
@@ -499,7 +626,7 @@ function resultSentence(step) {
 const indexItems = techniques
   .map((technique) => {
     return `<li>
-      <a href="/techniques/${technique.slug}">${escapeHtml(technique.name)}</a>
+      <a href="/techniques/${technique.slug}/">${escapeHtml(technique.name)}</a>
       <span>${escapeHtml(technique.level)}. ${escapeHtml(technique.nyt)}</span>
     </li>`;
   })
@@ -508,10 +635,10 @@ const indexItems = techniques
 publish(
   "techniques/index.html",
   layout({
-    title: "Sudoku techniques - Sudoku Sudoku Online",
+    title: "Techniques | SudokuSudoku",
     description:
       "Sudoku techniques from naked singles to XY-chains, each with a plain explanation and a puzzle state from this site's solver.",
-    canonical: `${SITE}/techniques`,
+    canonical: `${SITE}/techniques/`,
     main: `<main class="standard-page technique-page">
   <div class="container">
     <article class="page-content">
@@ -520,7 +647,7 @@ publish(
       </header>
       <div class="page-body">
         <p>These are the steps the solver on this site actually uses, easiest first. Each one has a board taken from a real solve, not a diagram drawn by hand. The level named on the row is where that step first becomes necessary.</p>
-        <p>The New York Times labels overlap in a way these levels don't. That measurement is written up in <a href="/articles/nyt-medium-vs-hard">why Medium sometimes feels harder than Hard</a>.</p>
+        <p>The New York Times labels overlap in a way these levels don't. That measurement is written up in <a href="/articles/nyt-medium-vs-hard/">why Medium sometimes feels harder than Hard</a>.</p>
         <ol class="technique-index">
           ${indexItems}
         </ol>
@@ -535,10 +662,10 @@ publish(
 publish(
   "skills/index.html",
   layout({
-    title: "Skill ladder - Sudoku Sudoku Online",
+    title: "Skill ladder | SudokuSudoku",
     description:
-      "Track which Sudoku techniques you can solve, train the next one, and keep badges and records on this device.",
-    canonical: `${SITE}/skills`,
+      "A technique ladder stored on this device: what you have solved, what to train next, and badges from finished puzzles.",
+    canonical: `${SITE}/skills/`,
     skills: true,
     main: `<main id="skills" class="skills-page">
   <div class="skills-wrap">
@@ -557,10 +684,10 @@ techniques.forEach((technique) => {
   const related = technique.related
     .map((slug) => {
       const other = bySlug.get(slug);
-      return `<a href="/techniques/${slug}">${escapeHtml(other.name)}</a>`;
+      return `<a href="/techniques/${slug}/">${escapeHtml(other.name)}</a>`;
     })
     .join("");
-  const path = `/techniques/${technique.slug}`;
+  const path = `/techniques/${technique.slug}/`;
   const howto = {
     "@context": "https://schema.org",
     "@type": "HowTo",
@@ -576,7 +703,7 @@ techniques.forEach((technique) => {
   publish(
     `techniques/${technique.slug}/index.html`,
     layout({
-      title: `${technique.name} - Sudoku technique`,
+      title: `${technique.name} | SudokuSudoku`,
       description: technique.description,
       canonical: `${SITE}${path}`,
       jsonLd: howto,
@@ -585,7 +712,7 @@ techniques.forEach((technique) => {
   <div class="container">
     <article class="page-content">
       <header class="page-header">
-        <p class="technique-level"><a href="/techniques">Techniques</a> · ${escapeHtml(technique.level)}</p>
+        <p class="technique-level"><a href="/techniques/">Techniques</a> · ${escapeHtml(technique.level)}</p>
         <h1 class="page-title">${escapeHtml(technique.name)}</h1>
       </header>
       <div class="page-body">
@@ -664,9 +791,9 @@ write(
   JSON.stringify(
     {
       id: "/",
-      name: "Sudoku Sudoku",
-      short_name: "Sudoku",
-      description: "Play Sudoku offline. Quick through mental, plus a daily puzzle.",
+      name: "SudokuSudoku",
+      short_name: "SudokuSudoku",
+      description: "Daily Sudoku with teaching hints, a box map, and six graded levels. Plays offline.",
       lang: "en",
       start_url: "/",
       scope: "/",
@@ -690,7 +817,11 @@ write(
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f4ef">
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141218">
-  <title>Offline - Sudoku</title>
+  <title>Offline | SudokuSudoku</title>
+  <meta name="description" content="SudokuSudoku is offline. The puzzle on this device still opens.">
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="https://sudokusudoku.com/offline.html">
+  <link rel="preload" href="/assets/fonts/open-sans-latin-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/assets/css/style.css">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -703,7 +834,7 @@ write(
         <h1 class="page-title">You're offline</h1>
       </header>
       <div class="page-body">
-        <p>The puzzle is saved on this device. Open Sudoku to keep playing, including a new game or today's daily.</p>
+        <p>The puzzle is saved on this device. Open SudokuSudoku to keep playing, including a new game or today's daily.</p>
         <p><a href="/">Play Sudoku</a></p>
       </div>
     </article>
@@ -731,6 +862,9 @@ const shellPaths = [
   "favicon.ico",
   "favicon.svg",
   "assets/css/style.css",
+  "assets/fonts/open-sans-latin-400.woff2",
+  "assets/fonts/open-sans-latin-600.woff2",
+  "assets/fonts/open-sans-latin-700.woff2",
   "assets/js/solver.js",
   "assets/js/pools.js",
   "assets/js/generator.js",
@@ -751,7 +885,7 @@ versionHash.update(read("assets/js/sw.js"));
 const version = versionHash.digest("hex").slice(0, 12);
 const shellUrls = [
   "/",
-  "/skills",
+  "/skills/",
   ...shellPaths
     .filter((relativePath) => relativePath !== "index.html" && relativePath !== "skills/index.html")
     .map((relativePath) => `/${relativePath}`),
