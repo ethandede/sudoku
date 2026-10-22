@@ -1,0 +1,33 @@
+name: Republish scheduled articles
+
+# Future-dated articles are omitted until their publishDate in America/Los_Angeles.
+# A daily rebuild is what makes the next pair appear. GitHub runs this cron only
+# after the workflow is on the default branch.
+#
+# 14:00 UTC is 6:00am Pacific Standard Time and 7:00am Pacific Daylight Time.
+# The site needs the repository secret CF_PAGES_DEPLOY_HOOK: the full URL of a
+# Cloudflare Pages deploy hook for the production branch. This file does not
+# contain that URL.
+
+on:
+  schedule:
+    - cron: "0 14 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: POST the Cloudflare Pages deploy hook
+        env:
+          CF_PAGES_DEPLOY_HOOK: ${{ secrets.CF_PAGES_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$CF_PAGES_DEPLOY_HOOK" ]; then
+            echo "Missing repository secret CF_PAGES_DEPLOY_HOOK."
+            echo "Create a Cloudflare Pages deploy hook for the production branch, then store the hook URL in that secret."
+            exit 1
+          fi
+          curl --fail --silent --show-error --request POST "$CF_PAGES_DEPLOY_HOOK" --output /tmp/deploy-hook-response.txt
+          echo "Deploy hook accepted."

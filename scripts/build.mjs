@@ -4,6 +4,18 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { marked } from "marked";
 import * as sass from "sass";
+import {
+  AUTHOR_NAME,
+  articleJsonLd,
+  formatPublishDate,
+  isPublished,
+  losAngelesToday,
+  personNode,
+  prepareArticle,
+  shortBio,
+  stripUnpublishedLinks,
+  wrapTables,
+} from "./articles.mjs";
 import { captureExamples } from "./capture-examples.mjs";
 import { techniques } from "./technique-copy.mjs";
 
@@ -17,6 +29,12 @@ const articles = [
   { file: "articles/01-beginners-guide.md", slug: "beginners-guide" },
   { file: "articles/02-common-mistakes.md", slug: "common-mistakes" },
   { file: "articles/04-nyt-medium-vs-hard.md", slug: "nyt-medium-vs-hard" },
+  { file: "articles/what-makes-a-sudoku-hard.md", slug: "what-makes-a-sudoku-hard" },
+  { file: "articles/history-of-sudoku.md", slug: "history-of-sudoku" },
+  { file: "articles/sudoku-variants.md", slug: "sudoku-variants" },
+  { file: "articles/why-ai-is-bad-at-sudoku.md", slug: "why-ai-is-bad-at-sudoku" },
+  { file: "articles/does-sudoku-keep-your-brain-sharp.md", slug: "does-sudoku-keep-your-brain-sharp" },
+  { file: "articles/why-being-stuck-is-good-for-you.md", slug: "why-being-stuck-is-good-for-you" },
 ];
 
 function read(relativePath) {
@@ -64,8 +82,10 @@ function structuredData(extra) {
       logo: `${SITE}/icons/icon-512.png`,
     },
   ];
-  if (extra) {
-    const node = { ...extra };
+  const extras = Array.isArray(extra) ? extra : extra ? [extra] : [];
+  for (const item of extras) {
+    if (!item) continue;
+    const node = { ...item };
     delete node["@context"];
     graph.push(node);
   }
@@ -303,6 +323,7 @@ function standardPage(title, bodyHtml, description, path, options = {}) {
     privacyChoices: options.privacyChoices !== false,
     robots: options.robots || "",
     contact: Boolean(options.contact),
+    jsonLd: options.jsonLd,
     main: `<main class="standard-page">
   <div class="container">
     <article class="page-content">
@@ -319,13 +340,14 @@ function standardPage(title, bodyHtml, description, path, options = {}) {
 }
 
 function parseArticle(markdown) {
-  let content = markdown.replace(/\r\n/g, "\n");
+  const prepared = prepareArticle(markdown);
+  let content = prepared.content;
+  const data = prepared.data;
   const titleMatch = content.match(/^# (.+)$/m);
-  const title = titleMatch ? titleMatch[1].trim() : "Article";
+  const heading = titleMatch ? titleMatch[1].trim() : data.title || "Article";
   if (titleMatch) content = content.replace(/^# .+$/m, "");
 
   const excerptMatch = content.match(/\*\*Meta Description:\*\*\s*(.+)/i);
-  const excerpt = excerptMatch ? excerptMatch[1].trim() : "";
   const keywordsMatch = content.match(/\*\*Keywords:\*\*\s*(.+)/i);
   const tags = keywordsMatch
     ? keywordsMatch[1].split(",").map((tag) => tag.trim()).filter(Boolean)
@@ -353,12 +375,21 @@ function parseArticle(markdown) {
   const words = content.trim().split(/\s+/).filter(Boolean).length;
   const minutes = Math.max(1, Math.ceil(words / 200));
 
+  const legacyExcerpt = excerptMatch ? excerptMatch[1].trim() : "";
+  const excerpt = data.meta_description || legacyExcerpt || data.summary || "";
+  const summary = data.summary || excerpt;
+
   return {
-    title,
+    title: data.title || heading,
+    heading,
     excerpt,
+    summary,
     tags,
     image,
     minutes,
+    publishDate: data.publishDate || "",
+    relatedSlugs: prepared.relatedSlugs,
+    authored: Boolean(data.publishDate),
     html: sizeImages(marked.parse(content.trim())),
   };
 }
@@ -403,7 +434,9 @@ write("assets/js/community.js", read("assets/js/community.js"));
 write("assets/js/stats-page.js", read("assets/js/stats-page.js"));
 write("ads.txt", read("ads.txt").trim() + "\n");
 cpSync(join(root, "assets/fonts"), join(dist, "assets/fonts"), { recursive: true });
+cpSync(join(root, "assets/img"), join(dist, "assets/img"), { recursive: true });
 cpSync(join(root, "articles/images"), join(dist, "articles/images"), { recursive: true });
+cpSync(join(root, "articles/data"), join(dist, "articles/data"), { recursive: true });
 copyFileSync(join(root, "src/og.png"), join(dist, "og.png"));
 write("_redirects", read("src/_redirects"));
 copyFileSync(join(root, "src/favicon.ico"), join(dist, "favicon.ico"));
@@ -414,6 +447,23 @@ const parsedArticles = articles.map((article) => ({
   ...parseArticle(read(article.file)),
   href: `/articles/${article.slug}/`,
 }));
+const articleToday = losAngelesToday();
+const unpublishedSlugs = new Set(
+  parsedArticles.filter((article) => !isPublished(article.publishDate, articleToday)).map((article) => article.slug)
+);
+for (const article of parsedArticles) {
+  article.published = !unpublishedSlugs.has(article.slug);
+  article.html = wrapTables(stripUnpublishedLinks(article.html, unpublishedSlugs));
+}
+const visibleArticles = parsedArticles.filter((article) => article.published);
+const articlesBySlug = new Map(parsedArticles.map((article) => [article.slug, article]));
+const authorBlurb = shortBio(read("author-bio.md"));
+console.log(
+  `Articles on ${articleToday} (America/Los_Angeles): ${visibleArticles.map((article) => article.slug).join(", ")}`
+);
+if (unpublishedSlugs.size) {
+  console.log(`Scheduled later: ${[...unpublishedSlugs].join(", ")}`);
+}
 
 publish(
   "index.html",
@@ -443,7 +493,14 @@ write(
         <h1 class="page-title">Page not found</h1>
       </header>
       <div class="page-body">
-        <p>That page doesn't exist. The puzzle is still here.</p>
+        <figure class="teddy-figure">
+          <picture>
+            <source type="image/avif" srcset="/assets/img/teddy/teddy-128.avif 128w, /assets/img/teddy/teddy-256.avif 256w, /assets/img/teddy/teddy-512.avif 512w" sizes="256px">
+            <source type="image/webp" srcset="/assets/img/teddy/teddy-128.webp 128w, /assets/img/teddy/teddy-256.webp 256w, /assets/img/teddy/teddy-512.webp 512w" sizes="256px">
+            <img src="/assets/img/teddy/teddy-256.webp" width="256" height="256" alt="Teddy, a black Australian labradoodle drawn in anime style, tongue out, holding a pencil over a blank sudoku grid" loading="lazy" decoding="async">
+          </picture>
+        </figure>
+        <p>Teddy can't find this page either.</p>
         <p><a href="/">Play Sudoku</a>, or browse the <a href="/articles/">articles</a>.</p>
       </div>
     </article>
@@ -461,8 +518,9 @@ publish(
   standardPage(
     "About",
     marked.parse(aboutMarkdown),
-    "Ethan, a daily NYT Sudoku player, on why he built SudokuSudoku: a box map, honest difficulty, and hints that teach the step.",
-    "/about/"
+    "Ethan Ede builds websites and plays Sudoku almost every day. SudokuSudoku grades a puzzle by its hardest move, and the hints teach that move.",
+    "/about/",
+    { jsonLd: personNode() }
   ),
   "/about"
 );
@@ -503,19 +561,23 @@ publish(
   "/privacy-policy"
 );
 
-const cards = parsedArticles
+const cards = visibleArticles
   .map((article) => {
     const thumb = article.image
       ? `<div class="article-thumbnail"><a href="${article.href}">${imageTag(article.image)}</a></div>`
+      : "";
+    const published = article.publishDate
+      ? `<time class="article-date" datetime="${escapeHtml(article.publishDate)}">${escapeHtml(formatPublishDate(article.publishDate))}</time>`
       : "";
     return `<article class="article-card">
       ${thumb}
       <div class="article-content">
         <div class="article-meta">
+          ${published}
           <span class="article-reading-time">${article.minutes} min read</span>
         </div>
         <h2 class="article-title"><a href="${article.href}">${escapeHtml(article.title)}</a></h2>
-        <div class="article-excerpt"><p>${escapeHtml(article.excerpt)}</p></div>
+        <div class="article-excerpt"><p>${escapeHtml(article.summary)}</p></div>
         <a href="${article.href}" class="read-more">Read Full Article →</a>
       </div>
     </article>`;
@@ -526,13 +588,13 @@ publish(
   "articles/index.html",
   layout({
     title: "Articles | SudokuSudoku",
-    description: "How to play, mistakes that create a contradiction later, and a measurement of New York Times Medium and Hard.",
+    description: "How to play, what makes a puzzle hard, and notes from building SudokuSudoku.",
     canonical: `${SITE}/articles/`,
     main: `<main id="articles" class="articles-page">
   <div class="container">
     <header class="page-header">
       <h1>Sudoku Articles &amp; Guides</h1>
-      <p class="page-description">How to play, a few mistakes worth catching early, and what NYT Medium and Hard actually contain.</p>
+      <p class="page-description">How to play, what the puzzles measure, and notes from building this site.</p>
     </header>
     <div class="articles-grid">
       ${cards}
@@ -543,9 +605,23 @@ publish(
   "/articles"
 );
 
-parsedArticles.forEach((article, index) => {
-  const previous = parsedArticles[index - 1];
-  const next = parsedArticles[index + 1];
+function relatedArticlesHtml(article) {
+  const items = article.relatedSlugs
+    .map((slug) => articlesBySlug.get(slug))
+    .filter((item) => item && item.published);
+  if (!items.length) return "";
+  const list = items
+    .map(
+      (item) =>
+        `<li><a href="${item.href}">${escapeHtml(item.title)}</a><p>${escapeHtml(item.summary)}</p></li>`
+    )
+    .join("");
+  return `<section class="related-articles"><h2>Related articles</h2><ul>${list}</ul></section>`;
+}
+
+visibleArticles.forEach((article, index) => {
+  const previous = visibleArticles[index - 1];
+  const next = visibleArticles[index + 1];
   const tags = article.tags
     .map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`)
     .join(" ");
@@ -560,9 +636,25 @@ parsedArticles.forEach((article, index) => {
   const featured = article.image
     ? `<div class="article-featured-image">${imageTag(article.image)}</div>`
     : "";
+  const byline = article.authored
+    ? `<p class="article-byline">By <a href="/about/">${escapeHtml(AUTHOR_NAME)}</a><time datetime="${escapeHtml(article.publishDate)}">${escapeHtml(formatPublishDate(article.publishDate))}</time></p>`
+    : "";
+  const authorBox = article.authored
+    ? `<aside class="author-box"><p class="author-box-name"><a href="/about/">${escapeHtml(AUTHOR_NAME)}</a></p><p>${escapeHtml(authorBlurb)}</p></aside>`
+    : "";
+  const tagBlock = tags ? `<div class="article-tags"><span class="tags-label">Tags:</span> ${tags}</div>` : "";
 
-  const articleLd =
-    article.slug === "nyt-medium-vs-hard"
+  const articleLd = article.authored
+    ? [
+        articleJsonLd({
+          title: article.title,
+          description: article.excerpt,
+          url: `${SITE}${article.href}`,
+          publishDate: article.publishDate,
+        }),
+        personNode(),
+      ]
+    : article.slug === "nyt-medium-vs-hard"
       ? {
           "@context": "https://schema.org",
           "@type": "Article",
@@ -594,14 +686,17 @@ parsedArticles.forEach((article, index) => {
         <div class="article-meta">
           <span class="article-reading-time">${article.minutes} min read</span>
         </div>
-        <h1 class="article-title">${escapeHtml(article.title)}</h1>
+        <h1 class="article-title">${escapeHtml(article.heading)}</h1>
+        ${byline}
         ${featured}
       </header>
       <div class="article-body">
         ${article.html}
       </div>
+      ${authorBox}
+      ${relatedArticlesHtml(article)}
       <footer class="article-footer">
-        <div class="article-tags"><span class="tags-label">Tags:</span> ${tags}</div>
+        ${tagBlock}
         <div class="article-navigation">${navigation}</div>
         <div class="back-to-articles"><a href="/articles/" class="cta-button">← Back to All Articles</a></div>
       </footer>

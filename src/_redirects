@@ -4,3 +4,11 @@
 /sudoku/ / 301
 /articles/advanced-techniques /techniques/ 301
 /articles/advanced-techniques/ /techniques/ 301
+# Article technique names that don't match the library slugs.
+# pointing and claiming are separate pages; the article treats them as one step, so this lands on pointing.
+/techniques/pointing-and-claiming /techniques/pointing/ 301
+/techniques/pointing-and-claiming/ /techniques/pointing/ 301
+/techniques/naked-quad /techniques/quads/ 301
+/techniques/naked-quad/ /techniques/quads/ 301
+/techniques/simple-coloring /techniques/coloring/ 301
+/techniques/simple-coloring/ /techniques/coloring/ 301
