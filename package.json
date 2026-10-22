@@ -7,6 +7,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "test:grader": "node scripts/test-grader.mjs",
+    "test:progress": "node scripts/test-progress.mjs",
     "test:play": "node scripts/test-candidates.mjs"
   },
   "devDependencies": {

@@ -95,6 +95,7 @@ function pack(found, difficulty, seed, relaxed) {
       bottlenecks: grade.bottlenecks,
       placedBeforeStall: grade.placedBeforeStall,
       filledAtFirstStall: grade.filledAtFirstStall,
+      path: (grade.path || []).slice(),
       solutions: 1,
       seed: seed == null ? null : String(seed),
       relaxedClues: Boolean(relaxed),
@@ -382,31 +383,31 @@ function takePool(kind, seed) {
   return packed;
 }
 
+function attemptLevel(kind, relax) {
+  if (kind === "quick") {
+    return carveSingles(relax ? { minC: 38, maxC: 47, relax: true } : { minC: 40, maxC: 45 }, "quick");
+  }
+  if (kind === "easy") {
+    return carveSingles(relax ? { minC: 34, maxC: 40, relax: true } : { minC: 36, maxC: 38 }, "easy");
+  }
+  if (kind === "not easy") return carveWindow(notEasySpec(relax));
+  if (kind === "hard") return carveWindow(hardSpec(relax));
+  if (kind === "expert") return carveWindow(expertSpec(relax));
+  return carveWindow(mentalSpec(relax));
+}
+
 function generateLevel(difficulty, seed) {
   const kind = ATTEMPTS[difficulty] ? difficulty : "easy";
   const attempts = ATTEMPTS[kind];
 
-  function once(relax) {
-    if (kind === "quick") {
-      return carveSingles(relax ? { minC: 38, maxC: 47, relax: true } : { minC: 40, maxC: 45 }, "quick");
-    }
-    if (kind === "easy") {
-      return carveSingles(relax ? { minC: 34, maxC: 40, relax: true } : { minC: 36, maxC: 38 }, "easy");
-    }
-    if (kind === "not easy") return carveWindow(notEasySpec(relax));
-    if (kind === "hard") return carveWindow(hardSpec(relax));
-    if (kind === "expert") return carveWindow(expertSpec(relax));
-    return carveWindow(mentalSpec(relax));
-  }
-
   for (let i = 0; i < attempts; i++) {
-    const found = once(false);
+    const found = attemptLevel(kind, false);
     if (found) return pack(found, kind, seed, false);
   }
   const pooled = takePool(kind, seed);
   if (pooled) return pooled;
   for (let i = 0; i < 12; i++) {
-    const found = once(true);
+    const found = attemptLevel(kind, true);
     if (found) return pack(found, kind, seed, true);
   }
   const fallback = carveSingles({ minC: 40, maxC: 45 }, "quick");
@@ -451,6 +452,192 @@ function generate(difficulty, seed) {
   }
 }
 
+// Solver rank of each page slug. Ties break toward the later technique in
+// the library (claiming after pointing, hidden subset after naked, XY-chain
+// after coloring). Swordfish outranks an XY-wing, matching the solver.
+const TECHNIQUE_RANK = {
+  "naked-single": 0,
+  "hidden-single": 2,
+  pointing: 3,
+  claiming: 3.1,
+  "naked-pair": 4,
+  "hidden-pair": 4.1,
+  "naked-triple": 5,
+  "hidden-triple": 5.1,
+  quads: 6,
+  "x-wing": 7,
+  "xy-wing": 8,
+  swordfish: 9,
+  coloring: 10,
+  "xy-chain": 10.1,
+};
+
+const TRAIN = {
+  "naked-single": { level: "easy", live: 12, budget: 200 },
+  "hidden-single": { level: "easy", live: 24, budget: 250 },
+  pointing: { level: "not easy", live: 2, budget: 80 },
+  claiming: { level: "not easy", live: 2, budget: 80 },
+  "naked-pair": { level: "hard", live: 2, budget: 80 },
+  "hidden-pair": { level: "hard", live: 2, budget: 80 },
+  "naked-triple": { level: "hard", live: 8, budget: 500 },
+  "hidden-triple": { level: "hard", live: 8, budget: 500 },
+  quads: { level: "expert", live: 8, budget: 500 },
+  "x-wing": { level: "expert", live: 2, budget: 80 },
+  swordfish: { level: "expert", live: 4, budget: 200 },
+  "xy-wing": { level: "expert", live: 2, budget: 80 },
+  coloring: { level: "mental", live: 2, budget: 120 },
+  "xy-chain": { level: "mental", live: 2, budget: 120 },
+};
+
+function hardestSlug(path) {
+  let best = -1;
+  let slug = null;
+  for (let i = 0; i < path.length; i++) {
+    const rank = TECHNIQUE_RANK[path[i]];
+    if (rank == null || rank < best) continue;
+    best = rank;
+    slug = path[i];
+  }
+  return slug;
+}
+
+function restAllowed(path, slug, allowed) {
+  for (let i = 0; i < path.length; i++) {
+    if (path[i] === slug) continue;
+    if (!allowed.has(path[i])) return false;
+  }
+  return true;
+}
+
+function shuffleIndexes(length) {
+  const order = [];
+  for (let i = 0; i < length; i++) order.push(i);
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    const tmp = order[i];
+    order[i] = order[j];
+    order[j] = tmp;
+  }
+  return order;
+}
+
+function gradePool(level) {
+  const pools = globalThis.SudokuPools;
+  const pool = pools && pools[level];
+  if (!pool || !pool.length) return [];
+  const { grade } = solver();
+  const rows = [];
+  const order = shuffleIndexes(pool.length);
+  for (let n = 0; n < order.length; n++) {
+    const entry = pool[order[n]];
+    const quick = grade(entry.puzzle, { solution: entry.solution, metrics: false });
+    if (!quick.solved || quick.corrupt) continue;
+    rows.push({ entry, path: quick.path || [] });
+  }
+  return rows;
+}
+
+function chooseRow(rows, slug, allowed) {
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (hardestSlug(row.path) !== slug) continue;
+    if (allowed && !restAllowed(row.path, slug, allowed)) continue;
+    return row;
+  }
+  return null;
+}
+
+function packTrain(entry, slug, relaxed) {
+  const { grade } = solver();
+  const full = grade(entry.puzzle, { solution: entry.solution });
+  const clues = countClues(entry.puzzle);
+  const packed = pack(
+    { puzzle: entry.puzzle.slice(), solution: entry.solution.slice(), grade: full, clues },
+    TRAIN[slug].level,
+    null,
+    false
+  );
+  packed.metadata.fromPool = Boolean(entry.metadata);
+  packed.metadata.trainTarget = slug;
+  if (relaxed) packed.metadata.trainRelaxed = true;
+  return packed;
+}
+
+function liveTrain(slug, allowed) {
+  const spec = TRAIN[slug];
+  let loose = null;
+  const started = Date.now();
+  let seen = 0;
+  let guard = 0;
+  while (seen < spec.live && guard < 48 && Date.now() - started < spec.budget) {
+    guard += 1;
+    const found = attemptLevel(spec.level, false);
+    if (!found || !found.grade || !found.grade.solved) continue;
+    seen += 1;
+    const path = found.grade.path || [];
+    if (hardestSlug(path) !== slug) continue;
+    const packed = pack(found, spec.level, null, false);
+    packed.metadata.trainTarget = slug;
+    if (allowed && !restAllowed(path, slug, allowed)) {
+      if (!loose) loose = packed;
+      continue;
+    }
+    return packed;
+  }
+  if (loose) loose.metadata.trainRelaxed = true;
+  return loose;
+}
+
+function approximateTrain(slug) {
+  const level = TRAIN[slug].level;
+  const pooled = takePool(level, null);
+  if (pooled) {
+    const { grade } = solver();
+    const quick = grade(pooled.puzzle, { solution: pooled.solution, metrics: false });
+    pooled.metadata.path = quick.path || [];
+    pooled.metadata.trainTarget = slug;
+    pooled.metadata.trainApproximate = true;
+    return pooled;
+  }
+  const found = attemptLevel(level, true);
+  if (found) {
+    const packed = pack(found, level, null, true);
+    packed.metadata.trainTarget = slug;
+    packed.metadata.trainApproximate = true;
+    return packed;
+  }
+  const fallback = generateLevel(level, null);
+  fallback.metadata.trainTarget = slug;
+  fallback.metadata.trainApproximate = true;
+  return fallback;
+}
+
+// Puzzle whose hardest required technique is `slug`. Other techniques on the
+// path must be in `options.allowed` when that list is non-empty. The pool is
+// checked first; live carving is a short fallback.
+function generateForTechnique(slug, options) {
+  const spec = TRAIN[slug];
+  if (!spec) return generate("easy", options && options.seed);
+  const opt = options || {};
+  const previous = rng;
+  if (opt.seed !== undefined && opt.seed !== null) rng = mulberry32(hashSeed(opt.seed));
+  try {
+    const list = Array.isArray(opt.allowed) ? opt.allowed : [];
+    const allowed = new Set(list.filter((item) => item && item !== slug));
+    const strictAllowed = allowed.size ? allowed : null;
+    const rows = gradePool(spec.level);
+    const strict = chooseRow(rows, slug, strictAllowed);
+    if (strict) return packTrain(strict.entry, slug, false);
+    const loose = strictAllowed ? chooseRow(rows, slug, null) : null;
+    if (loose) return packTrain(loose.entry, slug, true);
+    const carved = liveTrain(slug, strictAllowed);
+    if (carved) return carved;
+    return approximateTrain(slug);
+  } finally {
+    rng = previous;
+  }
+}
+
 const TARGETS = {
   quick: { minClues: 40, maxClues: 45, hardest: "box hidden singles" },
   easy: { minClues: 36, maxClues: 38, hardest: "singles" },
@@ -480,6 +667,11 @@ const TARGETS = {
 
 globalThis.SudokuGenerator = {
   generate,
+  generateForTechnique,
+  trainLevel(slug) {
+    const spec = TRAIN[slug];
+    return spec ? spec.level : null;
+  },
   difficulties: ["quick", "easy", "not easy", "hard", "expert", "mental"],
   dailyDifficulty: "not easy",
   targets: TARGETS,

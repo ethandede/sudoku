@@ -43,7 +43,7 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;");
 }
 
-function layout({ title, description, main, game = false, canonical, jsonLd, demo = false }) {
+function layout({ title, description, main, game = false, canonical, jsonLd, demo = false, skills = false }) {
   const fontAwesome = "";
   const descriptionTag = description
     ? `<meta name="description" content="${escapeHtml(description)}">`
@@ -132,6 +132,9 @@ function layout({ title, description, main, game = false, canonical, jsonLd, dem
             <a href="/techniques">Techniques</a>
           </li>
           <li class="menu-item">
+            <a href="/skills">Skills</a>
+          </li>
+          <li class="menu-item">
             <a href="/links">Links</a>
           </li>
           <li class="menu-item">
@@ -153,6 +156,7 @@ ${main}
       <ul class="footer-links">
         <li><a href="/about">About</a></li>
         <li><a href="/techniques">Techniques</a></li>
+        <li><a href="/skills">Skills</a></li>
         <li><a href="/articles">Articles</a></li>
         <li><a href="/links">Links</a></li>
         <li><a href="/contact">Contact</a></li>
@@ -162,8 +166,10 @@ ${main}
     <p class="copyright">&copy; ${year} SudokuSudoku. All rights reserved.</p>
   </div>
 </footer>
-${game ? '<script src="/assets/js/solver.js"></script>\n<script src="/assets/js/pools.js"></script>\n<script src="/assets/js/generator.js"></script>' : ""}
+${game ? '<script src="/assets/js/solver.js"></script>\n<script src="/assets/js/pools.js"></script>\n<script src="/assets/js/generator.js"></script>\n<script src="/assets/js/progress.js"></script>' : ""}
+${skills ? '<script src="/assets/js/progress.js"></script>' : ""}
 <script src="/assets/js/sudoku.js"></script>
+${skills ? '<script src="/assets/js/skills.js"></script>' : ""}
 ${demo ? '<script src="/assets/js/technique-demo.js"></script>' : ""}
 </body>
 </html>
@@ -249,6 +255,8 @@ write("assets/js/pools.js", read("assets/js/pools.js"));
 write("assets/js/generator.js", read("assets/js/generator.js"));
 write("assets/js/sudoku.js", read("assets/js/sudoku.js"));
 write("assets/js/technique-demo.js", read("assets/js/technique-demo.js"));
+write("assets/js/progress.js", read("assets/js/progress.js"));
+write("assets/js/skills.js", read("assets/js/skills.js"));
 write("ads.txt", read("ads.txt").trim() + "\n");
 write("_redirects", read("src/_redirects"));
 copyFileSync(join(root, "src/favicon.ico"), join(dist, "favicon.ico"));
@@ -524,6 +532,26 @@ publish(
   "/techniques"
 );
 
+publish(
+  "skills/index.html",
+  layout({
+    title: "Skill ladder - Sudoku Sudoku Online",
+    description:
+      "Track which Sudoku techniques you can solve, train the next one, and keep badges and records on this device.",
+    canonical: `${SITE}/skills`,
+    skills: true,
+    main: `<main id="skills" class="skills-page">
+  <div class="skills-wrap">
+    <p class="skills-back"><a href="/">← Play</a></p>
+    <h1>Skill ladder</h1>
+    <p class="skills-lead">Techniques you have solved, from easiest to hardest. Everything stays on this device.</p>
+    <div id="skills-root"></div>
+  </div>
+</main>`,
+  }),
+  "/skills"
+);
+
 techniques.forEach((technique) => {
   const example = examples[technique.slug];
   const related = technique.related
@@ -660,6 +688,7 @@ write(
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="robots" content="noindex">
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f4ef">
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141218">
   <title>Offline - Sudoku</title>
@@ -697,6 +726,7 @@ write(
 
 const shellPaths = [
   "index.html",
+  "skills/index.html",
   "offline.html",
   "manifest.webmanifest",
   "favicon.ico",
@@ -705,6 +735,8 @@ const shellPaths = [
   "assets/js/solver.js",
   "assets/js/pools.js",
   "assets/js/generator.js",
+  "assets/js/progress.js",
+  "assets/js/skills.js",
   "assets/js/sudoku.js",
   ...iconSizes.map((size) => `icons/icon-${size}.png`),
   "icons/maskable-192.png",
@@ -718,7 +750,13 @@ shellPaths.forEach((relativePath) => {
 });
 versionHash.update(read("assets/js/sw.js"));
 const version = versionHash.digest("hex").slice(0, 12);
-const shellUrls = ["/", ...shellPaths.filter((relativePath) => relativePath !== "index.html").map((relativePath) => `/${relativePath}`)];
+const shellUrls = [
+  "/",
+  "/skills",
+  ...shellPaths
+    .filter((relativePath) => relativePath !== "index.html" && relativePath !== "skills/index.html")
+    .map((relativePath) => `/${relativePath}`),
+];
 write(
   "sw.js",
   read("assets/js/sw.js")
