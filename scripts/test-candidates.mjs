@@ -112,6 +112,7 @@ async function check(name, fn) {
 async function openPage(contextOptions = {}) {
   const context = await browser.newContext(contextOptions);
   await context.addInitScript(() => {
+    if (window !== window.top) return;
     if (sessionStorage.getItem("keep-save") === "1") return;
     localStorage.clear();
   });
@@ -496,17 +497,11 @@ await check("preview equals candidates after placements, a new game, and a resum
   assertEqual(await markDigits(page, freshEmpty, "preview"), candidatesFor(board, freshEmpty), "new game preview");
   await context.close();
 
-  const mobile = await browser.newContext({
+  const mobileSession = await openPage({
     ...devices["iPhone 12"],
     viewport: { width: 390, height: 844 },
   });
-  await mobile.addInitScript(() => localStorage.clear());
-  const phone = await mobile.newPage();
-  await phone.goto(`${origin}/?difficulty=quick`, { waitUntil: "domcontentloaded" });
-  await phone.waitForFunction(() => {
-    const cover = document.querySelector("#board-cover");
-    return cover && cover.hidden && localStorage.getItem("sudoku-progress");
-  });
+  const phone = mobileSession.page;
   const phoneSave = await saveOf(phone);
   const phoneEmpty = phoneSave.board.findIndex((value) => value === 0);
   const spot = await phone.locator(".cell").nth(phoneEmpty).boundingBox();
@@ -521,10 +516,11 @@ await check("preview equals candidates after placements, a new game, and a resum
     candidatesFor(phoneBoard, nextEmpty),
     "mobile preview after a placement"
   );
-  await mobile.close();
+  await mobileSession.context.close();
 
   const staleContext = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   await staleContext.addInitScript(() => {
+    if (window !== window.top) return;
     localStorage.setItem(
       "sudoku-progress",
       JSON.stringify({
@@ -537,6 +533,11 @@ await check("preview equals candidates after placements, a new game, and a resum
     );
   });
   const stalePage = await staleContext.newPage();
+  await stalePage.route("**/*", (route) => {
+    const url = route.request().url();
+    if (/google|gstatic|doubleclick|googlesyndication/.test(url)) return route.abort();
+    return route.continue();
+  });
   await stalePage.goto(`${origin}/?difficulty=quick`, { waitUntil: "domcontentloaded" });
   await stalePage.waitForFunction(() => {
     const cover = document.querySelector("#board-cover");
