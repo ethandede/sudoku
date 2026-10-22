@@ -429,18 +429,21 @@ body:has(.sudoku-page) .site-header {
 }
 
 .board-column {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   min-width: 0;
+  min-height: 0;
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
+  justify-content: flex-start;
+  container-type: size;
 }
 
 .board-wrap {
   position: relative;
-  width: 100%;
-  max-width: none;
+  width: min(100cqi, 100cqb);
+  max-width: 100%;
   container-type: inline-size;
 }
 
@@ -754,11 +757,11 @@ body:has(.sudoku-page) .site-header {
 
 .controls {
   width: 100%;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: clamp(2px, 0.55dvh, 8px);
+  gap: clamp(8px, 1dvh, 14px);
   max-width: none;
 }
 
@@ -806,11 +809,12 @@ body:has(.sudoku-page) .site-header {
 }
 
 .pad-cluster {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  grid-template-rows: minmax(44px, 1fr) minmax(44px, 1fr);
+  grid-template-rows: auto auto;
+  align-items: start;
   gap: clamp(4px, 0.8dvh, 10px);
 }
 
@@ -865,8 +869,9 @@ kbd {
     font-weight: 750;
     min-width: 0;
     min-height: 0;
-    height: 100%;
-    aspect-ratio: auto;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
     padding: 0;
     container-type: inline-size;
 
@@ -949,16 +954,17 @@ kbd {
   display: flex;
   align-items: center;
   justify-content: center;
-  align-self: stretch;
+  align-self: start;
   justify-self: stretch;
   border: 0;
   background: color-mix(in srgb, var(--pad-ink) 10%, var(--pad));
   color: var(--pad-ink);
   border-radius: 0.7rem;
   min-width: 0;
-  min-height: 44px;
+  min-height: 0;
   width: 100%;
-  height: 100%;
+  height: auto;
+  aspect-ratio: 1;
   padding: 0;
   cursor: pointer;
 }
@@ -1474,6 +1480,7 @@ button:disabled {
     align-self: flex-start;
     align-items: stretch;
     justify-content: flex-start;
+    container-type: normal;
   }
 
   .board-wrap {

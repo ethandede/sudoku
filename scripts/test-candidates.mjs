@@ -1046,14 +1046,14 @@ await check("digits, notes, and auto-candidates meet WCAG AA", async () => {
   await context.close();
 });
 
-await check("the keypad fits every phone and grows into leftover space", async () => {
+await check("the phone keypad keys and mini-grid cells are square", async () => {
   const { context, page } = await openPage({
     viewport: { width: 390, height: 844 },
     deviceScaleFactor: 1,
     hasTouch: true,
   });
   assert(await page.locator("#undo-btn").isDisabled(), "undo starts disabled");
-  const keyHeights = {};
+  const keySizes = {};
   for (const [width, height] of [
     [390, 844],
     [375, 667],
@@ -1062,42 +1062,70 @@ await check("the keypad fits every phone and grows into leftover space", async (
   ]) {
     await page.setViewportSize({ width, height });
     const metrics = await page.evaluate(() => {
-      const erase = document.querySelector("#erase-btn").getBoundingClientRect();
+      const box = (el) => {
+        const rect = el.getBoundingClientRect();
+        return { width: rect.width, height: rect.height, top: rect.top, bottom: rect.bottom, left: rect.left };
+      };
+      const erase = box(document.querySelector("#erase-btn"));
       const aux = document.querySelector(".aux-row").getBoundingClientRect();
       const board = document.querySelector(".sudoku-grid").getBoundingClientRect();
-      const keys = [...document.querySelectorAll("#number-pad button, #erase-btn")].map(
-        (el) => el.getBoundingClientRect().height
-      );
+      const keys = [...document.querySelectorAll("#number-pad button, #erase-btn")].map(box);
+      const cells = [...document.querySelectorAll("#number-pad .box-map i")].slice(0, 9).map(box);
       const footer = document.querySelector(".site-footer").getBoundingClientRect();
       return {
         eraseBottom: erase.bottom,
         auxBottom: aux.bottom,
         vh: window.innerHeight,
         keys,
+        cells,
         boardWidth: board.width,
+        boardHeight: board.height,
         clientWidth: document.documentElement.clientWidth,
         scrollWidth: document.documentElement.scrollWidth,
         footerTop: footer.top,
         header: getComputedStyle(document.querySelector(".site-header")).display,
         intro: getComputedStyle(document.querySelector(".game-intro")).display,
         help: getComputedStyle(document.querySelector(".key-help")).display,
+        padDisplay: getComputedStyle(document.querySelector("#number-pad")).display,
       };
     });
     assert(metrics.header === "none", `${width} hides the site header`);
     assert(metrics.intro === "none", `${width} hides the intro`);
     assert(metrics.help === "none", `${width} hides the instructions`);
+    assert(metrics.padDisplay === "contents", `${width} keeps the 5 by 2 pad`);
     assert(metrics.eraseBottom <= metrics.vh + 1, `${width} keypad bottom ${metrics.eraseBottom} is inside ${metrics.vh}`);
     assert(metrics.auxBottom <= metrics.vh + 1, `${width} controls bottom ${metrics.auxBottom} is inside ${metrics.vh}`);
     assert(metrics.vh - metrics.auxBottom <= 16, `${width} leaves ${metrics.vh - metrics.auxBottom}px under the controls`);
-    assert(Math.min(...metrics.keys) >= 44, `${width} keys are ${Math.min(...metrics.keys)}px`);
-    assert(Math.max(...metrics.keys) - Math.min(...metrics.keys) <= 1.5, `${width} keys are the same size`);
-    assert(metrics.boardWidth >= metrics.clientWidth - 2, `${width} board is full width (${metrics.boardWidth})`);
+    assert(metrics.keys.length === 10, `${width} has 9 digits and erase`);
+    for (const key of metrics.keys) {
+      assert(Math.abs(key.width - key.height) <= 1.5, `${width} key is ${key.width.toFixed(1)}×${key.height.toFixed(1)}`);
+      assert(key.width >= 44 && key.height >= 44, `${width} key is ${key.width.toFixed(1)}px`);
+    }
+    const widths = metrics.keys.map((key) => key.width);
+    assert(Math.max(...widths) - Math.min(...widths) <= 1.5, `${width} keys differ in width`);
+    assert(metrics.keys[5].top >= metrics.keys[0].bottom - 2, `${width} second row is below the first`);
+    assert(Math.abs(metrics.keys[4].top - metrics.keys[0].top) <= 1.5, `${width} first row is one line`);
+    for (const cell of metrics.cells) {
+      assert(Math.abs(cell.width - cell.height) <= 1.5, `${width} mini-grid cell is ${cell.width.toFixed(1)}×${cell.height.toFixed(1)}`);
+    }
+    assert(Math.abs(metrics.boardWidth - metrics.boardHeight) <= 1.5, `${width} board is square`);
+    assert(metrics.boardWidth <= metrics.clientWidth + 1, `${width} board stays on screen`);
+    if (width >= 390) {
+      assert(metrics.boardWidth >= metrics.clientWidth - 2, `${width} board is full width (${metrics.boardWidth})`);
+    }
     assert(metrics.scrollWidth <= metrics.clientWidth + 1, `${width} has no horizontal scroll`);
     assert(metrics.footerTop >= metrics.vh - 1, `${width} footer is below the play viewport`);
-    keyHeights[height] = Math.min(...metrics.keys);
+    keySizes[`${width}x${height}`] = metrics.keys[0].height;
   }
-  assert(keyHeights[844] > keyHeights[667], "a taller phone gives the extra space to the keys");
-  assert(keyHeights[932] > keyHeights[667], "the tallest phone gives the extra space to the keys");
+  await page.setViewportSize({ width: 390, height: 1000 });
+  const taller = await page.evaluate(() => {
+    const key = document.querySelector("#number-pad button").getBoundingClientRect();
+    const aux = document.querySelector(".aux-row").getBoundingClientRect();
+    return { height: key.height, width: key.width, under: window.innerHeight - aux.bottom };
+  });
+  assert(Math.abs(taller.height - keySizes["390x844"]) <= 1.5, "extra phone height does not stretch the keys");
+  assert(Math.abs(taller.width - taller.height) <= 1.5, "keys stay square on a taller phone");
+  assert(taller.under <= 16, `taller phone leaves ${taller.under}px under the controls`);
   await page.setViewportSize({ width: 1280, height: 900 });
   const desktop = await page.evaluate(() => {
     const board = document.querySelector(".sudoku-grid").getBoundingClientRect();
