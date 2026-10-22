@@ -174,6 +174,10 @@
   let generation = 0;
   let busy = false;
   let hintView = null;
+  const GHOST_DELAY = 320;
+  let hoverSpot = null;
+  let ghostTimer = 0;
+  let spotPress = null;
 
   applyTheme();
   buildGrid();
@@ -393,6 +397,105 @@
       }
       grid.appendChild(rowEl);
     }
+    bindNoteSpots();
+  }
+
+  // One faint digit on a selected empty cell, after the pointer rests on that
+  // spot. Touch never ghosts. A click toggles the note only when the cell was
+  // already selected, so the first tap still just selects.
+  function spotFromEvent(event) {
+    const mark = event.target.closest ? event.target.closest(".marks span") : null;
+    if (!mark || !grid.contains(mark)) return null;
+    const cell = mark.closest(".cell");
+    if (!cell) return null;
+    return { index: Number(cell.dataset.index), digit: Number(mark.dataset.digit) };
+  }
+
+  function clearGhostTimer() {
+    if (ghostTimer) window.clearTimeout(ghostTimer);
+    ghostTimer = 0;
+  }
+
+  function clearGhost() {
+    clearGhostTimer();
+    hoverSpot = null;
+    grid.querySelectorAll(".marks span.ghost").forEach((mark) => mark.classList.remove("ghost"));
+  }
+
+  function paintGhost() {
+    if (!hoverSpot) return;
+    const { index, digit } = hoverSpot;
+    if (index !== state.selected || state.board[index] !== 0 || state.notes[index].has(digit)) return;
+    const mark = cells[index].querySelector(`.marks span[data-digit="${digit}"]`);
+    if (!mark || mark.classList.contains("user-note") || mark.classList.contains("struck") || mark.classList.contains("hint-note")) return;
+    mark.classList.add("ghost");
+  }
+
+  function bindNoteSpots() {
+    grid.addEventListener("pointerover", (event) => {
+      if (event.pointerType && event.pointerType !== "mouse") return;
+      const spot = spotFromEvent(event);
+      if (!spot || spot.index !== state.selected || state.board[spot.index] !== 0) {
+        clearGhost();
+        return;
+      }
+      if (hoverSpot && hoverSpot.index === spot.index && hoverSpot.digit === spot.digit) return;
+      clearGhost();
+      const pending = spot;
+      ghostTimer = window.setTimeout(() => {
+        ghostTimer = 0;
+        if (state.selected !== pending.index || state.board[pending.index] !== 0) return;
+        hoverSpot = pending;
+        paintGhost();
+      }, GHOST_DELAY);
+    });
+    grid.addEventListener("pointerout", (event) => {
+      if (!event.target.isConnected) return;
+      const spot = spotFromEvent(event);
+      if (!spot) return;
+      const next = event.relatedTarget instanceof Element ? event.relatedTarget.closest(".marks span") : null;
+      const same =
+        next &&
+        Number(next.closest(".cell").dataset.index) === spot.index &&
+        Number(next.dataset.digit) === spot.digit;
+      if (same) return;
+      clearGhostTimer();
+      if (hoverSpot && hoverSpot.index === spot.index && hoverSpot.digit === spot.digit) {
+        hoverSpot = null;
+        grid.querySelectorAll(".marks span.ghost").forEach((mark) => mark.classList.remove("ghost"));
+      }
+    });
+    grid.addEventListener(
+      "pointerdown",
+      (event) => {
+        const spot = spotFromEvent(event);
+        if (!spot || (event.pointerType === "mouse" && event.button !== 0)) {
+          spotPress = null;
+          return;
+        }
+        spotPress = {
+          index: spot.index,
+          digit: spot.digit,
+          wasSelected: state.selected === spot.index && state.board[spot.index] === 0,
+        };
+      },
+      true
+    );
+    grid.addEventListener(
+      "click",
+      (event) => {
+        const spot = spotFromEvent(event);
+        if (!spotPress || !spot) return;
+        if (spot.index !== spotPress.index || spot.digit !== spotPress.digit || !spotPress.wasSelected) return;
+        spotPress = null;
+        if (blocked()) return;
+        event.preventDefault();
+        event.stopPropagation();
+        clearGhostTimer();
+        toggleNote(spot.index, spot.digit);
+      },
+      true
+    );
   }
 
   function buildPad() {
@@ -1389,6 +1492,7 @@
     });
     pauseBtn.dataset.state = state.running ? "running" : "paused";
     pauseBtn.setAttribute("aria-label", state.running ? "Pause timer" : "Resume timer");
+    paintGhost();
   }
 
   function cellLabel(index) {
