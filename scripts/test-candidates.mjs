@@ -111,7 +111,10 @@ async function check(name, fn) {
 
 async function openPage(contextOptions = {}) {
   const context = await browser.newContext(contextOptions);
-  await context.addInitScript(() => localStorage.clear());
+  await context.addInitScript(() => {
+    if (sessionStorage.getItem("keep-save") === "1") return;
+    localStorage.clear();
+  });
   const page = await context.newPage();
   await page.route("**/*", (route) => {
     const url = route.request().url();
@@ -420,6 +423,136 @@ await check("touch selection shows candidates and notes stay in a 3x3", async ()
   assertEqual(await markDigits(page, other, "user-note"), [6], "touch notes mode still records a digit");
   await assertMarkGeometry(page, "mobile");
   await context.close();
+});
+
+await check("preview equals candidates after placements, a new game, and a resumed save", async () => {
+  const { context, page } = await openPage({ viewport: { width: 1280, height: 900 } });
+  await leaveBoard(page);
+  const original = await saveOf(page);
+  const placed = [];
+  for (let index = 0; index < 81 && placed.length < 3; index += 1) {
+    if (original.board[index] === 0) placed.push(index);
+  }
+  await page.locator("#mode-normal").click();
+  for (const index of placed) {
+    await page.locator(".cell").nth(index).click();
+    await leaveBoard(page);
+    await page.keyboard.press(String(original.solution[index]));
+  }
+  let board = await boardOf(page);
+  for (const index of placed) assertEqual(board[index], original.solution[index], `placed solution at ${index}`);
+  const empty = board.map((value, index) => (value === 0 ? index : -1)).filter((index) => index >= 0);
+  for (const index of empty) {
+    await page.locator(".cell").nth(index).hover();
+    assertEqual(await markDigits(page, index, "user-note"), [], `placement left a note at ${index}`);
+    assertEqual(await markDigits(page, index, "preview"), candidatesFor(board, index), `preview after placements at ${index}`);
+  }
+  await leaveBoard(page);
+  for (const index of empty) {
+    assertEqual(await markDigits(page, index, "preview"), [], `preview stuck at ${index}`);
+  }
+
+  const noted = empty[0];
+  const blockingPeer = peerIndexes(noted).find((other) => board[other] !== 0);
+  const remnant = board[blockingPeer];
+  const stillPossible = candidatesFor(board, noted)[0];
+  assert(remnant && stillPossible && remnant !== stillPossible, "need a remnant digit and a real candidate");
+  const stale = await saveOf(page);
+  stale.notes = stale.notes.map((list, index) => (index === noted ? [remnant, stillPossible] : list));
+  await page.evaluate((payload) => {
+    sessionStorage.setItem("keep-save", "1");
+    localStorage.setItem("sudoku-progress", JSON.stringify(payload));
+  }, stale);
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.locator("#resume-yes").click();
+  await page.waitForFunction(() => {
+    const cover = document.querySelector("#board-cover");
+    return cover && cover.hidden && document.querySelectorAll(".cell.given").length > 0;
+  });
+  board = await boardOf(page);
+  await page.locator(".cell").nth(noted).hover();
+  const resumedNotes = await markDigits(page, noted, "user-note");
+  const resumedPreview = await markDigits(page, noted, "preview");
+  const expected = candidatesFor(board, noted);
+  assert(!expected.includes(remnant), "remnant digit is already placed in the house");
+  assertEqual(resumedNotes, [remnant, stillPossible].sort((a, b) => a - b), "resumed pencil marks stay notes");
+  assert(!resumedPreview.includes(remnant), "a remnant note is not painted as a candidate");
+  assertEqual(
+    resumedPreview,
+    expected.filter((number) => !resumedNotes.includes(number)),
+    "preview equals candidates except digits stored as notes"
+  );
+
+  await page.locator('.difficulty-tabs button[data-difficulty="easy"]').click();
+  await page.waitForFunction(() => {
+    const cover = document.querySelector("#board-cover");
+    const label = document.querySelector("#puzzle-label");
+    return cover && cover.hidden && label && label.textContent === "Easy" && document.querySelectorAll(".cell.given").length > 0;
+  }, null, { timeout: 60000 });
+  assertEqual(await page.locator(".marks span.on.user-note").count(), 0, "a new game drops remnant notes");
+  board = await boardOf(page);
+  const freshEmpty = board.findIndex((value) => value === 0);
+  await page.locator(".cell").nth(freshEmpty).hover();
+  assertEqual(await markDigits(page, freshEmpty, "preview"), candidatesFor(board, freshEmpty), "new game preview");
+  await context.close();
+
+  const mobile = await browser.newContext({
+    ...devices["iPhone 12"],
+    viewport: { width: 390, height: 844 },
+  });
+  await mobile.addInitScript(() => localStorage.clear());
+  const phone = await mobile.newPage();
+  await phone.goto(`${origin}/?difficulty=quick`, { waitUntil: "domcontentloaded" });
+  await phone.waitForFunction(() => {
+    const cover = document.querySelector("#board-cover");
+    return cover && cover.hidden && localStorage.getItem("sudoku-progress");
+  });
+  const phoneSave = await saveOf(phone);
+  const phoneEmpty = phoneSave.board.findIndex((value) => value === 0);
+  const spot = await phone.locator(".cell").nth(phoneEmpty).boundingBox();
+  await phone.touchscreen.tap(spot.x + spot.width / 2, spot.y + spot.height / 2);
+  await phone.keyboard.press(String(phoneSave.solution[phoneEmpty]));
+  const phoneBoard = await boardOf(phone);
+  const nextEmpty = phoneBoard.findIndex((value) => value === 0);
+  const nextSpot = await phone.locator(".cell").nth(nextEmpty).boundingBox();
+  await phone.touchscreen.tap(nextSpot.x + nextSpot.width / 2, nextSpot.y + nextSpot.height / 2);
+  assertEqual(
+    await markDigits(phone, nextEmpty, "preview"),
+    candidatesFor(phoneBoard, nextEmpty),
+    "mobile preview after a placement"
+  );
+  await mobile.close();
+
+  const staleContext = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await staleContext.addInitScript(() => {
+    localStorage.setItem(
+      "sudoku-progress",
+      JSON.stringify({
+        version: 0,
+        notes: Array.from({ length: 81 }, () => [1, 2, 3, 4, 5, 6, 7, 8, 9]),
+        puzzle: Array(81).fill(1),
+        board: Array(81).fill(1),
+        solution: Array(81).fill(1),
+      })
+    );
+  });
+  const stalePage = await staleContext.newPage();
+  await stalePage.goto(`${origin}/?difficulty=quick`, { waitUntil: "domcontentloaded" });
+  await stalePage.waitForFunction(() => {
+    const cover = document.querySelector("#board-cover");
+    const modal = document.querySelector("#resume-modal");
+    return cover && cover.hidden && modal && modal.hidden && document.querySelectorAll(".cell.given").length > 0;
+  }, null, { timeout: 60000 });
+  assertEqual(await stalePage.locator(".marks span.on.user-note").count(), 0, "an old save is not resumed");
+  const ignoredBoard = await boardOf(stalePage);
+  const ignoredEmpty = ignoredBoard.findIndex((value) => value === 0);
+  await stalePage.locator(".cell").nth(ignoredEmpty).hover();
+  assertEqual(
+    await markDigits(stalePage, ignoredEmpty, "preview"),
+    candidatesFor(ignoredBoard, ignoredEmpty),
+    "ignored save does not change the preview"
+  );
+  await staleContext.close();
 });
 
 server.close();
