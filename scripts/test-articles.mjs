@@ -4,6 +4,7 @@ import { marked } from "marked";
 import {
   articleJsonLd,
   formatPublishDate,
+  gateHomepageCopy,
   isPublished,
   losAngelesToday,
   prepareArticle,
@@ -129,5 +130,39 @@ assert.match(about, /Teddy, chief puzzle supervisor\. Never once helpful\./);
 assert.match(about, /\/contact\//);
 assert.equal(about.includes("DRAFT"), false);
 assert.equal(about.includes("—"), false);
+
+const HARD_LINK =
+  '<a href="/articles/what-makes-a-sudoku-hard/">Here\'s what actually makes a Sudoku hard</a>';
+const homepage = readFileSync(new URL("../src/game.html", import.meta.url), "utf8");
+const copyStart = homepage.indexOf('<div class="sudoku-copy">');
+const copy = homepage.slice(copyStart, homepage.indexOf("</div>", copyStart));
+assert.match(copy, /<h2>Sudoku, graded honestly\.<\/h2>/);
+assert.equal(copy.includes("<h1"), false);
+assert.equal(copy.includes(HARD_LINK), true);
+assert.equal(copy.includes('href="/techniques/"'), true);
+assert.equal(copy.includes("—"), false);
+assert.equal(copy.includes("<!--"), false);
+for (const phrase of ["easybrain", "sudoku.com", "livesudoku", "sudoku.cba.si", "sudoku app no ads"]) {
+  assert.equal(copy.toLowerCase().includes(phrase), false, phrase);
+}
+
+const early = gateHomepageCopy(copy, "2026-10-21");
+assert.equal(early.includes(HARD_LINK), false);
+assert.equal(early.includes("Here's what actually makes a Sudoku hard."), true);
+assert.equal(early.includes('href="/techniques/"'), true);
+assert.equal(early.includes('href="/?difficulty=easy"'), true);
+
+const liveDay = gateHomepageCopy(copy, "2026-10-28");
+assert.equal(liveDay.includes(HARD_LINK), true);
+assert.equal(liveDay.includes('href="/techniques/"'), true);
+
+const noLibrary = gateHomepageCopy(copy, "2026-10-28", { techniques: false });
+assert.equal(noLibrary.includes('href="/techniques/"'), false);
+assert.equal(noLibrary.includes("the technique behind it"), true);
+assert.equal(noLibrary.includes(HARD_LINK), true);
+
+const build = readFileSync(new URL("./build.mjs", import.meta.url), "utf8");
+assert.match(build, /SudokuSudoku\. All rights reserved\./);
+assert.equal(build.includes("Sudoku Online"), false);
 
 console.log("article publish tests passed");

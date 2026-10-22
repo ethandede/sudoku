@@ -130,6 +130,21 @@ export function prepareArticle(markdown) {
   return { data, relatedSlugs, content };
 }
 
+const HARD_ARTICLE_LINK =
+  '<a href="/articles/what-makes-a-sudoku-hard/">Here\'s what actually makes a Sudoku hard</a>';
+const TECHNIQUE_LINK = '<a href="/techniques/">technique</a>';
+
+export function gateHomepageCopy(html, today, { techniques = true } = {}) {
+  let out = html;
+  if (!isPublished("2026-10-28", today)) {
+    out = out.replaceAll(HARD_ARTICLE_LINK, "Here's what actually makes a Sudoku hard");
+  }
+  if (!techniques) {
+    out = out.replaceAll(TECHNIQUE_LINK, "technique");
+  }
+  return out;
+}
+
 export function stripUnpublishedLinks(html, unpublishedSlugs) {
   if (!unpublishedSlugs || unpublishedSlugs.size === 0) return html;
   return html.replace(/<a\b([^>]*\s)?href="([^"]+)"([^>]*)>([\s\S]*?)<\/a>/g, (full, _before, href, _after, inner) => {

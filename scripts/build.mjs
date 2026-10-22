@@ -8,6 +8,7 @@ import {
   AUTHOR_NAME,
   articleJsonLd,
   formatPublishDate,
+  gateHomepageCopy,
   isPublished,
   losAngelesToday,
   personNode,
@@ -475,7 +476,9 @@ publish(
       "Every puzzle on SudokuSudoku is graded by its hardest move, not the number of clues. Hints name the move and teach the technique behind it. Just play.",
     canonical: `${SITE}/`,
     game: true,
-    main: read("src/game.html").trim(),
+    main: gateHomepageCopy(read("src/game.html").trim(), articleToday, {
+      techniques: techniques.length > 0,
+    }),
   }),
   "/"
 );
