@@ -10,7 +10,7 @@ publishDate: 2026-11-04
 
 # Why AI Is Surprisingly Bad at Sudoku
 
-This one still makes me smile. The same AI chatbots that can draft a cover letter, explain tax law and write a sonnet about my cat have a long, well-documented habit of falling apart on a newspaper Sudoku. Meanwhile a program short enough to fit on an index card has been solving every Sudoku ever printed, correctly, for decades.
+This one still makes me smile. The same AI chatbots that can draft a cover letter, explain tax law and write a sonnet about my dog have a long, well-documented habit of falling apart on a newspaper Sudoku. Meanwhile a program short enough to fit on an index card has been solving every Sudoku ever printed, correctly, for decades.
 
 That gap isn't a fluke. It says something real about how these systems work. It's also the reason the hints on SudokuSudoku are built the way they are.
 
