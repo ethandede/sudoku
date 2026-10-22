@@ -20,8 +20,9 @@
   --pad-ink: #1e232b;
   --pad-border: #d5dbe2;
   --map-empty: #d5dbe2;
-  --map-fill: var(--accent-color);
+  --map-fill: var(--same);
   --muted: #5c6670;
+  --count-ink: #4a5560;
   --auto-ink: #4a5560;
   --note-ink: var(--accent-color);
   --ghost-ink: #2c4558;
@@ -73,8 +74,9 @@ html[data-theme="dark"] .technique-page {
   --pad-ink: #e6e9ed;
   --pad-border: #3e4650;
   --map-empty: #3c444e;
-  --map-fill: var(--accent-on-dark);
+  --map-fill: var(--same);
   --muted: #b7c0c8;
+  --count-ink: #c5ced6;
   --auto-ink: #c5ced6;
   --note-ink: var(--accent-on-dark);
   --ghost-ink: #d4ebfa;
@@ -939,7 +941,7 @@ kbd {
   font-size: 0.68rem;
   font-weight: 700;
   line-height: 1;
-  color: var(--muted);
+  color: var(--count-ink);
   pointer-events: none;
 }
 
