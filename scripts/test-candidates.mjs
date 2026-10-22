@@ -780,7 +780,7 @@ await check("the keypad fits every phone and grows into leftover space", async (
   await context.close();
 });
 
-await check("side-by-side keypad uses the pre-redesign square key size", async () => {
+await check("side-by-side keypad uses the pre-redesign 3x3 key size", async () => {
   const { context, page } = await openPage({
     viewport: { width: 1280, height: 800 },
     deviceScaleFactor: 1,
@@ -789,26 +789,29 @@ await check("side-by-side keypad uses the pre-redesign square key size", async (
     return page.evaluate(() => {
       const root = parseFloat(getComputedStyle(document.documentElement).fontSize);
       const expected = (220 - 2 * 0.4 * root) / 3;
-      const board = document.querySelector(".sudoku-grid").getBoundingClientRect();
-      const erase = document.querySelector("#erase-btn").getBoundingClientRect();
-      const aux = document.querySelector(".aux-row").getBoundingClientRect();
-      const keys = [...document.querySelectorAll("#number-pad button, #erase-btn")].map((el) => {
-        const rect = el.getBoundingClientRect();
-        return { width: rect.width, height: rect.height, top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right };
-      });
+      const rect = (el) => {
+        const box = el.getBoundingClientRect();
+        return { width: box.width, height: box.height, top: box.top, bottom: box.bottom, left: box.left, right: box.right };
+      };
+      const digits = [...document.querySelectorAll("#number-pad button")].map(rect);
+      const erase = rect(document.querySelector("#erase-btn"));
+      const board = rect(document.querySelector(".sudoku-grid"));
+      const controls = rect(document.querySelector(".controls"));
+      const mode = rect(document.querySelector(".mode-toggle"));
+      const aux = rect(document.querySelector(".aux-row"));
       return {
         expected,
-        keys,
-        board: { top: board.top, bottom: board.bottom, left: board.left, right: board.right, width: board.width },
-        eraseTop: erase.top,
-        boardBottom: board.bottom,
+        digits,
+        erase,
+        board,
+        controls,
+        mode,
         auxBottom: aux.bottom,
+        padDisplay: getComputedStyle(document.querySelector("#number-pad")).display,
         vh: window.innerHeight,
         vw: window.innerWidth,
         scrollWidth: document.documentElement.scrollWidth,
         clientWidth: document.documentElement.clientWidth,
-        scrollHeight: document.documentElement.scrollHeight,
-        clientHeight: document.documentElement.clientHeight,
       };
     });
   }
@@ -820,37 +823,35 @@ await check("side-by-side keypad uses the pre-redesign square key size", async (
   ]) {
     await page.setViewportSize({ width, height });
     const metrics = await measure();
-    const widths = metrics.keys.map((key) => key.width);
-    const heights = metrics.keys.map((key) => key.height);
-    assert(metrics.keys.length === 10, `${width} has 10 keys`);
-    assert(
-      Math.max(...widths) - Math.min(...widths) <= 1.5 && Math.max(...heights) - Math.min(...heights) <= 1.5,
-      `${width} keys differ ${Math.min(...widths)}–${Math.max(...widths)} by ${Math.min(...heights)}–${Math.max(...heights)}`
-    );
+    assert(metrics.padDisplay === "grid", `${width} number pad is a grid`);
+    assert(metrics.digits.length === 9, `${width} has 9 digit keys`);
+    const widths = metrics.digits.map((key) => key.width);
+    const heights = metrics.digits.map((key) => key.height);
     assert(
       Math.abs(widths[0] - metrics.expected) <= 1.5 && Math.abs(heights[0] - metrics.expected) <= 1.5,
-      `${width} key is ${widths[0].toFixed(1)}×${heights[0].toFixed(1)}, expected ${metrics.expected.toFixed(1)}`
+      `${width} digit key is ${widths[0].toFixed(1)}×${heights[0].toFixed(1)}, expected ${metrics.expected.toFixed(1)}`
     );
-    assert(Math.abs(widths[0] - heights[0]) <= 1.5, `${width} keys are square`);
-    const tops = [metrics.board.top, ...metrics.keys.map((key) => key.top)];
-    const bottoms = [metrics.board.bottom, ...metrics.keys.map((key) => key.bottom)];
-    const lefts = [metrics.board.left, ...metrics.keys.map((key) => key.left)];
-    const rights = [metrics.board.right, ...metrics.keys.map((key) => key.right)];
-    assert(Math.min(...tops) >= -1, `${width} top ${Math.min(...tops)} is on screen`);
-    assert(Math.max(...bottoms) <= metrics.vh + 1, `${width} bottom ${Math.max(...bottoms)} fits in ${metrics.vh}`);
-    assert(Math.min(...lefts) >= -1, `${width} left edge is on screen`);
-    assert(Math.max(...rights) <= metrics.vw + 1, `${width} right edge ${Math.max(...rights)} fits in ${metrics.vw}`);
+    assert(Math.abs(widths[0] - heights[0]) <= 1.5, `${width} digit keys are square`);
+    assert(Math.max(...widths) - Math.min(...widths) <= 1.5, `${width} digit widths differ`);
+    assert(metrics.digits[1].top === metrics.digits[0].top || Math.abs(metrics.digits[1].top - metrics.digits[0].top) <= 1, `${width} first row`);
+    assert(metrics.digits[3].top >= metrics.digits[0].bottom - 2, `${width} second row is below the first`);
+    assert(metrics.digits[6].top >= metrics.digits[3].bottom - 2, `${width} third row is below the second`);
+    assert(metrics.erase.top >= metrics.digits[8].bottom - 2, `${width} erase sits under the 3x3`);
+    assert(metrics.erase.width >= metrics.expected * 2, `${width} erase is a wide button`);
+    assert(metrics.mode.bottom <= metrics.digits[0].top + 1, `${width} mode toggle is above the digits`);
+    assert(metrics.digits[0].left >= metrics.board.right - 2, `${width} keypad sits beside the board`);
+    assert(metrics.board.top >= 0, `${width} board starts on screen`);
+    assert(metrics.board.bottom <= metrics.vh - 4, `${width} board bottom ${metrics.board.bottom.toFixed(1)} is inside ${metrics.vh}`);
+    assert(metrics.controls.bottom <= metrics.vh - 4, `${width} keypad column bottom ${metrics.controls.bottom.toFixed(1)} is inside ${metrics.vh}`);
+    assert(metrics.controls.top >= 0, `${width} keypad column starts on screen`);
     assert(metrics.scrollWidth <= metrics.clientWidth + 1, `${width} has no horizontal scroll`);
-    assert(metrics.keys[0].left >= metrics.board.right - 2, `${width} keypad sits beside the board`);
+    assert(metrics.controls.height >= metrics.board.height * 0.6, `${width} keypad column is a large block next to the board`);
   }
   await page.setViewportSize({ width: 720, height: 1280 });
   const phone = await measure();
-  assert(phone.eraseTop >= phone.boardBottom - 2, "720px keeps the keypad under the board");
-  assert(Math.min(...phone.keys.map((key) => key.height)) >= 44, "720px keys stay at least 44px");
-  assert(
-    Math.min(...phone.keys.map((key) => key.height)) > phone.expected + 8,
-    "720px keys still grow with leftover height"
-  );
+  assert(phone.padDisplay === "contents", "720px keeps the phone pad");
+  assert(phone.erase.top >= phone.board.bottom - 2, "720px keeps the keypad under the board");
+  assert(Math.min(...phone.digits.map((key) => key.height), phone.erase.height) >= 44, "720px keys stay at least 44px");
   assert(phone.auxBottom <= phone.vh + 1, "720px controls fit");
   assert(phone.vh - phone.auxBottom <= 16, `720px leaves ${phone.vh - phone.auxBottom}px under the controls`);
   assert(phone.scrollWidth <= phone.clientWidth + 1, "720px has no horizontal scroll");
