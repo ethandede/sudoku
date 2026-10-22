@@ -17,7 +17,9 @@ dist/
 build/
 
 #Images
-assets/img/
+assets/img/*
+!assets/img/teddy/
+!assets/img/teddy/**
 
 # Sass cache (if applicable)
 .sass-cache/

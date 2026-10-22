@@ -12,10 +12,12 @@
     "test:mini": "node scripts/test-mini.mjs",
     "test:stats": "node scripts/test-stats.mjs",
     "test:articles": "node scripts/test-articles.mjs",
-    "test:share": "node scripts/test-share.mjs"
+    "test:share": "node scripts/test-share.mjs",
+    "test:play": "node scripts/test-candidates.mjs"
   },
   "devDependencies": {
     "marked": "^15.0.12",
+    "playwright": "^1.64.1",
     "sass": "^1.81.0"
   }
 }

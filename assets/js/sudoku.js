@@ -174,6 +174,9 @@
   let generation = 0;
   let busy = false;
   let hintView = null;
+  let hoverIndex = null;
+  let finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  let keyboardNav = false;
 
   applyTheme();
   buildGrid();
@@ -388,6 +391,20 @@
         button.setAttribute("aria-rowindex", String(row + 1));
         button.setAttribute("aria-colindex", String(col + 1));
         button.addEventListener("click", () => select(index, false));
+        button.addEventListener("pointerdown", (event) => {
+          if (event.pointerType === "touch") finePointer = false;
+          if (event.pointerType === "mouse") {
+            finePointer = true;
+            keyboardNav = false;
+          }
+        });
+        button.addEventListener("pointerenter", (event) => {
+          if (event.pointerType !== "mouse") return;
+          setHover(index);
+        });
+        button.addEventListener("pointerleave", () => {
+          if (hoverIndex === index) setHover(null);
+        });
         rowEl.appendChild(button);
         cells.push(button);
       }
@@ -1187,6 +1204,22 @@
     return found;
   }
 
+  function setHover(index) {
+    if (hoverIndex === index) return;
+    hoverIndex = index;
+    render();
+  }
+
+  // Possible digits are a preview: under the pointer, on the selected cell
+  // when there is no hover (touch) or when the player is moving with the keyboard.
+  // Manual notes stay a separate mark and are not written by the preview.
+  function wantsPreview(index) {
+    if (state.board[index] !== 0) return false;
+    if (index === hoverIndex) return true;
+    if (index !== state.selected) return false;
+    return !finePointer || keyboardNav;
+  }
+
   function conflictDots() {
     const dots = new Set();
     if (settings.highlightConflicts) {
@@ -1277,6 +1310,7 @@
       cell.classList.toggle("hint-eliminate", hint && hint.stage >= 2 && hintEliminate.has(index));
       cell.classList.toggle("hint-place", hint && hint.stage >= 2 && index === hintPlace);
       cell.setAttribute("aria-selected", selected ? "true" : "false");
+      cell.dataset.value = String(value);
       cell.replaceChildren();
       if (value) {
         cell.append(document.createTextNode(String(value)));
@@ -1284,16 +1318,17 @@
         const marks = document.createElement("span");
         marks.className = "marks";
         marks.setAttribute("aria-hidden", "true");
-        const auto = state.auto ? candidatesFor(index) : new Set();
+        const computed = state.auto || wantsPreview(index) ? candidatesFor(index) : null;
         const ghost = hint && hint.stage === 2 ? hintCandidates.get(index) : null;
         const struck = hint && hint.stage === 2 ? hintStruck.get(index) : null;
         for (let number = 1; number <= 9; number += 1) {
           const mark = document.createElement("span");
+          mark.dataset.digit = String(number);
           mark.textContent = String(number);
           if (struck && struck.has(number)) mark.classList.add("on", "struck");
           else if (ghost && ghost.has(number)) mark.classList.add("on", "hint-note");
           else if (state.notes[index].has(number)) mark.classList.add("on", "user-note");
-          else if (auto.has(number)) mark.classList.add("on", "auto");
+          else if (computed && computed.has(number)) mark.classList.add("on", state.auto ? "auto" : "preview");
           marks.appendChild(mark);
         }
         cell.appendChild(marks);
@@ -1365,8 +1400,13 @@
     const given = state.puzzle[index] !== 0;
     let text = `Row ${row}, column ${col}`;
     if (!value) {
-      const notes = [...state.notes[index]].sort().join(", ");
-      text += notes ? `, empty, notes ${notes}` : ", empty";
+      const notes = [...state.notes[index]].sort((a, b) => a - b);
+      text += ", empty";
+      if (notes.length) text += `, notes ${notes.join(", ")}`;
+      if (state.auto || wantsPreview(index)) {
+        const candidates = [...candidatesFor(index)].filter((number) => !notes.includes(number));
+        if (candidates.length) text += `, candidates ${candidates.join(", ")}`;
+      }
     } else if (given) text += `, given ${value}`;
     else text += state.slashed.has(index) ? `, your ${value}, incorrect` : `, your ${value}`;
     if (index === state.selected) text += ", selected";
@@ -1484,6 +1524,7 @@
       erase(state.selected);
       return;
     }
+    if (event.key === "Tab") keyboardNav = true;
     const arrows = { ArrowUp: -9, ArrowDown: 9, ArrowLeft: -1, ArrowRight: 1 };
     if (event.key in arrows) {
       event.preventDefault();
@@ -1496,6 +1537,7 @@
       if (event.key === "ArrowUp" && row === 0) return;
       if (event.key === "ArrowDown" && row === 8) return;
       if (next < 0 || next > 80) return;
+      keyboardNav = true;
       select(next, true);
     }
   }

@@ -25,12 +25,10 @@ export function validateContact(input) {
 }
 
 export function contactReady(env) {
+  // EMAIL is a service binding to the mailer worker. An RPC stub is truthy,
+  // but typeof stub.send is not reliably "function", so existence is the check.
+  // send() itself runs inside try/catch.
   return Boolean(
-    env &&
-      env.TURNSTILE_SITE_KEY &&
-      env.TURNSTILE_SECRET_KEY &&
-      env.CONTACT_TO &&
-      env.EMAIL &&
-      typeof env.EMAIL.send === "function"
+    env && env.TURNSTILE_SITE_KEY && env.TURNSTILE_SECRET_KEY && env.CONTACT_TO && env.EMAIL
   );
 }

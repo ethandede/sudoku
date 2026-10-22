@@ -1,5 +1,14 @@
 Hi, I'm Ethan Ede.
 
+<figure class="teddy-figure">
+  <picture>
+    <source type="image/avif" srcset="/assets/img/teddy/teddy-128.avif 128w, /assets/img/teddy/teddy-256.avif 256w, /assets/img/teddy/teddy-512.avif 512w" sizes="256px">
+    <source type="image/webp" srcset="/assets/img/teddy/teddy-128.webp 128w, /assets/img/teddy/teddy-256.webp 256w, /assets/img/teddy/teddy-512.webp 512w" sizes="256px">
+    <img src="/assets/img/teddy/teddy-256.webp" width="256" height="256" alt="Teddy, a black Australian labradoodle drawn in anime style, tongue out, holding a pencil over a blank sudoku grid" loading="lazy" decoding="async">
+  </picture>
+  <figcaption>Teddy, chief puzzle supervisor. Never once helpful.</figcaption>
+</figure>
+
 I build websites for a living, and have for over 20 years. I also play a LOT of Sudoku. Most days it's the New York Times puzzle in their app, usually with coffee, sometimes with Teddy's head on my knee wondering why I'm not throwing the ball.
 
 Here's the thing though. I'm not a Sudoku genius. I have a ceiling. Some days I fly through a Hard, and some days a Medium stops me cold and I have no idea why. That "no idea why" part is what got me building this.

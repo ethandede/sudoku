@@ -298,8 +298,7 @@ ${main}
         <li><a href="/privacy-policy/">Privacy Policy</a></li>
 ${privacyChoiceItem}      </ul>
     </nav>
-${privacyChoiceNote}
-    <p class="copyright">&copy; ${year} SudokuSudoku. All rights reserved.</p>
+${privacyChoiceNote}    <p class="copyright">&copy; ${year} SudokuSudoku. All rights reserved.</p>
   </div>
 </footer>
 ${game ? '<script src="/assets/js/solver.js"></script>\n<script src="/assets/js/pools.js"></script>\n<script src="/assets/js/generator.js"></script>\n<script src="/assets/js/progress.js"></script>\n<script src="/assets/js/community.js"></script>\n<script src="/assets/js/share.js"></script>' : ""}
@@ -437,6 +436,7 @@ write("assets/js/share.js", read("assets/js/share.js"));
 write("assets/js/stats-page.js", read("assets/js/stats-page.js"));
 write("ads.txt", read("ads.txt").trim() + "\n");
 cpSync(join(root, "assets/fonts"), join(dist, "assets/fonts"), { recursive: true });
+cpSync(join(root, "assets/img"), join(dist, "assets/img"), { recursive: true });
 cpSync(join(root, "articles/images"), join(dist, "articles/images"), { recursive: true });
 cpSync(join(root, "articles/data"), join(dist, "articles/data"), { recursive: true });
 copyFileSync(join(root, "src/og.png"), join(dist, "og.png"));
@@ -470,9 +470,9 @@ if (unpublishedSlugs.size) {
 publish(
   "index.html",
   layout({
-    title: "SudokuSudoku: Free Daily Sudoku with Teaching Hints",
+    title: "SudokuSudoku",
     description:
-      "Play a daily Sudoku graded by the same solver that teaches the hint. Six levels from Quick to Mental, a box map on the number pad, and notes, undo, and a four-mistake limit.",
+      "Every puzzle on SudokuSudoku is graded by its hardest move, not the number of clues. Hints name the move and teach the technique behind it. Just play.",
     canonical: `${SITE}/`,
     game: true,
     main: read("src/game.html").trim(),
@@ -495,7 +495,14 @@ write(
         <h1 class="page-title">Page not found</h1>
       </header>
       <div class="page-body">
-        <p>That page doesn't exist. The puzzle is still here.</p>
+        <figure class="teddy-figure">
+          <picture>
+            <source type="image/avif" srcset="/assets/img/teddy/teddy-128.avif 128w, /assets/img/teddy/teddy-256.avif 256w, /assets/img/teddy/teddy-512.avif 512w" sizes="256px">
+            <source type="image/webp" srcset="/assets/img/teddy/teddy-128.webp 128w, /assets/img/teddy/teddy-256.webp 256w, /assets/img/teddy/teddy-512.webp 512w" sizes="256px">
+            <img src="/assets/img/teddy/teddy-256.webp" width="256" height="256" alt="Teddy, a black Australian labradoodle drawn in anime style, tongue out, holding a pencil over a blank sudoku grid" loading="lazy" decoding="async">
+          </picture>
+        </figure>
+        <p>Teddy can't find this page either.</p>
         <p><a href="/">Play Sudoku</a>, or browse the <a href="/articles/">articles</a>.</p>
       </div>
     </article>
@@ -980,6 +987,7 @@ write(
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="robots" content="noindex">
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f4ef">
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141218">
   <title>Offline | SudokuSudoku</title>
