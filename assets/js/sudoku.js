@@ -48,11 +48,66 @@
     }
   }
 
+  const THEME_COLORS = { light: "#f7f4ef", dark: "#141218" };
+
   function applyDocumentTheme(theme) {
     const dark =
       theme === "dark" ||
       (theme !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
     document.documentElement.dataset.theme = dark ? "dark" : "light";
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    document.documentElement.classList.toggle("is-standalone", standalone);
+    const chosen = theme === "light" || theme === "dark";
+    document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => {
+      const media = meta.getAttribute("media") || "";
+      if (chosen) {
+        meta.setAttribute("content", dark ? THEME_COLORS.dark : THEME_COLORS.light);
+        return;
+      }
+      meta.setAttribute("content", media.includes("dark") ? THEME_COLORS.dark : THEME_COLORS.light);
+    });
+  }
+
+  function initAppShell() {
+    const update = document.getElementById("app-update");
+    const updateGo = document.getElementById("app-update-go");
+    let acceptRefresh = false;
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (!acceptRefresh) return;
+      window.location.reload();
+    });
+    navigator.serviceWorker.register("/sw.js").then((registration) => {
+      const waiting = () => {
+        if (!registration.waiting) return;
+        if (!navigator.serviceWorker.controller) {
+          registration.waiting.postMessage({ type: "skip-waiting" });
+          return;
+        }
+        if (update) update.hidden = false;
+      };
+      const track = (worker) => {
+        if (!worker) return;
+        worker.addEventListener("statechange", () => {
+          if (worker.state === "installed") waiting();
+        });
+      };
+      track(registration.installing);
+      waiting();
+      registration.addEventListener("updatefound", () => track(registration.installing));
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") registration.update();
+      });
+      if (updateGo) {
+        updateGo.addEventListener("click", () => {
+          acceptRefresh = true;
+          if (registration.waiting) registration.waiting.postMessage({ type: "skip-waiting" });
+        });
+      }
+    }).catch(() => {
+      /* private mode or insecure origin */
+    });
   }
 
   applyDocumentTheme(savedTheme());
@@ -61,9 +116,19 @@
   });
 
   initNavigation();
+  initAppShell();
 
   const grid = document.getElementById("sudoku-grid");
   if (!grid || !window.SudokuGenerator) return;
+
+  const INSTALL_KEY = "sudoku-install-dismissed";
+  let deferredInstall = null;
+  window.addEventListener("beforeinstallprompt", (event) => {
+    if (!handheld()) return;
+    event.preventDefault();
+    deferredInstall = event;
+  });
+  window.addEventListener("appinstalled", () => dismissInstall());
 
   const timerEl = document.getElementById("timer");
   const pauseBtn = document.getElementById("pause-btn");
@@ -90,6 +155,7 @@
     highlightSame: true,
     highlightConflicts: true,
     showBoxMap: true,
+    haptics: true,
   };
 
   let settings = loadSettings();
@@ -243,11 +309,7 @@
   }
 
   function applyTheme() {
-    const dark =
-      settings.theme === "dark" ||
-      (settings.theme === "system" &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches);
-    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    applyDocumentTheme(settings.theme);
   }
 
   function requestFromUrl() {
@@ -353,6 +415,14 @@
     document.getElementById("hint-btn").addEventListener("click", () => advanceHint());
     document.getElementById("hint-next").addEventListener("click", () => advanceHint());
     document.getElementById("hint-dismiss").addEventListener("click", () => dismissHint());
+    document.getElementById("install-dismiss").addEventListener("click", () => dismissInstall());
+    document.getElementById("install-go").addEventListener("click", async () => {
+      if (!deferredInstall) return;
+      deferredInstall.prompt();
+      await deferredInstall.userChoice;
+      deferredInstall = null;
+      dismissInstall();
+    });
     bindHintSwipe();
     undoBtn.addEventListener("click", undo);
     pauseBtn.addEventListener("click", () => {
@@ -566,6 +636,7 @@
     pushUndo();
     if (number !== state.solution[index]) state.removed = [];
     state.board[index] = number;
+    buzz(number === state.solution[index] ? 12 : [18, 40, 24]);
     state.notes[index].clear();
     peerIndexes(index).forEach((other) => state.notes[other].delete(number));
     if (number === state.solution[index]) state.slashed.delete(index);
@@ -1360,7 +1431,74 @@
         : `Won ${bucket.won} of ${bucket.played} · best ${bucket.best == null ? "–" : formatTime(bucket.best)} · average ${average}`;
     paintConfetti();
     showModal("solved-modal");
+    if (!state.revealed && !already) offerInstall();
     announce(title.textContent);
+  }
+
+  function isIos() {
+    const ua = navigator.userAgent || "";
+    return (
+      /iPhone|iPad|iPod/.test(ua) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+    );
+  }
+
+  function handheld() {
+    if (document.documentElement.classList.contains("is-standalone")) return false;
+    if (isIos()) return true;
+    if (/Android/i.test(navigator.userAgent || "")) return true;
+    return (
+      window.matchMedia("(pointer: coarse)").matches &&
+      window.matchMedia("(max-width: 820px)").matches
+    );
+  }
+
+  function installDismissed() {
+    try {
+      return localStorage.getItem(INSTALL_KEY) === "1";
+    } catch {
+      return true;
+    }
+  }
+
+  function dismissInstall() {
+    try {
+      localStorage.setItem(INSTALL_KEY, "1");
+    } catch {
+      /* private mode */
+    }
+    const prompt = document.getElementById("install-prompt");
+    if (prompt) prompt.hidden = true;
+  }
+
+  function offerInstall() {
+    const prompt = document.getElementById("install-prompt");
+    if (!prompt || installDismissed() || !handheld()) {
+      if (prompt) prompt.hidden = true;
+      return;
+    }
+    const detail = document.getElementById("install-detail");
+    const go = document.getElementById("install-go");
+    if (isIos()) {
+      detail.textContent = "Tap the Share button, then Add to Home Screen.";
+      go.hidden = true;
+    } else if (deferredInstall) {
+      detail.textContent = "Add Sudoku to your home screen and it opens like an app.";
+      go.hidden = false;
+    } else {
+      detail.textContent = "Open the browser menu and tap Add to Home Screen.";
+      go.hidden = true;
+    }
+    prompt.hidden = false;
+  }
+
+  function buzz(pattern) {
+    if (!settings.haptics || typeof navigator.vibrate !== "function") return;
+    try {
+      navigator.vibrate(pattern);
+    } catch {
+      /* this device does not vibrate */
+    }
   }
 
   function paintConfetti() {
