@@ -1,6 +1,6 @@
-// Board behavior: candidate preview, notes, auto-candidates, undo, and the
-// selected-cell focus ring. Requires the Playwright chromium build
-// (`npx playwright install chromium`). Builds dist/ first.
+// Board behavior: notes, auto-candidates, undo, and the selected-cell focus
+// ring. Candidates render only when Auto candidates is checked. Requires the
+// Playwright chromium build (`npx playwright install chromium`). Builds dist/ first.
 import { spawnSync } from "node:child_process";
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
@@ -165,39 +165,37 @@ function emptyPeer(board) {
   return null;
 }
 
-await check("desktop hover previews possible digits and hides them on leave", async () => {
+async function assertNoComputedMarks(page, label) {
+  assertEqual(await page.locator(".marks span.on.preview").count(), 0, `${label} shows no preview marks`);
+  assertEqual(await page.locator(".marks span.on.auto").count(), 0, `${label} shows no auto marks`);
+}
+
+await check("auto-candidates off hides candidates on hover, click, and keyboard focus", async () => {
   const { context, page } = await openPage({ viewport: { width: 1280, height: 900 } });
   await leaveBoard(page);
+  assert(!(await page.locator("#auto-candidates").isChecked()), "auto-candidates starts off");
   const board = await boardOf(page);
   const index = board.findIndex((value) => value === 0);
   assert(index >= 0, "puzzle has an empty cell");
   const cell = page.locator(".cell").nth(index);
   await cell.hover();
-  assertEqual(await markDigits(page, index, "preview"), candidatesFor(board, index), "hover preview");
-  const hoverInk = await cell.evaluate((el) => {
-    const mark = el.querySelector(".marks span.on.preview");
-    if (!mark) return null;
-    const markStyle = getComputedStyle(mark);
-    const cellStyle = getComputedStyle(el);
-    const markBox = mark.getBoundingClientRect();
-    const cellBox = el.getBoundingClientRect();
-    return {
-      color: markStyle.color,
-      background: cellStyle.backgroundColor,
-      opacity: Number(markStyle.opacity),
-      visibility: markStyle.visibility,
-      inside: markBox.width > 0 && markBox.top >= cellBox.top - 1 && markBox.bottom <= cellBox.bottom + 1,
-    };
-  });
-  assert(hoverInk, "hover preview has a digit");
-  assert(hoverInk.visibility === "visible", "hover preview digit is visible");
-  assert(hoverInk.opacity >= 0.7, "hover preview digit stays opaque on the selection fill");
-  assert(hoverInk.color !== hoverInk.background, "hover preview digit does not match the cell fill");
-  assert(hoverInk.inside, "hover preview digit stays inside the cell");
+  assertEqual(await markDigits(page, index, "preview"), [], "hover shows no preview");
+  assertEqual(await markDigits(page, index, "auto"), [], "hover shows no auto marks");
   assertEqual(await markDigits(page, index, "user-note"), [], "hover does not write notes");
   assertEqual(await boardOf(page), board, "hover does not change the board");
+  await cell.click();
   await leaveBoard(page);
-  assertEqual(await markDigits(page, index, "preview"), [], "preview clears when the pointer leaves");
+  assertEqual(await markDigits(page, index, "preview"), [], "selecting shows no preview");
+  assertEqual(await markDigits(page, index, "auto"), [], "selecting shows no auto marks");
+  await page.keyboard.press("ArrowRight");
+  const selected = await page.locator(".cell.selected").evaluate((el) => Number(el.dataset.index));
+  assert(selected !== index, "arrow focus moves to another cell");
+  assertEqual(await markDigits(page, selected, "preview"), [], "keyboard focus shows no preview");
+  assertEqual(await markDigits(page, selected, "auto"), [], "keyboard focus shows no auto marks");
+  await cell.focus();
+  assertEqual(await markDigits(page, index, "preview"), [], "focusing a cell shows no preview");
+  assertEqual(await markDigits(page, index, "auto"), [], "focusing a cell shows no auto marks");
+  await assertNoComputedMarks(page, "with auto-candidates off");
   await context.close();
 });
 
@@ -340,6 +338,83 @@ await check("auto-candidates toggles during a game and follows placed digits", a
   await context.close();
 });
 
+async function markStyle(page, index, kind) {
+  return page.locator(".cell").nth(index).locator(`.marks span.on.${kind}`).first().evaluate((el) => {
+    const style = getComputedStyle(el);
+    return {
+      color: style.color,
+      weight: style.fontWeight,
+      decoration: style.textDecorationLine,
+      opacity: Number(style.opacity),
+    };
+  });
+}
+
+function assertDistinct(note, auto, label) {
+  assert(note.weight !== auto.weight && Number(note.weight) > Number(auto.weight), `${label} notes are heavier`);
+  assert(note.decoration.includes("underline"), `${label} notes are underlined`);
+  assert(!auto.decoration.includes("underline"), `${label} auto-candidates are not underlined`);
+  assert(note.color !== auto.color, `${label} notes and auto-candidates use different colors`);
+  assert(note.opacity >= 0.95 && auto.opacity >= 0.95, `${label} both layers stay opaque`);
+}
+
+await check("notes and auto-candidates show together and the toggle does not erase notes", async () => {
+  const { context, page } = await openPage({ viewport: { width: 390, height: 844 } });
+  const save = await saveOf(page);
+  let index = -1;
+  let noted = 0;
+  for (let cell = 0; cell < 81; cell += 1) {
+    if (save.board[cell] !== 0) continue;
+    const options = candidatesFor(save.board, cell);
+    if (options.length < 2) continue;
+    index = cell;
+    noted = options[0];
+    break;
+  }
+  assert(index >= 0, "an empty cell has two candidates");
+  await page.locator("#mode-notes").click();
+  await page.locator(".cell").nth(index).click();
+  await page.keyboard.press(String(noted));
+  const stored = (await saveOf(page)).notes[index].slice().sort((a, b) => a - b);
+  assertEqual(stored, [noted], "the note is stored before auto-candidates");
+  await page.locator("#auto-candidates").check();
+  assertEqual(await markDigits(page, index, "user-note"), [noted], "the note stays visible with auto-candidates");
+  const autoDigits = await markDigits(page, index, "auto");
+  assert(autoDigits.length > 0, "other candidates stay visible beside the note");
+  assert(!autoDigits.includes(noted), "the noted digit is not duplicated as an auto-candidate");
+  assertEqual(
+    autoDigits,
+    candidatesFor(await boardOf(page), index).filter((number) => number !== noted),
+    "auto-candidates are the remaining legal digits"
+  );
+  assertDistinct(await markStyle(page, index, "user-note"), await markStyle(page, index, "auto"), "selected light cell");
+  await page.locator(".cell").nth((index + 1) % 81).click();
+  const emptyPeer = (await boardOf(page)).findIndex((value, cell) => value === 0 && cell !== index);
+  await page.locator(".cell").nth(emptyPeer).click();
+  await page.locator(".cell").nth(index).click();
+  assertDistinct(await markStyle(page, index, "user-note"), await markStyle(page, index, "auto"), "selected light cell again");
+  await page.evaluate(() => {
+    document.documentElement.dataset.theme = "dark";
+  });
+  assertDistinct(await markStyle(page, index, "user-note"), await markStyle(page, index, "auto"), "selected dark cell");
+  await page.locator("#auto-candidates").uncheck();
+  assertEqual(await markDigits(page, index, "auto"), [], "auto-candidates hide without removing the note");
+  assertEqual(await markDigits(page, index, "user-note"), [noted], "the note is still on the board");
+  assertEqual(
+    (await saveOf(page)).notes[index].slice().sort((a, b) => a - b),
+    stored,
+    "turning auto-candidates off does not rewrite stored notes"
+  );
+  await page.locator("#auto-candidates").check();
+  assertEqual(
+    (await saveOf(page)).notes[index].slice().sort((a, b) => a - b),
+    stored,
+    "turning auto-candidates on does not rewrite stored notes"
+  );
+  assertEqual(await markDigits(page, index, "user-note"), [noted], "the note is still distinct after toggling back on");
+  await context.close();
+});
+
 await check("selected cell has no outset focus ring", async () => {
   const { context, page } = await openPage({ viewport: { width: 1280, height: 900 } });
   const cell = page.locator(".cell").nth(0);
@@ -407,7 +482,7 @@ await check("note digits sit in a 3x3 on desktop", async () => {
   await context.close();
 });
 
-await check("touch selection shows candidates and notes stay in a 3x3", async () => {
+await check("touch selection does not show candidates and notes stay in a 3x3", async () => {
   const { context, page } = await openPage({
     ...devices["iPhone 12"],
     viewport: { width: 390, height: 844 },
@@ -416,40 +491,18 @@ await check("touch selection shows candidates and notes stay in a 3x3", async ()
     () => !window.matchMedia("(hover: hover) and (pointer: fine)").matches
   );
   assert(coarse, "phone emulation has no fine hover");
+  assert(!(await page.locator("#auto-candidates").isChecked()), "auto-candidates starts off");
   const board = await boardOf(page);
   const selected = await page.locator(".cell.selected").evaluate((el) => Number(el.dataset.index));
-  assertEqual(
-    await markDigits(page, selected, "preview"),
-    candidatesFor(board, selected),
-    "the selected cell shows candidates without a hover"
-  );
+  assertEqual(await markDigits(page, selected, "preview"), [], "the selected cell shows no preview");
+  assertEqual(await markDigits(page, selected, "auto"), [], "the selected cell shows no auto marks");
   const other = board.findIndex((value, index) => value === 0 && index !== selected);
   const target = page.locator(".cell").nth(other);
   const point = await target.boundingBox();
   await page.touchscreen.tap(point.x + point.width / 2, point.y + point.height / 2);
-  const after = await boardOf(page);
-  assertEqual(
-    await markDigits(page, other, "preview"),
-    candidatesFor(after, other),
-    "tapping an empty cell shows its candidates"
-  );
-  const touchInk = await page.locator(".cell.selected .marks span.on.preview").first().evaluate((el) => {
-    const markStyle = getComputedStyle(el);
-    const cellStyle = getComputedStyle(el.closest(".cell"));
-    const markBox = el.getBoundingClientRect();
-    const cellBox = el.closest(".cell").getBoundingClientRect();
-    return {
-      color: markStyle.color,
-      background: cellStyle.backgroundColor,
-      opacity: Number(markStyle.opacity),
-      visibility: markStyle.visibility,
-      inside: markBox.width > 0 && markBox.top >= cellBox.top - 1 && markBox.bottom <= cellBox.bottom + 1,
-    };
-  });
-  assert(touchInk.visibility === "visible", "touch preview digit is visible");
-  assert(touchInk.opacity >= 0.7, "touch preview digit stays opaque on the selected fill");
-  assert(touchInk.color !== touchInk.background, "touch preview digit does not match the selected fill");
-  assert(touchInk.inside, "touch preview digit stays inside the cell");
+  assertEqual(await markDigits(page, other, "preview"), [], "tapping an empty cell shows no preview");
+  assertEqual(await markDigits(page, other, "auto"), [], "tapping an empty cell shows no auto marks");
+  await assertNoComputedMarks(page, "a phone with auto-candidates off");
   const ring = await page.locator(".cell.selected").evaluate((el) => {
     const style = getComputedStyle(el);
     return { outlineStyle: style.outlineStyle, outlineOffset: style.outlineOffset };
@@ -463,7 +516,7 @@ await check("touch selection shows candidates and notes stay in a 3x3", async ()
   await context.close();
 });
 
-await check("preview equals candidates after placements, a new game, and a resumed save", async () => {
+await check("candidates stay off after placements until auto-candidates is checked", async () => {
   const { context, page } = await openPage({ viewport: { width: 1280, height: 900 } });
   await leaveBoard(page);
   const original = await saveOf(page);
@@ -482,13 +535,13 @@ await check("preview equals candidates after placements, a new game, and a resum
   const empty = board.map((value, index) => (value === 0 ? index : -1)).filter((index) => index >= 0);
   for (const index of empty) {
     await page.locator(".cell").nth(index).hover();
+    await page.locator(".cell").nth(index).click();
     assertEqual(await markDigits(page, index, "user-note"), [], `placement left a note at ${index}`);
-    assertEqual(await markDigits(page, index, "preview"), candidatesFor(board, index), `preview after placements at ${index}`);
+    assertEqual(await markDigits(page, index, "preview"), [], `hover or select shows a preview at ${index}`);
+    assertEqual(await markDigits(page, index, "auto"), [], `hover or select shows auto marks at ${index}`);
   }
   await leaveBoard(page);
-  for (const index of empty) {
-    assertEqual(await markDigits(page, index, "preview"), [], `preview stuck at ${index}`);
-  }
+  await assertNoComputedMarks(page, "after placements");
 
   const noted = empty[0];
   const blockingPeer = peerIndexes(noted).find((other) => board[other] !== 0);
@@ -509,17 +562,35 @@ await check("preview equals candidates after placements, a new game, and a resum
   });
   board = await boardOf(page);
   await page.locator(".cell").nth(noted).hover();
+  await page.locator(".cell").nth(noted).click();
   const resumedNotes = await markDigits(page, noted, "user-note");
-  const resumedPreview = await markDigits(page, noted, "preview");
   const expected = candidatesFor(board, noted);
   assert(!expected.includes(remnant), "remnant digit is already placed in the house");
   assertEqual(resumedNotes, [remnant, stillPossible].sort((a, b) => a - b), "resumed pencil marks stay notes");
-  assert(!resumedPreview.includes(remnant), "a remnant note is not painted as a candidate");
+  assertEqual(await markDigits(page, noted, "preview"), [], "a resumed note is not a hover preview");
+  assertEqual(await markDigits(page, noted, "auto"), [], "resumed notes do not turn auto-candidates on");
+  await page.locator("#auto-candidates").check();
+  const resumedAuto = await markDigits(page, noted, "auto");
+  assert(!resumedAuto.includes(remnant), "a remnant note is not painted as an auto-candidate");
+  assert(!resumedAuto.includes(stillPossible), "a real note is not also painted as an auto-candidate");
   assertEqual(
-    resumedPreview,
+    resumedAuto,
     expected.filter((number) => !resumedNotes.includes(number)),
-    "preview equals candidates except digits stored as notes"
+    "auto-candidates fill the digits the player has not noted"
   );
+  assertEqual(await markDigits(page, noted, "user-note"), resumedNotes, "turning auto-candidates on keeps the notes");
+  for (let cell = 0; cell < 81; cell += 1) {
+    if (board[cell] !== 0) continue;
+    const notes = await markDigits(page, cell, "user-note");
+    assertEqual(
+      await markDigits(page, cell, "auto"),
+      candidatesFor(board, cell).filter((number) => !notes.includes(number)),
+      `checked auto-candidates in cell ${cell}`
+    );
+  }
+  await page.locator("#auto-candidates").uncheck();
+  assertEqual(await markDigits(page, noted, "auto"), [], "turning auto-candidates off hides the computed marks");
+  assertEqual(await markDigits(page, noted, "user-note"), resumedNotes, "turning auto-candidates off keeps the notes");
 
   await page.locator("#puzzle-label").click();
   await page.locator('.difficulty-tabs button[data-difficulty="easy"]').click();
@@ -532,7 +603,10 @@ await check("preview equals candidates after placements, a new game, and a resum
   board = await boardOf(page);
   const freshEmpty = board.findIndex((value) => value === 0);
   await page.locator(".cell").nth(freshEmpty).hover();
-  assertEqual(await markDigits(page, freshEmpty, "preview"), candidatesFor(board, freshEmpty), "new game preview");
+  await page.locator(".cell").nth(freshEmpty).click();
+  assertEqual(await markDigits(page, freshEmpty, "preview"), [], "a new game does not preview on hover");
+  assertEqual(await markDigits(page, freshEmpty, "auto"), [], "a new game does not show auto marks");
+  assert(!(await page.locator("#auto-candidates").isChecked()), "a new game leaves auto-candidates off");
   await context.close();
 
   const mobileSession = await openPage({
@@ -549,11 +623,8 @@ await check("preview equals candidates after placements, a new game, and a resum
   const nextEmpty = phoneBoard.findIndex((value) => value === 0);
   const nextSpot = await phone.locator(".cell").nth(nextEmpty).boundingBox();
   await phone.touchscreen.tap(nextSpot.x + nextSpot.width / 2, nextSpot.y + nextSpot.height / 2);
-  assertEqual(
-    await markDigits(phone, nextEmpty, "preview"),
-    candidatesFor(phoneBoard, nextEmpty),
-    "mobile preview after a placement"
-  );
+  assertEqual(await markDigits(phone, nextEmpty, "preview"), [], "mobile selection after a placement shows no preview");
+  assertEqual(await markDigits(phone, nextEmpty, "auto"), [], "mobile selection after a placement shows no auto marks");
   await mobileSession.context.close();
 
   const staleContext = await browser.newContext({ viewport: { width: 1280, height: 900 } });
@@ -586,11 +657,8 @@ await check("preview equals candidates after placements, a new game, and a resum
   const ignoredBoard = await boardOf(stalePage);
   const ignoredEmpty = ignoredBoard.findIndex((value) => value === 0);
   await stalePage.locator(".cell").nth(ignoredEmpty).hover();
-  assertEqual(
-    await markDigits(stalePage, ignoredEmpty, "preview"),
-    candidatesFor(ignoredBoard, ignoredEmpty),
-    "ignored save does not change the preview"
-  );
+  assertEqual(await markDigits(stalePage, ignoredEmpty, "preview"), [], "an ignored save does not preview candidates");
+  assertEqual(await markDigits(stalePage, ignoredEmpty, "auto"), [], "an ignored save does not show auto marks");
   await staleContext.close();
 });
 
@@ -690,7 +758,7 @@ await check("selection fills keep givens distinct from entries", async () => {
   });
   assertEqual(fills.selected, "rgb(239, 125, 18)", "selected cell is the solid accent");
   assertEqual(fills.selectedOutline, "none", "selection has no border");
-  assertEqual(fills.given, "rgb(236, 231, 223)", "givens are a light gray fill");
+  assertEqual(fills.given, "rgb(228, 233, 239)", "givens are a light gray fill");
   assertEqual(fills.open, "rgb(255, 255, 255)", "empty cells stay white");
   if (fills.entered) assertEqual(fills.entered, "rgb(255, 255, 255)", "player entries stay white");
   assert(fills.givenPeer && fills.emptyPeer, "the highlight includes a given and an open cell");
@@ -861,7 +929,8 @@ await check("side-by-side keypad uses the pre-redesign 3x3 key size", async () =
   const index = board.findIndex((value) => value === 0);
   const cell = page.locator(".cell").nth(index);
   await cell.hover();
-  assertEqual(await markDigits(page, index, "preview"), candidatesFor(board, index), "hover preview beside the full keypad");
+  assertEqual(await markDigits(page, index, "preview"), [], "hover beside the keypad shows no preview");
+  assertEqual(await markDigits(page, index, "auto"), [], "hover beside the keypad shows no auto marks");
   await context.close();
 });
 

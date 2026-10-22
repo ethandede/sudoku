@@ -207,8 +207,8 @@ function layout({
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f4ef">
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141218">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f6f8">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1c1f24">
   <meta name="color-scheme" content="light dark">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1000,8 +1000,8 @@ write(
       scope: "/",
       display: "standalone",
       orientation: "portrait",
-      background_color: "#f7f4ef",
-      theme_color: "#f7f4ef",
+      background_color: "#f4f6f8",
+      theme_color: "#f4f6f8",
       categories: ["games"],
       icons: manifestIcons,
     },
@@ -1017,8 +1017,8 @@ write(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="robots" content="noindex">
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f4ef">
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141218">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f6f8">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1c1f24">
   <title>Offline | SudokuSudoku</title>
   <meta name="description" content="SudokuSudoku is offline. The puzzle on this device still opens.">
   <meta name="robots" content="noindex">

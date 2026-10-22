@@ -1,22 +1,22 @@
 .skills-page {
-  --ink: #1a1a1a;
-  --muted: #5e584e;
+  --ink: #2a313c;
+  --muted: #5a6572;
   --card: #fff;
-  --page: #f7f4ef;
-  --line: #d9d3c8;
-  --accent: #1f4d63;
+  --page: #f4f6f8;
+  --line: #d3d9e0;
+  --accent: #0b5c86;
   --accent-ink: #fff;
-  --pad: #f6f3ee;
-  --pad-ink: #1c1a22;
+  --pad: #eef1f5;
+  --pad-ink: #1c2430;
   --learning: #8a4b12;
   --learning-bg: #f8e2c8;
   --comfort: #0b6e5f;
   --comfort-bg: #d7f3ec;
-  --master: #1f4d63;
+  --master: #0b5c86;
   --master-bg: #d7e8f1;
-  --locked: #6d675e;
-  --locked-bg: #ece7df;
-  --next: #fff6ea;
+  --locked: #5a6572;
+  --locked-bg: #e4e9ef;
+  --next: #eef6fb;
 
   background: var(--page);
   color: var(--ink);
@@ -44,24 +44,24 @@
 }
 
 html[data-theme="dark"] .skills-page {
-  --ink: #f4efe6;
-  --muted: #c8c0b4;
-  --card: #241f2a;
-  --page: #141218;
-  --line: #5c5666;
-  --accent: #8ec8dc;
+  --ink: #e8ebef;
+  --muted: #b7c3ce;
+  --card: #2a2f36;
+  --page: #1c1f24;
+  --line: #4c545e;
+  --accent: #8fd4f5;
   --accent-ink: #1a1208;
-  --pad: #26232c;
-  --pad-ink: #f4efe6;
+  --pad: #323840;
+  --pad-ink: #e8ebef;
   --learning: #f0c08a;
   --learning-bg: #3d2c1c;
   --comfort: #7ddec8;
   --comfort-bg: #1a3c34;
   --master: #b7d4e4;
   --master-bg: #1d3340;
-  --locked: #b7b0a6;
-  --locked-bg: #2c2933;
-  --next: #2c241c;
+  --locked: #b7c3ce;
+  --locked-bg: #383e46;
+  --next: #24303a;
 }
 
 .skills-wrap {
@@ -359,8 +359,8 @@ html[data-theme="dark"] .skills-page {
   padding: 0.7rem 0.55rem 0.7rem 0.75rem;
   border-radius: 0.85rem;
   background: #fff;
-  color: #1a1a1a;
-  border: 1px solid #d9d3c8;
+  color: #2a313c;
+  border: 1px solid #d3d9e0;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
 
   &[hidden] {
@@ -368,18 +368,18 @@ html[data-theme="dark"] .skills-page {
   }
 
   a {
-    color: #1f4d63;
+    color: #0b5c86;
     font-weight: 700;
   }
 }
 
 html[data-theme="dark"] .badge-toast {
-  background: #241f2a;
-  color: #f4efe6;
-  border-color: #5c5666;
+  background: #2a2f36;
+  color: #e8ebef;
+  border-color: #4c545e;
 
   a {
-    color: #8ec8dc;
+    color: #8fd4f5;
   }
 }
 
@@ -391,7 +391,7 @@ html[data-theme="dark"] .badge-toast {
 .badge-toast-icon {
   width: 2rem;
   height: 2rem;
-  color: #1f4d63;
+  color: #0b5c86;
 
   svg {
     width: 100%;

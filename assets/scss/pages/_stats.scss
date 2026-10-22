@@ -11,7 +11,7 @@
   min-height: 44px;
   padding: 0 1rem;
   border-radius: 999px;
-  border: 1px solid #c8c2b8;
+  border: 1px solid #c5ced6;
   background: transparent;
   color: inherit;
   font: inherit;
@@ -73,7 +73,7 @@
   height: 0.9rem;
   border-radius: 999px;
   overflow: hidden;
-  background: #ece7df;
+  background: #e4e9ef;
 }
 
 .stats-seg {
@@ -131,7 +131,7 @@
   height: 7.5rem;
   display: flex;
   align-items: flex-end;
-  background: #f3efe8;
+  background: #e4e9ef;
   border-radius: 0.35rem 0.35rem 0 0;
 }
 
@@ -181,7 +181,7 @@
 .stats-tech-track {
   display: block;
   height: 0.55rem;
-  background: #f3efe8;
+  background: #e4e9ef;
   border-radius: 999px;
   overflow: hidden;
 }
@@ -203,24 +203,24 @@
 
 html[data-theme="dark"] {
   .stats-switch button {
-    border-color: #5c564e;
+    border-color: #4c545e;
   }
 
   .stats-card {
-    border-top-color: #3a342c;
+    border-top-color: #383e46;
   }
 
   .stats-facts dt,
   .stats-col-label,
   .stats-empty,
   .stats-note {
-    color: #c8c0b4;
+    color: #b7c3ce;
   }
 
   .stats-bar,
   .stats-col-plot,
   .stats-tech-track {
-    background: #2c2730;
+    background: #383e46;
   }
 }
 
