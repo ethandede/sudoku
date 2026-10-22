@@ -48,7 +48,7 @@
     }
   }
 
-  const THEME_COLORS = { light: "#f4f6f8", dark: "#1c1f24" };
+  const THEME_COLORS = { light: "#f4f6f8", dark: "#121416" };
 
   function applyDocumentTheme(theme) {
     const dark =
@@ -1903,7 +1903,10 @@
   function paintConfetti() {
     const host = document.querySelector("#solved-modal .confetti");
     host.replaceChildren();
-    const colors = ["#ef7d12", "#0b5c86", "#bf3978", "#e8ebef", "#2f9e44"];
+    const style = getComputedStyle(document.documentElement);
+    const accent = style.getPropertyValue("--accent-color").trim() || "#0c4f86";
+    const lifted = style.getPropertyValue("--accent-on-dark").trim() || "#9ed2f8";
+    const colors = [accent, lifted, "#1e232b", "#e6e9ed", "#2f9e44"];
     for (let i = 0; i < 18; i += 1) {
       const piece = document.createElement("span");
       piece.style.left = `${6 + Math.random() * 88}%`;

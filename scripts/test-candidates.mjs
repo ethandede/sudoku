@@ -293,7 +293,9 @@ await check("a phone tap toggles one note spot and the keypad still places", asy
   await page.touchscreen.tap(again.x, again.y);
   assertEqual(await markDigits(page, other, "user-note"), [1], "tapping the same spot toggles that note");
   assertEqual(await ghostMarks(page), [], "the tapped note is not a ghost");
-  const placeAt = save.board.findIndex((value, index) => value === 0 && index !== other);
+  const peers = new Set(peerIndexes(other));
+  const placeAt = save.board.findIndex((value, index) => value === 0 && index !== other && !peers.has(index));
+  assert(placeAt >= 0, "another empty cell is outside the noted cell");
   const placeBox = await page.locator(".cell").nth(placeAt).boundingBox();
   await page.touchscreen.tap(placeBox.x + placeBox.width / 2, placeBox.y + placeBox.height / 2);
   const digit = save.solution[placeAt];
@@ -589,23 +591,32 @@ await check("notes and auto-candidates show together and the toggle does not era
 
 await check("selected cell has no outset focus ring", async () => {
   const { context, page } = await openPage({ viewport: { width: 1280, height: 900 } });
+  await page.evaluate(() => {
+    document.documentElement.dataset.theme = "light";
+  });
   const cell = page.locator(".cell").nth(0);
   await cell.click();
   const clicked = await cell.evaluate((el) => {
     const style = getComputedStyle(el);
+    const probe = document.createElement("span");
+    probe.style.backgroundColor = "var(--selected)";
+    el.appendChild(probe);
+    const selectedFill = getComputedStyle(probe).backgroundColor;
+    probe.remove();
     return {
       outlineStyle: style.outlineStyle,
       outlineOffset: style.outlineOffset,
       boxShadow: style.boxShadow,
       zIndex: style.zIndex,
       background: style.backgroundColor,
+      selectedFill,
     };
   });
   assertEqual(clicked.outlineStyle, "none", "mouse selection has no outline");
   assertEqual(clicked.outlineOffset, "0px", "mouse selection has no outline gap");
   assertEqual(clicked.boxShadow, "none", "mouse selection has no focus shadow");
   assertEqual(clicked.zIndex, "auto", "selected cell does not lift over the grid");
-  assertEqual(clicked.background, "rgb(239, 125, 18)", "selected cell is a solid fill");
+  assertEqual(clicked.background, clicked.selectedFill, "selected cell uses the palette fill");
   await page.keyboard.press("ArrowRight");
   const keyed = await page.locator(".cell.selected").evaluate((el) => {
     const style = getComputedStyle(el);
@@ -850,6 +861,9 @@ function luminance(color) {
 
 await check("selection fills keep givens distinct from entries", async () => {
   const { context, page } = await openPage({ viewport: { width: 1280, height: 900 } });
+  await page.evaluate(() => {
+    document.documentElement.dataset.theme = "light";
+  });
   await leaveBoard(page);
   const index = await page.evaluate(() => {
     const cells = [...document.querySelectorAll(".cell")];
@@ -918,29 +932,111 @@ await check("selection fills keep givens distinct from entries", async () => {
         !cell.classList.contains("selected") &&
         !cell.classList.contains("same")
     );
+    const host = document.querySelector(".sudoku-page");
+    const paint = (name) => {
+      const probe = document.createElement("span");
+      probe.style.backgroundColor = `var(${name})`;
+      host.appendChild(probe);
+      const color = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return color;
+    };
+    const inkOf = (name) => {
+      const probe = document.createElement("span");
+      probe.style.color = `var(${name})`;
+      host.appendChild(probe);
+      const color = getComputedStyle(probe).color;
+      probe.remove();
+      return color;
+    };
     return {
       selected: background(selected),
+      selectedFill: paint("--selected"),
       selectedOutline: getComputedStyle(selected).outlineStyle,
       givenPeer: background(givenPeer),
       emptyPeer: background(emptyPeer),
       given: background(given),
       open: background(open),
       entered: background(entered),
+      givenInk: given ? getComputedStyle(given).color : "",
+      userInk: inkOf("--user-ink"),
     };
   });
-  assertEqual(fills.selected, "rgb(239, 125, 18)", "selected cell is the solid accent");
+  assertEqual(fills.selected, fills.selectedFill, "selected cell uses the palette fill");
   assertEqual(fills.selectedOutline, "none", "selection has no border");
-  assertEqual(fills.given, "rgb(228, 233, 239)", "givens are a light gray fill");
+  assertEqual(fills.given, "rgb(255, 255, 255)", "givens sit on the white board");
   assertEqual(fills.open, "rgb(255, 255, 255)", "empty cells stay white");
   if (fills.entered) assertEqual(fills.entered, "rgb(255, 255, 255)", "player entries stay white");
   assert(fills.givenPeer && fills.emptyPeer, "the highlight includes a given and an open cell");
   assert(fills.givenPeer !== fills.given, "a highlighted given is tinted");
   assert(fills.emptyPeer !== fills.open, "a highlighted open cell is tinted");
-  assert(fills.givenPeer !== fills.emptyPeer, "a highlighted given stays distinct from a highlighted open cell");
-  assert(
-    luminance(fills.givenPeer) < luminance(fills.emptyPeer),
-    `given tint ${fills.givenPeer} should be darker than open tint ${fills.emptyPeer}`
-  );
+  assertEqual(fills.givenPeer, fills.emptyPeer, "givens and empty cells share the peer tint");
+  assert(luminance(fills.selected) < luminance(fills.emptyPeer), "the selected fill is stronger than the peer tint");
+  assert(fills.givenInk !== fills.userInk, "givens stay charcoal and entries use the accent");
+  await context.close();
+});
+
+await check("digits, notes, and auto-candidates meet WCAG AA", async () => {
+  const { context, page } = await openPage({ viewport: { width: 1280, height: 900 } });
+  const report = await page.evaluate(() => {
+    const lin = (channel) => {
+      const value = channel / 255;
+      return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+    };
+    const channels = (color) => color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/).slice(1).map(Number);
+    const lum = (color) => {
+      const [red, green, blue] = channels(color);
+      return 0.2126 * lin(red) + 0.7152 * lin(green) + 0.0722 * lin(blue);
+    };
+    const contrast = (fg, bg) => {
+      const hi = Math.max(lum(fg), lum(bg));
+      const lo = Math.min(lum(fg), lum(bg));
+      return (hi + 0.05) / (lo + 0.05);
+    };
+    const paint = (prop, as) => {
+      const probe = document.createElement("span");
+      probe.style[as] = `var(${prop})`;
+      document.querySelector(".sudoku-page").appendChild(probe);
+      const color = getComputedStyle(probe)[as === "color" ? "color" : "backgroundColor"];
+      probe.remove();
+      return color;
+    };
+    const out = {};
+    for (const theme of ["light", "dark"]) {
+      document.documentElement.dataset.theme = theme;
+      for (const ink of ["--ink", "--user-ink", "--note-ink", "--auto-ink", "--ghost-ink", "--slash"]) {
+        for (const surface of ["--cell-bg", "--selected", "--peer", "--same"]) {
+          out[`${theme} ${ink} on ${surface}`] = contrast(paint(ink, "color"), paint(surface, "backgroundColor"));
+        }
+      }
+      const toggle = getComputedStyle(document.querySelector("#mode-normal"));
+      out[`${theme} toggle`] = contrast(toggle.color, toggle.backgroundColor);
+      const given = document.querySelector(".cell.given");
+      given.classList.add("selected");
+      out[`${theme} given digit on selected`] = contrast(getComputedStyle(given).color, getComputedStyle(given).backgroundColor);
+      given.classList.remove("selected");
+      const empty = document.querySelector('.cell[data-value="0"]');
+      empty.classList.add("selected");
+      out[`${theme} entry ink on selected`] = contrast(getComputedStyle(empty).color, getComputedStyle(empty).backgroundColor);
+      empty.classList.remove("selected");
+      out[`${theme} map distinct`] = paint("--map-empty", "backgroundColor") === paint("--map-fill", "backgroundColor") ? 1 : 5;
+      const cell = lum(paint("--cell-bg", "backgroundColor"));
+      const peer = lum(paint("--peer", "backgroundColor"));
+      const same = lum(paint("--same", "backgroundColor"));
+      const selected = lum(paint("--selected", "backgroundColor"));
+      const ordered = theme === "light" ? cell > peer && peer > same && same > selected : cell < peer && peer < same && same < selected;
+      out[`${theme} fill order`] = ordered ? 5 : 1;
+      const note = paint("--note-ink", "color");
+      const auto = paint("--auto-ink", "color");
+      const ghost = paint("--ghost-ink", "color");
+      out[`${theme} mark colors differ`] = note !== auto && note !== ghost && auto !== ghost ? 5 : 1;
+    }
+    document.documentElement.dataset.theme = "light";
+    return out;
+  });
+  for (const [name, value] of Object.entries(report)) {
+    assert(value >= 4.5, `${name} is ${Number(value).toFixed(2)}`);
+  }
   await context.close();
 });
 
