@@ -13,7 +13,7 @@
   </g>
   <g id="cells">
     <rect x="60" y="80" width="100" height="100" fill="#fffdf8"/>
-    <rect x="160" y="80" width="100" height="100" fill="#c0dcf1" stroke="#0c4f86" stroke-width="4"/>
+    <rect x="160" y="80" width="100" height="100" fill="#d4d7f6" stroke="#343fad" stroke-width="4"/>
     <rect x="260" y="80" width="100" height="100" fill="#f4efe6"/>
     <rect x="360" y="80" width="100" height="100" fill="#f4efe6"/>
     <rect x="60" y="180" width="100" height="100" fill="#fffdf8"/>

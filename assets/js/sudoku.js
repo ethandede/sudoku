@@ -1904,8 +1904,8 @@
     const host = document.querySelector("#solved-modal .confetti");
     host.replaceChildren();
     const style = getComputedStyle(document.documentElement);
-    const accent = style.getPropertyValue("--accent-color").trim() || "#0c4f86";
-    const lifted = style.getPropertyValue("--accent-on-dark").trim() || "#9ed2f8";
+    const accent = style.getPropertyValue("--accent-color").trim() || "#343fad";
+    const lifted = style.getPropertyValue("--accent-on-dark").trim() || "#c5c8ff";
     const colors = [accent, lifted, "#1e232b", "#e6e9ed", "#2f9e44"];
     for (let i = 0; i < 18; i += 1) {
       const piece = document.createElement("span");

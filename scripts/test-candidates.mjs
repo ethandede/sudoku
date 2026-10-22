@@ -293,7 +293,9 @@ await check("a phone tap toggles one note spot and the keypad still places", asy
   await page.touchscreen.tap(again.x, again.y);
   assertEqual(await markDigits(page, other, "user-note"), [1], "tapping the same spot toggles that note");
   assertEqual(await ghostMarks(page), [], "the tapped note is not a ghost");
-  const placeAt = save.board.findIndex((value, index) => value === 0 && index !== other);
+  const peers = new Set(peerIndexes(other));
+  const placeAt = save.board.findIndex((value, index) => value === 0 && index !== other && !peers.has(index));
+  assert(placeAt >= 0, "another empty cell is outside the noted cell");
   const placeBox = await page.locator(".cell").nth(placeAt).boundingBox();
   await page.touchscreen.tap(placeBox.x + placeBox.width / 2, placeBox.y + placeBox.height / 2);
   const digit = save.solution[placeAt];
