@@ -1,38 +1,39 @@
 .sudoku-page,
 .technique-page {
-  --board-bg: #fff;
-  --cell-bg: #fff;
-  --given-bg: #e4e9ef;
-  --ink: #2a313c;
-  --user-ink: #0b5c86;
-  --line: #1c2430;
-  --thin: #d3d9e0;
-  --selected: #ef7d12;
-  --selected-ink: #1a1208;
-  --same: #f6b15a;
-  --peer: color-mix(in srgb, var(--selected) 16%, var(--cell-bg));
-  --given-peer: color-mix(in srgb, var(--selected) 16%, var(--given-bg));
-  --hover: #e7edf3;
-  --slash: #c41616;
-  --slash-on-selected: #5c0c14;
-  --dot: #c41616;
-  --pad: #eef1f5;
-  --pad-ink: #1c2430;
-  --pad-border: #d3d9e0;
-  --map-empty: rgba(28, 36, 48, 0.12);
-  --map-fill: #9ec5d8;
-  --muted: #5a6572;
-  --auto-ink: #5a6572;
-  --note-ink: #0b5c86;
-  --ghost-ink: #466b84;
-  --auto-on-selected: #3a2818;
-  --note-on-selected: #083048;
-  --ghost-on-selected: #163044;
-  --card: #fff;
+  --board-bg: #ffffff;
+  --cell-bg: #ffffff;
+  --given-bg: #ffffff;
+  --ink: #1e232b;
+  --user-ink: var(--accent-color);
+  --line: #1c232c;
+  --thin: #d5dbe2;
+  --selected: #d4d7f6;
+  --selected-ink: var(--ink);
+  --same: #e2e4f8;
+  --peer: #eef0fb;
+  --given-peer: #eef0fb;
+  --hover: #eef0fb;
+  --slash: #b00016;
+  --slash-on-selected: #b00016;
+  --dot: #b00016;
+  --pad: #eef1f4;
+  --pad-ink: #1e232b;
+  --pad-border: #d5dbe2;
+  --map-empty: #d5dbe2;
+  --map-fill: var(--accent-color);
+  --muted: #5c6670;
+  --auto-ink: #4a5560;
+  --note-ink: var(--accent-color);
+  --ghost-ink: #3a4568;
+  --auto-on-selected: #4a5560;
+  --note-on-selected: var(--accent-color);
+  --ghost-on-selected: #3a4568;
+  --card: #ffffff;
   --page: #f4f6f8;
-  --accent-btn: #0b5c86;
-  --focus: #0b5c86;
-  --danger: #c41616;
+  --accent-btn: var(--accent-color);
+  --accent-on: #ffffff;
+  --focus: var(--accent-color);
+  --danger: #b00016;
   --hint-pattern: #0b6e5f;
   --hint-eliminate: #b42318;
   --hint-place: #0b6e5f;
@@ -52,39 +53,40 @@
 
 html[data-theme="dark"] .sudoku-page,
 html[data-theme="dark"] .technique-page {
-  --board-bg: #22262c;
-  --cell-bg: #2a2f36;
-  --given-bg: #383e46;
-  --ink: #e8ebef;
-  --user-ink: #8fd4f5;
-  --line: #e8ebef;
-  --thin: #4c545e;
-  --selected: #ef7d12;
-  --selected-ink: #1a1208;
-  --same: #e8a24a;
-  --peer: color-mix(in srgb, var(--selected) 16%, var(--cell-bg));
-  --given-peer: color-mix(in srgb, var(--selected) 16%, var(--given-bg));
-  --hover: #3a414a;
-  --slash: #ff9a9a;
-  --slash-on-selected: #5c0c14;
-  --dot: #ff9a9a;
-  --pad: #323840;
-  --pad-ink: #e8ebef;
-  --pad-border: #4c545e;
-  --map-empty: rgba(232, 235, 239, 0.16);
-  --map-fill: #3d6f86;
-  --muted: #b7c3ce;
-  --auto-ink: #b7c3ce;
-  --note-ink: #8fd4f5;
-  --ghost-ink: #7eafc6;
-  --auto-on-selected: #3a2818;
-  --note-on-selected: #083048;
-  --ghost-on-selected: #163044;
-  --card: #2a2f36;
-  --page: #1c1f24;
-  --accent-btn: #8fd4f5;
-  --focus: #e8ebef;
-  --danger: #ff9a9a;
+  --board-bg: #1c2026;
+  --cell-bg: #1c2026;
+  --given-bg: #1c2026;
+  --ink: #e6e9ed;
+  --user-ink: var(--accent-on-dark);
+  --line: #e6e9ed;
+  --thin: #3e4650;
+  --selected: #3a4060;
+  --selected-ink: var(--ink);
+  --same: #303652;
+  --peer: #262a38;
+  --given-peer: #262a38;
+  --hover: #30344a;
+  --slash: #ffb4b4;
+  --slash-on-selected: #ffb4b4;
+  --dot: #ffb4b4;
+  --pad: #2a3036;
+  --pad-ink: #e6e9ed;
+  --pad-border: #3e4650;
+  --map-empty: #3c444e;
+  --map-fill: var(--accent-on-dark);
+  --muted: #b7c0c8;
+  --auto-ink: #c5ced6;
+  --note-ink: var(--accent-on-dark);
+  --ghost-ink: #e0e2ff;
+  --auto-on-selected: #c5ced6;
+  --note-on-selected: var(--accent-on-dark);
+  --ghost-on-selected: #e0e2ff;
+  --card: #22262c;
+  --page: #121416;
+  --accent-btn: var(--accent-on-dark);
+  --accent-on: #121416;
+  --focus: var(--accent-on-dark);
+  --danger: #ffb4b4;
   --hint-pattern: #7ddec8;
   --hint-eliminate: #ff8b80;
   --hint-place: #7ddec8;
@@ -116,7 +118,7 @@ body:has(.sudoku-page) {
 }
 
 html[data-theme="dark"] body:has(.sudoku-page) {
-  background: #1c1f24;
+  background: #121416;
 }
 
 body:has(.sudoku-page) .site-header {
@@ -246,13 +248,9 @@ body:has(.sudoku-page) .site-header {
 
   button[aria-selected="true"] {
     background: var(--accent-btn);
-    color: #fff;
+    color: var(--accent-on);
     border-color: var(--accent-btn);
   }
-}
-
-html[data-theme="dark"] .difficulty-tabs button[aria-selected="true"] {
-  color: #1a1208;
 }
 
 .community-line,
@@ -516,13 +514,11 @@ html[data-theme="dark"] .difficulty-tabs button[aria-selected="true"] {
 
   &.same {
     background: var(--same);
-    color: var(--selected-ink);
   }
 
   &.selected,
   &.given.selected {
     background: var(--selected);
-    color: var(--selected-ink);
   }
 
   @media (hover: hover) and (pointer: fine) {
@@ -841,8 +837,8 @@ html[data-theme="dark"] .difficulty-tabs button[aria-selected="true"] {
   }
 
   button[aria-pressed="true"] {
-    background: var(--ink);
-    color: var(--page);
+    background: var(--accent-btn);
+    color: var(--accent-on);
   }
 }
 
@@ -1094,7 +1090,7 @@ kbd {
   font-weight: 800;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: var(--user-ink, #0b5c86);
+  color: var(--user-ink, var(--accent-color));
 }
 
 .technique-controls {
@@ -1110,7 +1106,7 @@ kbd {
     border-radius: 0.6rem;
     border: 1px solid var(--pad-border, #d3d9e0);
     background: var(--pad, #eef1f5);
-    color: var(--pad-ink, #1c2430);
+    color: var(--pad-ink, #1e232b);
     touch-action: manipulation;
     cursor: pointer;
   }
@@ -1132,13 +1128,9 @@ kbd {
   min-height: 48px;
   padding: 0 1rem;
   border-radius: 0.6rem;
-  background: var(--accent-btn, #0b5c86);
-  color: #fff;
+  background: var(--accent-btn, var(--accent-color));
+  color: var(--accent-on, #fff);
   text-decoration: none;
-}
-
-html[data-theme="dark"] .play-technique {
-  color: #1a1208;
 }
 
 .technique-index {
@@ -1183,7 +1175,7 @@ html[data-theme="dark"] .play-technique {
 .primary-btn,
 #resume-btn {
   background: var(--accent-btn);
-  color: #fff;
+  color: var(--accent-on);
   border: 0;
   min-height: 44px;
   border-radius: 0.5rem;
@@ -1191,11 +1183,6 @@ html[data-theme="dark"] .play-technique {
   font: inherit;
   font-weight: 700;
   cursor: pointer;
-}
-
-html[data-theme="dark"] .primary-btn,
-html[data-theme="dark"] #resume-btn {
-  color: #1a1208;
 }
 
 button:disabled {
@@ -1612,10 +1599,10 @@ button:disabled {
   }
 
   &[data-theme="dark"] {
-    background: #1c1f24;
+    background: #121416;
 
     body {
-      background: #1c1f24;
+      background: #121416;
     }
   }
 

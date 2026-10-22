@@ -73,7 +73,7 @@
   height: 0.9rem;
   border-radius: 999px;
   overflow: hidden;
-  background: #e4e9ef;
+  background: #e7ebf0;
 }
 
 .stats-seg {
@@ -86,7 +86,7 @@
 }
 
 .stats-seg-revealed {
-  background: #ef7d12;
+  background: var(--accent-color);
 }
 
 .stats-seg-failed {
@@ -131,7 +131,7 @@
   height: 7.5rem;
   display: flex;
   align-items: flex-end;
-  background: #e4e9ef;
+  background: #e7ebf0;
   border-radius: 0.35rem 0.35rem 0 0;
 }
 
@@ -181,7 +181,7 @@
 .stats-tech-track {
   display: block;
   height: 0.55rem;
-  background: #e4e9ef;
+  background: #e7ebf0;
   border-radius: 999px;
   overflow: hidden;
 }
@@ -207,7 +207,7 @@ html[data-theme="dark"] {
   }
 
   .stats-card {
-    border-top-color: #383e46;
+    border-top-color: #3e4650;
   }
 
   .stats-facts dt,
@@ -220,7 +220,7 @@ html[data-theme="dark"] {
   .stats-bar,
   .stats-col-plot,
   .stats-tech-track {
-    background: #383e46;
+    background: #2a3036;
   }
 }
 

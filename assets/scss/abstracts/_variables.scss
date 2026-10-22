@@ -2,8 +2,9 @@
 
 // Global Colors
 $primary-color: #fff;
-$secondary-color: #1c2430;
-$accent-color: #0b5c86;
+$secondary-color: #1e232b;
+$accent-color: #343fad;
+$accent-on-dark: #c5c8ff;
 $highlight-color: #BF3978;
 $accent-color-light: color.adjust($accent-color, $lightness: 10%);
 $initial-color: #999;   // Gray for initial numbers (renamed from $solved-color)
@@ -15,6 +16,7 @@ $initial-color: #999;   // Gray for initial numbers (renamed from $solved-color)
   --secondary-color: #{$secondary-color};
   --secondary-color-rgb: #{color.channel($secondary-color, "red", $space: rgb)}, #{color.channel($secondary-color, "green", $space: rgb)}, #{color.channel($secondary-color, "blue", $space: rgb)};
   --accent-color: #{$accent-color};
+  --accent-on-dark: #{$accent-on-dark};
   --accent-color-rgb: #{color.channel($accent-color, "red", $space: rgb)}, #{color.channel($accent-color, "green", $space: rgb)}, #{color.channel($accent-color, "blue", $space: rgb)};
   --accent-color-light: #{$accent-color-light};
   --highlight-color: #{$highlight-color};

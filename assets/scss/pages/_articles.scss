@@ -434,7 +434,7 @@
 }
 
 .compare-track {
-  background: #e4e9ef;
+  background: #e7ebf0;
   border-radius: 999px;
   overflow: hidden;
   min-height: 1.7rem;
@@ -445,7 +445,7 @@
   align-items: center;
   min-height: 1.7rem;
   padding: 0 0.55rem;
-  background: #1f4d63;
+  background: var(--accent-color);
   color: #fff;
   font-weight: 800;
   font-size: 0.9rem;
@@ -453,8 +453,8 @@
 }
 
 .compare-fill.is-hard {
-  background: #ef7d12;
-  color: #1a1208;
+  background: color-mix(in srgb, var(--accent-color) 72%, #000);
+  color: #fff;
 }
 
 .article-single-page .container,
@@ -553,10 +553,10 @@
 
 .puzzle-grid,
 .puzzle-strip-cells {
-  --grid-line: #d3d9e0;
-  --grid-thick: #1c2430;
+  --grid-line: #d5dbe2;
+  --grid-thick: #1e232b;
   background: #fff;
-  color: #1c2430;
+  color: #1e232b;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -664,43 +664,43 @@
 
 html[data-theme="dark"] {
   .compare-track {
-    background: #383e46;
+    background: #2a3036;
   }
 
   .article-body table th,
   .article-body table td {
-    border-bottom-color: #4c545e;
+    border-bottom-color: #3e4650;
   }
 
   .article-byline,
   .article-byline time,
   .related-articles p {
-    color: #d5dbe3;
+    color: #c5ced6;
   }
 
   .author-box {
-    background: #2a2f36;
+    background: #22262c;
   }
 
   .author-box-name a {
-    color: #e8ebef;
+    color: #e6e9ed;
   }
 
   .puzzle-grid,
   .puzzle-strip-cells {
-    --grid-line: #4c545e;
-    --grid-thick: #e8ebef;
-    background: #2a2f36;
-    color: #e8ebef;
+    --grid-line: #3e4650;
+    --grid-thick: #e6e9ed;
+    background: #22262c;
+    color: #e6e9ed;
   }
 
   .puzzle-strip-label {
-    color: #e8ebef;
+    color: #e6e9ed;
   }
 
   .article-body code,
   .article-body pre {
-    background: #2a2f36;
-    color: #e8ebef;
+    background: #22262c;
+    color: #e6e9ed;
   }
 }
