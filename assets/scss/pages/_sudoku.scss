@@ -24,8 +24,10 @@
   --muted: #5a6572;
   --auto-ink: #5a6572;
   --note-ink: #0b5c86;
+  --ghost-ink: #466b84;
   --auto-on-selected: #3a2818;
   --note-on-selected: #083048;
+  --ghost-on-selected: #163044;
   --card: #fff;
   --page: #f4f6f8;
   --accent-btn: #0b5c86;
@@ -74,8 +76,10 @@ html[data-theme="dark"] .technique-page {
   --muted: #b7c3ce;
   --auto-ink: #b7c3ce;
   --note-ink: #8fd4f5;
+  --ghost-ink: #7eafc6;
   --auto-on-selected: #3a2818;
   --note-on-selected: #083048;
+  --ghost-on-selected: #163044;
   --card: #2a2f36;
   --page: #1c1f24;
   --accent-btn: #8fd4f5;
@@ -646,12 +650,38 @@ html[data-theme="dark"] .difficulty-tabs button[aria-selected="true"] {
     text-underline-offset: 0;
     opacity: 1;
   }
+
+  span.ghost {
+    overflow: visible;
+    visibility: visible;
+    color: var(--ghost-ink);
+    font-weight: 500;
+    font-style: italic;
+    text-decoration: underline dotted;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 1px;
+    opacity: 1;
+  }
 }
 
 .cell.selected .marks {
+  pointer-events: auto;
+
+  span {
+    pointer-events: auto;
+    visibility: visible;
+    width: 100%;
+    height: 100%;
+  }
+
+  span:not(.on):not(.ghost) {
+    color: transparent;
+  }
+
   span.auto {
     color: var(--auto-on-selected);
     font-weight: 500;
+    font-style: normal;
     text-decoration: none;
     opacity: 1;
   }
@@ -659,9 +689,20 @@ html[data-theme="dark"] .difficulty-tabs button[aria-selected="true"] {
   span.user-note {
     color: var(--note-on-selected);
     font-weight: 800;
+    font-style: normal;
     text-decoration: underline;
     text-decoration-thickness: 1.5px;
     text-underline-offset: 0;
+    opacity: 1;
+  }
+
+  span.ghost {
+    visibility: visible;
+    color: var(--ghost-on-selected);
+    font-weight: 500;
+    font-style: italic;
+    text-decoration: underline dotted;
+    text-decoration-thickness: 1px;
     opacity: 1;
   }
 
