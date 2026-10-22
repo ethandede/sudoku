@@ -1020,6 +1020,12 @@ await check("digits, notes, and auto-candidates meet WCAG AA", async () => {
       out[`${theme} entry ink on selected`] = contrast(getComputedStyle(empty).color, getComputedStyle(empty).backgroundColor);
       empty.classList.remove("selected");
       out[`${theme} map distinct`] = paint("--map-empty", "backgroundColor") === paint("--map-fill", "backgroundColor") ? 1 : 5;
+      out[`${theme} digit on map fill`] = contrast(paint("--pad-ink", "color"), paint("--map-fill", "backgroundColor"));
+      out[`${theme} digit on map empty`] = contrast(paint("--pad-ink", "color"), paint("--map-empty", "backgroundColor"));
+      out[`${theme} count on map fill`] = contrast(paint("--count-ink", "color"), paint("--map-fill", "backgroundColor"));
+      out[`${theme} count on map empty`] = contrast(paint("--count-ink", "color"), paint("--map-empty", "backgroundColor"));
+      const accentFill = paint("--accent-btn", "backgroundColor");
+      out[`${theme} map is a tint`] = paint("--map-fill", "backgroundColor") === accentFill ? 1 : 5;
       const cell = lum(paint("--cell-bg", "backgroundColor"));
       const peer = lum(paint("--peer", "backgroundColor"));
       const same = lum(paint("--same", "backgroundColor"));
