@@ -551,20 +551,54 @@
   }
 }
 
-.puzzle-grid {
+.puzzle-grid,
+.puzzle-strip-cells {
   --grid-line: #d5cfc6;
   --grid-thick: #1a1208;
-  display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
-  width: min(100%, 22.5rem);
-  aspect-ratio: 1;
-  margin: 0.4rem 0 1.4rem;
-  border: 2px solid var(--grid-thick);
   background: #fff;
   color: #1a1208;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
+}
+
+.puzzle-grid,
+.puzzle-strip {
+  width: min(100%, 22.5rem);
+  max-width: 100%;
+  margin: 0.4rem 0 1.4rem;
+}
+
+.puzzle-grid {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  aspect-ratio: 1;
+  border: 2px solid var(--grid-thick);
+}
+
+.puzzle-strip-label {
+  display: block;
+  margin: 0 0 0.25rem;
+  font-family: ui-monospace, "Courier New", Courier, monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.puzzle-strip-row + .puzzle-strip-row .puzzle-strip-label {
+  margin-top: 0.55rem;
+}
+
+.puzzle-strip-cells {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  width: 100%;
+  aspect-ratio: 9 / 1;
+  border: 2px solid var(--grid-thick);
+}
+
+.puzzle-strip-cells .puzzle-cell {
+  border-bottom: 0;
+  font-size: clamp(0.8rem, 3.4vw, 1.1rem);
 }
 
 .puzzle-cell {
@@ -652,10 +686,15 @@ html[data-theme="dark"] {
     color: #f4efe6;
   }
 
-  .puzzle-grid {
+  .puzzle-grid,
+  .puzzle-strip-cells {
     --grid-line: #5c5666;
     --grid-thick: #f4efe6;
     background: #1c1a22;
+    color: #f4efe6;
+  }
+
+  .puzzle-strip-label {
     color: #f4efe6;
   }
 

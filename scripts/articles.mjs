@@ -83,6 +83,11 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;");
 }
 
+function cellSpan(token) {
+  if (token === ".") return `<span class="puzzle-cell is-empty"></span>`;
+  return `<span class="puzzle-cell">${escapeHtml(token)}</span>`;
+}
+
 function puzzleCells(body) {
   const lines = body.replace(/\s+$/, "").split("\n");
   if (!lines.length) return null;
@@ -104,17 +109,41 @@ function puzzleCells(body) {
   return cells.length === 81 ? cells : null;
 }
 
+function rowDiagram(body) {
+  const lines = body.replace(/\s+$/, "").split("\n").filter((line) => line.trim());
+  if (!lines.length) return null;
+  const rows = [];
+  for (const line of lines) {
+    const match = line.match(/^row\s+(\d+):\s+(.+)$/);
+    if (!match) return null;
+    const tokens = match[2].trim().split(/\s+/);
+    if (tokens.length !== 9 || tokens.some((token) => !/^[1-9.]$/.test(token))) return null;
+    rows.push({ label: `row ${match[1]}`, tokens });
+  }
+  return rows;
+}
+
+function puzzleGridHtml(cells) {
+  return `<div class="puzzle-grid" aria-hidden="true">${cells.map(cellSpan).join("")}</div>`;
+}
+
+function rowDiagramHtml(rows) {
+  const body = rows
+    .map((row) => {
+      const cells = row.tokens.map(cellSpan).join("");
+      return `<div class="puzzle-strip-row"><span class="puzzle-strip-label">${escapeHtml(row.label)}</span><div class="puzzle-strip-cells">${cells}</div></div>`;
+    })
+    .join("");
+  return `<div class="puzzle-strip" aria-hidden="true">${body}</div>`;
+}
+
 export function renderPuzzleGrids(markdown) {
   return markdown.replace(/```[^\n]*\n([\s\S]*?)```/g, (full, body) => {
     const cells = puzzleCells(body);
-    if (!cells) return full;
-    const spans = cells
-      .map((token) => {
-        if (token === ".") return `<span class="puzzle-cell is-empty"></span>`;
-        return `<span class="puzzle-cell">${escapeHtml(token)}</span>`;
-      })
-      .join("");
-    return `<div class="puzzle-grid" aria-hidden="true">${spans}</div>`;
+    if (cells) return puzzleGridHtml(cells);
+    const rows = rowDiagram(body);
+    if (rows) return rowDiagramHtml(rows);
+    return full;
   });
 }
 
