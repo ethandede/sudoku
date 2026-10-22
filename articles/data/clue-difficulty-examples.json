@@ -1,0 +1,220 @@
+{
+  "generatedAt": "2026-10-21T21:52:55.966Z",
+  "grader": "github.com/ethandede/sudoku assets/js/solver.js @ main (7ac6d24), easiest-move-first",
+  "format": "81-char strings, row by row, 0 = empty",
+  "examples": [
+    {
+      "id": "a-40-clue-xwing-xywing",
+      "title": "40 clues, still needs an X-wing and an XY-wing",
+      "puzzle": "008735206000040890001908370704000009080009430003470008207504083400087052000690701",
+      "solution": "948735216376241895521968374754823169682159437193476528267514983419387652835692741",
+      "clues": 40,
+      "uniqueSolution": true,
+      "source": "SudokuSudoku generator sample, seed 20261021",
+      "note": "Found in the random sample below (target 40 clues). After singles fill 67 cells, the solver needs an X-wing on 2s (rows 3 and 4, columns 2 and 5) to remove 2 from r5c5, then an XY-wing.",
+      "grade": {
+        "solvedByGrader": true,
+        "hardestTechnique": "XY-wing",
+        "hardestInternal": "xywing",
+        "rank": 8,
+        "techniqueStepsBeyondSingles": 2,
+        "techniqueSequence": [
+          "xwing",
+          "xywing"
+        ],
+        "stalls": 1,
+        "forcedMoves": 3,
+        "filledAtFirstStall": 67,
+        "singlesUsed": {
+          "naked": 34,
+          "hiddenBox": 5,
+          "hiddenLine": 2
+        }
+      },
+      "ascii": "+-------+-------+-------+\n| . . 8 | 7 3 5 | 2 . 6 |\n| . . . | . 4 . | 8 9 . |\n| . . 1 | 9 . 8 | 3 7 . |\n+-------+-------+-------+\n| 7 . 4 | . . . | . . 9 |\n| . 8 . | . . 9 | 4 3 . |\n| . . 3 | 4 7 . | . . 8 |\n+-------+-------+-------+\n| 2 . 7 | 5 . 4 | . 8 3 |\n| 4 . . | . 8 7 | . 5 2 |\n| . . . | 6 9 . | 7 . 1 |\n+-------+-------+-------+\n"
+    },
+    {
+      "id": "a2-68-clue-xywing",
+      "title": "68 clues, no singles at all, needs an XY-wing on move one",
+      "puzzle": "012097083039108062408203019853001297926375148147829635005934821384712956291586374",
+      "solution": "512697483739148562468253719853461297926375148147829635675934821384712956291586374",
+      "clues": 68,
+      "uniqueSolution": true,
+      "source": "SudokuSudoku generator sample + clue-adding search (seed 99)",
+      "note": "Built on purpose: starting from a sampled puzzle that needed an XY-wing, givens from the solution were added back one at a time as long as the puzzle still required an XY-wing. Pivot r1c4 {4,6}, wings r1c1 {5,6} and r2c5 {4,5}: 5 cannot go in r2c1.",
+      "grade": {
+        "solvedByGrader": true,
+        "hardestTechnique": "XY-wing",
+        "hardestInternal": "xywing",
+        "rank": 8,
+        "techniqueStepsBeyondSingles": 1,
+        "techniqueSequence": [
+          "xywing"
+        ],
+        "stalls": 1,
+        "forcedMoves": 1,
+        "filledAtFirstStall": 68,
+        "singlesUsed": {
+          "naked": 13,
+          "hiddenBox": 0,
+          "hiddenLine": 0
+        }
+      },
+      "ascii": "+-------+-------+-------+\n| . 1 2 | . 9 7 | . 8 3 |\n| . 3 9 | 1 . 8 | . 6 2 |\n| 4 . 8 | 2 . 3 | . 1 9 |\n+-------+-------+-------+\n| 8 5 3 | . . 1 | 2 9 7 |\n| 9 2 6 | 3 7 5 | 1 4 8 |\n| 1 4 7 | 8 2 9 | 6 3 5 |\n+-------+-------+-------+\n| . . 5 | 9 3 4 | 8 2 1 |\n| 3 8 4 | 7 1 2 | 9 5 6 |\n| 2 9 1 | 5 8 6 | 3 7 4 |\n+-------+-------+-------+\n"
+    },
+    {
+      "id": "a3-63-clue-xwing",
+      "title": "63 clues, needs two pointing steps and an X-wing",
+      "puzzle": "236845719871060345459731286003450861168003504540618930014580603600304158385106490",
+      "solution": "236845719871962345459731286923457861168293574547618932714589623692374158385126497",
+      "clues": 63,
+      "uniqueSolution": true,
+      "source": "SudokuSudoku generator sample + clue-adding search (seed 99)",
+      "note": "Built the same way. X-wing on 7s in columns 1 and 6 (rows 4 and 7) removes 7 from r7c8.",
+      "grade": {
+        "solvedByGrader": true,
+        "hardestTechnique": "X-wing",
+        "hardestInternal": "xwing",
+        "rank": 7,
+        "techniqueStepsBeyondSingles": 3,
+        "techniqueSequence": [
+          "locked",
+          "locked",
+          "xwing"
+        ],
+        "stalls": 1,
+        "forcedMoves": 3,
+        "filledAtFirstStall": 63,
+        "singlesUsed": {
+          "naked": 18,
+          "hiddenBox": 0,
+          "hiddenLine": 0
+        }
+      },
+      "ascii": "+-------+-------+-------+\n| 2 3 6 | 8 4 5 | 7 1 9 |\n| 8 7 1 | . 6 . | 3 4 5 |\n| 4 5 9 | 7 3 1 | 2 8 6 |\n+-------+-------+-------+\n| . . 3 | 4 5 . | 8 6 1 |\n| 1 6 8 | . . 3 | 5 . 4 |\n| 5 4 . | 6 1 8 | 9 3 . |\n+-------+-------+-------+\n| . 1 4 | 5 8 . | 6 . 3 |\n| 6 . . | 3 . 4 | 1 5 8 |\n| 3 8 5 | 1 . 6 | 4 9 . |\n+-------+-------+-------+\n"
+    },
+    {
+      "id": "b-23-clue-singles",
+      "title": "23 clues, singles only, never stalls",
+      "puzzle": "010040000000009005000030280700000010908005007000062000005000609000003000607000048",
+      "solution": "812547936346829175579136284763984512928315467451762893135478629284693751697251348",
+      "clues": 23,
+      "uniqueSolution": true,
+      "source": "SudokuSudoku generator sample, seed 20261021",
+      "note": "From the random sample (target 23). Solved start to finish with naked and hidden singles; there is always at least one single available.",
+      "grade": {
+        "solvedByGrader": true,
+        "hardestTechnique": "hidden single (row/col)",
+        "hardestInternal": "hidden_line",
+        "rank": 2,
+        "techniqueStepsBeyondSingles": 0,
+        "techniqueSequence": [],
+        "stalls": 0,
+        "forcedMoves": 1,
+        "filledAtFirstStall": 81,
+        "singlesUsed": {
+          "naked": 49,
+          "hiddenBox": 5,
+          "hiddenLine": 4
+        }
+      },
+      "ascii": "+-------+-------+-------+\n| . 1 . | . 4 . | . . . |\n| . . . | . . 9 | . . 5 |\n| . . . | . 3 . | 2 8 . |\n+-------+-------+-------+\n| 7 . . | . . . | . 1 . |\n| 9 . 8 | . . 5 | . . 7 |\n| . . . | . 6 2 | . . . |\n+-------+-------+-------+\n| . . 5 | . . . | 6 . 9 |\n| . . . | . . 3 | . . . |\n| 6 . 7 | . . . | . 4 8 |\n+-------+-------+-------+\n"
+    },
+    {
+      "id": "c1-17-clue-singles",
+      "title": "17 clues (Royle collection), singles only",
+      "puzzle": "000000000000000001000002030000004250006000000017000080000070006400060000900800010",
+      "solution": "354196872729438561681752439893614257246587193517329684138275946475961328962843715",
+      "clues": 17,
+      "uniqueSolution": true,
+      "source": "Royle 17-clue collection",
+      "note": "From Gordon Royle's collection of 17-clue puzzles, as mirrored in the 607011/RateMySudoku repository (line 3).",
+      "grade": {
+        "solvedByGrader": true,
+        "hardestTechnique": "hidden single (row/col)",
+        "hardestInternal": "hidden_line",
+        "rank": 2,
+        "techniqueStepsBeyondSingles": 0,
+        "techniqueSequence": [],
+        "stalls": 0,
+        "forcedMoves": 2,
+        "filledAtFirstStall": 81,
+        "singlesUsed": {
+          "naked": 46,
+          "hiddenBox": 7,
+          "hiddenLine": 11
+        }
+      },
+      "ascii": "+-------+-------+-------+\n| . . . | . . . | . . . |\n| . . . | . . . | . . 1 |\n| . . . | . . 2 | . 3 . |\n+-------+-------+-------+\n| . . . | . . 4 | 2 5 . |\n| . . 6 | . . . | . . . |\n| . 1 7 | . . . | . 8 . |\n+-------+-------+-------+\n| . . . | . 7 . | . . 6 |\n| 4 . . | . 6 . | . . . |\n| 9 . . | 8 . . | . 1 . |\n+-------+-------+-------+\n"
+    },
+    {
+      "id": "c2-17-clue-pair",
+      "title": "17 clues (Royle collection), needs a pair",
+      "puzzle": "000000000000000001002003004000001000050006000760000050000050300001800000004070060",
+      "solution": "945217836376485921812963574423591687158726493769348152287654319691832745534179268",
+      "clues": 17,
+      "uniqueSolution": true,
+      "source": "Royle 17-clue collection",
+      "note": "Royle collection, mirror line 206.",
+      "grade": {
+        "solvedByGrader": true,
+        "hardestTechnique": "pair",
+        "hardestInternal": "naked_pair",
+        "rank": 4,
+        "techniqueStepsBeyondSingles": 6,
+        "techniqueSequence": [
+          "locked",
+          "locked",
+          "locked",
+          "locked",
+          "locked",
+          "naked_pair"
+        ],
+        "stalls": 2,
+        "forcedMoves": 8,
+        "filledAtFirstStall": 39,
+        "singlesUsed": {
+          "naked": 45,
+          "hiddenBox": 11,
+          "hiddenLine": 8
+        }
+      },
+      "ascii": "+-------+-------+-------+\n| . . . | . . . | . . . |\n| . . . | . . . | . . 1 |\n| . . 2 | . . 3 | . . 4 |\n+-------+-------+-------+\n| . . . | . . 1 | . . . |\n| . 5 . | . . 6 | . . . |\n| 7 6 . | . . . | . 5 . |\n+-------+-------+-------+\n| . . . | . 5 . | 3 . . |\n| . . 1 | 8 . . | . . . |\n| . . 4 | . 7 . | . 6 . |\n+-------+-------+-------+\n"
+    },
+    {
+      "id": "c3-17-clue-beyond",
+      "title": "17 clues (Royle collection), beyond every technique our grader knows",
+      "puzzle": "000000000000000001001002030000040000040560700080000020002000000003001000700080004",
+      "solution": "938157642524836971671492835167248359249563718385719426852974163493621587716385294",
+      "clues": 17,
+      "uniqueSolution": true,
+      "source": "Royle 17-clue collection",
+      "note": "Royle collection, mirror line 116. Our grader stalls; it needs techniques beyond chains/coloring (or trial and error).",
+      "grade": {
+        "solvedByGrader": false,
+        "hardestTechnique": "not solved by these techniques",
+        "hardestInternal": "stuck",
+        "rank": 11,
+        "techniqueStepsBeyondSingles": 7,
+        "techniqueSequence": [
+          "locked",
+          "locked",
+          "locked",
+          "locked",
+          "locked",
+          "locked",
+          "hidden_pair"
+        ],
+        "stalls": 3,
+        "forcedMoves": 9,
+        "filledAtFirstStall": 38,
+        "singlesUsed": {
+          "naked": 4,
+          "hiddenBox": 13,
+          "hiddenLine": 13
+        }
+      },
+      "ascii": "+-------+-------+-------+\n| . . . | . . . | . . . |\n| . . . | . . . | . . 1 |\n| . . 1 | . . 2 | . 3 . |\n+-------+-------+-------+\n| . . . | . 4 . | . . . |\n| . 4 . | 5 6 . | 7 . . |\n| . 8 . | . . . | . 2 . |\n+-------+-------+-------+\n| . . 2 | . . . | . . . |\n| . . 3 | . . 1 | . . . |\n| 7 . . | . 8 . | . . 4 |\n+-------+-------+-------+\n"
+    }
+  ]
+}

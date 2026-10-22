@@ -1,0 +1,6 @@
+NYT archive: 1483 puzzles, plain backtracking: all solved & valid=true, total 5084 ms, mean 3.428 ms, max 459.15 ms
+Human-style grader: solved 1483/1483 by logic, mean 0.453 ms, max 3.37 ms
+Inkala 2012 ("world's hardest"): backtracking ok=true nodes=49558 1.8 ms; human-style grader solved=false hardest=stuck
+node v20.19.2, Intel(R) Xeon(R) Processor
+MRV backtracking: all valid=true, mean 0.238 ms, max 11.39 ms
+MRV on Inkala: ok=true 7.10 ms nodes=13810

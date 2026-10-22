@@ -1,0 +1,512 @@
+{
+  "method": "For each target clue count 22..40, 120 random solution grids (seeded mulberry32, seed 20261021) were generated with SudokuSolver.fillGrid; cells were removed in random order, keeping each removal only if the puzzle stayed uniquely solvable, until the target was reached or no cell could be removed. Each puzzle was graded with SudokuSolver.grade (easiest move first). Low targets often could not be reached, so bins use actual clue counts.",
+  "totalPuzzles": 2280,
+  "categories": {
+    "singlesOnly": "naked + hidden singles only",
+    "pointingClaiming": "needs locked candidates (pointing/claiming), nothing harder",
+    "pairsTriples": "needs naked/hidden pair or triple",
+    "quadsXwingXYwingSwordfish": "needs quad, X-wing, XY-wing or swordfish",
+    "chainsColoring": "needs simple coloring or XY-chain",
+    "beyondGrader": "not finished by any technique the grader knows (needs harder chains, or guessing)"
+  },
+  "binned": [
+    {
+      "clues": "22-24",
+      "n": 196,
+      "counts": {
+        "singles": 84,
+        "locked": 34,
+        "pairs_triples": 15,
+        "fish_wings_quads": 8,
+        "chains": 16,
+        "unsolved": 39
+      },
+      "pct": {
+        "singles": 42.9,
+        "locked": 17.3,
+        "pairs_triples": 7.7,
+        "fish_wings_quads": 4.1,
+        "chains": 8.2,
+        "unsolved": 19.9
+      },
+      "meanTechniqueSteps_solved": 2.48,
+      "meanStalls_solved": 0.87,
+      "meanForcedMoves_solved": 4.17,
+      "meanFilledAtFirstStall_stalledOnly": 39.1,
+      "nStalled": 73
+    },
+    {
+      "clues": "25-26",
+      "n": 386,
+      "counts": {
+        "singles": 190,
+        "locked": 38,
+        "pairs_triples": 24,
+        "fish_wings_quads": 19,
+        "chains": 57,
+        "unsolved": 58
+      },
+      "pct": {
+        "singles": 49.2,
+        "locked": 9.8,
+        "pairs_triples": 6.2,
+        "fish_wings_quads": 4.9,
+        "chains": 14.8,
+        "unsolved": 15
+      },
+      "meanTechniqueSteps_solved": 2.05,
+      "meanStalls_solved": 0.77,
+      "meanForcedMoves_solved": 3.9,
+      "meanFilledAtFirstStall_stalledOnly": 44.8,
+      "nStalled": 138
+    },
+    {
+      "clues": "27-28",
+      "n": 258,
+      "counts": {
+        "singles": 160,
+        "locked": 14,
+        "pairs_triples": 10,
+        "fish_wings_quads": 9,
+        "chains": 38,
+        "unsolved": 27
+      },
+      "pct": {
+        "singles": 62,
+        "locked": 5.4,
+        "pairs_triples": 3.9,
+        "fish_wings_quads": 3.5,
+        "chains": 14.7,
+        "unsolved": 10.5
+      },
+      "meanTechniqueSteps_solved": 1.41,
+      "meanStalls_solved": 0.48,
+      "meanForcedMoves_solved": 2.78,
+      "meanFilledAtFirstStall_stalledOnly": 46.6,
+      "nStalled": 71
+    },
+    {
+      "clues": "29-30",
+      "n": 240,
+      "counts": {
+        "singles": 205,
+        "locked": 5,
+        "pairs_triples": 2,
+        "fish_wings_quads": 7,
+        "chains": 13,
+        "unsolved": 8
+      },
+      "pct": {
+        "singles": 85.4,
+        "locked": 2.1,
+        "pairs_triples": 0.8,
+        "fish_wings_quads": 2.9,
+        "chains": 5.4,
+        "unsolved": 3.3
+      },
+      "meanTechniqueSteps_solved": 0.37,
+      "meanStalls_solved": 0.16,
+      "meanForcedMoves_solved": 1.6,
+      "meanFilledAtFirstStall_stalledOnly": 50.6,
+      "nStalled": 27
+    },
+    {
+      "clues": "31-32",
+      "n": 240,
+      "counts": {
+        "singles": 210,
+        "locked": 5,
+        "pairs_triples": 1,
+        "fish_wings_quads": 5,
+        "chains": 16,
+        "unsolved": 3
+      },
+      "pct": {
+        "singles": 87.5,
+        "locked": 2.1,
+        "pairs_triples": 0.4,
+        "fish_wings_quads": 2.1,
+        "chains": 6.7,
+        "unsolved": 1.3
+      },
+      "meanTechniqueSteps_solved": 0.36,
+      "meanStalls_solved": 0.16,
+      "meanForcedMoves_solved": 1.52,
+      "meanFilledAtFirstStall_stalledOnly": 53.4,
+      "nStalled": 27
+    },
+    {
+      "clues": "33-34",
+      "n": 240,
+      "counts": {
+        "singles": 232,
+        "locked": 2,
+        "pairs_triples": 0,
+        "fish_wings_quads": 0,
+        "chains": 3,
+        "unsolved": 3
+      },
+      "pct": {
+        "singles": 96.7,
+        "locked": 0.8,
+        "pairs_triples": 0,
+        "fish_wings_quads": 0,
+        "chains": 1.3,
+        "unsolved": 1.3
+      },
+      "meanTechniqueSteps_solved": 0.06,
+      "meanStalls_solved": 0.03,
+      "meanForcedMoves_solved": 1.09,
+      "meanFilledAtFirstStall_stalledOnly": 54.6,
+      "nStalled": 5
+    },
+    {
+      "clues": "35-36",
+      "n": 240,
+      "counts": {
+        "singles": 236,
+        "locked": 0,
+        "pairs_triples": 0,
+        "fish_wings_quads": 3,
+        "chains": 0,
+        "unsolved": 1
+      },
+      "pct": {
+        "singles": 98.3,
+        "locked": 0,
+        "pairs_triples": 0,
+        "fish_wings_quads": 1.3,
+        "chains": 0,
+        "unsolved": 0.4
+      },
+      "meanTechniqueSteps_solved": 0.03,
+      "meanStalls_solved": 0.02,
+      "meanForcedMoves_solved": 1.04,
+      "meanFilledAtFirstStall_stalledOnly": 54,
+      "nStalled": 3
+    },
+    {
+      "clues": "37-38",
+      "n": 240,
+      "counts": {
+        "singles": 239,
+        "locked": 0,
+        "pairs_triples": 0,
+        "fish_wings_quads": 0,
+        "chains": 1,
+        "unsolved": 0
+      },
+      "pct": {
+        "singles": 99.6,
+        "locked": 0,
+        "pairs_triples": 0,
+        "fish_wings_quads": 0,
+        "chains": 0.4,
+        "unsolved": 0
+      },
+      "meanTechniqueSteps_solved": 0.02,
+      "meanStalls_solved": 0,
+      "meanForcedMoves_solved": 1.02,
+      "meanFilledAtFirstStall_stalledOnly": 60,
+      "nStalled": 1
+    },
+    {
+      "clues": "39-40",
+      "n": 240,
+      "counts": {
+        "singles": 239,
+        "locked": 0,
+        "pairs_triples": 0,
+        "fish_wings_quads": 1,
+        "chains": 0,
+        "unsolved": 0
+      },
+      "pct": {
+        "singles": 99.6,
+        "locked": 0,
+        "pairs_triples": 0,
+        "fish_wings_quads": 0.4,
+        "chains": 0,
+        "unsolved": 0
+      },
+      "meanTechniqueSteps_solved": 0.01,
+      "meanStalls_solved": 0,
+      "meanForcedMoves_solved": 1.01,
+      "meanFilledAtFirstStall_stalledOnly": 67,
+      "nStalled": 1
+    }
+  ],
+  "byExactClueCount": [
+    {
+      "clues": 22,
+      "n": 3,
+      "counts": {
+        "singlesOnly": 2,
+        "pointingClaiming": 0,
+        "pairsTriples": 0,
+        "quadsXwingXYwingSwordfish": 0,
+        "chainsColoring": 1,
+        "beyondGrader": 0
+      }
+    },
+    {
+      "clues": 23,
+      "n": 52,
+      "counts": {
+        "singlesOnly": 20,
+        "pointingClaiming": 11,
+        "pairsTriples": 7,
+        "quadsXwingXYwingSwordfish": 0,
+        "chainsColoring": 3,
+        "beyondGrader": 11
+      }
+    },
+    {
+      "clues": 24,
+      "n": 141,
+      "counts": {
+        "singlesOnly": 62,
+        "pointingClaiming": 23,
+        "pairsTriples": 8,
+        "quadsXwingXYwingSwordfish": 8,
+        "chainsColoring": 12,
+        "beyondGrader": 28
+      }
+    },
+    {
+      "clues": 25,
+      "n": 217,
+      "counts": {
+        "singlesOnly": 101,
+        "pointingClaiming": 21,
+        "pairsTriples": 16,
+        "quadsXwingXYwingSwordfish": 11,
+        "chainsColoring": 37,
+        "beyondGrader": 31
+      }
+    },
+    {
+      "clues": 26,
+      "n": 169,
+      "counts": {
+        "singlesOnly": 89,
+        "pointingClaiming": 17,
+        "pairsTriples": 8,
+        "quadsXwingXYwingSwordfish": 8,
+        "chainsColoring": 20,
+        "beyondGrader": 27
+      }
+    },
+    {
+      "clues": 27,
+      "n": 136,
+      "counts": {
+        "singlesOnly": 73,
+        "pointingClaiming": 9,
+        "pairsTriples": 6,
+        "quadsXwingXYwingSwordfish": 6,
+        "chainsColoring": 23,
+        "beyondGrader": 19
+      }
+    },
+    {
+      "clues": 28,
+      "n": 122,
+      "counts": {
+        "singlesOnly": 87,
+        "pointingClaiming": 5,
+        "pairsTriples": 4,
+        "quadsXwingXYwingSwordfish": 3,
+        "chainsColoring": 15,
+        "beyondGrader": 8
+      }
+    },
+    {
+      "clues": 29,
+      "n": 120,
+      "counts": {
+        "singlesOnly": 98,
+        "pointingClaiming": 4,
+        "pairsTriples": 1,
+        "quadsXwingXYwingSwordfish": 3,
+        "chainsColoring": 7,
+        "beyondGrader": 7
+      }
+    },
+    {
+      "clues": 30,
+      "n": 120,
+      "counts": {
+        "singlesOnly": 107,
+        "pointingClaiming": 1,
+        "pairsTriples": 1,
+        "quadsXwingXYwingSwordfish": 4,
+        "chainsColoring": 6,
+        "beyondGrader": 1
+      }
+    },
+    {
+      "clues": 31,
+      "n": 120,
+      "counts": {
+        "singlesOnly": 103,
+        "pointingClaiming": 3,
+        "pairsTriples": 1,
+        "quadsXwingXYwingSwordfish": 2,
+        "chainsColoring": 8,
+        "beyondGrader": 3
+      }
+    },
+    {
+      "clues": 32,
+      "n": 120,
+      "counts": {
+        "singlesOnly": 107,
+        "pointingClaiming": 2,
+        "pairsTriples": 0,
+        "quadsXwingXYwingSwordfish": 3,
+        "chainsColoring": 8,
+        "beyondGrader": 0
+      }
+    },
+    {
+      "clues": 33,
+      "n": 120,
+      "counts": {
+        "singlesOnly": 115,
+        "pointingClaiming": 1,
+        "pairsTriples": 0,
+        "quadsXwingXYwingSwordfish": 0,
+        "chainsColoring": 2,
+        "beyondGrader": 2
+      }
+    },
+    {
+      "clues": 34,
+      "n": 120,
+      "counts": {
+        "singlesOnly": 117,
+        "pointingClaiming": 1,
+        "pairsTriples": 0,
+        "quadsXwingXYwingSwordfish": 0,
+        "chainsColoring": 1,
+        "beyondGrader": 1
+      }
+    },
+    {
+      "clues": 35,
+      "n": 120,
+      "counts": {
+        "singlesOnly": 118,
+        "pointingClaiming": 0,
+        "pairsTriples": 0,
+        "quadsXwingXYwingSwordfish": 1,
+        "chainsColoring": 0,
+        "beyondGrader": 1
+      }
+    },
+    {
+      "clues": 36,
+      "n": 120,
+      "counts": {
+        "singlesOnly": 118,
+        "pointingClaiming": 0,
+        "pairsTriples": 0,
+        "quadsXwingXYwingSwordfish": 2,
+        "chainsColoring": 0,
+        "beyondGrader": 0
+      }
+    },
+    {
+      "clues": 37,
+      "n": 120,
+      "counts": {
+        "singlesOnly": 119,
+        "pointingClaiming": 0,
+        "pairsTriples": 0,
+        "quadsXwingXYwingSwordfish": 0,
+        "chainsColoring": 1,
+        "beyondGrader": 0
+      }
+    },
+    {
+      "clues": 38,
+      "n": 120,
+      "counts": {
+        "singlesOnly": 120,
+        "pointingClaiming": 0,
+        "pairsTriples": 0,
+        "quadsXwingXYwingSwordfish": 0,
+        "chainsColoring": 0,
+        "beyondGrader": 0
+      }
+    },
+    {
+      "clues": 39,
+      "n": 120,
+      "counts": {
+        "singlesOnly": 120,
+        "pointingClaiming": 0,
+        "pairsTriples": 0,
+        "quadsXwingXYwingSwordfish": 0,
+        "chainsColoring": 0,
+        "beyondGrader": 0
+      }
+    },
+    {
+      "clues": 40,
+      "n": 120,
+      "counts": {
+        "singlesOnly": 119,
+        "pointingClaiming": 0,
+        "pairsTriples": 0,
+        "quadsXwingXYwingSwordfish": 1,
+        "chainsColoring": 0,
+        "beyondGrader": 0
+      }
+    }
+  ],
+  "meanCluesByHardestCategory": {
+    "singlesOnly": {
+      "n": 1795,
+      "meanClues": 32.6,
+      "min": 22,
+      "max": 40
+    },
+    "beyondGrader": {
+      "n": 139,
+      "meanClues": 25.9,
+      "min": 23,
+      "max": 35
+    },
+    "chainsColoring": {
+      "n": 144,
+      "meanClues": 27,
+      "min": 22,
+      "max": 37
+    },
+    "pointingClaiming": {
+      "n": 98,
+      "meanClues": 25.8,
+      "min": 23,
+      "max": 34
+    },
+    "pairsTriples": {
+      "n": 52,
+      "meanClues": 25.5,
+      "min": 23,
+      "max": 31
+    },
+    "quadsXwingXYwingSwordfish": {
+      "n": 52,
+      "meanClues": 27.6,
+      "min": 24,
+      "max": 40
+    }
+  },
+  "caveats": [
+    "Randomly carved puzzles are not what publishers print; publishers select by difficulty.",
+    "forcedMoves counts steps with exactly one available move, including the final placement, so a puzzle that never stalls still scores about 1.",
+    "\"Needs\" is relative to the grader's technique set and order."
+  ]
+}
