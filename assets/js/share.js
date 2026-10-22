@@ -303,7 +303,7 @@
 
   function hexToRgba(hex, alpha) {
     const match = /^#([0-9a-f]{6})$/i.exec(hex);
-    if (!match) return `rgba(12, 79, 134, ${alpha})`;
+    if (!match) return `rgba(142, 48, 84, ${alpha})`;
     const value = Number.parseInt(match[1], 16);
     return `rgba(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`;
   }
@@ -312,7 +312,7 @@
     const ctx = canvas.getContext("2d");
     const width = canvas.width;
     const height = canvas.height;
-    const accent = paletteHex("--accent-color", "#0c4f86");
+    const accent = paletteHex("--accent-color", "#8e3054");
     const ink = "#1e232b";
     ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = "#f4f6f8";
