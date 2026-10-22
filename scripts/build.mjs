@@ -113,7 +113,7 @@ ${main}
         <li><a href="/privacy-policy">Privacy Policy</a></li>
       </ul>
     </nav>
-    <p class="copyright">&copy; ${year} Sudoku Online. All rights reserved.</p>
+    <p class="copyright">&copy; ${year} SudokuSudoku. All rights reserved.</p>
   </div>
 </footer>
 ${game ? '<script src="/assets/js/solver.js"></script>\n<script src="/assets/js/pools.js"></script>\n<script src="/assets/js/generator.js"></script>' : ""}
@@ -214,9 +214,9 @@ const parsedArticles = articles.map((article) => ({
 write(
   "index.html",
   layout({
-    title: "Sudoku Sudoku Online",
+    title: "SudokuSudoku",
     description:
-      "Play free Sudoku online. Quick, easy, hard, expert, and mental puzzles in the browser.",
+      "Every puzzle on SudokuSudoku is graded by its hardest move, not the number of clues. Hints name the move and teach the technique behind it. Just play.",
     game: true,
     main: read("src/game.html").trim(),
   })
