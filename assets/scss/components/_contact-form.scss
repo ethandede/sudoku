@@ -95,7 +95,7 @@
     &:hover {
       background: vars.$highlight-color;
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(11, 92, 134, 0.3);
+      box-shadow: 0 4px 12px rgb(var(--accent-color-rgb) / 0.3);
     }
 
     &:active {
@@ -290,7 +290,7 @@
   padding: 0.75rem 0.9rem;
   border-radius: 4px;
   background: #eef1f5;
-  color: #0b5c86;
+  color: var(--accent-color);
 
   &[data-state="error"] {
     background: #fde8e6;

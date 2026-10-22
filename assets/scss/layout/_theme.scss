@@ -1,35 +1,35 @@
 // Site chrome when the game's dark theme is active.
 html[data-theme="dark"] {
   body {
-    background: #1c1f24;
-    color: #e8ebef;
+    background: #121416;
+    color: #e6e9ed;
   }
 
   .site-header {
-    background: #252a31;
+    background: #1a1e24;
     box-shadow: none;
 
     .site-logo,
     .nav-primary a,
     .dropdown-menu a {
-      color: #e8ebef;
+      color: #e6e9ed;
     }
 
     .dropdown-menu {
-      background: #2e343c;
+      background: #242a32;
     }
 
     .mobile-menu-toggle span {
-      background: #e8ebef;
+      background: #e6e9ed;
     }
   }
 
   .site-footer {
-    background: #121418;
-    color: #e8ebef;
+    background: #0e1012;
+    color: #e6e9ed;
 
     a {
-      color: #e8ebef;
+      color: #e6e9ed;
     }
   }
 
@@ -37,14 +37,18 @@ html[data-theme="dark"] {
   .technique-page,
   .articles-page,
   .article-single-page {
-    background: #1c1f24;
-    color: #e8ebef;
+    background: #121416;
+    color: #e6e9ed;
+
+    a {
+      color: var(--accent-on-dark);
+    }
 
     .page-content,
     .article-card,
     .article-content {
-      background: #2a2f36;
-      color: #e8ebef;
+      background: #22262c;
+      color: #e6e9ed;
     }
 
     h1,
@@ -53,13 +57,13 @@ html[data-theme="dark"] {
     .page-title,
     .article-title,
     .article-title a {
-      color: #e8ebef;
+      color: #e6e9ed;
     }
 
     p,
     li,
     figcaption {
-      color: #d5dbe3;
+      color: #c5ced6;
     }
   }
 }

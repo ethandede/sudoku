@@ -1,22 +1,22 @@
 .skills-page {
-  --ink: #2a313c;
-  --muted: #5a6572;
-  --card: #fff;
+  --ink: #1e232b;
+  --muted: #5c6670;
+  --card: #ffffff;
   --page: #f4f6f8;
-  --line: #d3d9e0;
-  --accent: #0b5c86;
-  --accent-ink: #fff;
-  --pad: #eef1f5;
-  --pad-ink: #1c2430;
-  --learning: #8a4b12;
-  --learning-bg: #f8e2c8;
+  --line: #d5dbe2;
+  --accent: var(--accent-color);
+  --accent-ink: #ffffff;
+  --pad: #eef1f4;
+  --pad-ink: #1e232b;
+  --learning: #1e232b;
+  --learning-bg: #e7ebf0;
   --comfort: #0b6e5f;
   --comfort-bg: #d7f3ec;
-  --master: #0b5c86;
-  --master-bg: #d7e8f1;
-  --locked: #5a6572;
-  --locked-bg: #e4e9ef;
-  --next: #eef6fb;
+  --master: var(--accent-color);
+  --master-bg: color-mix(in srgb, var(--accent-color) 16%, #ffffff);
+  --locked: #5c6670;
+  --locked-bg: #e7ebf0;
+  --next: color-mix(in srgb, var(--accent-color) 8%, #ffffff);
 
   background: var(--page);
   color: var(--ink);
@@ -44,24 +44,24 @@
 }
 
 html[data-theme="dark"] .skills-page {
-  --ink: #e8ebef;
-  --muted: #b7c3ce;
-  --card: #2a2f36;
-  --page: #1c1f24;
-  --line: #4c545e;
-  --accent: #8fd4f5;
-  --accent-ink: #1a1208;
-  --pad: #323840;
-  --pad-ink: #e8ebef;
-  --learning: #f0c08a;
-  --learning-bg: #3d2c1c;
+  --ink: #e6e9ed;
+  --muted: #b7c0c8;
+  --card: #22262c;
+  --page: #121416;
+  --line: #3e4650;
+  --accent: var(--accent-on-dark);
+  --accent-ink: #121416;
+  --pad: #2a3036;
+  --pad-ink: #e6e9ed;
+  --learning: #e6e9ed;
+  --learning-bg: #2a3036;
   --comfort: #7ddec8;
   --comfort-bg: #1a3c34;
-  --master: #b7d4e4;
-  --master-bg: #1d3340;
-  --locked: #b7c3ce;
-  --locked-bg: #383e46;
-  --next: #24303a;
+  --master: var(--accent-on-dark);
+  --master-bg: color-mix(in srgb, var(--accent-on-dark) 16%, #1c2026);
+  --locked: #b7c0c8;
+  --locked-bg: #2a3036;
+  --next: color-mix(in srgb, var(--accent-on-dark) 10%, #1c2026);
 }
 
 .skills-wrap {
@@ -368,18 +368,18 @@ html[data-theme="dark"] .skills-page {
   }
 
   a {
-    color: #0b5c86;
+    color: var(--accent-color);
     font-weight: 700;
   }
 }
 
 html[data-theme="dark"] .badge-toast {
-  background: #2a2f36;
-  color: #e8ebef;
-  border-color: #4c545e;
+  background: #22262c;
+  color: #e6e9ed;
+  border-color: #3e4650;
 
   a {
-    color: #8fd4f5;
+    color: var(--accent-on-dark);
   }
 }
 
@@ -391,7 +391,7 @@ html[data-theme="dark"] .badge-toast {
 .badge-toast-icon {
   width: 2rem;
   height: 2rem;
-  color: #0b5c86;
+  color: var(--accent-color);
 
   svg {
     width: 100%;
@@ -401,7 +401,7 @@ html[data-theme="dark"] .badge-toast {
 }
 
 html[data-theme="dark"] .badge-toast-icon {
-  color: #8ec8dc;
+  color: var(--accent-on-dark);
 }
 
 .badge-toast-copy {
