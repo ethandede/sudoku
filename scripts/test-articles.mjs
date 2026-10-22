@@ -97,7 +97,7 @@ assert.match(historyHtml, /wrote up the variants too/);
 
 const bio = shortBio(readFileSync(new URL("../author-bio.md", import.meta.url), "utf8"));
 assert.match(bio, /^I'm Ethan\./);
-assert.match(bio, /who has never once helped\.$/);
+assert.match(bio, /Neither pet has ever helped with a puzzle\.$/);
 assert.equal(bio.includes("##"), false);
 assert.equal(bio.includes("—"), false);
 
@@ -125,6 +125,7 @@ for (const [from, to] of [
 
 const about = readFileSync(new URL("../about-page-content.md", import.meta.url), "utf8");
 assert.match(about, /^Hi, I'm Ethan Ede\./);
+assert.match(about, /Teddy, chief puzzle supervisor\. Never once helpful\./);
 assert.match(about, /\/contact\//);
 assert.equal(about.includes("DRAFT"), false);
 assert.equal(about.includes("—"), false);

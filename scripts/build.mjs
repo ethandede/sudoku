@@ -435,6 +435,7 @@ write("assets/js/community.js", read("assets/js/community.js"));
 write("assets/js/stats-page.js", read("assets/js/stats-page.js"));
 write("ads.txt", read("ads.txt").trim() + "\n");
 cpSync(join(root, "assets/fonts"), join(dist, "assets/fonts"), { recursive: true });
+cpSync(join(root, "assets/img"), join(dist, "assets/img"), { recursive: true });
 cpSync(join(root, "articles/images"), join(dist, "articles/images"), { recursive: true });
 cpSync(join(root, "articles/data"), join(dist, "articles/data"), { recursive: true });
 copyFileSync(join(root, "src/og.png"), join(dist, "og.png"));
@@ -493,7 +494,14 @@ write(
         <h1 class="page-title">Page not found</h1>
       </header>
       <div class="page-body">
-        <p>That page doesn't exist. The puzzle is still here.</p>
+        <figure class="teddy-figure">
+          <picture>
+            <source type="image/avif" srcset="/assets/img/teddy/teddy-128.avif 128w, /assets/img/teddy/teddy-256.avif 256w, /assets/img/teddy/teddy-512.avif 512w" sizes="256px">
+            <source type="image/webp" srcset="/assets/img/teddy/teddy-128.webp 128w, /assets/img/teddy/teddy-256.webp 256w, /assets/img/teddy/teddy-512.webp 512w" sizes="256px">
+            <img src="/assets/img/teddy/teddy-256.webp" width="256" height="256" alt="Teddy, a black Australian labradoodle drawn in anime style, tongue out, holding a pencil over a blank sudoku grid" loading="lazy" decoding="async">
+          </picture>
+        </figure>
+        <p>Teddy can't find this page either.</p>
         <p><a href="/">Play Sudoku</a>, or browse the <a href="/articles/">articles</a>.</p>
       </div>
     </article>
