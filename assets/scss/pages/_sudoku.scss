@@ -965,7 +965,8 @@ button:disabled {
   border-radius: 0.8rem;
   padding: 1.25rem 1.25rem 1.4rem;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
+  overflow: auto;
+  max-height: calc(100dvh - 2rem);
 
   h2 {
     margin: 0 0 0.5rem;
@@ -998,6 +999,26 @@ button:disabled {
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.5rem;
+}
+
+.share-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.35rem 0 0.85rem;
+
+  button {
+    width: 100%;
+    min-height: 52px;
+    font-size: 1.05rem;
+  }
+}
+
+.share-toast {
+  margin: 0;
+  text-align: center;
+  font-weight: 800;
+  color: var(--user-ink);
 }
 
 .settings-card fieldset,
