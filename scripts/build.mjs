@@ -3,15 +3,20 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { marked } from "marked";
 import * as sass from "sass";
+import { captureExamples } from "./capture-examples.mjs";
+import { techniques } from "./technique-copy.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "dist");
 const year = new Date().getFullYear();
+const SITE = "https://sudokusudoku.com";
+const sitemap = [];
 
 const articles = [
   { file: "articles/01-beginners-guide.md", slug: "beginners-guide" },
   { file: "articles/02-common-mistakes.md", slug: "common-mistakes" },
   { file: "articles/03-advanced-techniques.md", slug: "advanced-techniques" },
+  { file: "articles/04-nyt-medium-vs-hard.md", slug: "nyt-medium-vs-hard" },
 ];
 
 function read(relativePath) {
@@ -24,6 +29,11 @@ function write(relativePath, contents) {
   writeFileSync(target, contents);
 }
 
+function publish(relativePath, contents, path) {
+  write(relativePath, contents);
+  if (path) sitemap.push(path);
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -32,10 +42,14 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;");
 }
 
-function layout({ title, description, main, game = false }) {
+function layout({ title, description, main, game = false, canonical, jsonLd, demo = false }) {
   const fontAwesome = "";
   const descriptionTag = description
     ? `<meta name="description" content="${escapeHtml(description)}">`
+    : "";
+  const canonicalTag = canonical ? `<link rel="canonical" href="${escapeHtml(canonical)}">` : "";
+  const jsonLdTag = jsonLd
+    ? `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, "\\u003c")}</script>`
     : "";
 
   return `<!DOCTYPE html>
@@ -45,6 +59,8 @@ function layout({ title, description, main, game = false }) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(title)}</title>
   ${descriptionTag}
+  ${canonicalTag}
+  ${jsonLdTag}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
@@ -87,6 +103,9 @@ function layout({ title, description, main, game = false }) {
             </ul>
           </li>
           <li class="menu-item">
+            <a href="/techniques">Techniques</a>
+          </li>
+          <li class="menu-item">
             <a href="/links">Links</a>
           </li>
           <li class="menu-item">
@@ -107,6 +126,7 @@ ${main}
     <nav class="footer-nav">
       <ul class="footer-links">
         <li><a href="/about">About</a></li>
+        <li><a href="/techniques">Techniques</a></li>
         <li><a href="/articles">Articles</a></li>
         <li><a href="/links">Links</a></li>
         <li><a href="/contact">Contact</a></li>
@@ -118,15 +138,17 @@ ${main}
 </footer>
 ${game ? '<script src="/assets/js/solver.js"></script>\n<script src="/assets/js/pools.js"></script>\n<script src="/assets/js/generator.js"></script>' : ""}
 <script src="/assets/js/sudoku.js"></script>
+${demo ? '<script src="/assets/js/technique-demo.js"></script>' : ""}
 </body>
 </html>
 `;
 }
 
-function standardPage(title, bodyHtml, description) {
+function standardPage(title, bodyHtml, description, path) {
   return layout({
     title: `${title} - Sudoku Sudoku Online`,
     description,
+    canonical: path ? `${SITE}${path}` : "",
     main: `<main class="standard-page">
   <div class="container">
     <article class="page-content">
@@ -200,6 +222,7 @@ write("assets/js/solver.js", read("assets/js/solver.js"));
 write("assets/js/pools.js", read("assets/js/pools.js"));
 write("assets/js/generator.js", read("assets/js/generator.js"));
 write("assets/js/sudoku.js", read("assets/js/sudoku.js"));
+write("assets/js/technique-demo.js", read("assets/js/technique-demo.js"));
 write("ads.txt", read("ads.txt").trim() + "\n");
 write("_redirects", read("src/_redirects"));
 copyFileSync(join(root, "src/favicon.ico"), join(dist, "favicon.ico"));
@@ -211,15 +234,17 @@ const parsedArticles = articles.map((article) => ({
   href: `/articles/${article.slug}`,
 }));
 
-write(
+publish(
   "index.html",
   layout({
     title: "SudokuSudoku",
     description:
       "Every puzzle on SudokuSudoku is graded by its hardest move, not the number of clues. Hints name the move and teach the technique behind it. Just play.",
+    canonical: `${SITE}/`,
     game: true,
     main: read("src/game.html").trim(),
-  })
+  }),
+  "/"
 );
 
 write(
@@ -247,36 +272,43 @@ const aboutMarkdown = read("about-page-content.md")
   .replace(/^# .+$/m, "")
   .replace(/^---+$/gm, "")
   .trim();
-write(
+publish(
   "about/index.html",
-  standardPage("About", marked.parse(aboutMarkdown), "About Sudoku Sudoku Online.")
+  standardPage("About", marked.parse(aboutMarkdown), "About Sudoku Sudoku Online.", "/about"),
+  "/about"
 );
 
-write(
+publish(
   "links/index.html",
   standardPage(
     "Links",
     read("links-page-content.html").trim(),
-    "Sudoku websites, tutorials, apps, and communities."
-  )
+    "Sudoku websites, tutorials, apps, and communities.",
+    "/links"
+  ),
+  "/links"
 );
 
-write(
+publish(
   "contact/index.html",
   standardPage(
     "Contact",
     read("contact-page-content.html").trim(),
-    "Contact Sudoku Sudoku Online."
-  )
+    "Contact Sudoku Sudoku Online.",
+    "/contact"
+  ),
+  "/contact"
 );
 
-write(
+publish(
   "privacy-policy/index.html",
   standardPage(
     "Privacy Policy",
     read("privacy-policy-content.html").trim(),
-    "Privacy policy for Sudoku Sudoku Online."
-  )
+    "Privacy policy for Sudoku Sudoku Online.",
+    "/privacy-policy"
+  ),
+  "/privacy-policy"
 );
 
 const cards = parsedArticles
@@ -298,11 +330,12 @@ const cards = parsedArticles
   })
   .join("\n");
 
-write(
+publish(
   "articles/index.html",
   layout({
     title: "Sudoku Articles & Guides - Sudoku Sudoku Online",
     description: "Learn strategies, tips, and everything you need to master Sudoku.",
+    canonical: `${SITE}/articles`,
     main: `<main id="articles" class="articles-page">
   <div class="container">
     <header class="page-header">
@@ -314,7 +347,8 @@ write(
     </div>
   </div>
 </main>`,
-  })
+  }),
+  "/articles"
 );
 
 parsedArticles.forEach((article, index) => {
@@ -335,11 +369,28 @@ parsedArticles.forEach((article, index) => {
     ? `<div class="article-featured-image">${imageTag(article.image)}</div>`
     : "";
 
-  write(
+  const articleLd =
+    article.slug === "nyt-medium-vs-hard"
+      ? {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: article.title,
+          description: article.excerpt,
+          mainEntityOfPage: `${SITE}${article.href}`,
+          datePublished: "2026-10-21",
+          dateModified: "2026-10-21",
+          author: { "@type": "Organization", name: "Sudoku Sudoku Online" },
+          publisher: { "@type": "Organization", name: "Sudoku Sudoku Online" },
+        }
+      : null;
+
+  publish(
     `articles/${article.slug}/index.html`,
     layout({
       title: `${article.title} - Sudoku Sudoku Online`,
       description: article.excerpt,
+      canonical: `${SITE}${article.href}`,
+      jsonLd: articleLd,
       main: `<main id="article-single" class="article-single-page">
   <article class="article-content">
     <div class="container">
@@ -361,8 +412,181 @@ parsedArticles.forEach((article, index) => {
     </div>
   </article>
 </main>`,
-    })
+    }),
+    article.href
   );
 });
 
+const examples = captureExamples(root);
+const bySlug = new Map(techniques.map((technique) => [technique.slug, technique]));
+
+function pencilHtml(digits) {
+  const on = new Set(digits || []);
+  let html = `<span class="marks" aria-hidden="true">`;
+  for (let number = 1; number <= 9; number += 1) {
+    const classes = on.has(number) ? ` class="on hint-note"` : "";
+    html += `<span${classes}>${number}</span>`;
+  }
+  html += `</span>`;
+  return html;
+}
+
+function exampleBoard(example) {
+  const pattern = new Set(example.step.pattern || []);
+  let html = `<div class="sudoku-grid technique-board" id="technique-board" role="grid" aria-label="Example board">`;
+  for (let row = 0; row < 9; row += 1) {
+    html += `<div class="grid-row" role="row">`;
+    for (let col = 0; col < 9; col += 1) {
+      const index = row * 9 + col;
+      const value = example.board[index];
+      const classes = ["cell"];
+      if (example.given[index]) classes.push("given");
+      else if (value) classes.push("user");
+      if (pattern.has(index)) classes.push("hint-pattern");
+      if ((example.step.region || []).includes(index)) classes.push("hint-region");
+      if (col === 2 || col === 5) classes.push("border-right");
+      if (row === 2 || row === 5) classes.push("border-bottom");
+      const inner = value ? String(value) : pencilHtml(example.pencil[index]);
+      html += `<div class="${classes.join(" ")}" role="gridcell" data-index="${index}">${inner}</div>`;
+    }
+    html += `</div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function resultSentence(step) {
+  if (!step.place) return "Those candidates are eliminated.";
+  const row = Math.floor(step.place.index / 9) + 1;
+  const col = (step.place.index % 9) + 1;
+  return `Place ${step.place.digit} in row ${row}, column ${col}.`;
+}
+
+const indexItems = techniques
+  .map((technique) => {
+    return `<li>
+      <a href="/techniques/${technique.slug}">${escapeHtml(technique.name)}</a>
+      <span>${escapeHtml(technique.level)}. ${escapeHtml(technique.nyt)}</span>
+    </li>`;
+  })
+  .join("\n");
+
+publish(
+  "techniques/index.html",
+  layout({
+    title: "Sudoku techniques - Sudoku Sudoku Online",
+    description:
+      "Sudoku techniques from naked singles to XY-chains, each with a plain explanation and a puzzle state from this site's solver.",
+    canonical: `${SITE}/techniques`,
+    main: `<main class="standard-page technique-page">
+  <div class="container">
+    <article class="page-content">
+      <header class="page-header">
+        <h1 class="page-title">Techniques</h1>
+      </header>
+      <div class="page-body">
+        <p>These are the steps the solver on this site actually uses, easiest first. Each one has a board taken from a real solve, not a diagram drawn by hand. The level named on the row is where that step first becomes necessary.</p>
+        <p>The New York Times labels overlap in a way these levels don't. That measurement is written up in <a href="/articles/nyt-medium-vs-hard">why Medium sometimes feels harder than Hard</a>.</p>
+        <ol class="technique-index">
+          ${indexItems}
+        </ol>
+      </div>
+    </article>
+  </div>
+</main>`,
+  }),
+  "/techniques"
+);
+
+techniques.forEach((technique) => {
+  const example = examples[technique.slug];
+  const related = technique.related
+    .map((slug) => {
+      const other = bySlug.get(slug);
+      return `<a href="/techniques/${slug}">${escapeHtml(other.name)}</a>`;
+    })
+    .join("");
+  const path = `/techniques/${technique.slug}`;
+  const howto = {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: `How to spot ${technique.name} in Sudoku`,
+    description: technique.description,
+    step: [
+      { "@type": "HowToStep", name: "See the pattern", text: example.step.look },
+      { "@type": "HowToStep", name: "What gets eliminated", text: example.step.explain },
+      { "@type": "HowToStep", name: "The result", text: resultSentence(example.step) },
+    ],
+  };
+  const paragraphs = technique.paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("\n");
+  publish(
+    `techniques/${technique.slug}/index.html`,
+    layout({
+      title: `${technique.name} - Sudoku technique`,
+      description: technique.description,
+      canonical: `${SITE}${path}`,
+      jsonLd: howto,
+      demo: true,
+      main: `<main class="standard-page technique-page">
+  <div class="container">
+    <article class="page-content">
+      <header class="page-header">
+        <p class="technique-level"><a href="/techniques">Techniques</a> · ${escapeHtml(technique.level)}</p>
+        <h1 class="page-title">${escapeHtml(technique.name)}</h1>
+      </header>
+      <div class="page-body">
+        ${paragraphs}
+        <h2>When it shows up</h2>
+        <p>${escapeHtml(technique.when)}</p>
+        <p>${escapeHtml(technique.nyt)}</p>
+        <h2>See it on a real puzzle</h2>
+        <p>The marks are the candidates left when this is the next step in the solve. Step through it: the pattern, what leaves, and what that forces.</p>
+        <p class="technique-step-label" id="technique-step-label">See the pattern</p>
+        <p id="technique-step-text">${escapeHtml(example.step.look)}</p>
+        ${exampleBoard(example)}
+        <div class="technique-controls">
+          <button type="button" id="technique-prev" disabled>Previous</button>
+          <button type="button" id="technique-next">Next</button>
+        </div>
+        <p><a class="play-technique" href="/?difficulty=${technique.play}">Play a puzzle that needs this</a></p>
+        <h2>Related</h2>
+        <p class="related-techniques">${related}</p>
+      </div>
+    </article>
+  </div>
+</main>
+<script type="application/json" id="technique-example">${JSON.stringify({
+        given: example.given,
+        board: example.board,
+        pencil: example.pencil,
+        step: example.step,
+      }).replace(/</g, "\\u003c")}</script>`,
+    }),
+    path
+  );
+});
+
+const today = new Date().toISOString().slice(0, 10);
+write(
+  "sitemap.xml",
+  `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${sitemap
+  .map(
+    (path) => `  <url><loc>${SITE}${path === "/" ? "/" : path}</loc><lastmod>${today}</lastmod></url>`
+  )
+  .join("\n")}
+</urlset>
+`
+);
+write(
+  "robots.txt",
+  `User-agent: *
+Allow: /
+
+Sitemap: ${SITE}/sitemap.xml
+`
+);
+
 console.log(`Built ${dist}`);
+console.log(`Technique examples: ${techniques.map((technique) => technique.slug).join(", ")}`);

@@ -403,3 +403,78 @@
     }
   }
 }
+
+.compare-chart {
+  margin: 1.25rem 0 1.5rem;
+}
+
+.compare-title {
+  margin: 0.85rem 0 0.35rem;
+  font-weight: 800;
+}
+
+.compare-row {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  gap: 0.4rem;
+  align-items: center;
+  margin: 0.3rem 0;
+}
+
+.compare-name {
+  font-weight: 700;
+}
+
+.compare-track {
+  background: #ece7df;
+  border-radius: 999px;
+  overflow: hidden;
+  min-height: 1.7rem;
+}
+
+.compare-fill {
+  display: flex;
+  align-items: center;
+  min-height: 1.7rem;
+  padding: 0 0.55rem;
+  background: #1f4d63;
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.compare-fill.is-hard {
+  background: #ef7d12;
+  color: #1a1208;
+}
+
+.article-body {
+  overflow-x: auto;
+}
+
+.article-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  margin: 1rem 0 1.25rem;
+
+  th,
+  td {
+    text-align: left;
+    padding: 0.45rem 0.5rem;
+    border-bottom: 1px solid #ddd;
+    vertical-align: top;
+  }
+}
+
+html[data-theme="dark"] {
+  .compare-track {
+    background: #332f3a;
+  }
+
+  .article-body table th,
+  .article-body table td {
+    border-bottom-color: #5c5666;
+  }
+}
