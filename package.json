@@ -11,7 +11,8 @@
     "test:contact": "node scripts/test-contact.mjs",
     "test:mini": "node scripts/test-mini.mjs",
     "test:stats": "node scripts/test-stats.mjs",
-    "test:articles": "node scripts/test-articles.mjs"
+    "test:articles": "node scripts/test-articles.mjs",
+    "test:share": "node scripts/test-share.mjs"
   },
   "devDependencies": {
     "marked": "^15.0.12",

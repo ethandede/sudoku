@@ -217,6 +217,7 @@
       userPaused: false,
       hidePaused: false,
       over: false,
+      puzzleId: null,
       won: false,
       revealed: false,
       scored: false,
@@ -327,6 +328,18 @@
 
   function requestFromUrl() {
     const params = new URLSearchParams(window.location.search);
+    const puzzle = params.get("p");
+    if (puzzle && window.SudokuShare) {
+      const parsed = window.SudokuShare.parseId(puzzle);
+      if (parsed) {
+        return {
+          kind: parsed.kind,
+          puzzleId: parsed.id,
+          seed: parsed.seed || null,
+          givens: parsed.givens || null,
+        };
+      }
+    }
     const train = (params.get("train") || "").trim().toLowerCase();
     const trainLevel = window.SudokuGenerator && window.SudokuGenerator.trainLevel(train);
     if (trainLevel) return { kind: trainLevel, train };
@@ -347,8 +360,10 @@
 
   function writeUrl(kind) {
     const url = new URL(window.location.href);
-    if (state.train) url.search = `?train=${encodeURIComponent(state.train)}`;
-    else url.search = kind === "daily" ? "?daily" : `?difficulty=${kind.replace(/\s+/g, "-")}`;
+    if (kind === "daily") url.search = "?daily";
+    else if (state.puzzleId) url.search = `?p=${encodeURIComponent(state.puzzleId)}`;
+    else if (state.train) url.search = `?train=${encodeURIComponent(state.train)}`;
+    else url.search = `?difficulty=${kind.replace(/\s+/g, "-")}`;
     history.replaceState(null, "", url);
   }
 
@@ -419,6 +434,12 @@
     document.getElementById("hint-btn").addEventListener("click", () => advanceHint());
     document.getElementById("hint-next").addEventListener("click", () => advanceHint());
     document.getElementById("hint-dismiss").addEventListener("click", () => dismissHint());
+    document.getElementById("share-text").addEventListener("click", () => {
+      void onShareText();
+    });
+    document.getElementById("share-image").addEventListener("click", () => {
+      void onShareImage();
+    });
     document.getElementById("install-dismiss").addEventListener("click", () => dismissInstall());
     document.getElementById("install-go").addEventListener("click", async () => {
       if (!deferredInstall) return;
@@ -551,18 +572,30 @@
     const seeded = kind === "daily";
     const difficulty = seeded ? DAILY : kind;
     const train = request.train || null;
-    let result;
-    if (train && window.SudokuGenerator.generateForTechnique) {
+    let puzzleId = null;
+    let result = null;
+    if (request.givens && window.SudokuShare) {
+      result = window.SudokuShare.materialize(request.givens, difficulty);
+      puzzleId = request.puzzleId || null;
+    }
+    if (!result && train && window.SudokuGenerator.generateForTechnique) {
       const allowed = window.SudokuProgress ? window.SudokuProgress.comfortableSlugs() : [];
-      result = window.SudokuGenerator.generateForTechnique(train, { allowed });
-    } else {
-      result = window.SudokuGenerator.generate(difficulty, seeded ? `daily:${date}` : undefined);
+      const seed = request.seed || (window.SudokuShare ? window.SudokuShare.mintId(difficulty) : undefined);
+      result = window.SudokuGenerator.generateForTechnique(train, { allowed, seed });
+      if (window.SudokuShare) puzzleId = window.SudokuShare.idFromGivens(difficulty, result.puzzle);
+    } else if (!result) {
+      const seed = seeded
+        ? `daily:${date}`
+        : request.seed || (window.SudokuShare ? window.SudokuShare.mintId(difficulty) : undefined);
+      if (!seeded) puzzleId = request.puzzleId || seed || null;
+      result = window.SudokuGenerator.generate(difficulty, seed);
     }
     if (token !== generation) return;
     const already = seeded && stats.daily.completed[date];
     state = blankState();
     state.kind = kind;
     state.train = train;
+    state.puzzleId = seeded ? null : puzzleId;
     state.dailyDate = seeded ? date : null;
     state.puzzle = result.puzzle.slice();
     state.solution = result.solution.slice();
@@ -1096,7 +1129,7 @@
     }
     const unlocked = revealed ? [] : recordWin();
     render();
-    showSolved(false);
+    showSolved(false, unlocked);
     if (window.SudokuCommunity) window.SudokuCommunity.completeFinish(snapshot);
     if (unlocked.length && window.SudokuProgress) window.SudokuProgress.celebrate(unlocked);
   }
@@ -1474,7 +1507,7 @@
   function showModal(id) {
     const modal = document.getElementById(id);
     modal.hidden = false;
-    const focus = modal.querySelector("button, input");
+    const focus = [...modal.querySelectorAll("button, input")].find((el) => !el.hidden && !el.closest("[hidden]"));
     if (focus) focus.focus();
   }
 
@@ -1488,7 +1521,129 @@
     moreBtn.setAttribute("aria-expanded", "false");
   }
 
-  function showSolved(already) {
+  function badgeNames(ids) {
+    const list = window.SudokuProgress && window.SudokuProgress.BADGES;
+    if (!list || !ids) return [];
+    return ids
+      .map((id) => list.find((badge) => badge.id === id))
+      .filter(Boolean)
+      .map((badge) => badge.name);
+  }
+
+  function shareInfo(names) {
+    const daily = state.kind === "daily";
+    const puzzleId = currentPuzzleId();
+    const hints = (state.hintSlugs || []).length;
+    return {
+      kindLabel: daily ? `Daily · ${window.SudokuShare.shortDate(state.dailyDate)}` : labelFor(state.kind),
+      time: formatTime(state.elapsed),
+      hints,
+      mistakes: state.mistakes || 0,
+      hardest: (state.metadata && state.metadata.hardestName) || "single",
+      badges: names || [],
+      url: daily ? window.SudokuShare.dailyUrl() : window.SudokuShare.puzzleUrl(puzzleId),
+      patternKey: daily ? `daily:${state.dailyDate}` : puzzleId,
+      dateLine: window.SudokuShare.longDate(daily ? state.dailyDate : todayString()),
+    };
+  }
+
+  function currentPuzzleId() {
+    if (state.kind === "daily") return null;
+    if (state.puzzleId) return state.puzzleId;
+    if (window.SudokuShare && state.puzzle && state.puzzle.length === 81) {
+      state.puzzleId = window.SudokuShare.idFromGivens(state.kind, state.puzzle);
+    }
+    return state.puzzleId;
+  }
+
+  function showShareToast(message) {
+    const toast = document.getElementById("share-toast");
+    if (!toast) return;
+    toast.hidden = false;
+    toast.textContent = message;
+    window.clearTimeout(showShareToast.timer);
+    showShareToast.timer = window.setTimeout(() => {
+      toast.hidden = true;
+    }, 2400);
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).catch(() => legacyCopy(text));
+    }
+    return legacyCopy(text);
+  }
+
+  function legacyCopy(text) {
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.left = "-9999px";
+    document.body.appendChild(area);
+    area.select();
+    const ok = document.execCommand("copy");
+    area.remove();
+    return ok ? Promise.resolve() : Promise.reject(new Error("copy failed"));
+  }
+
+  async function onShareText() {
+    const info = window.SudokuShare && window.SudokuShare.current();
+    if (!info) return;
+    const text = window.SudokuShare.shareText(info);
+    if (navigator.share) {
+      try {
+        await navigator.share({ text });
+        return;
+      } catch (err) {
+        if (err && err.name === "AbortError") return;
+      }
+    }
+    try {
+      await copyText(text);
+      showShareToast("Copied");
+    } catch {
+      showShareToast("Could not copy");
+    }
+  }
+
+  function canvasBlob(canvas) {
+    const data = canvas.toDataURL("image/png");
+    const binary = atob(data.split(",")[1]);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+    return new Blob([bytes], { type: "image/png" });
+  }
+
+  async function onShareImage() {
+    const info = window.SudokuShare && window.SudokuShare.current();
+    if (!info) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = 1080;
+    canvas.height = 1350;
+    window.SudokuShare.paintCard(canvas, info);
+    const blob = canvasBlob(canvas);
+    const file = new File([blob], "sudokusudoku.png", { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], text: window.SudokuShare.shareText(info) });
+        return;
+      } catch (err) {
+        if (err && err.name === "AbortError") return;
+      }
+    }
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "sudokusudoku.png";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    showShareToast("Image saved");
+  }
+
+  function showSolved(already, badgeIds) {
     const title = document.getElementById("solved-title");
     const summary = document.getElementById("solved-summary");
     const extra = document.getElementById("solved-stats");
@@ -1507,6 +1662,10 @@
         : `Won ${bucket.won} of ${bucket.played} · best ${bucket.best == null ? "–" : formatTime(bucket.best)} · average ${average}`;
     paintPractice();
     paintConfetti();
+    const shareRow = document.getElementById("share-actions");
+    const shareable = !state.revealed && window.SudokuShare;
+    if (shareRow) shareRow.hidden = !shareable;
+    if (shareable) window.SudokuShare.remember(shareInfo(badgeNames(badgeIds)));
     if (already && window.SudokuCommunity) {
       window.SudokuCommunity.paintPublicSolved({
         kind: state.kind,
@@ -1671,6 +1830,7 @@
       metadata: state.metadata,
       hintSlugs: state.hintSlugs || [],
       train: state.train || null,
+      puzzleId: state.puzzleId || null,
       anonPlayId: state.anonPlayId || null,
       notesUsed: Boolean(state.notesUsed),
       over: Boolean(state.over),
@@ -1721,6 +1881,7 @@
     state.metadata = saved.metadata;
     state.hintSlugs = Array.isArray(saved.hintSlugs) ? saved.hintSlugs.filter((slug) => typeof slug === "string") : [];
     state.train = typeof saved.train === "string" ? saved.train : null;
+    state.puzzleId = typeof saved.puzzleId === "string" ? saved.puzzleId : null;
     state.anonPlayId = typeof saved.anonPlayId === "string" ? saved.anonPlayId : null;
     state.notesUsed = Boolean(saved.notesUsed || saved.auto);
     autoBox.checked = state.auto;

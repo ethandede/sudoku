@@ -209,6 +209,7 @@ function layout({
   <meta name="twitter:title" content="${shareTitle}">
   <meta name="twitter:description" content="${shareDescription}">
   <meta name="twitter:image" content="${image}">
+  <meta name="twitter:image:alt" content="SudokuSudoku board beside a number-pad box map">
   ${jsonLdTag}
   <script>
     try {
@@ -301,7 +302,7 @@ ${privacyChoiceNote}
     <p class="copyright">&copy; ${year} SudokuSudoku. All rights reserved.</p>
   </div>
 </footer>
-${game ? '<script src="/assets/js/solver.js"></script>\n<script src="/assets/js/pools.js"></script>\n<script src="/assets/js/generator.js"></script>\n<script src="/assets/js/progress.js"></script>\n<script src="/assets/js/community.js"></script>' : ""}
+${game ? '<script src="/assets/js/solver.js"></script>\n<script src="/assets/js/pools.js"></script>\n<script src="/assets/js/generator.js"></script>\n<script src="/assets/js/progress.js"></script>\n<script src="/assets/js/community.js"></script>\n<script src="/assets/js/share.js"></script>' : ""}
 ${skills ? '<script src="/assets/js/progress.js"></script>' : ""}
 <script src="/assets/js/sudoku.js"></script>
 ${skills ? '<script src="/assets/js/skills.js"></script>' : ""}
@@ -432,6 +433,7 @@ write("assets/js/progress.js", read("assets/js/progress.js"));
 write("assets/js/skills.js", read("assets/js/skills.js"));
 write("assets/js/contact.js", read("assets/js/contact.js"));
 write("assets/js/community.js", read("assets/js/community.js"));
+write("assets/js/share.js", read("assets/js/share.js"));
 write("assets/js/stats-page.js", read("assets/js/stats-page.js"));
 write("ads.txt", read("ads.txt").trim() + "\n");
 cpSync(join(root, "assets/fonts"), join(dist, "assets/fonts"), { recursive: true });
@@ -1035,6 +1037,7 @@ const shellPaths = [
   "assets/js/skills.js",
   "assets/js/sudoku.js",
   "assets/js/community.js",
+  "assets/js/share.js",
   ...iconSizes.map((size) => `icons/icon-${size}.png`),
   "icons/maskable-192.png",
   "icons/maskable-512.png",

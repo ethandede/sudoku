@@ -142,6 +142,12 @@
       <p id="solved-stats" class="solved-stats"></p>
       <p id="solved-community" class="solved-community" hidden></p>
       <p id="solved-practice" class="solved-practice" hidden></p>
+      <!-- Ads stay out of this dialog. The share buttons need clear space, and the future ad unit remains below the page copy. -->
+      <div id="share-actions" class="share-actions">
+        <button type="button" id="share-text" class="primary-btn">Share</button>
+        <button type="button" id="share-image" class="secondary-btn">Share image</button>
+        <p id="share-toast" class="share-toast" role="status" hidden></p>
+      </div>
       <div class="modal-actions">
         <button type="button" id="solved-new" class="primary-btn">New Game</button>
         <button type="button" id="solved-next" class="secondary-btn">Next Difficulty</button>
