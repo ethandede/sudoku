@@ -4,7 +4,7 @@ Hi, I'm Ethan Ede.
   <picture>
     <source type="image/avif" srcset="/assets/img/teddy/teddy-128.avif 128w, /assets/img/teddy/teddy-256.avif 256w, /assets/img/teddy/teddy-512.avif 512w" sizes="256px">
     <source type="image/webp" srcset="/assets/img/teddy/teddy-128.webp 128w, /assets/img/teddy/teddy-256.webp 256w, /assets/img/teddy/teddy-512.webp 512w" sizes="256px">
-    <img src="/assets/img/teddy/teddy-256.webp" width="256" height="256" alt="Teddy, a black Australian labradoodle drawn in anime style, tongue out, holding a pencil over a blank sudoku grid" loading="lazy" decoding="async">
+    <img src="/assets/img/teddy/teddy-256.webp" width="256" height="256" alt="Teddy, an adult black Australian labradoodle drawn in anime style, holding a pencil over a sudoku grid" loading="lazy" decoding="async">
   </picture>
   <figcaption>Teddy, chief puzzle supervisor. Never once helpful.</figcaption>
 </figure>
