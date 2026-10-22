@@ -4,7 +4,19 @@
 
 <h2>Playing does not need an account</h2>
 
-<p>You do not register. Puzzle progress, settings, stats, and the skill ladder are stored in local storage on your device. They are not sent to a server, and they are not cookies. Clearing the site's data in your browser deletes them. Using a different browser or device starts fresh.</p>
+<p>You do not register. Puzzle progress, settings, your own stats, and the skill ladder are stored in local storage on your device. They are not sent to a server, and they are not cookies. Clearing the site's data in your browser deletes them. Using a different browser or device starts fresh. Anonymous community stats, described next, are the exception, and only when sharing is on.</p>
+
+<h2>Anonymous play stats</h2>
+
+<p>The public <a href="/stats/">stats page</a> shows how long puzzles take and how often they are solved, given up, failed, or left unfinished. That comes from plays on this site. Sharing is on unless you turn off "Share anonymous play stats" in Settings.</p>
+
+<p>A shared play sends the puzzle level, whether it is the daily, the UTC date for a daily, a hash of the puzzle seed or of the givens, the outcome, the active seconds on the timer (pause is not counted), mistakes, how many hints you used and the hardest technique among them, whether you used notes, and a device class taken from the width of the window: phone, tablet, or desktop. It does not send the puzzle itself, the solution, your name, your IP address, or the browser's user agent string. The server does not store those, and it does not build a fingerprint.</p>
+
+<p>The browser keeps a random id in local storage under the key <code>sudoku-anon-id</code>. It is not a cookie. It exists so the same puzzle is not counted twice for the same browser. Turn "Share anonymous play stats" off and that id is deleted, along with any stats waiting to be sent. Clearing site data for sudokusudoku.com deletes it too. A new id, if you turn sharing back on, does not reconnect to the old one.</p>
+
+<p>That id is storage on your device, and the stats are not required to play, so it is not strictly necessary. In the European Economic Area, the United Kingdom, and Switzerland the game does not create the id and does not send stats until Google's consent message reports that analytics storage is granted. That is the same choice as Analytics on the other pages. This page does not load that message. Use Privacy choices on another page if you want to change it. Outside those countries the Settings toggle is the control, and it starts on.</p>
+
+<p>A puzzle you close and resume is the same play. Replacing it with a new game, or coming back to find the saved game gone, marks it abandoned. Hitting the four-mistake limit does not, until you leave that game, because undo continues it. A start with no finish after 24 hours is marked abandoned on the server. Groups with fewer than 20 finished plays are not shown.</p>
 
 <h2>Contact form</h2>
 
@@ -24,7 +36,7 @@
 
 <h2>What this site does not do</h2>
 
-<p>The site is served globally through Cloudflare. It is not hosted in one country, and puzzle data is not uploaded to a server in the United States or anywhere else. Messages you send through the contact form are delivered as email and may be processed by Cloudflare and by whatever mail provider receives them.</p>
+<p>The site is served globally through Cloudflare. It is not hosted in one country. Your saved game stays on the device. The anonymous play stats above are the gameplay fields stored on Cloudflare's D1 database, and only when sharing is on. Messages you send through the contact form are delivered as email and may be processed by Cloudflare and by whatever mail provider receives them.</p>
 
 <p>The links page points at other people's sites. Their privacy practices are their own.</p>
 

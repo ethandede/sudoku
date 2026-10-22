@@ -10,6 +10,7 @@
     "test:progress": "node scripts/test-progress.mjs",
     "test:contact": "node scripts/test-contact.mjs",
     "test:mini": "node scripts/test-mini.mjs",
+    "test:stats": "node scripts/test-stats.mjs",
     "test:play": "node scripts/test-candidates.mjs"
   },
   "devDependencies": {

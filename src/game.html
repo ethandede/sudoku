@@ -15,6 +15,7 @@
         <button type="button" role="tab" data-difficulty="expert" aria-selected="false">Expert</button>
         <button type="button" role="tab" data-difficulty="mental" aria-selected="false">Mental</button>
       </div>
+      <p id="community-line" class="community-line" hidden></p>
 
       <div class="status-bar">
         <div class="timer-group">
@@ -133,6 +134,7 @@
       <h2 id="solved-title">Solved</h2>
       <p id="solved-summary"></p>
       <p id="solved-stats" class="solved-stats"></p>
+      <p id="solved-community" class="solved-community" hidden></p>
       <p id="solved-practice" class="solved-practice" hidden></p>
       <div class="modal-actions">
         <button type="button" id="solved-new" class="primary-btn">New Game</button>
@@ -188,7 +190,12 @@
         <label><input type="checkbox" data-setting="highlightConflicts"> Highlight conflicts</label>
         <label><input type="checkbox" data-setting="showBoxMap"> Show box map on number pad</label>
       </fieldset>
-      <p class="key-help">Press N to toggle Normal and Notes. With checking on, a wrong entry counts toward the 4-mistake limit. With it off, there is no limit.</p>
+      <fieldset>
+        <legend>Community</legend>
+        <label><input type="checkbox" data-setting="shareStats"> <span>Share anonymous play stats</span></label>
+        <label><input type="checkbox" data-setting="showCommunityStats"> <span>Show community times on the difficulty tabs</span></label>
+      </fieldset>
+      <p class="key-help">Press N to toggle Normal and Notes. With checking on, a wrong entry counts toward the 4-mistake limit. With it off, there is no limit. Sharing sends the level, time, and outcome with a random id stored on this device. It does not include a name. Turn sharing off to delete that id. <a href="/stats/">Community stats</a> · <a href="/privacy-policy/">Privacy</a></p>
     </div>
   </div>
 
