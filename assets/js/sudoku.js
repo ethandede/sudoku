@@ -176,6 +176,7 @@
   let hintView = null;
   let hoverIndex = null;
   let finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  let touchAt = 0;
   let keyboardNav = false;
 
   applyTheme();
@@ -392,11 +393,16 @@
         button.setAttribute("aria-colindex", String(col + 1));
         button.addEventListener("click", () => select(index, false));
         button.addEventListener("pointerdown", (event) => {
-          if (event.pointerType === "touch") finePointer = false;
-          if (event.pointerType === "mouse") {
-            finePointer = true;
+          if (event.pointerType && event.pointerType !== "mouse") {
+            finePointer = false;
             keyboardNav = false;
+            touchAt = Date.now();
+            hoverIndex = null;
+            return;
           }
+          if (Date.now() - touchAt < 700) return;
+          finePointer = true;
+          keyboardNav = false;
         });
         button.addEventListener("pointerenter", (event) => {
           if (event.pointerType !== "mouse") return;
@@ -430,11 +436,21 @@
       const glyph = document.createElement("span");
       glyph.textContent = String(n);
       digit.appendChild(glyph);
-      button.append(map, digit);
+      const left = document.createElement("span");
+      left.className = "pad-left";
+      left.textContent = "9";
+      button.append(map, digit, left);
       button.setAttribute("aria-label", `Number ${n}`);
       button.addEventListener("click", () => onNumber(n));
       pad.appendChild(button);
     }
+  }
+
+  function closeLevelMenu() {
+    const tabs = document.getElementById("difficulty-tabs");
+    if (!tabs) return;
+    tabs.classList.remove("is-open");
+    if (labelEl) labelEl.setAttribute("aria-expanded", "false");
   }
 
   function bindControls() {
@@ -442,8 +458,19 @@
       button.addEventListener("click", () => {
         const kind = button.dataset.difficulty;
         if (window.SudokuCommunity) window.SudokuCommunity.paintLine(kind);
+        closeLevelMenu();
         beginNew({ kind }, { count: true });
       });
+    });
+    labelEl.addEventListener("click", () => {
+      const tabs = document.getElementById("difficulty-tabs");
+      const open = tabs.classList.toggle("is-open");
+      labelEl.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    document.getElementById("help-btn").addEventListener("click", () => advanceHint());
+    document.getElementById("more-stats").addEventListener("click", () => {
+      closeMenu();
+      openStats();
     });
     document.getElementById("mode-normal").addEventListener("click", () => setMode("normal"));
     document.getElementById("mode-notes").addEventListener("click", () => setMode("notes"));
@@ -491,7 +518,11 @@
       runAction(action);
     });
     document.addEventListener("click", (event) => {
-      if (!moreMenu.contains(event.target) && event.target !== moreBtn) closeMenu();
+      if (!moreMenu.contains(event.target) && event.target !== moreBtn && !moreBtn.contains(event.target)) closeMenu();
+      const tabs = document.getElementById("difficulty-tabs");
+      if (!tabs || !tabs.classList.contains("is-open")) return;
+      if (tabs.contains(event.target) || event.target === labelEl || labelEl.contains(event.target)) return;
+      closeLevelMenu();
     });
     document.getElementById("stats-btn").addEventListener("click", openStats);
     document.getElementById("settings-btn").addEventListener("click", () => {
@@ -1215,7 +1246,7 @@
   // Manual notes stay a separate mark and are not written by the preview.
   function wantsPreview(index) {
     if (state.board[index] !== 0) return false;
-    if (index === hoverIndex) return true;
+    if (index === hoverIndex && finePointer) return true;
     if (index !== state.selected) return false;
     return !finePointer || keyboardNav;
   }
@@ -1355,9 +1386,8 @@
     timerEl.textContent = formatTime(state.elapsed);
     timerEl.parentElement.classList.toggle("is-hidden", !settings.showTimer);
     mistakeEl.classList.toggle("is-hidden", !settings.showMistakes);
-    mistakeEl.querySelectorAll(".dots i").forEach((dot, index) => {
-      dot.classList.toggle("used", index < state.mistakes);
-    });
+    const mistakeCount = document.getElementById("mistake-count");
+    if (mistakeCount) mistakeCount.textContent = String(Math.min(state.mistakes, MISTAKE_LIMIT));
     mistakeEl.setAttribute(
       "aria-label",
       `Mistakes, ${Math.min(state.mistakes, MISTAKE_LIMIT)} of ${MISTAKE_LIMIT}`
@@ -1378,18 +1408,25 @@
       const number = Number(button.dataset.number);
       const segments = button.querySelectorAll(".box-map i");
       let filled = 0;
+      let placed = 0;
+      state.board.forEach((value) => {
+        if (value === number) placed += 1;
+      });
       segments.forEach((segment, box) => {
         const on = boxHas[number][box];
         segment.classList.toggle("on", on);
         if (on) filled += 1;
       });
-      button.classList.toggle("complete", filled === 9);
-      button.setAttribute(
-        "aria-label",
-        settings.showBoxMap ? `Number ${number}, in ${filled} of 9 boxes` : `Number ${number}`
-      );
+      const left = Math.max(0, 9 - placed);
+      const count = button.querySelector(".pad-left");
+      if (count) count.textContent = String(left);
+      const done = left === 0;
+      button.classList.toggle("complete", done);
+      button.disabled = done;
+      const boxes = settings.showBoxMap ? `, in ${filled} of 9 boxes` : "";
+      button.setAttribute("aria-label", `Number ${number}, ${left} left${boxes}`);
     });
-    pauseBtn.textContent = state.running ? "Pause" : "Resume";
+    pauseBtn.dataset.state = state.running ? "running" : "paused";
     pauseBtn.setAttribute("aria-label", state.running ? "Pause timer" : "Resume timer");
   }
 
