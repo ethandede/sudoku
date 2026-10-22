@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { marked } from "marked";
 import * as sass from "sass";
+import { assetVersion, versionFontUrls, withVersion } from "./asset-version.mjs";
 import {
   AUTHOR_NAME,
   articleJsonLd,
@@ -24,6 +25,9 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "dist");
 const year = new Date().getFullYear();
 const SITE = "https://sudokusudoku.com";
+const ASSET_VERSION = assetVersion(root);
+const asset = (url) => withVersion(url, ASSET_VERSION);
+const STATIC_ASSET = /\.(?:js|css|woff2|png|svg|ico)$/;
 const sitemap = [];
 
 const articles = [
@@ -223,13 +227,13 @@ function layout({
     } catch (e) {}
   </script>
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-  <link rel="preload" href="/assets/fonts/open-sans-latin-400.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/css/style.css">
-  <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="icon" href="/icons/icon-192.png" type="image/png" sizes="192x192">
-  <link rel="icon" href="/icons/icon-512.png" type="image/png" sizes="512x512">
+  <link rel="apple-touch-icon" href="${asset("/icons/apple-touch-icon.png")}">
+  <link rel="preload" href="${asset("/assets/fonts/open-sans-latin-400.woff2")}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="${asset("/assets/css/style.css")}">
+  <link rel="icon" href="${asset("/favicon.ico")}" sizes="any">
+  <link rel="icon" href="${asset("/favicon.svg")}" type="image/svg+xml">
+  <link rel="icon" href="${asset("/icons/icon-192.png")}" type="image/png" sizes="192x192">
+  <link rel="icon" href="${asset("/icons/icon-512.png")}" type="image/png" sizes="512x512">
 ${analyticsTags}${adsTag}</head>
 <body>
 <div id="app-update" class="app-update" hidden>
@@ -302,16 +306,20 @@ ${privacyChoiceItem}      </ul>
 ${privacyChoiceNote}    <p class="copyright">&copy; ${year} SudokuSudoku. All rights reserved.</p>
   </div>
 </footer>
-${game ? '<script src="/assets/js/solver.js"></script>\n<script src="/assets/js/pools.js"></script>\n<script src="/assets/js/generator.js"></script>\n<script src="/assets/js/progress.js"></script>\n<script src="/assets/js/community.js"></script>\n<script src="/assets/js/share.js"></script>' : ""}
-${skills ? '<script src="/assets/js/progress.js"></script>' : ""}
-<script src="/assets/js/sudoku.js"></script>
-${skills ? '<script src="/assets/js/skills.js"></script>' : ""}
-${demo ? '<script src="/assets/js/technique-demo.js"></script>' : ""}
-${contact ? '<script src="/assets/js/contact.js"></script>' : ""}
-${stats ? '<script src="/assets/js/stats-page.js"></script>' : ""}
+${game ? ["solver", "pools", "generator", "progress", "community", "share"].map((name) => scriptTag(`/assets/js/${name}.js`)).join("\n") : ""}
+${skills ? scriptTag("/assets/js/progress.js") : ""}
+${scriptTag("/assets/js/sudoku.js")}
+${skills ? scriptTag("/assets/js/skills.js") : ""}
+${demo ? scriptTag("/assets/js/technique-demo.js") : ""}
+${contact ? scriptTag("/assets/js/contact.js") : ""}
+${stats ? scriptTag("/assets/js/stats-page.js") : ""}
 ${privacyChoiceScript}</body>
 </html>
 `;
+}
+
+function scriptTag(path) {
+  return `<script src="${asset(path)}"></script>`;
 }
 
 function standardPage(title, bodyHtml, description, path, options = {}) {
@@ -423,7 +431,7 @@ mkdirSync(dist, { recursive: true });
 const compiled = sass.compile(join(root, "assets/scss/main.scss"), {
   style: "compressed",
 });
-write("assets/css/style.css", compiled.css);
+write("assets/css/style.css", versionFontUrls(compiled.css, ASSET_VERSION));
 write("assets/js/solver.js", read("assets/js/solver.js"));
 write("assets/js/pools.js", read("assets/js/pools.js"));
 write("assets/js/generator.js", read("assets/js/generator.js"));
@@ -949,13 +957,13 @@ cpSync(join(root, "src/icons"), join(dist, "icons"), { recursive: true });
 const iconSizes = [48, 72, 96, 128, 144, 152, 180, 192, 256, 384, 512];
 const manifestIcons = [
   ...iconSizes.map((size) => ({
-    src: `/icons/icon-${size}.png`,
+    src: asset(`/icons/icon-${size}.png`),
     sizes: `${size}x${size}`,
     type: "image/png",
     purpose: "any",
   })),
   ...[192, 512].map((size) => ({
-    src: `/icons/maskable-${size}.png`,
+    src: asset(`/icons/maskable-${size}.png`),
     sizes: `${size}x${size}`,
     type: "image/png",
     purpose: "maskable",
@@ -997,10 +1005,10 @@ write(
   <meta name="description" content="SudokuSudoku is offline. The puzzle on this device still opens.">
   <meta name="robots" content="noindex">
   <link rel="canonical" href="https://sudokusudoku.com/offline.html">
-  <link rel="preload" href="/assets/fonts/open-sans-latin-400.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="preload" href="${asset("/assets/fonts/open-sans-latin-400.woff2")}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="${asset("/assets/css/style.css")}">
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="${asset("/favicon.svg")}" type="image/svg+xml">
 </head>
 <body>
 <main class="standard-page">
@@ -1066,7 +1074,10 @@ const shellUrls = [
   "/skills/",
   ...shellPaths
     .filter((relativePath) => relativePath !== "index.html" && relativePath !== "skills/index.html")
-    .map((relativePath) => `/${relativePath}`),
+    .map((relativePath) => {
+      const path = `/${relativePath}`;
+      return STATIC_ASSET.test(relativePath) ? asset(path) : path;
+    }),
 ];
 write(
   "sw.js",
@@ -1075,5 +1086,60 @@ write(
     .replace("__SUDOKU_PWA_SHELL__", JSON.stringify(shellUrls))
 );
 
+assertAssetVersions();
 console.log(`Built ${dist}`);
+
+function assertAssetVersions() {
+  const version = ASSET_VERSION;
+  const home = readFileSync(join(dist, "index.html"), "utf8");
+  const offline = readFileSync(join(dist, "offline.html"), "utf8");
+  const sw = readFileSync(join(dist, "sw.js"), "utf8");
+  const css = readFileSync(join(dist, "assets/css/style.css"), "utf8");
+  const manifest = readFileSync(join(dist, "manifest.webmanifest"), "utf8");
+  const skills = readFileSync(join(dist, "skills/index.html"), "utf8");
+  const required = [
+    `/assets/js/sudoku.js?v=${version}`,
+    `/assets/js/solver.js?v=${version}`,
+    `/assets/js/share.js?v=${version}`,
+    `/assets/css/style.css?v=${version}`,
+    `/assets/fonts/open-sans-latin-400.woff2?v=${version}`,
+    `/favicon.ico?v=${version}`,
+    `/favicon.svg?v=${version}`,
+    `/icons/icon-192.png?v=${version}`,
+    `/icons/icon-512.png?v=${version}`,
+    `/icons/apple-touch-icon.png?v=${version}`,
+  ];
+  for (const url of required) {
+    if (!home.includes(url)) throw new Error(`index.html missing ${url}`);
+    if (!sw.includes(url) && url.includes("/assets/js/")) throw new Error(`sw.js missing ${url}`);
+  }
+  for (const url of [
+    `/assets/css/style.css?v=${version}`,
+    `/assets/fonts/open-sans-latin-400.woff2?v=${version}`,
+    `/assets/fonts/open-sans-latin-600.woff2?v=${version}`,
+    `/assets/fonts/open-sans-latin-700.woff2?v=${version}`,
+    `/favicon.ico?v=${version}`,
+    `/favicon.svg?v=${version}`,
+    `/icons/icon-192.png?v=${version}`,
+    `/icons/apple-touch-icon.png?v=${version}`,
+  ]) {
+    if (!sw.includes(url)) throw new Error(`sw.js missing ${url}`);
+  }
+  const scripts = [...home.matchAll(/<script[^>]+src="([^"]+)"/g)].map((match) => match[1]);
+  for (const src of scripts) {
+    if (src.startsWith("/") && !src.includes(`?v=${version}`)) throw new Error(`unversioned local script ${src}`);
+    if (/^https?:/i.test(src) && src.includes(`v=${version}`)) throw new Error(`versioned third-party script ${src}`);
+  }
+  if (!offline.includes(`/assets/css/style.css?v=${version}`)) throw new Error("offline.css is unversioned");
+  if (!offline.includes(`/assets/fonts/open-sans-latin-400.woff2?v=${version}`)) throw new Error("offline font is unversioned");
+  if (!skills.includes(`/assets/js/skills.js?v=${version}`)) throw new Error("skills.js is unversioned");
+  if (!css.includes(`/assets/fonts/open-sans-latin-400.woff2?v=${version}`)) throw new Error("css font 400 is unversioned");
+  if (!css.includes(`/assets/fonts/open-sans-latin-600.woff2?v=${version}`)) throw new Error("css font 600 is unversioned");
+  if (!css.includes(`/assets/fonts/open-sans-latin-700.woff2?v=${version}`)) throw new Error("css font 700 is unversioned");
+  if (!manifest.includes(`/icons/icon-512.png?v=${version}`)) throw new Error("manifest icon is unversioned");
+  if (!manifest.includes(`/icons/maskable-512.png?v=${version}`)) throw new Error("maskable icon is unversioned");
+  if (sw.includes('"/assets/js/sudoku.js"')) throw new Error("sw.js still precaches unversioned sudoku.js");
+  if (home.includes('href="/assets/css/style.css"')) throw new Error("stylesheet is unversioned");
+  console.log(`Asset version ${version}`);
+}
 console.log(`Technique examples: ${techniques.map((technique) => technique.slug).join(", ")}`);
