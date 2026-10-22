@@ -40,6 +40,7 @@ const articles = [
   { file: "articles/why-ai-is-bad-at-sudoku.md", slug: "why-ai-is-bad-at-sudoku" },
   { file: "articles/does-sudoku-keep-your-brain-sharp.md", slug: "does-sudoku-keep-your-brain-sharp" },
   { file: "articles/why-being-stuck-is-good-for-you.md", slug: "why-being-stuck-is-good-for-you" },
+  { file: "articles/fewest-and-most-sudoku-clues.md", slug: "fewest-and-most-sudoku-clues" },
 ];
 
 function read(relativePath) {

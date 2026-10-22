@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { marked } from "marked";
+import { techniques } from "./technique-copy.mjs";
 import {
   articleJsonLd,
   formatPublishDate,
@@ -21,6 +22,7 @@ const schedule = {
   "why-ai-is-bad-at-sudoku": "2026-11-04",
   "does-sudoku-keep-your-brain-sharp": "2026-11-11",
   "why-being-stuck-is-good-for-you": "2026-11-11",
+  "fewest-and-most-sudoku-clues": "2026-11-18",
 };
 
 function readArticle(slug) {
@@ -50,10 +52,21 @@ assert.deepEqual(live("2026-11-04"), [
   "sudoku-variants",
   "why-ai-is-bad-at-sudoku",
 ]);
-assert.deepEqual(live("2026-11-11"), Object.keys(schedule));
+const beforeFewest = [
+  "what-makes-a-sudoku-hard",
+  "history-of-sudoku",
+  "sudoku-variants",
+  "why-ai-is-bad-at-sudoku",
+  "does-sudoku-keep-your-brain-sharp",
+  "why-being-stuck-is-good-for-you",
+];
+assert.deepEqual(live("2026-11-11"), beforeFewest);
+assert.deepEqual(live("2026-11-17"), beforeFewest);
+assert.deepEqual(live("2026-11-18"), Object.keys(schedule));
 assert.equal(isPublished("", "2026-10-21"), true);
 assert.equal(formatPublishDate("2026-10-28"), "October 28, 2026");
 assert.equal(formatPublishDate("2026-11-04"), "November 4, 2026");
+assert.equal(formatPublishDate("2026-11-18"), "November 18, 2026");
 
 assert.equal(losAngelesToday(new Date("2026-10-22T06:30:00Z"), ""), "2026-10-21");
 assert.equal(losAngelesToday(new Date("2026-10-22T07:00:00Z"), ""), "2026-10-22");
@@ -71,6 +84,40 @@ assert.equal(grids.length, 4);
 assert.equal((rendered.match(/class="puzzle-cell/g) || []).length, 324);
 assert.equal(rendered.includes("+-------+-------+-------+"), false);
 assert.equal(rendered.includes("`008735206"), true);
+
+const clues = prepareArticle(readArticle("fewest-and-most-sudoku-clues"));
+assert.deepEqual(clues.relatedSlugs, [
+  "what-makes-a-sudoku-hard",
+  "history-of-sudoku",
+  "nyt-medium-vs-hard",
+]);
+assert.equal(clues.content.includes("By Ethan"), false);
+assert.equal(clues.content.includes("—"), false);
+assert.equal(clues.content.includes("```"), false);
+assert.equal(clues.content.includes("+-------+-------+-------+"), false);
+assert.equal((clues.content.match(/class="puzzle-grid"/g) || []).length, 3);
+assert.equal((clues.content.match(/class="puzzle-strip"/g) || []).length, 1);
+assert.equal((clues.content.match(/class="puzzle-cell/g) || []).length, 3 * 81 + 18);
+assert.match(clues.content, /class="puzzle-strip-label">row 1</);
+assert.match(clues.content, /class="puzzle-strip-label">row 2</);
+assert.match(
+  clues.content,
+  /`576821349\.\.2934567934576182741358296358692471629147853463715928\.\.5269734297483615`/
+);
+assert.match(
+  clues.content,
+  /`\.\.\.\.\.\.\.\.\.\.12\.34567\.345\.6182\.\.1\.582\.6\.\.86\.\.\.\.1\.2\.\.\.7\.5\.\.\.37\.5\.28\.8\.\.6\.7\.\.2\.7\.83615`/
+);
+const cluesHtml = marked.parse(clues.content);
+assert.equal(cluesHtml.includes("—"), false);
+assert.equal(cluesHtml.includes('href="/techniques/pointing/"'), true);
+assert.equal(cluesHtml.includes('href="/techniques/coloring/"'), true);
+assert.equal(cluesHtml.includes('href="/techniques/hidden-single/"'), true);
+assert.equal(cluesHtml.includes('href="/techniques/x-wing/"'), true);
+assert.equal(cluesHtml.includes('href="/techniques/xy-chain/"'), true);
+assert.equal(cluesHtml.includes('href="/techniques/naked-single/"'), true);
+assert.equal(cluesHtml.includes('href="/?difficulty=quick"'), true);
+assert.equal(cluesHtml.includes('href="/?difficulty=mental"'), true);
 
 const unpublished = new Set(["why-being-stuck-is-good-for-you", "sudoku-variants", "why-ai-is-bad-at-sudoku"]);
 let html = wrapTables(stripUnpublishedLinks(marked.parse(rendered), unpublished));
@@ -164,5 +211,80 @@ assert.equal(noLibrary.includes(HARD_LINK), true);
 const build = readFileSync(new URL("./build.mjs", import.meta.url), "utf8");
 assert.match(build, /SudokuSudoku\. All rights reserved\./);
 assert.equal(build.includes("Sudoku Online"), false);
+assert.match(build, /articles\/fewest-and-most-sudoku-clues\.md/);
+
+const techniqueSlugs = new Set(techniques.map((technique) => technique.slug));
+const articleSlugs = new Set([
+  ...Object.keys(schedule),
+  "beginners-guide",
+  "common-mistakes",
+  "nyt-medium-vs-hard",
+]);
+const staticPaths = new Set([
+  "/",
+  "/techniques/",
+  "/articles/",
+  "/stats/",
+  "/about/",
+  "/contact/",
+  "/privacy-policy/",
+  "/skills/",
+  "/links/",
+]);
+const difficulties = new Set(["quick", "easy", "not-easy", "hard", "expert", "mental"]);
+
+function slashPath(pathname) {
+  if (!pathname || pathname === "/") return "/";
+  return pathname.endsWith("/") ? pathname : `${pathname}/`;
+}
+
+function redirectsFrom(text) {
+  const map = new Map();
+  for (const line of text.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const [from, to, code] = trimmed.split(/\s+/);
+    if (code !== "301" || !from || !to) continue;
+    map.set(slashPath(from), to);
+  }
+  return map;
+}
+
+const redirectMap = redirectsFrom(redirects);
+
+function routeExists(path, search) {
+  if (path === "/" && search.has("daily") && search.size === 1) return true;
+  if (path === "/" && search.has("difficulty") && search.size === 1) {
+    return difficulties.has(search.get("difficulty"));
+  }
+  if (search.size > 0) return false;
+  if (staticPaths.has(path)) return true;
+  const technique = path.match(/^\/techniques\/([a-z0-9-]+)\/$/);
+  if (technique) return techniqueSlugs.has(technique[1]);
+  const article = path.match(/^\/articles\/([a-z0-9-]+)\/$/);
+  if (article) return articleSlugs.has(article[1]);
+  return false;
+}
+
+function linkResolves(raw) {
+  const url = new URL(raw, "https://sudokusudoku.com");
+  const path = slashPath(url.pathname);
+  if (routeExists(path, url.searchParams)) return true;
+  const target = redirectMap.get(path);
+  if (!target) return false;
+  const next = new URL(target, "https://sudokusudoku.com");
+  return routeExists(slashPath(next.pathname), next.searchParams);
+}
+
+const broken = [];
+for (const slug of Object.keys(schedule)) {
+  const markdown = readArticle(slug);
+  for (const match of markdown.matchAll(/\[[^\]]*\]\(([^)\s]+)\)/g)) {
+    const href = match[1];
+    if (!href.startsWith("/")) continue;
+    if (!linkResolves(href)) broken.push(`${slug}: ${href}`);
+  }
+}
+assert.deepEqual(broken, []);
 
 console.log("article publish tests passed");
