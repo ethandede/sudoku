@@ -174,6 +174,26 @@ await check("desktop hover previews possible digits and hides them on leave", as
   const cell = page.locator(".cell").nth(index);
   await cell.hover();
   assertEqual(await markDigits(page, index, "preview"), candidatesFor(board, index), "hover preview");
+  const hoverInk = await cell.evaluate((el) => {
+    const mark = el.querySelector(".marks span.on.preview");
+    if (!mark) return null;
+    const markStyle = getComputedStyle(mark);
+    const cellStyle = getComputedStyle(el);
+    const markBox = mark.getBoundingClientRect();
+    const cellBox = el.getBoundingClientRect();
+    return {
+      color: markStyle.color,
+      background: cellStyle.backgroundColor,
+      opacity: Number(markStyle.opacity),
+      visibility: markStyle.visibility,
+      inside: markBox.width > 0 && markBox.top >= cellBox.top - 1 && markBox.bottom <= cellBox.bottom + 1,
+    };
+  });
+  assert(hoverInk, "hover preview has a digit");
+  assert(hoverInk.visibility === "visible", "hover preview digit is visible");
+  assert(hoverInk.opacity >= 0.7, "hover preview digit stays opaque on the selection fill");
+  assert(hoverInk.color !== hoverInk.background, "hover preview digit does not match the cell fill");
+  assert(hoverInk.inside, "hover preview digit stays inside the cell");
   assertEqual(await markDigits(page, index, "user-note"), [], "hover does not write notes");
   assertEqual(await boardOf(page), board, "hover does not change the board");
   await leaveBoard(page);
@@ -413,6 +433,23 @@ await check("touch selection shows candidates and notes stay in a 3x3", async ()
     candidatesFor(after, other),
     "tapping an empty cell shows its candidates"
   );
+  const touchInk = await page.locator(".cell.selected .marks span.on.preview").first().evaluate((el) => {
+    const markStyle = getComputedStyle(el);
+    const cellStyle = getComputedStyle(el.closest(".cell"));
+    const markBox = el.getBoundingClientRect();
+    const cellBox = el.closest(".cell").getBoundingClientRect();
+    return {
+      color: markStyle.color,
+      background: cellStyle.backgroundColor,
+      opacity: Number(markStyle.opacity),
+      visibility: markStyle.visibility,
+      inside: markBox.width > 0 && markBox.top >= cellBox.top - 1 && markBox.bottom <= cellBox.bottom + 1,
+    };
+  });
+  assert(touchInk.visibility === "visible", "touch preview digit is visible");
+  assert(touchInk.opacity >= 0.7, "touch preview digit stays opaque on the selected fill");
+  assert(touchInk.color !== touchInk.background, "touch preview digit does not match the selected fill");
+  assert(touchInk.inside, "touch preview digit stays inside the cell");
   const ring = await page.locator(".cell.selected").evaluate((el) => {
     const style = getComputedStyle(el);
     return { outlineStyle: style.outlineStyle, outlineOffset: style.outlineOffset };
@@ -484,6 +521,7 @@ await check("preview equals candidates after placements, a new game, and a resum
     "preview equals candidates except digits stored as notes"
   );
 
+  await page.locator("#puzzle-label").click();
   await page.locator('.difficulty-tabs button[data-difficulty="easy"]').click();
   await page.waitForFunction(() => {
     const cover = document.querySelector("#board-cover");
@@ -554,6 +592,192 @@ await check("preview equals candidates after placements, a new game, and a resum
     "ignored save does not change the preview"
   );
   await staleContext.close();
+});
+
+function luminance(color) {
+  const text = String(color);
+  const rgb = text.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  const srgb = text.match(/color\(srgb\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)/);
+  const channels = rgb
+    ? rgb.slice(1).map(Number)
+    : srgb
+      ? srgb.slice(1).map((channel) => Number(channel) * 255)
+      : null;
+  if (!channels) throw new Error(`unparsed color ${text}`);
+  const [red, green, blue] = channels;
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+}
+
+await check("selection fills keep givens distinct from entries", async () => {
+  const { context, page } = await openPage({ viewport: { width: 1280, height: 900 } });
+  await leaveBoard(page);
+  const index = await page.evaluate(() => {
+    const cells = [...document.querySelectorAll(".cell")];
+    const given = cells.map((cell) => cell.classList.contains("given"));
+    const values = cells.map((cell) => Number(cell.dataset.value));
+    const peersOf = (i) => {
+      const row = Math.floor(i / 9);
+      const col = i % 9;
+      const set = [];
+      for (let n = 0; n < 9; n += 1) set.push(row * 9 + n, n * 9 + col);
+      const boxRow = Math.floor(row / 3) * 3;
+      const boxCol = Math.floor(col / 3) * 3;
+      for (let r = 0; r < 3; r += 1) {
+        for (let c = 0; c < 3; c += 1) set.push((boxRow + r) * 9 + boxCol + c);
+      }
+      return [...new Set(set)].filter((other) => other !== i);
+    };
+    for (let i = 0; i < 81; i += 1) {
+      if (values[i] !== 0) continue;
+      const peers = peersOf(i);
+      const row = Math.floor(i / 9);
+      const col = i % 9;
+      const boxRow = Math.floor(row / 3);
+      const boxCol = Math.floor(col / 3);
+      const givenPeer = (pred) => peers.some((other) => given[other] && pred(other));
+      if (
+        givenPeer((other) => Math.floor(other / 9) === row) &&
+        givenPeer((other) => other % 9 === col) &&
+        givenPeer((other) => Math.floor(other / 9 / 3) === boxRow && Math.floor((other % 9) / 3) === boxCol)
+      ) {
+        return i;
+      }
+    }
+    return -1;
+  });
+  assert(index >= 0, "an empty cell has a given in its row, column, and box");
+  await page.locator(".cell").nth(index).click();
+  await leaveBoard(page);
+  const fills = await page.evaluate(() => {
+    const background = (el) => (el ? getComputedStyle(el).backgroundColor : "");
+    const cells = [...document.querySelectorAll(".cell")];
+    const selected = cells.find((cell) => cell.classList.contains("selected"));
+    const givenPeer = cells.find((cell) => cell.classList.contains("given") && cell.classList.contains("peer"));
+    const emptyPeer = cells.find(
+      (cell) => cell.classList.contains("peer") && !cell.classList.contains("given") && !cell.classList.contains("same")
+    );
+    const given = cells.find(
+      (cell) =>
+        cell.classList.contains("given") &&
+        !cell.classList.contains("peer") &&
+        !cell.classList.contains("selected") &&
+        !cell.classList.contains("same")
+    );
+    const open = cells.find(
+      (cell) =>
+        cell.dataset.value === "0" &&
+        !cell.classList.contains("given") &&
+        !cell.classList.contains("peer") &&
+        !cell.classList.contains("selected") &&
+        !cell.classList.contains("same")
+    );
+    const entered = cells.find(
+      (cell) =>
+        cell.classList.contains("user") &&
+        !cell.classList.contains("peer") &&
+        !cell.classList.contains("selected") &&
+        !cell.classList.contains("same")
+    );
+    return {
+      selected: background(selected),
+      selectedOutline: getComputedStyle(selected).outlineStyle,
+      givenPeer: background(givenPeer),
+      emptyPeer: background(emptyPeer),
+      given: background(given),
+      open: background(open),
+      entered: background(entered),
+    };
+  });
+  assertEqual(fills.selected, "rgb(239, 125, 18)", "selected cell is the solid accent");
+  assertEqual(fills.selectedOutline, "none", "selection has no border");
+  assertEqual(fills.given, "rgb(236, 231, 223)", "givens are a light gray fill");
+  assertEqual(fills.open, "rgb(255, 255, 255)", "empty cells stay white");
+  if (fills.entered) assertEqual(fills.entered, "rgb(255, 255, 255)", "player entries stay white");
+  assert(fills.givenPeer && fills.emptyPeer, "the highlight includes a given and an open cell");
+  assert(fills.givenPeer !== fills.given, "a highlighted given is tinted");
+  assert(fills.emptyPeer !== fills.open, "a highlighted open cell is tinted");
+  assert(fills.givenPeer !== fills.emptyPeer, "a highlighted given stays distinct from a highlighted open cell");
+  assert(
+    luminance(fills.givenPeer) < luminance(fills.emptyPeer),
+    `given tint ${fills.givenPeer} should be darker than open tint ${fills.emptyPeer}`
+  );
+  await context.close();
+});
+
+await check("the keypad fits every phone and grows into leftover space", async () => {
+  const { context, page } = await openPage({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 1,
+    hasTouch: true,
+  });
+  assert(await page.locator("#undo-btn").isDisabled(), "undo starts disabled");
+  const keyHeights = {};
+  for (const [width, height] of [
+    [390, 844],
+    [375, 667],
+    [360, 740],
+    [430, 932],
+  ]) {
+    await page.setViewportSize({ width, height });
+    const metrics = await page.evaluate(() => {
+      const erase = document.querySelector("#erase-btn").getBoundingClientRect();
+      const aux = document.querySelector(".aux-row").getBoundingClientRect();
+      const board = document.querySelector(".sudoku-grid").getBoundingClientRect();
+      const keys = [...document.querySelectorAll("#number-pad button, #erase-btn")].map(
+        (el) => el.getBoundingClientRect().height
+      );
+      const footer = document.querySelector(".site-footer").getBoundingClientRect();
+      return {
+        eraseBottom: erase.bottom,
+        auxBottom: aux.bottom,
+        vh: window.innerHeight,
+        keys,
+        boardWidth: board.width,
+        clientWidth: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        footerTop: footer.top,
+        header: getComputedStyle(document.querySelector(".site-header")).display,
+        intro: getComputedStyle(document.querySelector(".game-intro")).display,
+        help: getComputedStyle(document.querySelector(".key-help")).display,
+      };
+    });
+    assert(metrics.header === "none", `${width} hides the site header`);
+    assert(metrics.intro === "none", `${width} hides the intro`);
+    assert(metrics.help === "none", `${width} hides the instructions`);
+    assert(metrics.eraseBottom <= metrics.vh + 1, `${width} keypad bottom ${metrics.eraseBottom} is inside ${metrics.vh}`);
+    assert(metrics.auxBottom <= metrics.vh + 1, `${width} controls bottom ${metrics.auxBottom} is inside ${metrics.vh}`);
+    assert(metrics.vh - metrics.auxBottom <= 16, `${width} leaves ${metrics.vh - metrics.auxBottom}px under the controls`);
+    assert(Math.min(...metrics.keys) >= 44, `${width} keys are ${Math.min(...metrics.keys)}px`);
+    assert(Math.max(...metrics.keys) - Math.min(...metrics.keys) <= 1.5, `${width} keys are the same size`);
+    assert(metrics.boardWidth >= metrics.clientWidth - 2, `${width} board is full width (${metrics.boardWidth})`);
+    assert(metrics.scrollWidth <= metrics.clientWidth + 1, `${width} has no horizontal scroll`);
+    assert(metrics.footerTop >= metrics.vh - 1, `${width} footer is below the play viewport`);
+    keyHeights[height] = Math.min(...metrics.keys);
+  }
+  assert(keyHeights[844] > keyHeights[667], "a taller phone gives the extra space to the keys");
+  assert(keyHeights[932] > keyHeights[667], "the tallest phone gives the extra space to the keys");
+  await page.setViewportSize({ width: 1280, height: 900 });
+  const desktop = await page.evaluate(() => {
+    const board = document.querySelector(".sudoku-grid").getBoundingClientRect();
+    const erase = document.querySelector("#erase-btn").getBoundingClientRect();
+    const aux = document.querySelector(".aux-row").getBoundingClientRect();
+    return {
+      boardRight: board.right,
+      eraseLeft: erase.left,
+      eraseBottom: erase.bottom,
+      auxBottom: aux.bottom,
+      vh: window.innerHeight,
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+      header: getComputedStyle(document.querySelector(".site-header")).display,
+    };
+  });
+  assert(desktop.header === "none", "desktop uses the app header");
+  assert(desktop.eraseLeft >= desktop.boardRight - 2, "desktop keypad sits beside the board");
+  assert(desktop.eraseBottom <= desktop.vh + 1, "desktop keypad is inside the viewport");
+  assert(desktop.auxBottom <= desktop.vh + 1, "desktop controls are inside the viewport");
+  assert(desktop.scrollWidth <= desktop.clientWidth + 1, "desktop has no horizontal scroll");
+  await context.close();
 });
 
 server.close();

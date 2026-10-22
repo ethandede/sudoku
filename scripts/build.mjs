@@ -185,6 +185,22 @@ function layout({
 `
     : "";
 
+  const startupScreens = [
+    [750, 1334, 375, 667, 2],
+    [1125, 2436, 375, 812, 3],
+    [1170, 2532, 390, 844, 3],
+    [1179, 2556, 393, 852, 3],
+    [1284, 2778, 428, 926, 3],
+    [1290, 2796, 430, 932, 3],
+  ];
+  const startupLinks = startupScreens
+    .map(([width, height, deviceWidth, deviceHeight, ratio]) => {
+      const href = asset(`/icons/splash-${width}x${height}.png`);
+      const media = `(device-width: ${deviceWidth}px) and (device-height: ${deviceHeight}px) and (-webkit-device-pixel-ratio: ${ratio}) and (orientation: portrait)`;
+      return `  <link rel="apple-touch-startup-image" href="${href}" media="${media}">`;
+    })
+    .join("\n");
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -228,6 +244,7 @@ function layout({
   </script>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="apple-touch-icon" href="${asset("/icons/apple-touch-icon.png")}">
+${startupLinks}
   <link rel="preload" href="${asset("/assets/fonts/open-sans-latin-400.woff2")}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="${asset("/assets/css/style.css")}">
   <link rel="icon" href="${asset("/favicon.ico")}" sizes="any">
