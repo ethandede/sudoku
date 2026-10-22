@@ -1,5 +1,31 @@
 @use "../abstracts/variables" as vars;
 
+// Open Sans, latin subset, SIL Open Font License. Self-hosted so the page
+// does not wait on fonts.googleapis.com.
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/fonts/open-sans-latin-400.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/assets/fonts/open-sans-latin-600.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/assets/fonts/open-sans-latin-700.woff2") format("woff2");
+}
+
 body {
   font-family: vars.$body-font;
   font-size: vars.$font-sm;

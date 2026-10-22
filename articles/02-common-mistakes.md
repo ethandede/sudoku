@@ -1,10 +1,10 @@
 # 7 Common Sudoku Mistakes (And How to Fix Them)
 
-**Meta Description:** Struggling with Sudoku? Learn the 7 most common mistakes players make and proven strategies to avoid them. Improve your solving speed today!
+**Meta Description:** Seven Sudoku mistakes that create a contradiction later, and what to check instead.
 
 ---
 
-![Frustrated person looking at sudoku puzzle with eraser marks](https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?w=1600 "Photo by Brett Jordan on Unsplash")
+![A digit checked against its row, column, and box.](/articles/images/mistakes-three-checks.svg "640x360")
 
 ## Introduction
 
@@ -90,7 +90,7 @@ You think: "I need to find where 6 goes," but you misread the 8 as a 6, so you s
 
 ## Mistake #3: Overusing (or Underusing) Pencil Marks
 
-![Close-up of sudoku grid with pencil candidate markings](https://images.unsplash.com/photo-1611329857570-f02f340e7378?w=1200 "Photo by Gabriella Clare Marino on Unsplash")
+![A cell whose remaining notes are 2, 5, and 8.](/articles/images/mistakes-notes.svg "640x360")
 
 ### The Problem
 
@@ -343,28 +343,14 @@ Print this checklist and keep it next to your puzzle:
 
 Every Sudoku master was once a beginner who made these exact mistakes. The difference? They learned to recognize and fix them.
 
-Start with **Mistake #1** (checking all three constraints) and **Mistake #5** (systematic approach when stuck)—these two fixes alone will improve your accuracy by 50% or more.
+Start with Mistake #1 (checking the row, the column, and the box) and Mistake #5 (a systematic scan when you are stuck). Those two are the ones that usually create the contradiction you find twenty moves later.
 
-Remember: Making mistakes is part of learning. What matters is that you catch them earlier, learn from them, and gradually eliminate them from your solving process.
-
-**Ready to put these fixes into practice?** The puzzle sites listed in Additional Resources below offer helpful features like error checking and hints to help you improve.
+Making a wrong entry is part of learning the pattern. The useful part is noticing it before the rest of the grid depends on it.
 
 ---
 
-**Related Articles:**
-- The Complete Beginner's Guide to Sudoku: From Zero to Your First Solved Puzzle
-- Stuck on a Puzzle? The Strategic Approach to Breaking Through Sudoku Roadblocks
-- X-Wing, Swordfish & Beyond: Master These 6 Advanced Techniques
+**Related:**
+- [How to play Sudoku](/articles/beginners-guide/)
+- [Technique library](/techniques/)
 
----
-
-## Additional Resources
-
-For further help avoiding common Sudoku mistakes and improving your skills:
-
-- [Sudoku.com - Sudoku Rules and Tips](https://sudoku.com/sudoku-rules/) - Comprehensive guide to rules and common pitfalls
-- [Conceptis Puzzles - Sudoku Techniques](https://www.conceptispuzzles.com/index.aspx?uri=puzzle/sudoku/techniques) - Basic solving techniques explained
-- [SudokuOnline.io - Tips and Strategies](https://www.sudokuonline.io/tips/) - Practical advice for improving accuracy
-- [Sudoku9x9.com - Sudoku Solver](https://www.sudoku9x9.com/sudokusolver/) - Interactive solver that shows your mistakes step-by-step
-
-**Keywords:** sudoku mistakes, sudoku errors, sudoku tips, improve sudoku skills, sudoku strategies, stuck on sudoku, sudoku help, common sudoku problems, avoid sudoku mistakes
+**Keywords:** sudoku mistakes, notes, checking a placement

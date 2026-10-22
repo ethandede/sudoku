@@ -1,80 +1,44 @@
-<h2>Contact Us</h2>
+<p>Send a note about a bug, a technique page, or something the game did that does not match the rules. I read what comes in. I do not promise a reply the same day.</p>
 
-<p>We'd love to hear from you! Whether you have questions about Sudoku techniques, feedback about our puzzles, or suggestions for improving the site, we're here to help.</p>
+<form id="contact-form" class="contact-form" novalidate>
+  <p id="contact-status" class="contact-status" role="status" hidden></p>
+  <label>
+    Name
+    <input name="name" type="text" autocomplete="name" maxlength="80" required>
+  </label>
+  <label>
+    Email
+    <input name="email" type="email" autocomplete="email" maxlength="120" required>
+  </label>
+  <label>
+    Message
+    <textarea name="message" rows="6" maxlength="4000" required></textarea>
+  </label>
+  <div class="contact-hp" aria-hidden="true">
+    <label>
+      Company
+      <input name="company" type="text" tabindex="-1" autocomplete="off">
+    </label>
+  </div>
+  <div id="turnstile-slot"></div>
+  <button type="submit">Send</button>
+</form>
 
-<hr />
+<p>The form does not show an email address. What you type is used to read the message and, if needed, to reply. The spam check is Cloudflare Turnstile. Details are in the <a href="/privacy-policy/">privacy policy</a>.</p>
 
-<h2>Get In Touch</h2>
+<h2>A few things people ask</h2>
 
-<p>Have a question about a puzzle? Stuck on a particular technique? Found a bug? Or just want to share your Sudoku story with us? We read every message and respond as quickly as possible.</p>
+<h3>Where is my puzzle saved?</h3>
+<p>On this device, in the browser's local storage. The same browser can resume it. A different device cannot. There is no account.</p>
 
-<h3>What We Can Help With:</h3>
+<h3>Can I print a puzzle?</h3>
+<p>No. The puzzles are for playing on the site.</p>
 
-<ul>
-<li><strong>Puzzle Support</strong> - Questions about solving techniques or specific puzzles</li>
-<li><strong>Technical Issues</strong> - Problems with the website or game functionality</li>
-<li><strong>Content Suggestions</strong> - Ideas for new articles or features you'd like to see</li>
-<li><strong>Link Submissions</strong> - Suggest Sudoku resources for our Links page</li>
-<li><strong>General Feedback</strong> - Your thoughts on how we can improve</li>
-<li><strong>Partnerships</strong> - Collaboration or partnership inquiries</li>
-</ul>
+<h3>Where do the puzzles come from?</h3>
+<p>They are generated in your browser when you start a game. There is no database of stored puzzles. The daily puzzle is the same Not Easy grid for everyone on a given UTC date, because it is seeded from that date.</p>
 
-<hr />
+<h3>Is there an app?</h3>
+<p>There is no separate app in an app store. On a phone you can add the site to your home screen from the browser. The game, including a new puzzle and the daily, works offline after it has loaded once.</p>
 
-<h2>Send Us a Message</h2>
-
-<p><em>Note: Please include a valid email address so we can respond to your inquiry.</em></p>
-
-<div class="contact-form-notice" style="background: #f0f8ff; padding: 20px; border-left: 4px solid #45748C; margin: 20px 0;">
-    <p><strong>Contact:</strong> A message form is not set up on this site yet. You can reach us at: <strong>[YOUR-EMAIL@DOMAIN.COM]</strong></p>
-</div>
-
-<hr />
-
-<h2>Frequently Asked Questions</h2>
-
-<h3>How do I save my puzzle progress?</h3>
-<p>Your puzzle progress is automatically saved in your browser's local storage. As long as you use the same browser and device, you can return to your in-progress puzzles at any time.</p>
-
-<h3>Can I print Sudoku puzzles?</h3>
-<p>Currently, our puzzles are designed for online play only. We're working on adding a print-friendly feature in the future!</p>
-
-<h3>How often do you add new puzzles?</h3>
-<p>Our puzzle database contains thousands of unique puzzles across all difficulty levels. Each time you start a new game, you'll receive a different puzzle.</p>
-
-<h3>Do you offer Sudoku apps?</h3>
-<p>Our website is mobile-responsive and works great on phones and tablets. For dedicated mobile apps, check out our <a href="/links">Links page</a> which features the best Sudoku apps for iOS and Android.</p>
-
-<h3>Can I submit my own puzzles?</h3>
-<p>We love hearing from puzzle creators! Please reach out via the contact method above if you'd like to discuss puzzle submissions or collaborations.</p>
-
-<hr />
-
-<h2>Connect With Us</h2>
-
-<p>Stay updated on new articles, puzzle features, and Sudoku tips:</p>
-
-<ul>
-<li><strong>Browse Articles:</strong> Check out our <a href="/articles">Articles page</a> for solving strategies and guides</li>
-<li><strong>Explore Resources:</strong> Visit our <a href="/links">Links page</a> for Sudoku communities and tools</li>
-<li><strong>Learn More:</strong> Read our <a href="/about">About page</a> to learn about our passion for Sudoku</li>
-</ul>
-
-<hr />
-
-<h2>Response Time</h2>
-
-<p>We typically respond to inquiries within 24-48 hours during business days. For technical issues, please include:</p>
-
-<ul>
-<li>Your browser type and version</li>
-<li>Device type (desktop, mobile, tablet)</li>
-<li>A description of the issue and steps to reproduce it</li>
-<li>Any error messages you received</li>
-</ul>
-
-<p>The more details you provide, the faster we can help resolve your issue!</p>
-
-<hr />
-
-<p><em>We respect your privacy. Any information you provide will only be used to respond to your inquiry. See our <a href="/privacy-policy">Privacy Policy</a> for more details.</em></p>
+<h3>Where are the techniques?</h3>
+<p>The <a href="/techniques/">technique library</a> walks through each step the solver uses. The <a href="/articles/">articles</a> cover how to play, common mistakes, and a measurement of New York Times Medium and Hard.</p>

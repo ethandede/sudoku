@@ -8,6 +8,8 @@
     "build": "node scripts/build.mjs",
     "test:grader": "node scripts/test-grader.mjs",
     "test:progress": "node scripts/test-progress.mjs",
+    "test:contact": "node scripts/test-contact.mjs",
+    "test:mini": "node scripts/test-mini.mjs",
     "test:play": "node scripts/test-candidates.mjs"
   },
   "devDependencies": {

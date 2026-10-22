@@ -2,8 +2,8 @@
   <div class="sudoku-shell">
     <div class="play-column">
       <header class="game-intro">
-        <h1>Sudoku</h1>
-        <p class="supporting-text">A little puzzle-solving fun built with pure JavaScript—test your skills and try the harder levels when you're ready…with only 4 mistakes allowed when checking is on.</p>
+        <h1>SudokuSudoku</h1>
+        <p class="supporting-text">Free daily Sudoku with teaching hints. Six graded levels, a box map on the number pad, and notes, undo, and a four-mistake limit.</p>
       </header>
 
       <div class="difficulty-tabs" role="tablist" aria-label="Difficulty">
@@ -61,7 +61,7 @@
             <p id="hint-text" class="hint-text"></p>
             <div class="hint-actions">
               <button type="button" id="hint-next" class="primary-btn">Show why</button>
-              <a id="hint-learn" class="hint-learn" href="/techniques">Learn this technique →</a>
+              <a id="hint-learn" class="hint-learn" href="/techniques/">Learn this technique →</a>
             </div>
           </section>
         </div>
@@ -86,14 +86,7 @@
       </div>
     </div>
 
-    <aside class="ad-rail" aria-label="Advertisements">
-      <div class="ad-slot ad-skyscraper">Skyscraper Ad (160×600)</div>
-      <div class="ad-slot ad-square">Square Ad 1 (300×250)</div>
-      <div class="ad-slot ad-square">Square Ad 2 (300×250)</div>
-    </aside>
   </div>
-
-  <div class="ad-leaderboard ad-slot">Leaderboard Ad (728×90)</div>
 
   <div class="sudoku-copy">
     <h2>Sudoku, graded honestly.</h2>
@@ -103,6 +96,23 @@
     <!-- Link "Here's what actually makes a Sudoku hard" to /articles/what-makes-a-sudoku-hard/ once that page is published. -->
     <p>No account, no download. Just play.</p>
   </div>
+
+  <!--
+    Future in-content AdSense unit. Leave this commented out until a real unit exists.
+    It sits below the text block on purpose: that copy is the gap that keeps the unit
+    at least 150px from the board, the number pad, the difficulty tabs, and the menus.
+    Give the unit a reserved height (min-height: 280px) before enabling it so the
+    page does not shift. Do not render an empty placeholder box.
+
+    <div class="future-ad" style="min-height: 280px; margin-top: 1.5rem;">
+      <ins class="adsbygoogle"
+           style="display:block; min-height: 280px;"
+           data-ad-client="ca-pub-9345046210950956"
+           data-ad-slot="REPLACE_WITH_SLOT"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+    </div>
+  -->
 
   <div id="live-region" class="sr-only" aria-live="polite"></div>
 

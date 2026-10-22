@@ -852,7 +852,7 @@
       const step = hintView.step;
       kicker.textContent = step.name;
       learn.hidden = false;
-      learn.href = `/techniques/${step.slug}`;
+      learn.href = `/techniques/${step.slug}/`;
       if (hintView.stage === 1) {
         text.textContent = step.look;
         next.textContent = "Show why";
@@ -1498,9 +1498,9 @@
     if (api && hints.length) {
       const slug = api.hardest(hints);
       const name = api.nameOf(slug);
-      line.innerHTML = `You used ${api.article(name)} ${api.escapeHtml(name)} hint. <a href="/?train=${encodeURIComponent(slug)}">Practice it?</a> <a href="/skills">Skill ladder</a>`;
+      line.innerHTML = `You used ${api.article(name)} ${api.escapeHtml(name)} hint. <a href="/?train=${encodeURIComponent(slug)}">Practice it?</a> <a href="/skills/">Skill ladder</a>`;
     } else {
-      line.innerHTML = `<a href="/skills">Skill ladder</a>`;
+      line.innerHTML = `<a href="/skills/">Skill ladder</a>`;
     }
     line.hidden = false;
   }
@@ -1598,7 +1598,7 @@
       .join("");
     body.innerHTML = `<table class="stats-table"><thead><tr><th>Puzzle</th><th>Played</th><th>Won</th><th>Best</th><th>Average</th></tr></thead><tbody>${table}</tbody></table><p class="streak-line">Daily streak ${currentStreak()} · longest ${
       stats.daily.longestStreak || 0
-    }</p><p class="streak-line"><a href="/skills">Skill ladder</a></p>`;
+    }</p><p class="streak-line"><a href="/skills/">Skill ladder</a></p>`;
     showModal("stats-modal");
   }
 

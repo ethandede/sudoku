@@ -1,23 +1,9 @@
-# About Us - Content for About Page
+<!-- DRAFT for Ethan to edit. Written in his voice from the project brief. Change any line that is not how he wants to say it. Do not publish a "draft" banner on the page. -->
 
-## Our Passion for Sudoku
+I'm Ethan. I play the New York Times Sudoku every day. I built SudokuSudoku because I wanted that kind of puzzle together with three things I kept wishing the app had: a box map on the number pad, a difficulty grade that means what it says, and a hint that teaches the step instead of typing the digit for me.
 
-Sudoku is more than just a puzzle—it's a journey of logic, patience, and pure mental satisfaction. Every time you place that final number and complete a grid, there's an undeniable rush of accomplishment. That feeling is what drives us, and it's why we've dedicated ourselves to celebrating this incredible game.
+I have a ceiling. I can name techniques I still do not see when the puzzle is live. This site is for players in that spot, including me. The levels stop where the solver stops. The hints point at the cells and then say why. The skill ladder stays on the device and shows which of those steps I have actually used.
 
-We believe Sudoku represents the perfect balance between challenge and accessibility. Whether you're a complete beginner picking up your first puzzle or an experienced solver tackling expert-level grids, Sudoku offers something special. It doesn't require mathematical genius or special knowledge—just clear thinking, careful observation, and determination. This democratic nature of the game is what makes it so beautiful.
+Puzzles are generated in the browser. They are not pulled from a stored list. The daily puzzle is the same Not Easy grid for a UTC date. There is no account.
 
-## Why Sudoku Matters
-
-In our fast-paced, distraction-filled world, Sudoku offers something rare: a chance to slow down, focus deeply, and engage your mind in pure logical thinking. Each puzzle is a meditation, a mental workout, and a creative challenge rolled into one. We've seen firsthand how Sudoku sharpens problem-solving skills, improves concentration, and provides a deeply satisfying sense of progress and achievement.
-
-What started as a personal love for the game has grown into a mission to share that passion with others. We've spent countless hours solving puzzles, studying techniques, and exploring what makes certain Sudoku grids so elegantly challenging. Every puzzle we create and every guide we write comes from genuine enthusiasm for helping others experience the joy we've found in this timeless game.
-
-## Our Commitment
-
-This site exists because we believe everyone should have access to quality Sudoku resources—clear guides that actually teach techniques, thoughtfully designed puzzles, and a community that celebrates the art of logical deduction. We're not here to overwhelm you with flashy features or gimmicks. We're here to share the pure, simple pleasure of a well-crafted Sudoku puzzle.
-
-Whether you're solving your first puzzle or your ten-thousandth, we're thrilled to be part of your Sudoku journey. Every grid you complete, every technique you master, and every "aha!" moment you experience—that's what this is all about. Welcome to our community of passionate solvers.
-
----
-
-**Ready to dive in?** [Explore our articles](/articles) to learn new techniques, or jump straight into a puzzle and experience the satisfaction for yourself.
+If a technique page explains a step badly, or the game does something wrong, the [contact form](/contact/) is how to tell me.
