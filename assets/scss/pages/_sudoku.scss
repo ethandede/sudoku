@@ -1419,17 +1419,29 @@ button:disabled {
     max-width: 100%;
   }
 
+  // Pre-redesign desktop key: 220px column, three square keys, 0.4rem gaps.
   .controls {
-    flex: 0 0 clamp(280px, 28vw, 360px);
-    width: clamp(280px, 28vw, 360px);
+    flex: 0 0 auto;
+    width: calc(5 * (220px - 2 * 0.4rem) / 3 + 4 * 0.4rem);
     height: auto;
     align-self: center;
   }
 
   .pad-cluster {
     flex: 0 0 auto;
-    aspect-ratio: 5 / 2;
-    grid-template-rows: minmax(44px, 1fr) minmax(44px, 1fr);
+    width: 100%;
+    aspect-ratio: auto;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-rows: repeat(2, calc((220px - 2 * 0.4rem) / 3));
+    gap: 0.4rem;
+  }
+
+  .number-pad .pad-digit span {
+    font-size: clamp(1rem, 30cqi, 1.45rem);
+  }
+
+  .number-pad.map-off .pad-digit span {
+    font-size: 1.35rem;
   }
 
   .sudoku-copy {

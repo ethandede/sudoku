@@ -780,6 +780,90 @@ await check("the keypad fits every phone and grows into leftover space", async (
   await context.close();
 });
 
+await check("side-by-side keypad uses the pre-redesign square key size", async () => {
+  const { context, page } = await openPage({
+    viewport: { width: 1280, height: 800 },
+    deviceScaleFactor: 1,
+  });
+  async function measure() {
+    return page.evaluate(() => {
+      const root = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const expected = (220 - 2 * 0.4 * root) / 3;
+      const board = document.querySelector(".sudoku-grid").getBoundingClientRect();
+      const erase = document.querySelector("#erase-btn").getBoundingClientRect();
+      const aux = document.querySelector(".aux-row").getBoundingClientRect();
+      const keys = [...document.querySelectorAll("#number-pad button, #erase-btn")].map((el) => {
+        const rect = el.getBoundingClientRect();
+        return { width: rect.width, height: rect.height, top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right };
+      });
+      return {
+        expected,
+        keys,
+        board: { top: board.top, bottom: board.bottom, left: board.left, right: board.right, width: board.width },
+        eraseTop: erase.top,
+        boardBottom: board.bottom,
+        auxBottom: aux.bottom,
+        vh: window.innerHeight,
+        vw: window.innerWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        clientWidth: document.documentElement.clientWidth,
+        scrollHeight: document.documentElement.scrollHeight,
+        clientHeight: document.documentElement.clientHeight,
+      };
+    });
+  }
+  for (const [width, height] of [
+    [1280, 800],
+    [1440, 900],
+    [1024, 768],
+    [721, 768],
+  ]) {
+    await page.setViewportSize({ width, height });
+    const metrics = await measure();
+    const widths = metrics.keys.map((key) => key.width);
+    const heights = metrics.keys.map((key) => key.height);
+    assert(metrics.keys.length === 10, `${width} has 10 keys`);
+    assert(
+      Math.max(...widths) - Math.min(...widths) <= 1.5 && Math.max(...heights) - Math.min(...heights) <= 1.5,
+      `${width} keys differ ${Math.min(...widths)}–${Math.max(...widths)} by ${Math.min(...heights)}–${Math.max(...heights)}`
+    );
+    assert(
+      Math.abs(widths[0] - metrics.expected) <= 1.5 && Math.abs(heights[0] - metrics.expected) <= 1.5,
+      `${width} key is ${widths[0].toFixed(1)}×${heights[0].toFixed(1)}, expected ${metrics.expected.toFixed(1)}`
+    );
+    assert(Math.abs(widths[0] - heights[0]) <= 1.5, `${width} keys are square`);
+    const tops = [metrics.board.top, ...metrics.keys.map((key) => key.top)];
+    const bottoms = [metrics.board.bottom, ...metrics.keys.map((key) => key.bottom)];
+    const lefts = [metrics.board.left, ...metrics.keys.map((key) => key.left)];
+    const rights = [metrics.board.right, ...metrics.keys.map((key) => key.right)];
+    assert(Math.min(...tops) >= -1, `${width} top ${Math.min(...tops)} is on screen`);
+    assert(Math.max(...bottoms) <= metrics.vh + 1, `${width} bottom ${Math.max(...bottoms)} fits in ${metrics.vh}`);
+    assert(Math.min(...lefts) >= -1, `${width} left edge is on screen`);
+    assert(Math.max(...rights) <= metrics.vw + 1, `${width} right edge ${Math.max(...rights)} fits in ${metrics.vw}`);
+    assert(metrics.scrollWidth <= metrics.clientWidth + 1, `${width} has no horizontal scroll`);
+    assert(metrics.keys[0].left >= metrics.board.right - 2, `${width} keypad sits beside the board`);
+  }
+  await page.setViewportSize({ width: 720, height: 1280 });
+  const phone = await measure();
+  assert(phone.eraseTop >= phone.boardBottom - 2, "720px keeps the keypad under the board");
+  assert(Math.min(...phone.keys.map((key) => key.height)) >= 44, "720px keys stay at least 44px");
+  assert(
+    Math.min(...phone.keys.map((key) => key.height)) > phone.expected + 8,
+    "720px keys still grow with leftover height"
+  );
+  assert(phone.auxBottom <= phone.vh + 1, "720px controls fit");
+  assert(phone.vh - phone.auxBottom <= 16, `720px leaves ${phone.vh - phone.auxBottom}px under the controls`);
+  assert(phone.scrollWidth <= phone.clientWidth + 1, "720px has no horizontal scroll");
+  await leaveBoard(page);
+  await page.setViewportSize({ width: 1280, height: 800 });
+  const board = await boardOf(page);
+  const index = board.findIndex((value) => value === 0);
+  const cell = page.locator(".cell").nth(index);
+  await cell.hover();
+  assertEqual(await markDigits(page, index, "preview"), candidatesFor(board, index), "hover preview beside the full keypad");
+  await context.close();
+});
+
 server.close();
 await browser.close();
 
