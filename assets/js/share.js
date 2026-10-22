@@ -295,52 +295,67 @@
     ctx.closePath();
   }
 
+  function paletteHex(name, fallback) {
+    if (typeof document === "undefined") return fallback;
+    const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
+  }
+
+  function hexToRgba(hex, alpha) {
+    const match = /^#([0-9a-f]{6})$/i.exec(hex);
+    if (!match) return `rgba(12, 79, 134, ${alpha})`;
+    const value = Number.parseInt(match[1], 16);
+    return `rgba(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`;
+  }
+
   function paintCard(canvas, info) {
     const ctx = canvas.getContext("2d");
     const width = canvas.width;
     const height = canvas.height;
+    const accent = paletteHex("--accent-color", "#0c4f86");
+    const ink = "#1e232b";
     ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = "#f4f6f8";
     ctx.fillRect(0, 0, width, height);
-    ctx.fillStyle = "#0b5c86";
+    ctx.fillStyle = accent;
     ctx.fillRect(0, 0, width, 28);
 
-    ctx.fillStyle = "#1a1208";
+    ctx.fillStyle = ink;
     ctx.font = "700 64px 'Open Sans', 'Helvetica Neue', sans-serif";
     ctx.textAlign = "left";
     ctx.fillText("SudokuSudoku", 80, 160);
 
-    ctx.fillStyle = "#0b5c86";
+    ctx.fillStyle = accent;
     ctx.font = "700 46px 'Open Sans', 'Helvetica Neue', sans-serif";
     ctx.fillText(info.kindLabel || "Sudoku", 80, 240);
 
-    ctx.fillStyle = "#1a1208";
+    ctx.fillStyle = ink;
     ctx.font = "700 132px 'Open Sans', 'Helvetica Neue', sans-serif";
     ctx.fillText(info.time || "0:00", 80, 410);
 
     const hints = info.hints | 0;
     const mistakes = info.mistakes | 0;
-    ctx.fillStyle = "#5a6572";
+    ctx.fillStyle = "#5c6670";
     ctx.font = "600 36px 'Open Sans', 'Helvetica Neue', sans-serif";
     ctx.fillText(
       `${hints} ${hints === 1 ? "hint" : "hints"}  ·  ${mistakes} ${mistakes === 1 ? "mistake" : "mistakes"}`,
       80,
       480
     );
-    ctx.fillStyle = "#ef7d12";
+    ctx.fillStyle = accent;
     ctx.font = "700 40px 'Open Sans', 'Helvetica Neue', sans-serif";
     ctx.fillText(`✦ ${techniqueLabel(info.hardest)}`, 80, 550);
     let gridTop = 640;
     const badges = Array.isArray(info.badges) ? info.badges.filter(Boolean) : [];
     if (badges.length) {
-      ctx.fillStyle = "#0b5c86";
+      ctx.fillStyle = accent;
       ctx.font = "700 34px 'Open Sans', 'Helvetica Neue', sans-serif";
       const label = badges.length > 1 ? `Badges: ${badges.slice(0, 2).join(", ")}` : `Badge: ${badges[0]}`;
       ctx.fillText(label, 80, 620);
       gridTop = 700;
     }
     if (info.dateLine) {
-      ctx.fillStyle = "#5a6572";
+      ctx.fillStyle = "#5c6670";
       ctx.font = "600 32px 'Open Sans', 'Helvetica Neue', sans-serif";
       ctx.textAlign = "right";
       ctx.fillText(info.dateLine, width - 80, 160);
@@ -358,13 +373,13 @@
       if (!pattern[i]) continue;
       const col = i % 9;
       const row = Math.floor(i / 9);
-      ctx.fillStyle = (row + col) % 2 === 0 ? "rgba(11, 92, 134, 0.55)" : "rgba(239, 125, 18, 0.45)";
+      ctx.fillStyle = (row + col) % 2 === 0 ? hexToRgba(accent, 0.55) : hexToRgba(accent, 0.28);
       roundedRect(ctx, originX + col * cell + 8, originY + row * cell + 8, cell - 16, cell - 16, 10);
       ctx.fill();
     }
     ctx.restore();
 
-    ctx.strokeStyle = "rgba(26, 18, 8, 0.18)";
+    ctx.strokeStyle = "rgba(30, 35, 43, 0.18)";
     ctx.lineWidth = 2;
     for (let i = 0; i <= 9; i += 1) {
       ctx.beginPath();
@@ -376,7 +391,7 @@
       ctx.lineTo(originX + i * cell, originY + board);
       ctx.stroke();
     }
-    ctx.strokeStyle = "rgba(26, 18, 8, 0.72)";
+    ctx.strokeStyle = "rgba(30, 35, 43, 0.72)";
     ctx.lineWidth = 6;
     ctx.strokeRect(originX, originY, board, board);
     for (const at of [3, 6]) {
@@ -390,7 +405,7 @@
       ctx.stroke();
     }
 
-    ctx.fillStyle = "#0b5c86";
+    ctx.fillStyle = accent;
     ctx.font = "700 32px 'Open Sans', 'Helvetica Neue', sans-serif";
     ctx.textAlign = "left";
     ctx.fillText("sudokusudoku.com", 80, height - 72);
