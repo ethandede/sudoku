@@ -23,8 +23,10 @@
 //      TURNSTILE_SECRET_KEY
 //      CONTACT_TO          verified destination address
 //      CONTACT_FROM        optional, plain address on the onboarded domain
-// 5. Pages project > Settings > Bindings > Add > Send Email (Email Service).
-//    Variable name: EMAIL. Redeploy so the binding is attached.
+// 5. Pages project > Settings > Bindings > Service binding. Variable name: EMAIL.
+//    Service: sudokusudoku-mailer. Entrypoint: Mailer.
+//    Pages Functions cannot hold a send_email binding, so EMAIL.send is an RPC
+//    to that worker. Redeploy so the binding is attached.
 // 6. www to the apex is a Cloudflare redirect rule, not a Pages _redirects entry.
 //
 // Until those are set, GET /api/contact returns ready:false and the page tells

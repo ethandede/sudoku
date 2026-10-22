@@ -38,7 +38,7 @@ After the first deploy, attach the custom domain `sudokusudoku.com` (and `www`) 
    - `TURNSTILE_SECRET_KEY`
    - `CONTACT_TO` (the verified destination)
    - `CONTACT_FROM` (optional plain address on the onboarded domain)
-5. Pages project > Settings > Bindings > Add > Send Email. Variable name: `EMAIL`. Redeploy so the binding attaches.
+5. Pages project > Settings > Bindings > Service binding. Variable name: `EMAIL`. Service: `sudokusudoku-mailer`, entrypoint `Mailer`. Pages Functions cannot hold a send_email binding. The worker's `send({to, from, replyTo, subject, text})` RPC forwards to Email Sending. Redeploy so the binding attaches.
 
 There is no `wrangler.toml`. The build command and output directory stay as they are in the Pages project.
 

@@ -20,6 +20,23 @@ assert.equal(
   }),
   true
 );
+assert.equal(
+  contactReady({
+    TURNSTILE_SITE_KEY: "site",
+    TURNSTILE_SECRET_KEY: "secret",
+    CONTACT_TO: "owner@example.com",
+    EMAIL: {},
+  }),
+  true
+);
+assert.equal(
+  contactReady({
+    TURNSTILE_SITE_KEY: "site",
+    TURNSTILE_SECRET_KEY: "secret",
+    CONTACT_TO: "owner@example.com",
+  }),
+  false
+);
 
 function post(body) {
   return new Request("https://sudokusudoku.com/api/contact", {

@@ -82,7 +82,7 @@
             <input type="checkbox" id="auto-candidates">
             Auto-candidates
           </label>
-          <p class="key-help">Keys: 1–9 enter a number, N toggles notes, arrows move, Backspace erases.</p>
+          <p class="key-help">Keys: 1–9 enter a number, N toggles notes, arrows move, Backspace erases. Hover an empty square to preview its candidates.</p>
         </div>
       </div>
     </div>
@@ -90,18 +90,12 @@
   </div>
 
   <div class="sudoku-copy">
-    <h2>How this Sudoku works</h2>
-    <p>The board is nine rows, nine columns, and nine 3×3 boxes. Fill every empty cell so each row, column, and box contains 1 through 9 once. You do not add anything. The digits are labels, and each puzzle here has one solution.</p>
-    <h3>Controls</h3>
-    <p>Tap a cell, then a digit, or use the number keys. Normal mode writes the digit. Notes mode, or the N key, writes a small candidate. Erase clears the cell. Undo steps back, including notes. Pause covers the board and stops the timer. Auto-candidates fills the digits a cell has not ruled out. The More menu checks or reveals a cell or the whole puzzle. Settings holds the theme, the box map, mistake checking, and vibration. With checking on, a wrong digit is a mistake, and four mistakes end the puzzle. A hint takes three taps: the technique, the cells, then the placement or the candidates to cross out. It sits between the board and the pad. A hint still counts on your stats.</p>
-    <h3>The box map on the number pad</h3>
-    <p>Each digit button is split into nine segments, one per box, in the same arrangement as the grid. A segment fills when that box already contains the digit. If the top-right segment on the 7 is filled, the top-right box already has a 7. Turn the map off in Settings if you want the buttons plain.</p>
-    <h3>How the six levels are graded</h3>
-    <p>Puzzles are generated in the browser and graded by the same solver that writes the hints. The level is the hardest step the solve needs.</p>
-    <p>Quick leaves 40 to 45 givens and uses singles only. A hidden single, when one appears, is inside a box. Most Quick puzzles are naked singles. Easy leaves 36 to 38 givens, usually 38. It is still singles only, and a hidden single may be in a row or column. There are no pairs. Not Easy needs pointing or claiming. It aims for 23 to 25 givens, inside 22 to 27, with at most three steps that are not singles and a few spots where only one placement is legal. Hard needs a naked pair, a hidden pair, or a triple, and at least four steps that are not singles. Expert needs a quad, an X-wing, an XY-wing, or a swordfish. Mental needs coloring or an XY-chain.</p>
-    <h3>The daily puzzle</h3>
-    <p>Daily is that Not Easy puzzle, the same one for a UTC date. The seed is <code>daily:YYYY-MM-DD</code>, and it changes at midnight UTC. Open it from the Daily tab. Once the game has loaded, a new puzzle and the daily both work offline. Anonymous medians and solve rates are on the <a href="/stats/">stats page</a>.</p>
-    <p>The <a href="/techniques/">technique library</a> shows each step on a board from this solver. <a href="/articles/nyt-medium-vs-hard/">Why NYT Medium sometimes feels harder than Hard</a> is the measurement those Not Easy and Hard targets come from.</p>
+    <h2>Sudoku, graded honestly.</h2>
+    <p>I play Sudoku almost every day, and I still get stuck. So I built the site I wanted. Every puzzle here is solved one move at a time, the way you'd do it, and the hardest move sets the level. Not the number of clues.</p>
+    <p>Start with <a href="/?difficulty=easy">Easy</a> if you're new, or jump into <a href="/?difficulty=not-easy">Not Easy</a>, which plays a lot like the NYT Medium. Try the <a href="/?daily">daily puzzle</a> if you want the same grid as everyone else today.</p>
+    <p>Stuck? The hint won't just fill in a number. It points at the move, names it, and links to the <a href="/techniques/">technique</a> behind it. Curious why some puzzles feel harder than they should? Here's what actually makes a Sudoku hard.</p>
+    <!-- Link "Here's what actually makes a Sudoku hard" to /articles/what-makes-a-sudoku-hard/ once that page is published. -->
+    <p>No account, no download. Just play.</p>
   </div>
 
   <!--
