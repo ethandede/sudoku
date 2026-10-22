@@ -35,18 +35,33 @@ function shellPath(pathname) {
   return pathname;
 }
 
+function inShell(url) {
+  const path = shellPath(url.pathname);
+  const requestUrl = `${url.pathname}${url.search}`;
+  const mappedUrl = `${path}${url.search}`;
+  if (SHELL.includes(requestUrl) || SHELL.includes(mappedUrl) || SHELL.includes(path) || SHELL.includes(url.pathname)) {
+    return true;
+  }
+  return SHELL.some((entry) => entry.split("?")[0] === path || entry.split("?")[0] === url.pathname);
+}
+
 async function shellFirst(request) {
   const cache = await caches.open(SHELL_CACHE);
   const url = new URL(request.url);
   const path = shellPath(url.pathname);
-  const cached = (await cache.match(path)) || (await cache.match(request, { ignoreSearch: true }));
+  const versioned = `${path}${url.search}`;
+  const cached = (await cache.match(request)) || (await cache.match(versioned)) || (url.search ? null : await cache.match(path));
   if (cached) return cached;
   try {
     const response = await fetch(request);
-    if (response && response.ok) cache.put(path, response.clone());
+    if (response && response.ok) cache.put(request, response.clone());
     return response;
   } catch {
-    return (await cache.match("/offline.html")) || Response.error();
+    return (
+      (await cache.match(request, { ignoreSearch: true })) ||
+      (await cache.match("/offline.html")) ||
+      Response.error()
+    );
   }
 }
 
@@ -76,7 +91,7 @@ self.addEventListener("fetch", (event) => {
   if (!sameOrigin(url)) return;
 
   const path = shellPath(url.pathname);
-  const precached = SHELL.includes(path) || SHELL.includes(url.pathname);
+  const precached = inShell(url);
   if (request.mode === "navigate" && (path === "/" || url.pathname === "/index.html")) {
     event.respondWith(shellFirst(request));
     return;

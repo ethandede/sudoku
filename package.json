@@ -13,6 +13,7 @@
     "test:stats": "node scripts/test-stats.mjs",
     "test:articles": "node scripts/test-articles.mjs",
     "test:share": "node scripts/test-share.mjs",
+    "test:cache": "node scripts/test-cache-bust.mjs",
     "test:play": "node scripts/test-candidates.mjs"
   },
   "devDependencies": {
