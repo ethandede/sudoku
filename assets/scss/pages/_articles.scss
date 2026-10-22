@@ -4,7 +4,7 @@
 // Articles List Page
 .articles-page {
   padding: 4rem 0;
-  background: #f8f9fa;
+  background: #f4f6f8;
 
   .container {
     max-width: 1200px;
@@ -139,7 +139,7 @@
 // Single Article Page
 .article-single-page {
   padding: 4rem 0;
-  background: #f8f9fa;
+  background: #f4f6f8;
 
   .container {
     max-width: 800px;
@@ -434,7 +434,7 @@
 }
 
 .compare-track {
-  background: #ece7df;
+  background: #e4e9ef;
   border-radius: 999px;
   overflow: hidden;
   min-height: 1.7rem;
@@ -498,7 +498,7 @@
 .author-box {
   margin-top: 2.5rem;
   padding: 1.15rem 1.15rem 0.15rem;
-  background: #f6f3ee;
+  background: #eef1f5;
   border-radius: 8px;
 
   p {
@@ -553,10 +553,10 @@
 
 .puzzle-grid,
 .puzzle-strip-cells {
-  --grid-line: #d5cfc6;
-  --grid-thick: #1a1208;
+  --grid-line: #d3d9e0;
+  --grid-thick: #1c2430;
   background: #fff;
-  color: #1a1208;
+  color: #1c2430;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -664,43 +664,43 @@
 
 html[data-theme="dark"] {
   .compare-track {
-    background: #332f3a;
+    background: #383e46;
   }
 
   .article-body table th,
   .article-body table td {
-    border-bottom-color: #5c5666;
+    border-bottom-color: #4c545e;
   }
 
   .article-byline,
   .article-byline time,
   .related-articles p {
-    color: #e6e0d6;
+    color: #d5dbe3;
   }
 
   .author-box {
-    background: #1c1a22;
+    background: #2a2f36;
   }
 
   .author-box-name a {
-    color: #f4efe6;
+    color: #e8ebef;
   }
 
   .puzzle-grid,
   .puzzle-strip-cells {
-    --grid-line: #5c5666;
-    --grid-thick: #f4efe6;
-    background: #1c1a22;
-    color: #f4efe6;
+    --grid-line: #4c545e;
+    --grid-thick: #e8ebef;
+    background: #2a2f36;
+    color: #e8ebef;
   }
 
   .puzzle-strip-label {
-    color: #f4efe6;
+    color: #e8ebef;
   }
 
   .article-body code,
   .article-body pre {
-    background: #1c1a22;
-    color: #f4efe6;
+    background: #2a2f36;
+    color: #e8ebef;
   }
 }

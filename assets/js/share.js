@@ -300,9 +300,9 @@
     const width = canvas.width;
     const height = canvas.height;
     ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = "#f7f4ef";
+    ctx.fillStyle = "#f4f6f8";
     ctx.fillRect(0, 0, width, height);
-    ctx.fillStyle = "#1d5c78";
+    ctx.fillStyle = "#0b5c86";
     ctx.fillRect(0, 0, width, 28);
 
     ctx.fillStyle = "#1a1208";
@@ -310,7 +310,7 @@
     ctx.textAlign = "left";
     ctx.fillText("SudokuSudoku", 80, 160);
 
-    ctx.fillStyle = "#1d5c78";
+    ctx.fillStyle = "#0b5c86";
     ctx.font = "700 46px 'Open Sans', 'Helvetica Neue', sans-serif";
     ctx.fillText(info.kindLabel || "Sudoku", 80, 240);
 
@@ -320,7 +320,7 @@
 
     const hints = info.hints | 0;
     const mistakes = info.mistakes | 0;
-    ctx.fillStyle = "#5c564c";
+    ctx.fillStyle = "#5a6572";
     ctx.font = "600 36px 'Open Sans', 'Helvetica Neue', sans-serif";
     ctx.fillText(
       `${hints} ${hints === 1 ? "hint" : "hints"}  ·  ${mistakes} ${mistakes === 1 ? "mistake" : "mistakes"}`,
@@ -333,14 +333,14 @@
     let gridTop = 640;
     const badges = Array.isArray(info.badges) ? info.badges.filter(Boolean) : [];
     if (badges.length) {
-      ctx.fillStyle = "#1d5c78";
+      ctx.fillStyle = "#0b5c86";
       ctx.font = "700 34px 'Open Sans', 'Helvetica Neue', sans-serif";
       const label = badges.length > 1 ? `Badges: ${badges.slice(0, 2).join(", ")}` : `Badge: ${badges[0]}`;
       ctx.fillText(label, 80, 620);
       gridTop = 700;
     }
     if (info.dateLine) {
-      ctx.fillStyle = "#5c564c";
+      ctx.fillStyle = "#5a6572";
       ctx.font = "600 32px 'Open Sans', 'Helvetica Neue', sans-serif";
       ctx.textAlign = "right";
       ctx.fillText(info.dateLine, width - 80, 160);
@@ -358,7 +358,7 @@
       if (!pattern[i]) continue;
       const col = i % 9;
       const row = Math.floor(i / 9);
-      ctx.fillStyle = (row + col) % 2 === 0 ? "rgba(29, 92, 120, 0.55)" : "rgba(239, 125, 18, 0.45)";
+      ctx.fillStyle = (row + col) % 2 === 0 ? "rgba(11, 92, 134, 0.55)" : "rgba(239, 125, 18, 0.45)";
       roundedRect(ctx, originX + col * cell + 8, originY + row * cell + 8, cell - 16, cell - 16, 10);
       ctx.fill();
     }
@@ -390,7 +390,7 @@
       ctx.stroke();
     }
 
-    ctx.fillStyle = "#1d5c78";
+    ctx.fillStyle = "#0b5c86";
     ctx.font = "700 32px 'Open Sans', 'Helvetica Neue', sans-serif";
     ctx.textAlign = "left";
     ctx.fillText("sudokusudoku.com", 80, height - 72);

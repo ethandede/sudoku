@@ -2,30 +2,35 @@
 .technique-page {
   --board-bg: #fff;
   --cell-bg: #fff;
-  --given-bg: #ece7df;
-  --ink: #1a1a1a;
-  --user-ink: #1d5c78;
-  --line: #1c1a22;
-  --thin: #d9d3c8;
+  --given-bg: #e4e9ef;
+  --ink: #2a313c;
+  --user-ink: #0b5c86;
+  --line: #1c2430;
+  --thin: #d3d9e0;
   --selected: #ef7d12;
   --selected-ink: #1a1208;
   --same: #f6b15a;
-  --peer: color-mix(in srgb, var(--selected) 24%, var(--cell-bg));
-  --given-peer: color-mix(in srgb, var(--selected) 24%, var(--given-bg));
-  --hover: #e7dccb;
-  --slash: #d01212;
-  --dot: #d01212;
-  --pad: #f6f3ee;
-  --pad-ink: #1c1a22;
-  --pad-border: #d9d3c8;
-  --map-empty: rgba(28, 26, 34, 0.1);
-  --map-fill: #b7d4e4;
-  --muted: #5e584e;
+  --peer: color-mix(in srgb, var(--selected) 16%, var(--cell-bg));
+  --given-peer: color-mix(in srgb, var(--selected) 16%, var(--given-bg));
+  --hover: #e7edf3;
+  --slash: #c41616;
+  --slash-on-selected: #5c0c14;
+  --dot: #c41616;
+  --pad: #eef1f5;
+  --pad-ink: #1c2430;
+  --pad-border: #d3d9e0;
+  --map-empty: rgba(28, 36, 48, 0.12);
+  --map-fill: #9ec5d8;
+  --muted: #5a6572;
+  --auto-ink: #5a6572;
+  --note-ink: #0b5c86;
+  --auto-on-selected: #3a2818;
+  --note-on-selected: #083048;
   --card: #fff;
-  --page: #f7f4ef;
-  --accent-btn: #1f4d63;
-  --focus: #1d5c78;
-  --danger: #d01212;
+  --page: #f4f6f8;
+  --accent-btn: #0b5c86;
+  --focus: #0b5c86;
+  --danger: #c41616;
   --hint-pattern: #0b6e5f;
   --hint-eliminate: #b42318;
   --hint-place: #0b6e5f;
@@ -45,37 +50,42 @@
 
 html[data-theme="dark"] .sudoku-page,
 html[data-theme="dark"] .technique-page {
-  --board-bg: #1b1920;
-  --cell-bg: #26232c;
-  --given-bg: #332f3a;
-  --ink: #f4efe6;
-  --user-ink: #9ad7ea;
-  --line: #f4efe6;
-  --thin: #5c5666;
-  --selected: #e07a1f;
+  --board-bg: #22262c;
+  --cell-bg: #2a2f36;
+  --given-bg: #383e46;
+  --ink: #e8ebef;
+  --user-ink: #8fd4f5;
+  --line: #e8ebef;
+  --thin: #4c545e;
+  --selected: #ef7d12;
   --selected-ink: #1a1208;
-  --same: #c46a1a;
-  --peer: color-mix(in srgb, var(--selected) 22%, var(--cell-bg));
-  --given-peer: color-mix(in srgb, var(--selected) 22%, var(--given-bg));
-  --hover: #4a433a;
-  --slash: #ff5c5c;
-  --dot: #ff5c5c;
-  --pad: #26232c;
-  --pad-ink: #f4efe6;
-  --pad-border: #5c5666;
-  --map-empty: rgba(244, 239, 230, 0.14);
-  --map-fill: #3f7388;
-  --muted: #c8c0b4;
-  --card: #241f2a;
-  --page: #141218;
-  --accent-btn: #8ec8dc;
-  --focus: #f4efe6;
-  --danger: #ff5c5c;
+  --same: #e8a24a;
+  --peer: color-mix(in srgb, var(--selected) 16%, var(--cell-bg));
+  --given-peer: color-mix(in srgb, var(--selected) 16%, var(--given-bg));
+  --hover: #3a414a;
+  --slash: #ff9a9a;
+  --slash-on-selected: #5c0c14;
+  --dot: #ff9a9a;
+  --pad: #323840;
+  --pad-ink: #e8ebef;
+  --pad-border: #4c545e;
+  --map-empty: rgba(232, 235, 239, 0.16);
+  --map-fill: #3d6f86;
+  --muted: #b7c3ce;
+  --auto-ink: #b7c3ce;
+  --note-ink: #8fd4f5;
+  --auto-on-selected: #3a2818;
+  --note-on-selected: #083048;
+  --card: #2a2f36;
+  --page: #1c1f24;
+  --accent-btn: #8fd4f5;
+  --focus: #e8ebef;
+  --danger: #ff9a9a;
   --hint-pattern: #7ddec8;
   --hint-eliminate: #ff8b80;
   --hint-place: #7ddec8;
   --hint-place-bg: #1a3c34;
-  --hint-region: #24312e;
+  --hint-region: #1e3330;
 }
 
 .sudoku-shell {
@@ -98,11 +108,11 @@ html[data-theme="dark"] .technique-page {
 }
 
 body:has(.sudoku-page) {
-  background: #f7f4ef;
+  background: #f4f6f8;
 }
 
 html[data-theme="dark"] body:has(.sudoku-page) {
-  background: #141218;
+  background: #1c1f24;
 }
 
 body:has(.sudoku-page) .site-header {
@@ -556,6 +566,11 @@ html[data-theme="dark"] .difficulty-tabs button[aria-selected="true"] {
     color: var(--slash);
   }
 
+  &.selected.wrong,
+  &.given.selected.wrong {
+    color: var(--slash-on-selected);
+  }
+
   &.wrong::after {
     content: "";
     position: absolute;
@@ -606,45 +621,60 @@ html[data-theme="dark"] .difficulty-tabs button[aria-selected="true"] {
     visibility: hidden;
   }
 
+  span.user-note {
+    overflow: visible;
+  }
+
   span.on {
     visibility: visible;
   }
 
-  span.preview,
   span.auto {
-    color: var(--user-ink);
-    opacity: 0.9;
+    color: var(--auto-ink);
+    font-weight: 500;
+    font-style: normal;
+    text-decoration: none;
+    opacity: 1;
   }
 
   span.user-note {
+    color: var(--note-ink);
+    font-weight: 800;
+    font-style: normal;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0;
     opacity: 1;
-    color: var(--ink);
-    font-weight: 700;
   }
 }
 
 .cell.selected .marks {
-  span.preview,
-  span.auto,
-  span.user-note {
-    color: var(--selected-ink);
+  span.auto {
+    color: var(--auto-on-selected);
+    font-weight: 500;
+    text-decoration: none;
+    opacity: 1;
   }
 
-  span.preview,
-  span.auto {
-    opacity: 0.94;
+  span.user-note {
+    color: var(--note-on-selected);
+    font-weight: 800;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0;
+    opacity: 1;
   }
 
   span.hint-note {
     visibility: visible;
-    color: var(--ink);
+    color: var(--selected-ink);
     font-weight: 800;
     opacity: 1;
   }
 
   span.struck {
     visibility: visible;
-    color: var(--slash);
+    color: var(--slash-on-selected);
     font-weight: 800;
     opacity: 1;
     text-decoration: line-through;
@@ -1023,7 +1053,7 @@ kbd {
   font-weight: 800;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: var(--user-ink, #1d5c78);
+  color: var(--user-ink, #0b5c86);
 }
 
 .technique-controls {
@@ -1037,9 +1067,9 @@ kbd {
     font-size: 1.05rem;
     font-weight: 800;
     border-radius: 0.6rem;
-    border: 1px solid var(--pad-border, #d9d3c8);
-    background: var(--pad, #f6f3ee);
-    color: var(--pad-ink, #1c1a22);
+    border: 1px solid var(--pad-border, #d3d9e0);
+    background: var(--pad, #eef1f5);
+    color: var(--pad-ink, #1c2430);
     touch-action: manipulation;
     cursor: pointer;
   }
@@ -1061,7 +1091,7 @@ kbd {
   min-height: 48px;
   padding: 0 1rem;
   border-radius: 0.6rem;
-  background: var(--accent-btn, #1f4d63);
+  background: var(--accent-btn, #0b5c86);
   color: #fff;
   text-decoration: none;
 }
@@ -1528,11 +1558,11 @@ button:disabled {
 }
 
 @mixin standalone-app {
-  background: #f7f4ef;
+  background: #f4f6f8;
   overscroll-behavior: none;
 
   body {
-    background: #f7f4ef;
+    background: #f4f6f8;
     overscroll-behavior: none;
     padding-top: env(safe-area-inset-top);
     padding-right: env(safe-area-inset-right);
@@ -1541,10 +1571,10 @@ button:disabled {
   }
 
   &[data-theme="dark"] {
-    background: #141218;
+    background: #1c1f24;
 
     body {
-      background: #141218;
+      background: #1c1f24;
     }
   }
 

@@ -48,7 +48,7 @@
     }
   }
 
-  const THEME_COLORS = { light: "#f7f4ef", dark: "#141218" };
+  const THEME_COLORS = { light: "#f4f6f8", dark: "#1c1f24" };
 
   function applyDocumentTheme(theme) {
     const dark =
@@ -174,10 +174,6 @@
   let generation = 0;
   let busy = false;
   let hintView = null;
-  let hoverIndex = null;
-  let finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-  let touchAt = 0;
-  let keyboardNav = false;
 
   applyTheme();
   buildGrid();
@@ -392,25 +388,6 @@
         button.setAttribute("aria-rowindex", String(row + 1));
         button.setAttribute("aria-colindex", String(col + 1));
         button.addEventListener("click", () => select(index, false));
-        button.addEventListener("pointerdown", (event) => {
-          if (event.pointerType && event.pointerType !== "mouse") {
-            finePointer = false;
-            keyboardNav = false;
-            touchAt = Date.now();
-            hoverIndex = null;
-            return;
-          }
-          if (Date.now() - touchAt < 700) return;
-          finePointer = true;
-          keyboardNav = false;
-        });
-        button.addEventListener("pointerenter", (event) => {
-          if (event.pointerType !== "mouse") return;
-          setHover(index);
-        });
-        button.addEventListener("pointerleave", () => {
-          if (hoverIndex === index) setHover(null);
-        });
         rowEl.appendChild(button);
         cells.push(button);
       }
@@ -1235,22 +1212,6 @@
     return found;
   }
 
-  function setHover(index) {
-    if (hoverIndex === index) return;
-    hoverIndex = index;
-    render();
-  }
-
-  // Possible digits are a preview: under the pointer, on the selected cell
-  // when there is no hover (touch) or when the player is moving with the keyboard.
-  // Manual notes stay a separate mark and are not written by the preview.
-  function wantsPreview(index) {
-    if (state.board[index] !== 0) return false;
-    if (index === hoverIndex && finePointer) return true;
-    if (index !== state.selected) return false;
-    return !finePointer || keyboardNav;
-  }
-
   function conflictDots() {
     const dots = new Set();
     if (settings.highlightConflicts) {
@@ -1349,7 +1310,7 @@
         const marks = document.createElement("span");
         marks.className = "marks";
         marks.setAttribute("aria-hidden", "true");
-        const computed = state.auto || wantsPreview(index) ? candidatesFor(index) : null;
+        const computed = state.auto ? candidatesFor(index) : null;
         const ghost = hint && hint.stage === 2 ? hintCandidates.get(index) : null;
         const struck = hint && hint.stage === 2 ? hintStruck.get(index) : null;
         for (let number = 1; number <= 9; number += 1) {
@@ -1359,7 +1320,7 @@
           if (struck && struck.has(number)) mark.classList.add("on", "struck");
           else if (ghost && ghost.has(number)) mark.classList.add("on", "hint-note");
           else if (state.notes[index].has(number)) mark.classList.add("on", "user-note");
-          else if (computed && computed.has(number)) mark.classList.add("on", state.auto ? "auto" : "preview");
+          else if (computed && computed.has(number)) mark.classList.add("on", "auto");
           marks.appendChild(mark);
         }
         cell.appendChild(marks);
@@ -1440,7 +1401,7 @@
       const notes = [...state.notes[index]].sort((a, b) => a - b);
       text += ", empty";
       if (notes.length) text += `, notes ${notes.join(", ")}`;
-      if (state.auto || wantsPreview(index)) {
+      if (state.auto) {
         const candidates = [...candidatesFor(index)].filter((number) => !notes.includes(number));
         if (candidates.length) text += `, candidates ${candidates.join(", ")}`;
       }
@@ -1561,7 +1522,6 @@
       erase(state.selected);
       return;
     }
-    if (event.key === "Tab") keyboardNav = true;
     const arrows = { ArrowUp: -9, ArrowDown: 9, ArrowLeft: -1, ArrowRight: 1 };
     if (event.key in arrows) {
       event.preventDefault();
@@ -1574,7 +1534,6 @@
       if (event.key === "ArrowUp" && row === 0) return;
       if (event.key === "ArrowDown" && row === 8) return;
       if (next < 0 || next > 80) return;
-      keyboardNav = true;
       select(next, true);
     }
   }
@@ -1840,7 +1799,7 @@
   function paintConfetti() {
     const host = document.querySelector("#solved-modal .confetti");
     host.replaceChildren();
-    const colors = ["#ef7d12", "#1d5c78", "#bf3978", "#f4efe6", "#2f9e44"];
+    const colors = ["#ef7d12", "#0b5c86", "#bf3978", "#e8ebef", "#2f9e44"];
     for (let i = 0; i < 18; i += 1) {
       const piece = document.createElement("span");
       piece.style.left = `${6 + Math.random() * 88}%`;
