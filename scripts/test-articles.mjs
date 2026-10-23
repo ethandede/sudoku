@@ -18,6 +18,7 @@ import {
 const schedule = {
   "what-makes-a-sudoku-hard": "2026-10-28",
   "history-of-sudoku": "2026-10-28",
+  "sudoku-on-your-phone": "2026-10-30",
   "sudoku-variants": "2026-11-04",
   "why-ai-is-bad-at-sudoku": "2026-11-04",
   "does-sudoku-keep-your-brain-sharp": "2026-11-11",
@@ -45,16 +46,27 @@ function live(today) {
 assert.deepEqual(live("2026-10-21"), []);
 assert.deepEqual(live("2026-10-27"), []);
 assert.deepEqual(live("2026-10-28"), ["what-makes-a-sudoku-hard", "history-of-sudoku"]);
-assert.deepEqual(live("2026-11-03"), ["what-makes-a-sudoku-hard", "history-of-sudoku"]);
+assert.deepEqual(live("2026-10-30"), [
+  "what-makes-a-sudoku-hard",
+  "history-of-sudoku",
+  "sudoku-on-your-phone",
+]);
+assert.deepEqual(live("2026-11-03"), [
+  "what-makes-a-sudoku-hard",
+  "history-of-sudoku",
+  "sudoku-on-your-phone",
+]);
 assert.deepEqual(live("2026-11-04"), [
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
+  "sudoku-on-your-phone",
   "sudoku-variants",
   "why-ai-is-bad-at-sudoku",
 ]);
 const beforeFewest = [
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
+  "sudoku-on-your-phone",
   "sudoku-variants",
   "why-ai-is-bad-at-sudoku",
   "does-sudoku-keep-your-brain-sharp",
@@ -65,6 +77,27 @@ assert.deepEqual(live("2026-11-17"), beforeFewest);
 assert.deepEqual(live("2026-11-18"), Object.keys(schedule));
 assert.equal(isPublished("", "2026-10-21"), true);
 assert.equal(formatPublishDate("2026-10-28"), "October 28, 2026");
+assert.equal(formatPublishDate("2026-10-30"), "October 30, 2026");
+
+const phone = prepareArticle(readArticle("sudoku-on-your-phone"));
+assert.equal(phone.content.includes("—"), false);
+assert.equal(phone.content.includes("–"), false);
+assert.equal(phone.content.includes("```"), false);
+assert.equal(phone.content.includes("By Ethan"), false);
+assert.equal((phone.content.match(/class="puzzle-grid"/g) || []).length, 1);
+assert.equal((phone.content.match(/class="puzzle-cell/g) || []).length, 81);
+assert.match(phone.content, /`642\.395\.17\.3\.2\.9/);
+const phoneHtml = marked.parse(phone.content);
+assert.equal(phoneHtml.includes("—"), false);
+assert.equal(phoneHtml.includes("–"), false);
+assert.equal(phoneHtml.includes('href="/?daily"'), true);
+assert.equal(phoneHtml.includes('href="/?difficulty=hard"'), true);
+assert.equal(phoneHtml.includes('href="/articles/how-to-use-sudoku-notes/"'), true);
+assert.deepEqual(phone.relatedSlugs, [
+  "how-to-use-sudoku-notes",
+  "how-to-solve-a-hard-sudoku",
+  "what-to-do-when-stuck",
+]);
 assert.equal(formatPublishDate("2026-11-04"), "November 4, 2026");
 assert.equal(formatPublishDate("2026-11-18"), "November 18, 2026");
 
@@ -224,6 +257,8 @@ assert.match(build, /"404.html"[\s\S]*?ads: false/);
 assert.match(build, /SudokuSudoku\. All rights reserved\./);
 assert.equal(build.includes("Sudoku Online"), false);
 assert.match(build, /articles\/fewest-and-most-sudoku-clues\.md/);
+assert.match(build, /articles\/sudoku-on-your-phone\.md/);
+assert.match(build, /FORTHCOMING_ARTICLES/);
 
 const techniqueSlugs = new Set(techniques.map((technique) => technique.slug));
 const articleSlugs = new Set([
@@ -265,17 +300,27 @@ function redirectsFrom(text) {
 
 const redirectMap = redirectsFrom(redirects);
 
+const FORTHCOMING = new Set([
+  "how-to-solve-a-hard-sudoku",
+  "what-to-do-when-stuck",
+  "how-to-use-sudoku-notes",
+  "sudoku-on-your-phone",
+]);
+
 function routeExists(path, search) {
   if (path === "/" && search.has("daily") && search.size === 1) return true;
   if (path === "/" && search.has("difficulty") && search.size === 1) {
     return difficulties.has(search.get("difficulty"));
+  }
+  if (path === "/" && search.has("practice") && search.size === 1) {
+    return techniqueSlugs.has(search.get("practice"));
   }
   if (search.size > 0) return false;
   if (staticPaths.has(path)) return true;
   const technique = path.match(/^\/techniques\/([a-z0-9-]+)\/$/);
   if (technique) return techniqueSlugs.has(technique[1]);
   const article = path.match(/^\/articles\/([a-z0-9-]+)\/$/);
-  if (article) return articleSlugs.has(article[1]);
+  if (article) return articleSlugs.has(article[1]) || FORTHCOMING.has(article[1]);
   return false;
 }
 
