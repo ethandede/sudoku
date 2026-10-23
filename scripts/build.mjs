@@ -1104,6 +1104,7 @@ publish(
     description:
       "A technique ladder stored on this device: what you have solved, what to train next, and badges from finished puzzles.",
     canonical: `${SITE}/skills/`,
+    robots: "noindex, follow",
     skills: true,
     main: `<main id="skills" class="skills-page">
   <div class="skills-wrap">
@@ -1120,8 +1121,7 @@ publish(
     ${houseSlot("skills", "/skills/")}
   </div>
 </main>`,
-  }),
-  "/skills"
+  })
 );
 
 techniques.forEach((technique) => {

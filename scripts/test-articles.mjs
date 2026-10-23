@@ -345,6 +345,47 @@ for (const slug of Object.keys(schedule)) {
 }
 assert.deepEqual(broken, []);
 
+const mistakes = readFileSync(new URL("../articles/02-common-mistakes.md", import.meta.url), "utf8");
+assert.equal(mistakes.includes("—"), false);
+assert.equal(mistakes.includes("Print this checklist"), false);
+
+const contact = readFileSync(new URL("../contact-page-content.html", import.meta.url), "utf8");
+assert.equal(contact.includes("There is no account"), false);
+assert.match(contact, /An account is optional/);
+assert.match(contact, /6-digit code/);
+assert.match(contact, /no password/i);
+
+const home = readFileSync(new URL("../home-copy.mjs", import.meta.url), "utf8");
+assert.match(home, /title: "Free Sudoku, Graded by the Hardest Move \| SudokuSudoku"/);
+assert.equal(home.includes("—"), false);
+assert.match(build, /title: homeCopy\.title/);
+assert.match(build, /canonical: `\$\{SITE\}\/skills\/`,\s*robots: "noindex, follow"/);
+assert.equal(build.includes('"/skills"'), false);
+
+const links = readFileSync(new URL("../links-page-content.html", import.meta.url), "utf8");
+assert.equal(links.includes("—"), false);
+assert.equal(links.includes("Ultimate"), false);
+assert.equal(/[\u{1F300}-\u{1FAFF}]/u.test(links), false);
+for (const dead of [
+  "https://www.youtube.com/@BremSter\"",
+  "https://twitter.com/CrackingTheCryptic",
+  "https://apps.apple.com/app/sudoku-brain-game/id302397913",
+  "https://play.google.com/store/apps/details?id=com.googlecode.andoku3",
+  "https://apps.apple.com/app/sudokupad/id1631123763",
+  "https://play.google.com/store/apps/details?id=com.sudokupad.app",
+]) {
+  assert.equal(links.includes(dead), false, dead);
+}
+assert.match(links, /https:\/\/www\.youtube\.com\/@BremSterPuzzles/);
+assert.match(links, /https:\/\/x\.com\/crypticcracking/);
+assert.match(links, /https:\/\/apps\.apple\.com\/us\/app\/svens-sudokupad\/id1570622073/);
+
+const brain = readArticle("does-sudoku-keep-your-brain-sharp");
+assert.equal(brain.includes("publishDate: 2026-11-11"), true);
+assert.equal(brain.includes("lumosity-pay-2-million-settle-ftc-deceptive-advertising-charges-its-brain-training-program"), false);
+assert.match(brain, /132-3212-lumos-labs-inc-lumosity-mobile-online-cognitive-game/);
+assert.equal(brain.includes("—"), false);
+
 const terms = readFileSync(new URL("../terms-of-use-content.html", import.meta.url), "utf8");
 const termsWords = terms.replace(/<[^>]+>/g, " ").match(/[A-Za-z]+/g) || [];
 assert.equal(terms.includes("—"), false);
