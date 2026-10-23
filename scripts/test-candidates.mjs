@@ -1277,6 +1277,36 @@ await check("the phone keypad keys and mini-grid cells are square", async () => 
   assert(desktop.eraseBottom <= desktop.vh + 1, "desktop keypad is inside the viewport");
   assert(desktop.auxBottom <= desktop.vh + 1, "desktop controls are inside the viewport");
   assert(desktop.scrollWidth <= desktop.clientWidth + 1, "desktop has no horizontal scroll");
+  for (const [width, height] of [
+    [1280, 800],
+    [1024, 768],
+  ]) {
+    await page.setViewportSize({ width, height });
+    const edges = await page.evaluate(() => {
+      const box = (selector) => {
+        const rect = document.querySelector(selector).getBoundingClientRect();
+        return { left: rect.left, right: rect.right, top: rect.top, width: rect.width, height: rect.height };
+      };
+      return {
+        mark: box(".game-brand-mark"),
+        icons: box(".icon-row"),
+        status: box(".status-bar"),
+        board: box(".sudoku-grid"),
+        controls: box(".controls"),
+        brandTop: document.querySelector(".game-brand").getBoundingClientRect().top,
+        name: document.querySelector(".game-brand-name").textContent,
+        subhead: getComputedStyle(document.querySelector(".game-intro .supporting-text")).display,
+      };
+    });
+    assert(edges.mark.width >= 22 && edges.mark.height >= 22, `${width} logo is ${edges.mark.width}px`);
+    assert(edges.name === "SudokuSudoku", `${width} wordmark`);
+    assert(edges.subhead !== "none", `${width} keeps the subhead`);
+    assert(edges.brandTop >= 16, `${width} header starts ${edges.brandTop}px down`);
+    assert(Math.abs(edges.icons.left - edges.board.left) <= 2, `${width} icon row left ${edges.icons.left} vs board ${edges.board.left}`);
+    assert(Math.abs(edges.icons.right - edges.controls.right) <= 2, `${width} icon row right ${edges.icons.right} vs panel ${edges.controls.right}`);
+    assert(Math.abs(edges.status.left - edges.board.left) <= 2, `${width} status left ${edges.status.left} vs board ${edges.board.left}`);
+    assert(Math.abs(edges.status.right - edges.controls.right) <= 2, `${width} status right ${edges.status.right} vs panel ${edges.controls.right}`);
+  }
   await context.close();
 });
 
