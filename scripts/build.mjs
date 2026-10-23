@@ -19,9 +19,10 @@ import {
   wrapTables,
 } from "./articles.mjs";
 import { captureExamples } from "./capture-examples.mjs";
-import { techniques } from "./technique-copy.mjs";
+import { nextTechnique, orderedTechniques, techniques } from "./technique-copy.mjs";
 import { adsensePushScript, housePair, renderHousePromos } from "./house-promos.mjs";
 import { phosphorArrow } from "./icons.mjs";
+import { faqJsonLd, homeCopy, renderHomeBelow, renderHomeIntro } from "../home-copy.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "dist");
@@ -350,6 +351,7 @@ ${main}
         <li><a href="/articles/">Articles</a></li>
         <li><a href="/links/">Links</a></li>
         <li><a href="/contact/">Contact</a></li>
+        <li><a href="/terms/">Terms</a></li>
         <li><a href="/privacy-policy/">Privacy Policy</a></li>
 ${privacyChoiceItem}      </ul>
     </nav>
@@ -578,17 +580,27 @@ function houseSlot(section, path, slot = `${section}-end`, size = "rectangle") {
 publish(
   "index.html",
   layout({
-    title: "SudokuSudoku",
-    description:
-      "Every puzzle on SudokuSudoku is graded by its hardest move, not the number of clues. Hints name the move and teach the technique behind it. Just play.",
+    title: homeCopy.title,
+    description: homeCopy.description,
     canonical: `${SITE}/`,
     game: true,
+    jsonLd: faqJsonLd(),
     main: (() => {
       const homeMarker = "<!-- house-slot:home-below -->";
-      const homeGame = gateHomepageCopy(read("src/game.html").trim(), articleToday, {
+      const introMarker = "<!-- home-intro -->";
+      const belowMarker = "<!-- home-below -->";
+      let homeGame = gateHomepageCopy(read("src/game.html").trim(), articleToday, {
         techniques: techniques.length > 0,
       });
       if (!homeGame.includes(homeMarker)) throw new Error("Homepage is missing the house promo slot");
+      if (!homeGame.includes(introMarker) || !homeGame.includes(belowMarker)) {
+        throw new Error("Homepage is missing a home-copy marker");
+      }
+      homeGame = homeGame.replace(introMarker, renderHomeIntro());
+      homeGame = homeGame.replace(
+        belowMarker,
+        stripUnpublishedLinks(renderHomeBelow({ techniqueCount: techniques.length }), unpublishedSlugs)
+      );
       const homePromo = houseSlot("home", "/", "home-below", "billboard");
       return homeGame.replace(homeMarker, `<div class="house-home">\n${homePromo}\n</div>`);
     })(),
@@ -680,6 +692,18 @@ publish(
     { ads: false, analytics: false, privacyChoices: false }
   ),
   "/privacy-policy"
+);
+
+publish(
+  "terms/index.html",
+  standardPage(
+    "Terms of Use",
+    read("terms-of-use-content.html").trim(),
+    "Terms for SudokuSudoku, a free browser Sudoku game with an optional email account, a contact form, and ads.",
+    "/terms/",
+    { ads: false, analytics: false, privacyChoices: false, kicker: "The rules" }
+  ),
+  "/terms"
 );
 
 const cards = visibleArticles
@@ -893,7 +917,72 @@ function resultSentence(step) {
   return `Place ${step.place.digit} in row ${row}, column ${col}.`;
 }
 
-const indexItems = techniques
+function richText(value) {
+  const text = String(value);
+  const re = /\[([^\]]+)\]\((\/[^)\s]*)\)|\*\*([^*]+)\*\*|\*([^*]+)\*/g;
+  let html = "";
+  let last = 0;
+  for (const match of text.matchAll(re)) {
+    html += escapeHtml(text.slice(last, match.index));
+    if (match[1] != null) {
+      html += `<a href="${escapeHtml(match[2])}">${escapeHtml(match[1])}</a>`;
+    } else if (match[3] != null) {
+      html += `<strong>${escapeHtml(match[3])}</strong>`;
+    } else {
+      html += `<em>${escapeHtml(match[4])}</em>`;
+    }
+    last = match.index + match[0].length;
+  }
+  html += escapeHtml(text.slice(last));
+  return html;
+}
+
+function demoBlock(example, section = {}) {
+  const heading = section.h || "See it on a real puzzle";
+  const lead =
+    section.intro ||
+    "The marks are the candidates left when this is the next step in the solve. Step through it: the pattern, what leaves, and what that forces.";
+  return `<h2>${escapeHtml(heading)}</h2>
+        <p>${richText(lead)}</p>
+        <p class="technique-step-label" id="technique-step-label">See the pattern</p>
+        <p id="technique-step-text">${escapeHtml(example.step.look)}</p>
+        ${exampleBoard(example)}
+        <div class="technique-controls">
+          <button type="button" id="technique-prev" disabled>Previous</button>
+          <button type="button" id="technique-next">Next</button>
+        </div>`;
+}
+
+function lessonSections(technique) {
+  if (Array.isArray(technique.sections) && technique.sections.length) return technique.sections;
+  return [
+    ...(technique.paragraphs || []).map((paragraph) => ({ p: [paragraph] })),
+    { h: "When it shows up", p: [technique.when, technique.nyt].filter(Boolean) },
+    { demo: true },
+  ];
+}
+
+function renderLesson(technique, example) {
+  return lessonSections(technique)
+    .map((section) => {
+      if (section.demo) return demoBlock(example, section);
+      let html = "";
+      if (section.h) html += `<h2>${escapeHtml(section.h)}</h2>\n`;
+      if (section.h3) html += `<h3>${escapeHtml(section.h3)}</h3>\n`;
+      for (const paragraph of section.p || []) html += `<p>${richText(paragraph)}</p>\n`;
+      if (section.ol) {
+        html += `<ol>${section.ol.map((item) => `<li>${richText(item)}</li>`).join("")}</ol>\n`;
+      }
+      if (section.ul) {
+        html += `<ul>${section.ul.map((item) => `<li>${richText(item)}</li>`).join("")}</ul>\n`;
+      }
+      return html;
+    })
+    .join("\n");
+}
+
+const library = orderedTechniques(techniques);
+const indexItems = library
   .map((technique) => {
     return `<li>
       <a href="/techniques/${technique.slug}/">${escapeHtml(technique.name)}</a>
@@ -1041,7 +1130,7 @@ techniques.forEach((technique) => {
       const other = bySlug.get(slug);
       return `<a href="/techniques/${slug}/">${escapeHtml(other.name)}</a>`;
     })
-    .join("");
+    .join(" · ");
   const path = `/techniques/${technique.slug}/`;
   const howto = {
     "@context": "https://schema.org",
@@ -1054,7 +1143,11 @@ techniques.forEach((technique) => {
       { "@type": "HowToStep", name: "The result", text: resultSentence(example.step) },
     ],
   };
-  const paragraphs = technique.paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("\n");
+  const lesson = renderLesson(technique, example);
+  const harder = nextTechnique(technique);
+  const nextHtml = harder
+    ? `<p class="next-technique"><a href="/techniques/${harder.slug}/">Next harder: ${escapeHtml(harder.name)} ${phosphorArrow("right")}</a></p>`
+    : "";
   publish(
     `techniques/${technique.slug}/index.html`,
     layout({
@@ -1071,21 +1164,10 @@ techniques.forEach((technique) => {
         <h1 class="page-title">${escapeHtml(technique.name)}</h1>
       </header>
       <div class="page-body">
-        ${paragraphs}
-        <h2>When it shows up</h2>
-        <p>${escapeHtml(technique.when)}</p>
-        <p>${escapeHtml(technique.nyt)}</p>
-        <h2>See it on a real puzzle</h2>
-        <p>The marks are the candidates left when this is the next step in the solve. Step through it: the pattern, what leaves, and what that forces.</p>
-        <p class="technique-step-label" id="technique-step-label">See the pattern</p>
-        <p id="technique-step-text">${escapeHtml(example.step.look)}</p>
-        ${exampleBoard(example)}
-        <div class="technique-controls">
-          <button type="button" id="technique-prev" disabled>Previous</button>
-          <button type="button" id="technique-next">Next</button>
-        </div>
+        ${lesson}
         <p><a class="play-technique" href="/?practice=${technique.slug}">Practice this technique</a></p>
         <p>That jumps a puzzle forward until ${escapeHtml(technique.name)} is the next move. <a href="/?difficulty=${technique.play}">Or start a full ${escapeHtml(technique.level)} puzzle</a>.</p>
+        ${nextHtml}
         <h2>Related</h2>
         <p class="related-techniques">${related}</p>
       </div>

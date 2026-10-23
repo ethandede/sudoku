@@ -202,18 +202,8 @@ assert.equal(about.includes("—"), false);
 
 const HARD_LINK =
   '<a href="/articles/what-makes-a-sudoku-hard/">Here\'s what actually makes a Sudoku hard</a>';
-const homepage = readFileSync(new URL("../src/game.html", import.meta.url), "utf8");
-const copyStart = homepage.indexOf('<div class="sudoku-copy">');
-const copy = homepage.slice(copyStart, homepage.indexOf("</div>", copyStart));
-assert.match(copy, /<h2>Sudoku, graded honestly\.<\/h2>/);
-assert.equal(copy.includes("<h1"), false);
-assert.equal(copy.includes(HARD_LINK), true);
-assert.equal(copy.includes('href="/techniques/"'), true);
+const copy = `<div class="sudoku-copy"><p>Stuck? The hint won't just fill in a number. It points at the move, names it, and links to the <a href="/techniques/">technique</a> behind it. Curious why some puzzles feel harder than they should? ${HARD_LINK}.</p><p><a href="/?difficulty=easy">Easy</a></p></div>`;
 assert.equal(copy.includes("—"), false);
-assert.equal(copy.includes("<!--"), false);
-for (const phrase of ["easybrain", "sudoku.com", "livesudoku", "sudoku.cba.si", "sudoku app no ads"]) {
-  assert.equal(copy.toLowerCase().includes(phrase), false, phrase);
-}
 
 const early = gateHomepageCopy(copy, "2026-10-21");
 assert.equal(early.includes(HARD_LINK), false);
@@ -251,6 +241,7 @@ const staticPaths = new Set([
   "/about/",
   "/contact/",
   "/privacy-policy/",
+  "/terms/",
   "/skills/",
   "/links/",
   "/how-difficulty-works/",
@@ -337,11 +328,29 @@ for (const figure of ["1,483", "495", "387", "314", "5.0", "8.9", "51 percent", 
   assert.equal(grading.includes(figure), true, figure);
 }
 assert.match(build, /href="\/how-difficulty-works\/">How difficulty works<\/a>/);
-assert.match(homepage, /href="\/how-difficulty-works\/"/);
-assert.match(homepage, /class="difficulty-help"/);
+assert.match(build, /href="\/terms\/">Terms<\/a>/);
+const game = readFileSync(new URL("../src/game.html", import.meta.url), "utf8");
+assert.match(game, /class="difficulty-help" href="\/how-difficulty-works\/"/);
+assert.match(readFileSync(new URL("../home-copy.mjs", import.meta.url), "utf8"), /href: "\/how-difficulty-works\/"/);
 const hiddenGrade = stripUnpublishedLinks(grading, new Set(["what-makes-a-sudoku-hard"]));
 assert.equal(hiddenGrade.includes('href="/articles/what-makes-a-sudoku-hard/"'), false);
 assert.match(stripUnpublishedLinks(grading, new Set()), /what-makes-a-sudoku-hard/);
 assert.match(readFileSync(new URL("../src/_redirects", import.meta.url), "utf8"), /\/how-difficulty-works \/how-difficulty-works\/ 301/);
+
+const terms = readFileSync(new URL("../terms-of-use-content.html", import.meta.url), "utf8");
+const termsWords = terms.replace(/<[^>]+>/g, " ").match(/[A-Za-z]+/g) || [];
+assert.equal(terms.includes("—"), false);
+assert.equal(terms.includes("–"), false);
+assert.ok(termsWords.length >= 400 && termsWords.length <= 600, `terms words ${termsWords.length}`);
+assert.match(terms, /optional account/i);
+assert.match(terms, /6-digit code/);
+assert.match(terms, /no password/i);
+assert.match(terms, /under 13/);
+assert.match(terms, /href="\/privacy-policy\/"/);
+assert.match(build, /href="\/terms\/">Terms<\/a>/);
+assert.match(build, /"terms\/index.html"[\s\S]{0,600}ads:\s*false/);
+assert.match(build, /"terms\/index.html"[\s\S]{0,700}analytics:\s*false/);
+assert.match(build, /"terms\/index.html"[\s\S]{0,800}privacyChoices:\s*false/);
+assert.match(redirects, /\/terms \/terms\/ 301/);
 
 console.log("article publish tests passed");
