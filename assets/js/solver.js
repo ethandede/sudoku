@@ -805,6 +805,67 @@
     return hits;
   }
 
+  // Two matching bivalue cells that do not see each other, joined by a strong
+  // link on one of their digits. At least one wing is the other digit.
+  function wwingHits(state) {
+    const hits = [];
+    const bi = [];
+    for (let i = 0; i < 81; i++) if (POP[state.c[i]] === 2) bi.push(i);
+    const links = [];
+    for (let d = 0; d < 9; d++) {
+      const bit = 1 << d;
+      const groups = [ROWS, COLS, BOXS];
+      for (let g = 0; g < groups.length; g++) {
+        const lines = groups[g];
+        for (let li = 0; li < 9; li++) {
+          const line = lines[li];
+          const cells = [];
+          for (let k = 0; k < 9; k++) if (state.c[line[k]] & bit) cells.push(line[k]);
+          if (cells.length === 2) links.push({ bit, cells });
+        }
+      }
+    }
+    for (let i = 0; i < bi.length && hits.length < 12; i++) {
+      for (let j = i + 1; j < bi.length && hits.length < 12; j++) {
+        const a = bi[i];
+        const b = bi[j];
+        if (state.c[a] !== state.c[b] || SEES[a * 81 + b]) continue;
+        const digits = maskDigits(state.c[a]);
+        for (let s = 0; s < 2 && hits.length < 12; s++) {
+          const linkBit = 1 << (digits[s] - 1);
+          const elimBit = 1 << (digits[1 - s] - 1);
+          for (let n = 0; n < links.length && hits.length < 12; n++) {
+            const link = links[n];
+            if (link.bit !== linkBit) continue;
+            const p = link.cells[0];
+            const q = link.cells[1];
+            if (p === a || p === b || q === a || q === b) continue;
+            const aSeesP = SEES[a * 81 + p];
+            const aSeesQ = SEES[a * 81 + q];
+            const bSeesP = SEES[b * 81 + p];
+            const bSeesQ = SEES[b * 81 + q];
+            const crossed = (aSeesP && !aSeesQ && bSeesQ && !bSeesP) || (aSeesQ && !aSeesP && bSeesP && !bSeesQ);
+            if (!crossed) continue;
+            const skip = new Uint8Array(81);
+            skip[a] = 1;
+            skip[b] = 1;
+            skip[p] = 1;
+            skip[q] = 1;
+            const targets = seenByBoth(state, elimBit, a, b, skip);
+            if (!targets.length) continue;
+            hits.push({
+              targets,
+              bit: elimBit,
+              type: "wwing",
+              pattern: [a, b, p, q],
+            });
+          }
+        }
+      }
+    }
+    return hits;
+  }
+
   const TECHNIQUES = [
     { name: "locked", rank: 3, find: lockedHits },
     { name: "naked_pair", rank: 4, find: (state) => nakedHits(state, 2) },
@@ -819,6 +880,7 @@
     { name: "skyscraper", rank: 9, find: skyscraperHits },
     { name: "kite", rank: 9, find: kiteHits },
     { name: "xyzwing", rank: 9, find: xyzwingHits },
+    { name: "wwing", rank: 9, find: wwingHits },
     { name: "coloring", rank: 10, find: coloringHits },
     { name: "xychain", rank: 10, find: xyChainHits },
   ];
@@ -922,6 +984,7 @@ function stepWidth(state, singleCount, rankCap) {
     skyscraper: "skyscraper",
     kite: "two-string-kite",
     xyzwing: "xyz-wing",
+    wwing: "w-wing",
     coloring: "coloring",
     xychain: "xy-chain",
   };
@@ -1234,6 +1297,7 @@ function stepWidth(state, singleCount, rankCap) {
     skyscraper: "skyscraper",
     kite: "two-string-kite",
     xyzwing: "xyz-wing",
+    wwing: "w-wing",
     coloring: "coloring",
     xychain: "xy-chain",
   };
@@ -1253,6 +1317,7 @@ function stepWidth(state, singleCount, rankCap) {
     skyscraper: "Skyscraper",
     kite: "Two-string kite",
     xyzwing: "XYZ-wing",
+    wwing: "W-wing",
     coloring: "Simple coloring",
     xychain: "XY-chain",
   };
@@ -1373,6 +1438,10 @@ function stepWidth(state, singleCount, rankCap) {
     } else if (type === "xyzwing") {
       look = "Look at these three cells.";
       explain = `The pivot holds three digits and each wing takes two of them. One of those three cells is ${digit}, so ${digit} can't go in a cell that sees all three.`;
+      region = hit.pattern.slice();
+    } else if (type === "wwing") {
+      look = "Look at these two cells.";
+      explain = `Both cells hold the same two digits, and a strong link on one of them joins the cells. At least one cell is ${digit}, so ${digit} comes out of any cell that sees both.`;
       region = hit.pattern.slice();
     } else if (type === "coloring") {
       const outside = hit.targets.some((index) => hit.pattern.indexOf(index) === -1);

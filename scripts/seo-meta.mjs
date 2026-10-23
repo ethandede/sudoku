@@ -24,6 +24,7 @@ export const TECHNIQUE_SEARCH = {
   "two-string-kite": "Two-String Kite",
   "xy-wing": "XY-Wing",
   "xyz-wing": "XYZ-Wing",
+  "w-wing": "W-Wing",
   coloring: "Simple Coloring",
   "xy-chain": "XY-Chain",
 };

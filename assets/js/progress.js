@@ -12,7 +12,7 @@
 // technique hints, and they do not change clean, hinted, or the no-hint badges.
 // "Your next technique" is the first one that is not yet Comfortable.
 //
-// The badge set is 33. Deviations, so it stays a short list:
+// The badge set is 34. Deviations, so it stays a short list:
 //   Technique firsts are four leaps (Pointing, a pair, X-wing, a chain),
 //   not a separate first badge for every technique. Mastered covers every
 //   technique.
@@ -46,6 +46,7 @@
     { slug: "two-string-kite", name: "Two-string kite", order: 74 },
     { slug: "xy-wing", name: "XY-wing", order: 80 },
     { slug: "xyz-wing", name: "XYZ-wing", order: 82 },
+    { slug: "w-wing", name: "W-wing", order: 84 },
     { slug: "swordfish", name: "Swordfish", order: 90 },
     { slug: "coloring", name: "Simple coloring", order: 100 },
     { slug: "xy-chain", name: "XY-chain", order: 101 },
