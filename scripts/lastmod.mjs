@@ -8,7 +8,27 @@ import { join } from "node:path";
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
+// Pages checks out one commit. git log on that copy dates every file as
+// the tip, which is the build. Deepen the clone once before reading dates.
+function ensureHistory(root) {
+  try {
+    const shallow = execFileSync("git", ["rev-parse", "--is-shallow-repository"], {
+      cwd: root,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+    if (shallow !== "true") return;
+    execFileSync("git", ["fetch", "--unshallow"], {
+      cwd: root,
+      stdio: ["ignore", "ignore", "pipe"],
+    });
+  } catch {
+    /* a full local checkout has nothing to fetch */
+  }
+}
+
 export function gitDate(root, relativePath) {
+  ensureHistory(root);
   try {
     const out = execFileSync("git", ["log", "-1", "--format=%cs", "--", relativePath], {
       cwd: root,
