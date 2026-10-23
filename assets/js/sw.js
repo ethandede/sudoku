@@ -81,6 +81,8 @@ async function networkFirstNavigation(request) {
       cache.put(path, response.clone());
       return response;
     }
+    // A missing URL is a real 404 page. Do not swap it for the offline shell.
+    if (response && response.status === 404) return response;
   } catch {
     /* offline: fall through to the shell */
   }
