@@ -674,18 +674,24 @@ assert.equal(resendCalls.length, 1);
 assert.equal(JSON.stringify(resendCalls[0]).includes("secret-value"), true);
 assert.equal(JSON.stringify(resendSent).includes("secret-value"), false);
 
-globalThis.fetch = async () =>
-  new Response(JSON.stringify({ message: "The domain is not verified." }), {
+let deniedAuth = "";
+globalThis.fetch = async (_url, init) => {
+  deniedAuth = init.headers.Authorization;
+  return new Response(JSON.stringify({ message: "The domain is not verified." }), {
     status: 403,
     headers: { "content-type": "application/json" },
   });
+};
 const resendDenied = await sendLoginEmail(
-  { LOGIN_EMAIL_API_KEY: "secret-value" },
+  { LOGIN_EMAIL_API_KEY: "\nBearer secret-value\n" },
   { to: "ada@example.com", subject: "Sign in", text: "hello", html: "<p>hello</p>" }
 );
 assert.equal(resendDenied.ok, false);
 assert.equal(resendDenied.status, 403);
 assert.match(resendDenied.error, /not verified/);
+assert.equal(resendDenied.keyLength, "\nBearer secret-value\n".length);
+assert.equal(resendDenied.sentLength, "secret-value".length);
+assert.equal(deniedAuth, "Bearer secret-value");
 assert.equal(JSON.stringify(resendDenied).includes("secret-value"), false);
 globalThis.fetch = originalFetch;
 

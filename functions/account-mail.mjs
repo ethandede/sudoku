@@ -58,11 +58,19 @@ function providerDetail(payload) {
   return "";
 }
 
+function resendKey(env) {
+  const raw = String((env && env.LOGIN_EMAIL_API_KEY) || "");
+  let key = raw.trim();
+  if (key.slice(0, 7).toLowerCase() === "bearer ") key = key.slice(7).trim();
+  return { key, keyLength: raw.length, sentLength: key.length };
+}
+
 async function sendResend(env, message) {
+  const credential = resendKey(env);
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${env.LOGIN_EMAIL_API_KEY}`,
+      Authorization: `Bearer ${credential.key}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -81,7 +89,14 @@ async function sendResend(env, message) {
   }
   const id = payload && typeof payload.id === "string" ? payload.id : "";
   if (response.ok) return { ok: true, id };
-  return { ok: false, id, error: providerDetail(payload), status: response.status };
+  return {
+    ok: false,
+    id,
+    error: providerDetail(payload),
+    status: response.status,
+    keyLength: credential.keyLength,
+    sentLength: credential.sentLength,
+  };
 }
 
 export async function sendLoginEmail(env, message) {
@@ -99,7 +114,17 @@ export async function sendLoginEmail(env, message) {
       return { ok: true, via: "cloudflare" };
     }
     const sent = await sendResend(env, payload);
-    if (!sent.ok) return { ok: false, reason: "failed", id: sent.id, error: sent.error, status: sent.status };
+    if (!sent.ok) {
+      return {
+        ok: false,
+        reason: "failed",
+        id: sent.id,
+        error: sent.error,
+        status: sent.status,
+        keyLength: sent.keyLength,
+        sentLength: sent.sentLength,
+      };
+    }
     return { ok: true, via: "resend", id: sent.id };
   } catch {
     return { ok: false, reason: "failed" };
