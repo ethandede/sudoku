@@ -353,9 +353,74 @@ assert.equal(hiddenGrade.includes('href="/articles/what-makes-a-sudoku-hard/"'),
 assert.match(stripUnpublishedLinks(grading, new Set()), /what-makes-a-sudoku-hard/);
 assert.match(readFileSync(new URL("../src/_redirects", import.meta.url), "utf8"), /\/how-difficulty-works \/how-difficulty-works\/ 301/);
 
-const mistakes = readFileSync(new URL("../articles/02-common-mistakes.md", import.meta.url), "utf8");
-assert.equal(mistakes.includes("—"), false);
+function proseWords(markdown) {
+  let text = markdown.replace(/\r\n/g, "\n");
+  text = text.replace(/^# .+$/m, "");
+  text = text.replace(/\*\*Meta Description:\*\*.*/i, "");
+  text = text.replace(/\*\*Keywords:\*\*.*/i, "");
+  text = text.replace(/```[\s\S]*?```/g, " ");
+  text = text.replace(/!\[[^\]]*\]\([^)]*\)/g, " ");
+  text = text.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
+  text = text.replace(/[#>*_`]/g, " ");
+  return (text.match(/[A-Za-z0-9]+(?:'[A-Za-z0-9]+)?/g) || []).length;
+}
+
+function pipeBoard(body) {
+  const cells = [];
+  for (const line of body.replace(/\s+$/, "").split("\n")) {
+    if (!line.trim() || line.startsWith("+")) continue;
+    if (!line.startsWith("|")) return null;
+    const groups = line.split("|").slice(1, -1);
+    if (groups.length !== 3) return null;
+    for (const group of groups) {
+      const tokens = group.trim().split(/\s+/);
+      if (tokens.length !== 3) return null;
+      for (const token of tokens) {
+        if (!/^[1-9.]$/.test(token)) return null;
+        cells.push(token === "." ? 0 : Number(token));
+      }
+    }
+  }
+  return cells.length === 81 ? cells : null;
+}
+
+function exampleBoards(markdown) {
+  const boards = [];
+  for (const match of markdown.matchAll(/```[^\n]*\n([\s\S]*?)```/g)) {
+    if (!match[1].includes("|")) continue;
+    const cells = pipeBoard(match[1]);
+    if (!cells) return null;
+    boards.push(cells);
+  }
+  return boards;
+}
+
+function assertGuideArticle(file, minBoards) {
+  const text = readFileSync(new URL(file, import.meta.url), "utf8");
+  assert.equal(text.includes("\u2014"), false, `${file} em dash`);
+  assert.equal(text.includes("\u2013"), false, `${file} en dash`);
+  assert.equal(text.includes("&mdash;"), false, file);
+  assert.equal(text.includes("&ndash;"), false, file);
+  const words = proseWords(text);
+  assert.ok(words >= 1200, `${file} words ${words}`);
+  const boards = exampleBoards(text);
+  assert.ok(boards, `${file} has a pipe grid that did not parse`);
+  assert.ok(boards.length >= minBoards, `${file} boards ${boards.length}`);
+  boards.forEach((cells, index) => {
+    assert.equal(cells.length, 81, `${file} board ${index + 1}`);
+    assert.equal(countSolutions(cells, 2), 1, `${file} board ${index + 1} solutions`);
+  });
+  return text;
+}
+
+const beginners = assertGuideArticle("../articles/01-beginners-guide.md", 2);
+assert.equal(beginners.includes("publishDate:"), false);
+assert.match(beginners, /^# How to play Sudoku$/m);
+
+const mistakes = assertGuideArticle("../articles/02-common-mistakes.md", 1);
+assert.equal(mistakes.includes("publishDate:"), false);
 assert.equal(mistakes.includes("Print this checklist"), false);
+assert.match(mistakes, /^# 7 Common Sudoku Mistakes \(And How to Fix Them\)$/m);
 
 const contact = readFileSync(new URL("../contact-page-content.html", import.meta.url), "utf8");
 assert.equal(contact.includes("There is no account"), false);
