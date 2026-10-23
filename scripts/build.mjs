@@ -59,6 +59,23 @@ function write(relativePath, contents) {
   writeFileSync(target, contents);
 }
 
+function shareCard(kind, slug, alt) {
+  const relative = join("assets/og", kind, `${slug}.png`);
+  const file = join(root, relative);
+  if (!existsSync(file)) throw new Error(`Missing OG image ${relative}`);
+  const png = readFileSync(file);
+  const width = png.readUInt32BE(16);
+  const height = png.readUInt32BE(20);
+  if (png[0] !== 0x89 || width !== 1200 || height !== 630) {
+    throw new Error(`OG image ${relative} must be a 1200x630 PNG`);
+  }
+  if (alt.includes("—")) throw new Error(`OG alt for ${slug} has an em dash`);
+  return {
+    shareImage: `${SITE}/og/${kind}/${slug}.png`,
+    shareImageAlt: alt,
+  };
+}
+
 function publish(relativePath, contents, path, sources = []) {
   write(relativePath, contents);
   if (path) sitemap.push({ path: withSlash(path), sources });
@@ -147,6 +164,8 @@ function layout({
   contact = false,
   stats = false,
   crumb = "",
+  shareImage = "",
+  shareImageAlt = "",
 }) {
   const descriptionTag = description
     ? `<meta name="description" content="${escapeHtml(description)}">`
@@ -163,7 +182,8 @@ function layout({
   const shareTitle = escapeHtml(title);
   const shareDescription = escapeHtml(description || "Free daily Sudoku with teaching hints.");
   const shareUrl = escapeHtml(canonicalHref || `${SITE}/`);
-  const image = `${SITE}/og.png`;
+  const image = escapeHtml(shareImage || `${SITE}/og.png`);
+  const imageAlt = escapeHtml(shareImageAlt || "SudokuSudoku board beside a number-pad box map");
   const adsTag = ads
     ? `  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9345046210950956" crossorigin="anonymous"></script>\n`
     : "";
@@ -270,12 +290,12 @@ function layout({
   <meta property="og:image" content="${image}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="SudokuSudoku board beside a number-pad box map">
+  <meta property="og:image:alt" content="${imageAlt}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${shareTitle}">
   <meta name="twitter:description" content="${shareDescription}">
   <meta name="twitter:image" content="${image}">
-  <meta name="twitter:image:alt" content="SudokuSudoku board beside a number-pad box map">
+  <meta name="twitter:image:alt" content="${imageAlt}">
   ${jsonLdTag}
   <script>
     try {
@@ -551,6 +571,7 @@ cpSync(join(root, "assets/img"), join(dist, "assets/img"), { recursive: true });
 cpSync(join(root, "articles/images"), join(dist, "articles/images"), { recursive: true });
 cpSync(join(root, "articles/data"), join(dist, "articles/data"), { recursive: true });
 copyFileSync(join(root, "src/og.png"), join(dist, "og.png"));
+cpSync(join(root, "assets/og"), join(dist, "og"), { recursive: true });
 write("_redirects", read("src/_redirects"));
 copyFileSync(join(root, "src/favicon.ico"), join(dist, "favicon.ico"));
 copyFileSync(join(root, "src/favicon.svg"), join(dist, "favicon.svg"));
@@ -872,6 +893,7 @@ visibleArticles.forEach((article, index) => {
       canonical: `${SITE}${article.href}`,
       jsonLd: articleLd,
       crumb: article.heading,
+      ...shareCard("articles", article.slug, `${article.heading} on SudokuSudoku`),
       main: `<main id="article-single" class="article-single-page">
   <article class="article-content">
     <div class="container">
@@ -1202,6 +1224,7 @@ techniques.forEach((technique) => {
       canonical: `${SITE}${path}`,
       jsonLd: howto,
       crumb: technique.name,
+      ...shareCard("techniques", technique.slug, `${technique.name} Sudoku technique on SudokuSudoku`),
       demo: Boolean(example),
       main: `<main class="standard-page technique-page">
   <div class="container">
