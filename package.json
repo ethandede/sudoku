@@ -12,6 +12,7 @@
     "test:account": "node scripts/test-account.mjs",
     "test:mini": "node scripts/test-mini.mjs",
     "test:stats": "node scripts/test-stats.mjs",
+    "test:complete": "node scripts/test-game-complete.mjs",
     "test:articles": "node scripts/test-articles.mjs",
     "test:share": "node scripts/test-share.mjs",
     "test:daily": "node scripts/test-daily.mjs",
