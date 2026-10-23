@@ -22,6 +22,7 @@ import { captureExamples } from "./capture-examples.mjs";
 import { techniques } from "./technique-copy.mjs";
 import { adsensePushScript, housePair, renderHousePromos } from "./house-promos.mjs";
 import { phosphorArrow } from "./icons.mjs";
+import { faqJsonLd, homeCopy, renderHomeBelow, renderHomeIntro } from "../home-copy.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "dist");
@@ -577,17 +578,27 @@ function houseSlot(section, path, slot = `${section}-end`, size = "rectangle") {
 publish(
   "index.html",
   layout({
-    title: "SudokuSudoku",
-    description:
-      "Every puzzle on SudokuSudoku is graded by its hardest move, not the number of clues. Hints name the move and teach the technique behind it. Just play.",
+    title: homeCopy.title,
+    description: homeCopy.description,
     canonical: `${SITE}/`,
     game: true,
+    jsonLd: faqJsonLd(),
     main: (() => {
       const homeMarker = "<!-- house-slot:home-below -->";
-      const homeGame = gateHomepageCopy(read("src/game.html").trim(), articleToday, {
+      const introMarker = "<!-- home-intro -->";
+      const belowMarker = "<!-- home-below -->";
+      let homeGame = gateHomepageCopy(read("src/game.html").trim(), articleToday, {
         techniques: techniques.length > 0,
       });
       if (!homeGame.includes(homeMarker)) throw new Error("Homepage is missing the house promo slot");
+      if (!homeGame.includes(introMarker) || !homeGame.includes(belowMarker)) {
+        throw new Error("Homepage is missing a home-copy marker");
+      }
+      homeGame = homeGame.replace(introMarker, renderHomeIntro());
+      homeGame = homeGame.replace(
+        belowMarker,
+        stripUnpublishedLinks(renderHomeBelow({ techniqueCount: techniques.length }), unpublishedSlugs)
+      );
       const homePromo = houseSlot("home", "/", "home-below", "billboard");
       return homeGame.replace(homeMarker, `<div class="house-home">\n${homePromo}\n</div>`);
     })(),

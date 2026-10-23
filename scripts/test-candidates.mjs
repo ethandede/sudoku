@@ -7,6 +7,7 @@ import { readFile } from "node:fs/promises";
 import { extname, join, dirname, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium, devices } from "playwright";
+import { homeCopy } from "../home-copy.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "dist");
@@ -1085,12 +1086,17 @@ await check("the phone keypad keys and mini-grid cells are square", async () => 
         footerTop: footer.top,
         header: getComputedStyle(document.querySelector(".site-header")).display,
         intro: getComputedStyle(document.querySelector(".game-intro")).display,
+        subhead: getComputedStyle(document.querySelector(".game-intro .supporting-text")).display,
+        h1: document.querySelector(".game-intro h1").getBoundingClientRect(),
         help: getComputedStyle(document.querySelector(".key-help")).display,
         padDisplay: getComputedStyle(document.querySelector("#number-pad")).display,
       };
     });
     assert(metrics.header === "none", `${width} hides the site header`);
-    assert(metrics.intro === "none", `${width} hides the intro`);
+    assert(metrics.intro !== "none", `${width} shows the heading`);
+    assert(metrics.subhead === "none", `${width} hides the subhead`);
+    assert(metrics.h1.height > 0 && metrics.h1.height <= 28, `${width} heading is one line (${metrics.h1.height})`);
+    assert(metrics.h1.width <= metrics.clientWidth + 1, `${width} heading stays on screen`);
     assert(metrics.help === "none", `${width} hides the instructions`);
     assert(metrics.padDisplay === "contents", `${width} keeps the 5 by 2 pad`);
     assert(metrics.eraseBottom <= metrics.vh + 1, `${width} keypad bottom ${metrics.eraseBottom} is inside ${metrics.vh}`);
@@ -1140,9 +1146,13 @@ await check("the phone keypad keys and mini-grid cells are square", async () => 
       scrollWidth: document.documentElement.scrollWidth,
       clientWidth: document.documentElement.clientWidth,
       header: getComputedStyle(document.querySelector(".site-header")).display,
+      subhead: getComputedStyle(document.querySelector(".game-intro .supporting-text")).display,
+      h1: document.querySelector(".game-intro h1").textContent,
     };
   });
   assert(desktop.header === "none", "desktop uses the app header");
+  assert(desktop.subhead !== "none", "desktop shows the subhead");
+  assert(desktop.h1 === homeCopy.h1, "desktop heading");
   assert(desktop.eraseLeft >= desktop.boardRight - 2, "desktop keypad sits beside the board");
   assert(desktop.eraseBottom <= desktop.vh + 1, "desktop keypad is inside the viewport");
   assert(desktop.auxBottom <= desktop.vh + 1, "desktop controls are inside the viewport");
