@@ -16,6 +16,7 @@
     "test:share": "node scripts/test-share.mjs",
     "test:cache": "node scripts/test-cache-bust.mjs",
     "test:update": "node scripts/test-update-banner.mjs",
+    "test:hint": "node scripts/test-hint-apply.mjs",
     "test:play": "node scripts/test-candidates.mjs"
   },
   "devDependencies": {

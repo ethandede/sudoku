@@ -1293,6 +1293,11 @@
       applyHint();
       return;
     }
+    if (hintView.stage === 3 && hintView.chain) {
+      dismissHint();
+      openHint();
+      return;
+    }
     dismissHint();
   }
 
@@ -1350,12 +1355,19 @@
         next.textContent = "Show why";
       } else if (hintView.stage === 2) {
         text.textContent = step.explain;
-        next.textContent = step.place ? "Place it" : "Apply";
+        next.textContent = window.SudokuHintApply.placesOnApply(step) ? "Place it" : "Apply";
       } else {
-        text.textContent = step.place
-          ? `${step.explain} Placed ${step.place.digit}.`
-          : `${step.explain} Those candidates are gone.`;
-        next.hidden = true;
+        text.textContent =
+          hintView.resultText ||
+          (window.SudokuHintApply.placesOnApply(step)
+            ? `${step.explain} Placed ${step.place.digit}.`
+            : `${step.explain} ${window.SudokuHintApply.eliminationSentence(step.eliminate, [])}`);
+        if (hintView.chain) {
+          next.hidden = false;
+          next.textContent = "Next hint";
+        } else {
+          next.hidden = true;
+        }
       }
     }
     render();
@@ -1379,27 +1391,23 @@
     }
     const step = hintView.step;
     pushUndo();
-    (step.eliminate || []).forEach((item) => {
-      state.notes[item.index].delete(item.digit);
-      if (!state.removed.some((kept) => kept.index === item.index && kept.digit === item.digit)) {
-        state.removed.push({ index: item.index, digit: item.digit });
-      }
-    });
-    if (
-      step.place &&
-      state.puzzle[step.place.index] === 0 &&
-      step.place.digit === state.solution[step.place.index] &&
-      state.board[step.place.index] !== step.place.digit
-    ) {
-      const digit = step.place.digit;
-      const index = step.place.index;
-      state.board[index] = digit;
-      state.notes[index].clear();
-      state.slashed.delete(index);
-      peerIndexes(index).forEach((other) => state.notes[other].delete(digit));
-    }
-    state.removed = state.removed.filter((item) => state.board[item.index] === 0);
+    const applied = window.SudokuHintApply.applyHintStep(
+      {
+        notes: state.notes.map((set) => [...set]),
+        removed: state.removed,
+        board: state.board,
+        puzzle: state.puzzle,
+        solution: state.solution,
+      },
+      step
+    );
+    state.board = applied.board;
+    state.notes = applied.notes.map((list) => new Set(list));
+    state.removed = applied.removed;
+    if (applied.placed) state.slashed.delete(step.place.index);
     hintView.stage = 3;
+    hintView.chain = applied.chain;
+    hintView.resultText = applied.copy;
     hintView.key = hintKey();
     if (isSolved()) finish(false);
     else {
@@ -1605,19 +1613,7 @@
   }
 
   function candidatesFor(index) {
-    const found = new Set();
-    if (state.board[index] !== 0) return found;
-    for (let number = 1; number <= 9; number += 1) {
-      let ok = true;
-      for (const other of peerIndexes(index)) {
-        if (state.board[other] === number) {
-          ok = false;
-          break;
-        }
-      }
-      if (ok && !state.removed.some((item) => item.index === index && item.digit === number)) found.add(number);
-    }
-    return found;
+    return new Set(window.SudokuHintApply.legalCandidates(state.board, state.removed, index));
   }
 
   function conflictDots() {
@@ -1721,7 +1717,7 @@
         marks.setAttribute("aria-hidden", "true");
         const computed = state.auto ? candidatesFor(index) : null;
         const ghost = hint && hint.stage === 2 ? hintCandidates.get(index) : null;
-        const struck = hint && hint.stage === 2 ? hintStruck.get(index) : null;
+        const struck = hint && hint.stage >= 2 ? hintStruck.get(index) : null;
         for (let number = 1; number <= 9; number += 1) {
           const mark = document.createElement("span");
           mark.dataset.digit = String(number);

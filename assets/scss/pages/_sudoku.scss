@@ -634,6 +634,14 @@ body:has(.sudoku-page) .site-header {
     visibility: visible;
   }
 
+  span.struck {
+    visibility: visible;
+    color: var(--slash);
+    font-weight: 800;
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+  }
+
   span.auto {
     color: var(--auto-ink);
     font-weight: 500;
