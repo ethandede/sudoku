@@ -245,7 +245,8 @@
   document.addEventListener("visibilitychange", onVisibility);
   window.addEventListener("pagehide", (event) => {
     if (window.SudokuCommunity && state.puzzle.some((value) => value !== 0)) {
-      window.SudokuCommunity.leave(communitySnapshot(state.over ? "failed" : "abandoned"), event);
+      const outcome = state.won && !state.revealed ? "solved" : state.over ? "failed" : "abandoned";
+      window.SudokuCommunity.leave(communitySnapshot(outcome), event);
     }
     if (window.SudokuAccount) window.SudokuAccount.flush();
   });
@@ -1903,16 +1904,23 @@
     const slugs = techniqueHints();
     const hardest =
       window.SudokuProgress && slugs.length ? window.SudokuProgress.hardest(slugs) || "" : "";
+    const hintsUsed = slugs.length;
+    const filled = Boolean(state.fastForwarded);
     return {
       outcome,
       elapsed: Math.round(state.elapsed || 0),
       mistakes: state.mistakes || 0,
-      hintsUsed: slugs.length,
+      hintsUsed,
       hardestHint: hardest,
       notesUsed: Boolean(state.notesUsed || state.auto),
       kind: state.kind,
+      difficulty: state.kind === "daily" ? (state.metadata && state.metadata.difficulty) || DAILY : state.kind,
       isDaily: state.kind === "daily",
       over: Boolean(state.over),
+      filled,
+      practice: Boolean(state.practice),
+      assisted: filled || hintsUsed > 0,
+      puzzleType: state.practice ? "practice" : state.kind === "daily" ? "daily" : "random",
     };
   }
 
@@ -1930,6 +1938,9 @@
     const snapshot = communitySnapshot(revealed ? "revealed" : "solved");
     const started = state.startPromise || Promise.resolve();
     if (window.SudokuCommunity) {
+      // Analytics is not the stats post. A fill used to clear the open row
+      // here and never reach game_complete, and a hint-only solve never set gaStart.
+      if (window.SudokuCommunity.noteSolved) window.SudokuCommunity.noteSolved(snapshot);
       if (assisted && window.SudokuCommunity.skipFinish) window.SudokuCommunity.skipFinish();
       else {
         started
