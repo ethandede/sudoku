@@ -33,6 +33,7 @@ const SOLVER_ORDER = [
   "w-wing",
   "swordfish",
   "unique-rectangle",
+  "bug-plus-one",
   "coloring",
   "xy-chain",
 ];
@@ -49,8 +50,7 @@ for (let i = 0; i < ordered.length - 1; i += 1) {
 }
 assert.equal(nextTechnique(ordered[ordered.length - 1]), null);
 
-const bug = { slug: "bug-plus-one", name: "BUG+1", order: 94, related: [] };
-const slotted = orderedTechniques([...techniques, bug]);
+const slotted = orderedTechniques(techniques);
 const slottedSlugs = slotted.map((technique) => technique.slug);
 function follows(before, after) {
   assert.equal(slottedSlugs[slottedSlugs.indexOf(before) + 1], after, `${before} -> ${after}`);
@@ -66,7 +66,7 @@ follows("unique-rectangle", "bug-plus-one");
 follows("bug-plus-one", "coloring");
 assert.equal(nextTechnique(techniques.find((technique) => technique.slug === "x-wing"), slotted).slug, "skyscraper");
 
-const EXPANDED = SOLVER_ORDER.filter((slug) => slug !== "w-wing" && slug !== "unique-rectangle");
+const EXPANDED = SOLVER_ORDER.filter((slug) => !["w-wing", "unique-rectangle", "bug-plus-one"].includes(slug));
 const bySlug = new Map(techniques.map((technique) => [technique.slug, technique]));
 
 function proseWords(technique) {
@@ -133,7 +133,7 @@ for (const file of ["assets/js/solver.js", "assets/js/pools.js", "assets/js/gene
 }
 
 const { SudokuSolver: solver, SudokuGenerator: generator, SudokuPools: pools } = context;
-const NEW = ["skyscraper", "two-string-kite", "xyz-wing", "w-wing", "unique-rectangle"];
+const NEW = ["skyscraper", "two-string-kite", "xyz-wing", "w-wing", "unique-rectangle", "bug-plus-one"];
 
 function sees(a, b) {
   const ar = Math.floor(a / 9);
@@ -299,6 +299,29 @@ function assertRectangle(found) {
   assert.equal(step.explain.includes("\u2014"), false);
 }
 
+function assertBug(found) {
+  const step = found.step;
+  assert.equal(step.slug, "bug-plus-one");
+  assert.equal(step.pattern.length, 1);
+  const cell = step.pattern[0];
+  const digits = step.pencil[cell].slice().sort((a, b) => a - b);
+  assert.equal(digits.length, 3);
+  const removed = step.eliminate.map((item) => item.digit).sort((a, b) => a - b);
+  assert.equal(removed.length, 2);
+  const kept = digits.find((digit) => !removed.includes(digit));
+  assert.equal(typeof kept, "number");
+  const counts = {};
+  for (const marks of step.pencil) {
+    if (!marks.length) continue;
+    counts[marks.length] = (counts[marks.length] || 0) + 1;
+  }
+  assert.equal(counts[3], 1);
+  assert.equal(Object.keys(counts).join(","), "2,3");
+  for (const item of step.eliminate) assert.equal(item.index, cell);
+  assert.equal(step.explain.includes("\u2014"), false);
+  assert.equal(step.explain.includes(String(kept)), true);
+}
+
 for (const slug of NEW) {
   const result = generator.generateForTechnique(slug, { seed: `technique-${slug}` });
   assert.equal(result.metadata.trainApproximate, undefined);
@@ -327,6 +350,20 @@ for (const slug of NEW) {
     assert.equal(solver.countSolutions(loose, 2) > 1, true, "rectangle check has a second solution");
     const looseGrade = solver.grade(loose, { metrics: false });
     assert.equal((looseGrade.path || []).includes("unique-rectangle"), false, "a second solution blocks the rectangle");
+  }
+  if (slug === "bug-plus-one") {
+    assertBug(found);
+    const loose = result.puzzle.slice();
+    for (let i = 0; i < 81; i += 1) {
+      if (!loose[i]) continue;
+      const saved = loose[i];
+      loose[i] = 0;
+      if (solver.countSolutions(loose, 2) > 1) break;
+      loose[i] = saved;
+    }
+    assert.equal(solver.countSolutions(loose, 2) > 1, true, "BUG check has a second solution");
+    const looseGrade = solver.grade(loose, { metrics: false });
+    assert.equal((looseGrade.path || []).includes("bug-plus-one"), false, "a second solution blocks BUG+1");
   }
 
   const broken = found.removed.concat([{ index: found.step.pattern[0], digit: found.step.eliminate[0].digit }]);
