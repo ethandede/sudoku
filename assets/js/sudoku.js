@@ -311,6 +311,10 @@
   let generation = 0;
   let busy = false;
   let hintView = null;
+  // Fill highlights stay until the player acts. No dismiss timer.
+  let fillReview = null;
+  let fillFadeTimer = 0;
+  let pendingSolved = null;
   const GHOST_DELAY = 320;
   let hoverSpot = null;
   let ghostTimer = 0;
@@ -888,6 +892,15 @@
     });
     bindHintSwipe();
     undoBtn.addEventListener("click", undo);
+    const fillUndo = document.getElementById("fill-undo");
+    const fillDone = document.getElementById("fill-done");
+    if (fillUndo) fillUndo.addEventListener("click", undo);
+    if (fillDone) {
+      fillDone.addEventListener("click", () => {
+        dismissFillReview();
+        render();
+      });
+    }
     pauseBtn.addEventListener("click", () => {
       if (state.running) pause(true);
       else if (!state.won && !state.over) resume();
@@ -1026,6 +1039,7 @@
     }
     const originalBoard = state.board.slice();
     const originalRemoved = state.removed.map((item) => ({ index: item.index, digit: item.digit }));
+    pushUndo();
     const jumped = window.SudokuPractice.fastForward(
       state.board,
       state.removed,
@@ -1035,6 +1049,7 @@
       syncNotesFromStep
     );
     if (!jumped.ready) {
+      state.undo.pop();
       state.board = originalBoard;
       state.removed = originalRemoved;
       state.notes = emptyNotes();
@@ -1046,6 +1061,8 @@
     state.fastForwarded = true;
     if (window.SudokuPractice.wantsCandidates(slug)) state.auto = true;
     state.practiceNote = window.SudokuPractice.promptFor(name);
+    if (jumped.touches && jumped.touches.length) showFillReview(jumped.touches, name);
+    else state.undo.pop();
   }
 
   function buildTechniquePickers() {
@@ -1086,6 +1103,7 @@
 
   function beginNew(request, { count }) {
     dismissHint();
+    clearFillReview();
     const kind = request.kind || "easy";
     const date = todayString();
     const token = ++generation;
@@ -1181,11 +1199,13 @@
     const approximate = train && !practiceSlug && result.metadata && result.metadata.trainApproximate;
     const trainName = train && window.SudokuProgress ? window.SudokuProgress.nameOf(train) : "";
     announce(
-      state.practiceNote
-        ? state.practiceNote
-        : approximate
-          ? `No puzzle stopped at ${trainName}. ${labelFor(kind)} is ready.`
-          : `${labelFor(kind)} puzzle ready`
+      fillReview && fillReview.summary
+        ? fillReview.summary
+        : state.practiceNote
+          ? state.practiceNote
+          : approximate
+            ? `No puzzle stopped at ${trainName}. ${labelFor(kind)} is ready.`
+            : `${labelFor(kind)} puzzle ready`
     );
     writeSave();
     if (window.SudokuCommunity) window.SudokuCommunity.paintLine(kind);
@@ -1266,6 +1286,11 @@
 
   function select(index, focus) {
     if (index < 0 || index > 80) return;
+    if (fillReview) {
+      if (fillReview.cells.length && !fillReview.fading && describeFillCell(index)) {
+        /* the first press names the technique and fades the marks */
+      } else dismissFillReview();
+    }
     state.selected = index;
     render();
     if (focus) cells[index].focus();
@@ -1279,8 +1304,12 @@
 
   function onNumber(number) {
     if (blocked()) return;
+    const hadReview = Boolean(fillReview);
+    dismissFillReview();
+    const before = state.undo.length;
     if (state.mode === "notes") toggleNote(state.selected, number);
     else place(state.selected, number);
+    if (hadReview && state.undo.length === before) render();
   }
 
   function markGameplay() {
@@ -1345,7 +1374,11 @@
 
   function erase(index) {
     if (blocked() || state.puzzle[index] !== 0) return;
-    if (state.board[index] === 0 && state.notes[index].size === 0) return;
+    dismissFillReview();
+    if (state.board[index] === 0 && state.notes[index].size === 0) {
+      render();
+      return;
+    }
     dismissHint();
     pushUndo();
     state.removed = [];
@@ -1635,6 +1668,112 @@
     advanceHint();
   }
 
+  function motionReduced() {
+    return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  function fillMarkAt(index) {
+    if (!fillReview) return null;
+    for (let i = 0; i < fillReview.cells.length; i += 1) {
+      if (fillReview.cells[i].index === index) return fillReview.cells[i];
+    }
+    return null;
+  }
+
+  function clearFillReview() {
+    window.clearTimeout(fillFadeTimer);
+    fillFadeTimer = 0;
+    fillReview = null;
+  }
+
+  function showFillReview(touches, nextName) {
+    const api = window.SudokuPractice;
+    clearFillReview();
+    if (!api || !api.batchesOf) return;
+    const batches = api.batchesOf(touches || []);
+    const marked = api.highlightOf(batches);
+    if (!marked.length) return;
+    marked.forEach((cell, order) => {
+      cell.delay = order * 50;
+    });
+    fillReview = {
+      cells: marked,
+      summary: api.reviewCopy(batches, nextName || ""),
+      detail: "",
+      fading: false,
+      keep: false,
+      armed: false,
+    };
+  }
+
+  function dismissFillReview() {
+    if (!fillReview) return;
+    if (motionReduced() || !fillReview.cells.length || fillReview.fading) {
+      const pending = pendingSolved;
+      clearFillReview();
+      if (pending && state.won) {
+        pendingSolved = null;
+        showSolved(false, pending.unlocked);
+      }
+      return;
+    }
+    fillReview.fading = true;
+    fillReview.keep = false;
+  }
+
+  function describeFillCell(index) {
+    if (!fillReview || fillReview.fading) return false;
+    const mark = fillMarkAt(index);
+    if (!mark || !window.SudokuPractice) return false;
+    fillReview.detail = window.SudokuPractice.cellDetail(mark);
+    announce(fillReview.detail);
+    if (motionReduced()) {
+      fillReview.cells = [];
+      return true;
+    }
+    fillReview.fading = true;
+    fillReview.keep = true;
+    return true;
+  }
+
+  function finishFillFade() {
+    if (!fillReview || !fillReview.fading) return;
+    window.clearTimeout(fillFadeTimer);
+    fillFadeTimer = 0;
+    const pending = fillReview.keep ? null : pendingSolved;
+    if (fillReview.keep) {
+      fillReview.cells = [];
+      fillReview.fading = false;
+      fillReview.keep = false;
+      fillReview.armed = false;
+    } else {
+      fillReview = null;
+      pendingSolved = null;
+    }
+    render();
+    if (pending && state.won) showSolved(false, pending.unlocked);
+  }
+
+  function armFillFade() {
+    if (!fillReview || !fillReview.fading || fillReview.armed) return;
+    fillReview.armed = true;
+    let pending = 0;
+    cells.forEach((cell) => {
+      if (!cell.classList.contains("fill-fading")) return;
+      pending += 1;
+      const onEnd = (event) => {
+        if (event.propertyName !== "background-color") return;
+        cell.removeEventListener("transitionend", onEnd);
+        pending -= 1;
+        if (pending <= 0) finishFillFade();
+      };
+      cell.addEventListener("transitionend", onEnd);
+    });
+    fillFadeTimer = window.setTimeout(() => {
+      if (fillReview && fillReview.fading) finishFillFade();
+    }, 420);
+  }
+
   // Every currently available step of one technique, stored as a single undo.
   function fillTechnique(slug) {
     if (blocked() || !slug) return;
@@ -1660,13 +1799,15 @@
       state.solution,
       syncNotesFromStep
     );
+    showFillReview(result.touches, "");
     const count = result.applied.length;
+    const message = fillReview ? fillReview.summary : `${label}: ${count} ${count === 1 ? "step" : "steps"}.`;
     if (isSolved()) finish(false);
     else {
       render();
       writeSave();
-      announce(`${label}: ${count} ${count === 1 ? "step" : "steps"}.`);
     }
+    announce(message);
   }
 
   function revealCell() {
@@ -1731,6 +1872,8 @@
     state.undo = [];
     state.mistakes = 0;
     dismissHint();
+    clearFillReview();
+    pendingSolved = null;
     state.elapsed = 0;
     state.over = false;
     state.won = false;
@@ -1753,6 +1896,8 @@
     const snap = state.undo.pop();
     if (!snap) return;
     dismissHint();
+    clearFillReview();
+    pendingSolved = null;
     state.board = snap.board;
     state.notes = snap.notes.map((list) => new Set(list));
     state.removed = (snap.removed || []).map((item) => ({ index: item.index, digit: item.digit }));
@@ -1761,6 +1906,7 @@
     state.won = snap.won;
     state.revealed = snap.revealed;
     state.over = snap.over;
+    if (Array.isArray(snap.puzzle)) state.puzzle = snap.puzzle.slice();
     if (Array.isArray(snap.hintSlugs)) state.hintSlugs = snap.hintSlugs.slice();
     if (!state.over) hideModal("over-modal");
     if (!state.won) hideModal("solved-modal");
@@ -1772,6 +1918,7 @@
   function pushUndo() {
     state.undo.push({
       board: state.board.slice(),
+      puzzle: state.puzzle.slice(),
       notes: state.notes.map((set) => [...set]),
       mistakes: state.mistakes,
       slashed: [...state.slashed],
@@ -1807,7 +1954,7 @@
     if (hintSheet) hintSheet.hidden = true;
     state.revealed = revealed;
     state.won = true;
-    state.undo = [];
+    if (!fillReview) state.undo = [];
     state.userPaused = false;
     state.hidePaused = false;
     pause(false);
@@ -1829,9 +1976,13 @@
     const unlocked = revealed || assisted ? [] : recordWin();
     if (assisted) state.scored = true;
     render();
+    if (window.SudokuAccount) window.SudokuAccount.flush();
+    if (fillReview) {
+      pendingSolved = { unlocked };
+      return;
+    }
     showSolved(false, unlocked);
     if (unlocked.length && window.SudokuProgress) window.SudokuProgress.celebrate(unlocked);
-    if (window.SudokuAccount) window.SudokuAccount.flush();
   }
 
   function isSolved() {
@@ -1966,6 +2117,14 @@
       cell.classList.toggle("hint-pattern", hintPattern.has(index));
       cell.classList.toggle("hint-eliminate", hint && hint.stage >= 2 && !value && hintEliminate.has(index));
       cell.classList.toggle("hint-place", hint && hint.stage >= 2 && index === hintPlace);
+      const mark = fillMarkAt(index);
+      cell.classList.toggle("fill-placed", Boolean(mark && mark.kind === "placed"));
+      cell.classList.toggle("fill-cleared", Boolean(mark && mark.kind !== "placed"));
+      cell.classList.toggle("fill-fading", Boolean(mark && fillReview.fading));
+      if (mark && !fillReview.fading) cell.style.setProperty("--fill-delay", `${mark.delay || 0}ms`);
+      else cell.style.removeProperty("--fill-delay");
+      if (mark && window.SudokuPractice) cell.title = window.SudokuPractice.cellDetail(mark);
+      else cell.removeAttribute("title");
       cell.setAttribute("aria-selected", selected ? "true" : "false");
       cell.dataset.value = String(value);
       cell.replaceChildren();
@@ -2056,6 +2215,8 @@
     pauseBtn.setAttribute("aria-label", state.running ? "Pause timer" : "Resume timer");
     paintGhost();
     paintPracticePrompt();
+    paintFillChip();
+    if (fillReview && fillReview.fading) armFillFade();
   }
 
   function cellLabel(index) {
@@ -2075,6 +2236,8 @@
     } else if (given) text += `, given ${value}`;
     else text += state.slashed.has(index) ? `, your ${value}, incorrect` : `, your ${value}`;
     if (index === state.selected) text += ", selected";
+    const mark = fillMarkAt(index);
+    if (mark && window.SudokuPractice) text += `. ${window.SudokuPractice.cellDetail(mark)}`;
     return text;
   }
 
@@ -2114,6 +2277,24 @@
     const name = window.SudokuProgress ? window.SudokuProgress.nameOf(state.practice) : state.practice;
     el.textContent = window.SudokuPractice ? window.SudokuPractice.promptFor(name) : `${name} is the next move. Find it.`;
     el.hidden = false;
+  }
+
+  function paintFillChip() {
+    const chip = document.getElementById("fill-chip");
+    if (!chip) return;
+    const text = document.getElementById("fill-chip-text");
+    const undo = document.getElementById("fill-undo");
+    if (!fillReview) {
+      chip.hidden = true;
+      return;
+    }
+    const message = fillReview.detail || fillReview.summary || "";
+    if (text) {
+      text.textContent = message;
+      text.title = message;
+    }
+    chip.hidden = false;
+    if (undo) undo.disabled = state.undo.length === 0;
   }
 
   function labelFor(kind) {
@@ -2193,6 +2374,16 @@
       return;
     }
     if (event.key === "Escape") {
+      if (!moreMenu.hasAttribute("hidden")) {
+        closeMenu();
+        return;
+      }
+      if (fillReview) {
+        event.preventDefault();
+        dismissFillReview();
+        render();
+        return;
+      }
       closeMenu();
       return;
     }
