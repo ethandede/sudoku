@@ -150,12 +150,16 @@ body:has(.sudoku-page) .site-header {
   line-height: 1;
 }
 
-.game-brand-mark {
+.game-brand .logo-mark {
   width: 22px;
   height: 22px;
   flex: none;
   display: block;
-  border: 0;
+  color: #0c4f86;
+}
+
+html[data-theme="dark"] .game-brand .logo-mark {
+  color: #9ed2f8;
 }
 
 .game-brand-echo {
