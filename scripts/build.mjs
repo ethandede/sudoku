@@ -39,6 +39,7 @@ const articles = [
   { file: "articles/04-nyt-medium-vs-hard.md", slug: "nyt-medium-vs-hard" },
   { file: "articles/what-makes-a-sudoku-hard.md", slug: "what-makes-a-sudoku-hard" },
   { file: "articles/history-of-sudoku.md", slug: "history-of-sudoku" },
+  { file: "articles/how-to-use-sudoku-notes.md", slug: "how-to-use-sudoku-notes" },
   { file: "articles/sudoku-variants.md", slug: "sudoku-variants" },
   { file: "articles/why-ai-is-bad-at-sudoku.md", slug: "why-ai-is-bad-at-sudoku" },
   { file: "articles/does-sudoku-keep-your-brain-sharp.md", slug: "does-sudoku-keep-your-brain-sharp" },
@@ -542,9 +543,19 @@ const parsedArticles = articles.map((article) => ({
   href: `/articles/${article.slug}/`,
 }));
 const articleToday = losAngelesToday();
+const FORTHCOMING_ARTICLES = [
+  "how-to-solve-a-hard-sudoku",
+  "what-to-do-when-stuck",
+  "how-to-use-sudoku-notes",
+  "sudoku-on-your-phone",
+];
 const unpublishedSlugs = new Set(
   parsedArticles.filter((article) => !isPublished(article.publishDate, articleToday)).map((article) => article.slug)
 );
+const knownSlugs = new Set(parsedArticles.map((article) => article.slug));
+for (const slug of FORTHCOMING_ARTICLES) {
+  if (!knownSlugs.has(slug)) unpublishedSlugs.add(slug);
+}
 for (const article of parsedArticles) {
   article.published = !unpublishedSlugs.has(article.slug);
   article.html = wrapTables(stripUnpublishedLinks(article.html, unpublishedSlugs));
