@@ -154,6 +154,37 @@ assert.equal(
   practice.cellDetail({ name: "Pointing", kind: "cleared", digits: [7, 2] }),
   "Pointing cleared 2, 7 here."
 );
+const noteDiff = practice.visibleFillTouches({
+  beforeBoard: [],
+  beforeNotes: [[1, 2, 3, 5]],
+  beforeRemoved: [],
+  board: [],
+  notes: [[1, 5]],
+  removed: [
+    { index: 0, digit: 2 },
+    { index: 0, digit: 3 },
+    { index: 1, digit: 9 },
+  ],
+  slug: "naked-pair",
+  name: "Naked pair",
+  auto: false,
+});
+assert.equal(noteDiff.length, 1, "a cell the notes did not change is not counted");
+assert.equal(noteDiff[0].digits.join(","), "2,3");
+assert.equal(practice.reviewCopy(practice.batchesOf(noteDiff), ""), "Naked pair: 1 cell changed");
+const pairPuzzle = generator.generateForTechnique("naked-pair", { seed: "practice-naked-pair" });
+const pairBoard = pairPuzzle.puzzle.slice();
+const pairRemoved = [];
+practice.fastForward(pairBoard, pairRemoved, "naked-pair", solver.explain, pairPuzzle.solution);
+const pairStep = solver.explain(pairBoard, pairRemoved);
+assert.equal(pairStep.slug, "naked-pair");
+const pairCells = new Set(pairStep.pattern);
+const pairDigits = new Set();
+pairStep.candidates.forEach((item) => {
+  if (!pairCells.has(item.index)) return;
+  item.digits.forEach((digit) => pairDigits.add(digit));
+});
+assert.equal(pairDigits.size, 2, "a naked pair is the solver's two candidates, not pencil notes");
 const merged = practice.batchesOf([
   { slug: "pointing", name: "Pointing", index: 3, kind: "cleared", digits: [7] },
   { slug: "pointing", name: "Pointing", index: 3, kind: "cleared", digits: [8] },

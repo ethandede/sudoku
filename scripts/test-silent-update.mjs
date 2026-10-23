@@ -21,14 +21,14 @@ assert.equal(gameGate({ counted: false, won: false, over: false }, true), "idle"
 assert.equal(gameGate(playing, false), "idle");
 assert.equal(gameGate(null, true), "idle");
 
-assert.equal(shouldApplyUpdate(idle), true);
+assert.equal(shouldApplyUpdate(idle), false);
 assert.equal(shouldApplyUpdate({ ...idle, hidden: false }), false);
 assert.equal(shouldApplyUpdate({ ...idle, gate: "play" }), false);
 assert.equal(shouldApplyUpdate({ ...idle, gate: "pending" }), false);
 assert.equal(shouldApplyUpdate({ ...idle, pending: false }), false);
 assert.equal(shouldApplyUpdate({ ...idle, refreshing: true }), false);
 assert.equal(shouldApplyUpdate({ ...idle, reloadedAt: 90000, now: 100000 }), false);
-assert.equal(shouldApplyUpdate({ ...idle, reloadedAt: 80000, now: 100000 }), true);
+assert.equal(shouldApplyUpdate({ ...idle, reloadedAt: 80000, now: 100000 }), false);
 
 const sw = readFileSync(join(root, "assets/js/sw.js"), "utf8");
 const page = readFileSync(join(root, "assets/js/sudoku.js"), "utf8");
@@ -42,16 +42,15 @@ assert.match(activate, /clients\.claim\(\)/);
 assert.match(activate, /refreshShell\(/);
 assert.match(sw, /networkFirstNavigation/);
 assert.match(sw, /SKIP_WAITING/);
-assert.match(page, /shouldApplyUpdate/);
-assert.match(page, /visibilityState === "hidden"/);
+assert.equal(page.includes("shouldApplyUpdate"), false);
+assert.match(page, /visibilityState === "visible"/);
 assert.match(page, /writeSave\(\)/);
-assert.match(page, /SudokuAccount\.flush/);
 assert.equal(page.includes("app-update"), false);
 assert.equal(page.includes("A new version is ready."), false);
 assert.equal(page.includes("SKIP_WAITING"), false);
 assert.equal(page.includes("SudokuUpdate"), false);
 assert.equal(page.includes("location.replace"), false);
-assert.equal((page.match(/location\.reload\(\)/g) || []).length, 1);
+assert.equal(page.includes("location.reload"), false);
 assert.equal(build.includes("A new version is ready."), false);
 assert.equal(build.includes("app-update"), false);
 assert.equal(build.includes("update-banner.js"), false);

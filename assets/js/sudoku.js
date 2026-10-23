@@ -14,6 +14,7 @@
   };
   const SETTINGS_KEY = "sudoku-settings";
   const SAVE_KEY = "sudoku-progress";
+  const DONE_KEY = "sudoku-completed";
   const STATS_KEY = "sudoku-stats";
 
   function initNavigation() {
@@ -79,77 +80,11 @@
     });
   }
 
-  const Silent = window.SudokuSilent || null;
-  const hasBoard = Boolean(document.getElementById("sudoku-grid"));
-  let gameGate = hasBoard ? "pending" : "idle";
-  let pendingUpdate = false;
-  let applyingUpdate = false;
-  const RELOAD_AT = "sudoku-sw-reloaded";
-
-  function storageGet(key) {
-    try {
-      return sessionStorage.getItem(key) || "";
-    } catch {
-      return "";
-    }
-  }
-
-  function storageSet(key, value) {
-    try {
-      if (value) sessionStorage.setItem(key, value);
-      else sessionStorage.removeItem(key);
-    } catch {
-      /* private mode */
-    }
-  }
-
-  function noteGameGate(state) {
-    if (!Silent) return;
-    gameGate = Silent.gameGate(state, hasBoard);
-    applySilentUpdate();
-  }
-
-  function applySilentUpdate() {
-    if (!Silent) return;
-    const reloadedAt = Number(storageGet(RELOAD_AT)) || 0;
-    if (!Silent.shouldApplyUpdate({
-      hidden: document.visibilityState === "hidden",
-      gate: gameGate,
-      pending: pendingUpdate,
-      refreshing: applyingUpdate,
-      reloadedAt,
-      now: Date.now(),
-    })) return;
-    applyingUpdate = true;
-    pendingUpdate = false;
-    storageSet(RELOAD_AT, String(Date.now()));
-    try {
-      writeSave();
-    } catch {
-      /* the board is not on this page */
-    }
-    if (window.SudokuAccount && typeof window.SudokuAccount.flush === "function") window.SudokuAccount.flush();
-    window.location.reload();
-  }
-
   function initAppShell() {
     if (!("serviceWorker" in navigator)) return;
-    let hadController = Boolean(navigator.serviceWorker.controller);
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
-      if (!hadController) {
-        hadController = true;
-        return;
-      }
-      pendingUpdate = true;
-      applySilentUpdate();
-    });
     navigator.serviceWorker.register("/sw.js").then((registration) => {
       document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") {
-          registration.update();
-          return;
-        }
-        applySilentUpdate();
+        if (document.visibilityState === "visible") registration.update();
       });
     }).catch(() => {
       /* private mode or insecure origin */
@@ -220,8 +155,10 @@
   }
   let cells = [];
   let state = blankState();
-  let lastTick = 0;
+  let lastTick = performance.now();
+  let lastSavedSecond = -1;
   let saveTimer = 0;
+  let announceTimer = 0;
   let pendingRequest = null;
   let generation = 0;
   let busy = false;
@@ -290,6 +227,7 @@
       practiceMiss: false,
       practiceFilled: false,
       fastForwarded: false,
+      replaySolved: false,
       baseRemoved: [],
       anonPlayId: null,
       notesUsed: false,
@@ -456,11 +394,13 @@
     }
     if (!progressBlocked && Object.prototype.hasOwnProperty.call(bundle, "progress")) {
       const at = Number(bundle.progressUpdatedAt) || (bundle.progress && bundle.progress.updatedAt) || 0;
-      if (at >= progressStamp()) {
+      const progress = bundle.progress;
+      if (progress && progress.kind && !isCompletedProgress(progress)) {
+        storeSlot(progress.kind, progress, at);
+      } else if (!progress && at > progressStamp()) {
         try {
-          if (bundle.progress) localStorage.setItem(SAVE_KEY, JSON.stringify(bundle.progress));
-          else if (at > progressStamp()) localStorage.removeItem(SAVE_KEY);
-          if (at) localStorage.setItem("sudoku-progress-at", String(at));
+          localStorage.removeItem(SAVE_KEY);
+          localStorage.setItem("sudoku-progress-at", String(at));
         } catch {
           /* private mode */
         }
@@ -469,7 +409,17 @@
     render();
   }
 
+  function difficultyLabel(kind) {
+    if (kind === "daily") return "Daily";
+    return LABELS[kind] || "Easy";
+  }
+
   async function startGame() {
+    pendingRequest = requestFromUrl();
+    const kind = (pendingRequest && pendingRequest.kind) || "easy";
+    state.kind = kind;
+    labelEl.textContent = difficultyLabel(kind);
+    setCover(true, "", false);
     let pulled = false;
     if (window.SudokuAccount && navigator.onLine !== false) {
       try {
@@ -488,21 +438,60 @@
       window.SudokuAccount.invalidate();
       window.SudokuAccount.holdProgress();
     }
-    const saved = readSave();
-    pendingRequest = requestFromUrl();
+    migrateLegacySave();
+    const practiceStart = Boolean(pendingRequest && pendingRequest.practice);
+    const done = !practiceStart ? completionFor(pendingRequest) : null;
+    const saved = readSave(kind);
     if (window.SudokuCommunity) {
       window.SudokuCommunity.reconcile(saved);
       window.SudokuCommunity.boot().then(() => {
         window.SudokuCommunity.paintLine(saved && !state.counted ? saved.kind : state.kind);
       });
     }
-    const practiceStart = Boolean(pendingRequest && pendingRequest.practice);
-    if (saved && !practiceStart) {
-      showModal("resume-modal");
-      document.getElementById("resume-detail").textContent = resumeText(saved);
-    } else {
-      beginNew(pendingRequest || { kind: "easy" }, { count: !practiceStart });
+    if (done) {
+      showCompleted(done);
+      return;
     }
+    if (saved && inProgress(saved) && !practiceStart) {
+      showResume(saved);
+    } else {
+      beginNew(pendingRequest || { kind }, { count: !practiceStart });
+    }
+  }
+
+  function showResume(saved) {
+    const label = difficultyLabel(saved.kind);
+    const time = formatTime(saved.elapsed || 0);
+    document.getElementById("resume-yes").textContent = `Resume ${label} (${time})`;
+    document.getElementById("resume-no").textContent = `New ${label} puzzle`;
+    document.getElementById("resume-detail").textContent = `${label} is in progress at ${time}.`;
+    labelEl.textContent = label;
+    setCover(true, "", false);
+    showModal("resume-modal");
+  }
+
+  function showCompleted(record) {
+    state = blankState();
+    state.kind = record.kind || "easy";
+    state.dailyDate = record.dailyDate || null;
+    state.puzzle = record.puzzle.slice();
+    state.solution = record.solution.slice();
+    state.board = record.solution.slice();
+    state.puzzleId = record.puzzleId || null;
+    state.elapsed = record.elapsed || 0;
+    state.mistakes = record.mistakes || 0;
+    state.won = true;
+    state.counted = true;
+    state.scored = true;
+    state.replaySolved = true;
+    state.auto = settings.autoCandidates;
+    autoBox.checked = state.auto;
+    labelEl.textContent = difficultyLabel(state.kind);
+    writeUrl(state.kind);
+    busy = false;
+    render();
+    setCover(false);
+    showSolved(true);
   }
 
   function todayString(date = new Date()) {
@@ -823,6 +812,8 @@
     document.getElementById("resume-btn").addEventListener("click", resume);
     autoBox.addEventListener("change", () => {
       state.auto = autoBox.checked;
+      settings.autoCandidates = state.auto;
+      saveSettings();
       if (state.auto) state.notesUsed = true;
       render();
       writeSave();
@@ -862,14 +853,16 @@
     });
     document.getElementById("resume-yes").addEventListener("click", () => {
       hideModal("resume-modal");
-      const savedGame = readSave();
-      if (savedGame) restoreSave(savedGame);
-      else beginNew(pendingRequest || { kind: "easy" }, { count: true });
+      const kind = (pendingRequest && pendingRequest.kind) || state.kind || "easy";
+      const savedGame = readSave(kind);
+      if (savedGame && inProgress(savedGame)) restoreSave(savedGame);
+      else beginNew(pendingRequest || { kind }, { count: true });
     });
     document.getElementById("resume-no").addEventListener("click", () => {
       hideModal("resume-modal");
-      clearSave();
-      beginNew(pendingRequest || { kind: "easy" }, { count: true });
+      const kind = (pendingRequest && pendingRequest.kind) || state.kind || "easy";
+      clearSaveKind(kind);
+      beginNew(pendingRequest || { kind }, { count: true });
     });
     document.getElementById("solved-new").addEventListener("click", () => {
       hideModal("solved-modal");
@@ -908,6 +901,7 @@
     if (input.dataset.setting === "autoCandidates" && !state.won) {
       state.auto = settings.autoCandidates;
       autoBox.checked = state.auto;
+      writeSave();
     }
     render();
     announce("Settings updated");
@@ -1017,6 +1011,7 @@
   }
 
   function beginNew(request, { count }) {
+    if (state.counted && !state.won && !state.over && state.puzzle.some((value) => value !== 0)) writeSave();
     dismissHint();
     clearFillReview();
     const kind = request.kind || "easy";
@@ -1599,6 +1594,7 @@
     window.clearTimeout(fillFadeTimer);
     fillFadeTimer = 0;
     fillReview = null;
+    clearAnnounce();
   }
 
   function showFillReview(touches, nextName) {
@@ -1704,6 +1700,9 @@
     }
     dismissHint();
     pushUndo();
+    const beforeBoard = state.board.slice();
+    const beforeNotes = state.notes.map((set) => [...set]);
+    const beforeRemoved = state.removed.map((item) => ({ index: item.index, digit: item.digit }));
     state.fastForwarded = true;
     if (state.practice && slug === state.practice) state.practiceFilled = true;
     const result = practiceApi.fillAll(
@@ -1714,14 +1713,28 @@
       state.solution,
       syncNotesFromStep
     );
+    const stepName = (result.applied[0] && result.applied[0].name) || label;
+    result.touches = practiceApi.visibleFillTouches({
+      beforeBoard,
+      beforeNotes,
+      beforeRemoved,
+      board: state.board,
+      notes: state.notes.map((set) => [...set]),
+      removed: state.removed,
+      slug,
+      name: stepName,
+      auto: state.auto,
+    });
     showFillReview(result.touches, "");
     const count = result.applied.length;
     const message = fillReview ? fillReview.summary : `${label}: ${count} ${count === 1 ? "step" : "steps"}.`;
-    if (isSolved()) finish(false);
-    else {
-      render();
-      writeSave();
+    if (isSolved()) {
+      clearFillReview();
+      finish(false);
+      return;
     }
+    render();
+    writeSave();
     announce(message);
   }
 
@@ -1823,6 +1836,7 @@
     state.over = snap.over;
     if (Array.isArray(snap.puzzle)) state.puzzle = snap.puzzle.slice();
     if (Array.isArray(snap.hintSlugs)) state.hintSlugs = snap.hintSlugs.slice();
+    if (typeof snap.elapsed === "number") state.elapsed = snap.elapsed;
     if (!state.over) hideModal("over-modal");
     if (!state.won) hideModal("solved-modal");
     render();
@@ -1839,6 +1853,7 @@
       slashed: [...state.slashed],
       removed: state.removed.map((item) => ({ index: item.index, digit: item.digit })),
       hintSlugs: (state.hintSlugs || []).slice(),
+      elapsed: state.elapsed,
       won: state.won,
       revealed: state.revealed,
       over: state.over,
@@ -1879,11 +1894,17 @@
     if (window.SudokuCommunity) {
       if (assisted && window.SudokuCommunity.skipFinish) window.SudokuCommunity.skipFinish();
       else {
-        started
+        const posted = started
           .then(() => window.SudokuCommunity.rememberFinish(snapshot))
           .then(() => window.SudokuCommunity.completeFinish(snapshot));
+        if (posted && typeof posted.catch === "function") {
+          posted.catch(() => {
+            /* a failed finish request must not reset or reload the board */
+          });
+        }
       }
     }
+    if (!revealed) recordCompleted();
     clearSave();
     if (!revealed && state.practice && !state.practiceFilled && !state.practiceMiss && window.SudokuProgress && window.SudokuProgress.recordPractice) {
       window.SudokuProgress.recordPractice(state.practice);
@@ -1984,7 +2005,6 @@
   }
 
   function render() {
-    noteGameGate(state);
     const dots = conflictDots();
     const selectedValue = state.board[state.selected] || 0;
     const hint = hintView && hintView.key === hintKey() ? hintView : null;
@@ -2038,8 +2058,7 @@
       cell.classList.toggle("fill-fading", Boolean(mark && fillReview.fading));
       if (mark && !fillReview.fading) cell.style.setProperty("--fill-delay", `${mark.delay || 0}ms`);
       else cell.style.removeProperty("--fill-delay");
-      if (mark && window.SudokuPractice) cell.title = window.SudokuPractice.cellDetail(mark);
-      else cell.removeAttribute("title");
+      cell.removeAttribute("title");
       cell.setAttribute("aria-selected", selected ? "true" : "false");
       cell.dataset.value = String(value);
       cell.replaceChildren();
@@ -2206,7 +2225,7 @@
     const message = fillReview.detail || fillReview.summary || "";
     if (text) {
       text.textContent = message;
-      text.title = message;
+      text.removeAttribute("title");
     }
     chip.hidden = false;
     if (undo) undo.disabled = state.undo.length === 0;
@@ -2228,12 +2247,20 @@
   }
 
   function tick() {
-    if (!state.running) return;
+    if (!state.running || document.hidden) {
+      lastTick = performance.now();
+      return;
+    }
     const now = performance.now();
-    state.elapsed += (now - lastTick) / 1000;
+    const gap = (now - lastTick) / 1000;
     lastTick = now;
+    if (gap > 0 && gap <= 1.25) state.elapsed += gap;
     timerEl.textContent = formatTime(state.elapsed);
-    if (Math.floor(state.elapsed) % 5 === 0) scheduleSave();
+    const second = Math.floor(state.elapsed);
+    if (second !== lastSavedSecond && second > 0 && second % 5 === 0) {
+      lastSavedSecond = second;
+      writeSave();
+    }
   }
 
   function pause(byUser) {
@@ -2484,11 +2511,13 @@
     const extra = document.getElementById("solved-stats");
     title.textContent = state.revealed
       ? "Puzzle revealed"
-      : state.practice
-        ? "Practiced"
-        : already
-          ? "Completed"
-          : "Solved";
+      : state.replaySolved
+        ? "Solved"
+        : state.practice
+          ? "Practiced"
+          : already
+            ? "Completed"
+            : "Solved";
     const bits = [
       labelFor(state.kind),
       formatTime(state.elapsed),
@@ -2497,7 +2526,8 @@
     summary.textContent = bits.join(" · ");
     const bucket = stats[state.kind === "daily" ? "daily" : state.kind];
     const average = bucket.won ? formatTime(bucket.totalTime / bucket.won) : "–";
-    if (state.practice) extra.textContent = "Practice doesn't count toward times, streaks, or badges.";
+    if (state.replaySolved) extra.textContent = "You solved this.";
+    else if (state.practice) extra.textContent = "Practice doesn't count toward times, streaks, or badges.";
     else if (state.fastForwarded) extra.textContent = "Filled steps don't count toward times or badges.";
     else
       extra.textContent =
@@ -2662,10 +2692,16 @@
   }
 
   function announce(message) {
+    window.clearTimeout(announceTimer);
     live.textContent = "";
-    window.setTimeout(() => {
+    announceTimer = window.setTimeout(() => {
       live.textContent = message;
     }, 20);
+  }
+
+  function clearAnnounce() {
+    window.clearTimeout(announceTimer);
+    if (live) live.textContent = "";
   }
 
   function scheduleSave() {
@@ -2673,21 +2709,189 @@
     saveTimer = window.setTimeout(writeSave, 150);
   }
 
-  function clearSave() {
-    if (progressBlocked) return;
+  function slotKey(kind) {
+    return `sudoku-progress:${kind}`;
+  }
+
+  function loadStored(key, block) {
+    let raw = null;
+    try {
+      raw = localStorage.getItem(key);
+    } catch {
+      if (block) progressBlocked = true;
+      return null;
+    }
+    if (raw == null) return null;
+    let saved;
+    try {
+      saved = JSON.parse(raw);
+    } catch {
+      if (block) progressBlocked = true;
+      return null;
+    }
+    if (!saved || typeof saved !== "object" || Array.isArray(saved)) {
+      if (block) progressBlocked = true;
+      return null;
+    }
+    if ((saved.version | 0) !== 1) {
+      if (block) progressBlocked = true;
+      return null;
+    }
+    if (!Array.isArray(saved.puzzle) || saved.puzzle.length !== 81) {
+      if (block) progressBlocked = true;
+      return null;
+    }
+    if (!Array.isArray(saved.board) || saved.board.length !== 81) {
+      if (block) progressBlocked = true;
+      return null;
+    }
+    if (!Array.isArray(saved.solution) || saved.solution.length !== 81) {
+      if (block) progressBlocked = true;
+      return null;
+    }
+    if (!saved.updatedAt) saved.updatedAt = Date.now();
+    return saved;
+  }
+
+  function readSave(kind) {
+    if (kind) {
+      const slotted = loadStored(slotKey(kind), false);
+      const legacy = loadStored(SAVE_KEY, false);
+      const slotOk = slotted && slotted.kind === kind ? slotted : null;
+      const legacyOk = legacy && legacy.kind === kind ? legacy : null;
+      if (slotOk && legacyOk) {
+        const slotAt = Number(slotOk.updatedAt) || 0;
+        const legacyAt = Number(legacyOk.updatedAt) || 0;
+        return legacyAt >= slotAt ? legacyOk : slotOk;
+      }
+      return slotOk || legacyOk;
+    }
+    return loadStored(SAVE_KEY, true);
+  }
+
+  function migrateLegacySave() {
+    const legacy = loadStored(SAVE_KEY, false);
+    if (!legacy || !legacy.kind || !inProgress(legacy)) return;
+    const slotted = loadStored(slotKey(legacy.kind), false);
+    if (slotted && (Number(slotted.updatedAt) || 0) > (Number(legacy.updatedAt) || 0)) return;
+    try {
+      localStorage.setItem(slotKey(legacy.kind), JSON.stringify(legacy));
+    } catch {
+      /* private mode */
+    }
+  }
+
+  function storeSlot(kind, progress, at) {
+    if (progressBlocked || !kind || !progress || !inProgress(progress)) return;
+    const current = readSave(kind);
+    const slotAt = current && current.updatedAt ? Number(current.updatedAt) : 0;
+    if (!(at > slotAt)) return;
+    const stamped = { ...progress, kind, updatedAt: at };
+    try {
+      localStorage.setItem(slotKey(kind), JSON.stringify(stamped));
+      const playing = Boolean(state.counted && !state.won);
+      if (!playing || state.kind === kind) {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(stamped));
+        localStorage.setItem("sudoku-progress-at", String(at));
+      }
+    } catch {
+      /* private mode */
+    }
+  }
+
+  function inProgress(saved) {
+    if (!saved || saved.won || saved.over) return false;
+    if (!Array.isArray(saved.board) || !Array.isArray(saved.solution)) return false;
+    const solved = saved.board.every((value, index) => value === saved.solution[index] && value !== 0);
+    return !solved;
+  }
+
+  function readCompleted() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(DONE_KEY) || "{}");
+      return raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function completionId(kind, puzzleId, dailyDate) {
+    if (kind === "daily") return dailyDate ? `daily:${dailyDate}` : "";
+    return puzzleId || "";
+  }
+
+  function completionFor(request) {
+    if (!request) return null;
+    const all = readCompleted();
+    if (request.kind === "daily") {
+      const record = all[`daily:${todayString()}`];
+      return record && Array.isArray(record.solution) ? record : null;
+    }
+    if (!request.puzzleId) return null;
+    const record = all[request.puzzleId];
+    return record && Array.isArray(record.solution) ? record : null;
+  }
+
+  function isCompletedProgress(progress) {
+    if (!progress) return false;
+    const id = completionId(progress.kind, progress.puzzleId, progress.dailyDate);
+    if (!id) return false;
+    return Boolean(readCompleted()[id]);
+  }
+
+  function recordCompleted() {
+    const id = completionId(state.kind, currentPuzzleId(), state.dailyDate);
+    if (!id || !state.solution || !state.solution.length) return;
+    const all = readCompleted();
+    all[id] = {
+      kind: state.kind,
+      puzzleId: state.puzzleId || null,
+      dailyDate: state.dailyDate || null,
+      elapsed: Math.floor(state.elapsed || 0),
+      mistakes: state.mistakes || 0,
+      puzzle: state.puzzle,
+      solution: state.solution,
+      at: Date.now(),
+    };
+    const ids = Object.keys(all);
+    if (ids.length > 40) {
+      ids
+        .sort((a, b) => (all[a].at || 0) - (all[b].at || 0))
+        .slice(0, ids.length - 40)
+        .forEach((key) => {
+          delete all[key];
+        });
+    }
+    try {
+      localStorage.setItem(DONE_KEY, JSON.stringify(all));
+    } catch {
+      /* private mode */
+    }
+  }
+
+  function clearSaveKind(kind) {
+    if (progressBlocked || !kind) return;
     const at = Date.now();
     try {
-      localStorage.removeItem(SAVE_KEY);
-      localStorage.setItem("sudoku-progress-at", String(at));
+      localStorage.removeItem(slotKey(kind));
+      const legacy = loadStored(SAVE_KEY, false);
+      if (!legacy || legacy.kind === kind) {
+        localStorage.removeItem(SAVE_KEY);
+        localStorage.setItem("sudoku-progress-at", String(at));
+      }
     } catch {
       /* private mode */
     }
     noteAccount();
   }
 
+  function clearSave() {
+    clearSaveKind(state.kind);
+  }
+
   function writeSave() {
     if (progressBlocked) return;
-    if (state.won || !state.counted) return;
+    if (state.won || !state.counted || state.replaySolved) return;
     const payload = {
       version: 1,
       updatedAt: Date.now(),
@@ -2725,60 +2929,13 @@
       window.SudokuCommunity.noteProgress(communitySnapshot(state.over ? "failed" : "abandoned"));
     }
     try {
+      localStorage.setItem(slotKey(state.kind), JSON.stringify(payload));
       localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
       localStorage.setItem("sudoku-progress-at", String(payload.updatedAt));
     } catch {
       /* private mode */
     }
     noteAccount();
-  }
-
-  function readSave() {
-    let raw = null;
-    try {
-      raw = localStorage.getItem(SAVE_KEY);
-    } catch {
-      progressBlocked = true;
-      return null;
-    }
-    if (raw == null) return null;
-    let saved;
-    try {
-      saved = JSON.parse(raw);
-    } catch {
-      progressBlocked = true;
-      return null;
-    }
-    if (!saved || typeof saved !== "object" || Array.isArray(saved)) {
-      progressBlocked = true;
-      return null;
-    }
-    if ((saved.version | 0) !== 1) {
-      progressBlocked = true;
-      return null;
-    }
-    if (!Array.isArray(saved.puzzle) || saved.puzzle.length !== 81) {
-      progressBlocked = true;
-      return null;
-    }
-    if (!Array.isArray(saved.board) || saved.board.length !== 81) {
-      progressBlocked = true;
-      return null;
-    }
-    if (!Array.isArray(saved.solution) || saved.solution.length !== 81) {
-      progressBlocked = true;
-      return null;
-    }
-    if (!saved.updatedAt) {
-      saved.updatedAt = Date.now();
-      try {
-        localStorage.setItem(SAVE_KEY, JSON.stringify(saved));
-        localStorage.setItem("sudoku-progress-at", String(saved.updatedAt));
-      } catch {
-        /* private mode */
-      }
-    }
-    return saved;
   }
 
   function restoreSave(saved) {
