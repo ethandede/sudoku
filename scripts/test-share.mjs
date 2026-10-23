@@ -25,12 +25,13 @@ const daily = share.shareText({
   mistakes: 0,
   hardest: "locked",
   badges: [],
-  url: share.dailyUrl(),
+  url: share.dailyUrl("2026-10-21"),
 });
 check("daily headline", daily.startsWith("SudokuSudoku · Daily · Oct 21\n"));
 check("daily stats", daily.includes("Solved in 12:34 · 1 hint · 0 mistakes"));
 check("daily technique", daily.includes("✦ Pointing"));
-check("daily link", daily.endsWith("https://sudokusudoku.com/?daily"));
+check("daily link", daily.endsWith("https://sudokusudoku.com/daily/2026-10-21/"));
+check("daily permalink", share.dailyUrl("2026-10-23") === "https://sudokusudoku.com/daily/2026-10-23/");
 check("daily has no puzzle id", !daily.includes("?p="));
 
 const seeded = share.shareText({

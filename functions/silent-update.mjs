@@ -1,5 +1,5 @@
-// A new service worker takes control on its own. The open page keeps running
-// until the player leaves it, and only when no game is in progress.
+// A new service worker takes control on its own. The open page never reloads
+// itself. The next visit picks up the new version.
 
 export function gameGate(state, hasBoard) {
   if (!hasBoard) return "idle";
@@ -7,9 +7,6 @@ export function gameGate(state, hasBoard) {
   return "play";
 }
 
-export function shouldApplyUpdate({ hidden, gate, pending, refreshing, reloadedAt, now }) {
-  if (!pending || refreshing || !hidden) return false;
-  if (gate !== "idle") return false;
-  if (reloadedAt && now - reloadedAt < 15000) return false;
-  return true;
+export function shouldApplyUpdate() {
+  return false;
 }

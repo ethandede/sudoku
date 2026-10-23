@@ -195,12 +195,24 @@ assert.equal(redirectRules.some((line) => /wp-admin|wp-login|xmlrpc/.test(line))
 const dynamicAt = redirectRules.findIndex((line) => line.includes("*") || line.includes(":"));
 assert.equal(dynamicAt > 0 && redirectRules.slice(0, dynamicAt).every((line) => !line.includes("*") && !line.includes(":")), true);
 
+function visibleWords(text) {
+  const plain = text
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/[#>*_`]/g, " ");
+  return plain.split(/\s+/).filter((token) => /[A-Za-z]/.test(token)).length;
+}
+
 const about = readFileSync(new URL("../about-page-content.md", import.meta.url), "utf8");
 assert.match(about, /^Hi, I'm Ethan Ede\./);
 assert.match(about, /Teddy, chief puzzle supervisor\. Never once helpful\./);
 assert.match(about, /\/contact\//);
+assert.match(about, /\/how-difficulty-works\//);
+assert.match(about, /\/techniques\//);
 assert.equal(about.includes("DRAFT"), false);
 assert.equal(about.includes("—"), false);
+assert.equal(about.includes("–"), false);
+assert.ok(visibleWords(about) >= 450, `about words ${visibleWords(about)}`);
 
 const HARD_LINK =
   '<a href="/articles/what-makes-a-sudoku-hard/">Here\'s what actually makes a Sudoku hard</a>';
@@ -341,15 +353,88 @@ assert.equal(hiddenGrade.includes('href="/articles/what-makes-a-sudoku-hard/"'),
 assert.match(stripUnpublishedLinks(grading, new Set()), /what-makes-a-sudoku-hard/);
 assert.match(readFileSync(new URL("../src/_redirects", import.meta.url), "utf8"), /\/how-difficulty-works \/how-difficulty-works\/ 301/);
 
-const mistakes = readFileSync(new URL("../articles/02-common-mistakes.md", import.meta.url), "utf8");
-assert.equal(mistakes.includes("—"), false);
+function proseWords(markdown) {
+  let text = markdown.replace(/\r\n/g, "\n");
+  text = text.replace(/^# .+$/m, "");
+  text = text.replace(/\*\*Meta Description:\*\*.*/i, "");
+  text = text.replace(/\*\*Keywords:\*\*.*/i, "");
+  text = text.replace(/```[\s\S]*?```/g, " ");
+  text = text.replace(/!\[[^\]]*\]\([^)]*\)/g, " ");
+  text = text.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
+  text = text.replace(/[#>*_`]/g, " ");
+  return (text.match(/[A-Za-z0-9]+(?:'[A-Za-z0-9]+)?/g) || []).length;
+}
+
+function pipeBoard(body) {
+  const cells = [];
+  for (const line of body.replace(/\s+$/, "").split("\n")) {
+    if (!line.trim() || line.startsWith("+")) continue;
+    if (!line.startsWith("|")) return null;
+    const groups = line.split("|").slice(1, -1);
+    if (groups.length !== 3) return null;
+    for (const group of groups) {
+      const tokens = group.trim().split(/\s+/);
+      if (tokens.length !== 3) return null;
+      for (const token of tokens) {
+        if (!/^[1-9.]$/.test(token)) return null;
+        cells.push(token === "." ? 0 : Number(token));
+      }
+    }
+  }
+  return cells.length === 81 ? cells : null;
+}
+
+function exampleBoards(markdown) {
+  const boards = [];
+  for (const match of markdown.matchAll(/```[^\n]*\n([\s\S]*?)```/g)) {
+    if (!match[1].includes("|")) continue;
+    const cells = pipeBoard(match[1]);
+    if (!cells) return null;
+    boards.push(cells);
+  }
+  return boards;
+}
+
+function assertGuideArticle(file, minBoards) {
+  const text = readFileSync(new URL(file, import.meta.url), "utf8");
+  assert.equal(text.includes("\u2014"), false, `${file} em dash`);
+  assert.equal(text.includes("\u2013"), false, `${file} en dash`);
+  assert.equal(text.includes("&mdash;"), false, file);
+  assert.equal(text.includes("&ndash;"), false, file);
+  const words = proseWords(text);
+  assert.ok(words >= 1200, `${file} words ${words}`);
+  const boards = exampleBoards(text);
+  assert.ok(boards, `${file} has a pipe grid that did not parse`);
+  assert.ok(boards.length >= minBoards, `${file} boards ${boards.length}`);
+  boards.forEach((cells, index) => {
+    assert.equal(cells.length, 81, `${file} board ${index + 1}`);
+    assert.equal(countSolutions(cells, 2), 1, `${file} board ${index + 1} solutions`);
+  });
+  return text;
+}
+
+const beginners = assertGuideArticle("../articles/01-beginners-guide.md", 2);
+assert.equal(beginners.includes("publishDate:"), false);
+assert.match(beginners, /^# How to play Sudoku$/m);
+
+const mistakes = assertGuideArticle("../articles/02-common-mistakes.md", 1);
+assert.equal(mistakes.includes("publishDate:"), false);
 assert.equal(mistakes.includes("Print this checklist"), false);
+assert.match(mistakes, /^# 7 Common Sudoku Mistakes \(And How to Fix Them\)$/m);
 
 const contact = readFileSync(new URL("../contact-page-content.html", import.meta.url), "utf8");
 assert.equal(contact.includes("There is no account"), false);
 assert.match(contact, /An account is optional/);
 assert.match(contact, /6-digit code/);
 assert.match(contact, /no password/i);
+assert.match(contact, /id="contact-form"/);
+assert.match(contact, /Bug reports are welcome/);
+assert.match(contact, /Puzzle issues are welcome/);
+assert.match(contact, /Technique questions are welcome/);
+assert.match(contact, /not a promise/);
+assert.equal(contact.includes("—"), false);
+assert.equal(contact.includes("–"), false);
+assert.ok(visibleWords(contact) >= 450, `contact words ${visibleWords(contact)}`);
 
 const home = readFileSync(new URL("../home-copy.mjs", import.meta.url), "utf8");
 assert.match(home, /title: "Free Sudoku, Graded by the Hardest Move \| SudokuSudoku"/);

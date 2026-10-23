@@ -50,6 +50,7 @@ const kite = jump("two-string-kite");
 const xyz = jump("xyz-wing");
 const wwing = jump("w-wing");
 const rectangle = jump("unique-rectangle");
+const bug = jump("bug-plus-one");
 assert.ok(hidden.jumped.applied.length > 0, "hidden pair jumps past easier steps");
 assert.ok(wing.jumped.applied.length > 0, "x-wing jumps past easier steps");
 assert.equal(practice.wantsCandidates("naked-single"), false);
@@ -162,6 +163,38 @@ assert.equal(
   practice.cellDetail({ name: "Pointing", kind: "cleared", digits: [7, 2] }),
   "Pointing cleared 2, 7 here."
 );
+const noteDiff = practice.visibleFillTouches({
+  beforeBoard: [],
+  beforeNotes: [[1, 2, 3, 5]],
+  beforeRemoved: [],
+  board: [],
+  notes: [[1, 5]],
+  removed: [
+    { index: 0, digit: 2 },
+    { index: 0, digit: 3 },
+    { index: 1, digit: 9 },
+  ],
+  slug: "naked-pair",
+  name: "Naked pair",
+  auto: false,
+});
+assert.equal(noteDiff.length, 2, "a solver elimination counts even when that cell had no note");
+assert.equal(noteDiff[0].digits.join(","), "2,3");
+assert.equal(noteDiff[1].digits.join(","), "9");
+assert.equal(practice.reviewCopy(practice.batchesOf(noteDiff), ""), "Naked pairs: 2 cells changed");
+const pairPuzzle = generator.generateForTechnique("naked-pair", { seed: "practice-naked-pair" });
+const pairBoard = pairPuzzle.puzzle.slice();
+const pairRemoved = [];
+practice.fastForward(pairBoard, pairRemoved, "naked-pair", solver.explain, pairPuzzle.solution);
+const pairStep = solver.explain(pairBoard, pairRemoved);
+assert.equal(pairStep.slug, "naked-pair");
+const pairCells = new Set(pairStep.pattern);
+const pairDigits = new Set();
+pairStep.candidates.forEach((item) => {
+  if (!pairCells.has(item.index)) return;
+  item.digits.forEach((digit) => pairDigits.add(digit));
+});
+assert.equal(pairDigits.size, 2, "a naked pair is the solver's two candidates, not pencil notes");
 const merged = practice.batchesOf([
   { slug: "pointing", name: "Pointing", index: 3, kind: "cleared", digits: [7] },
   { slug: "pointing", name: "Pointing", index: 3, kind: "cleared", digits: [8] },
@@ -220,8 +253,16 @@ assert.match(scss, /--fill-placed:\s*#3f6d90/);
 assert.match(scss, /--fill-cleared:\s*#2c4d66/);
 assert.match(scss, /--fill-ring:\s*#9ed2f8/);
 assert.match(scss, /animation-delay:\s*var\(--fill-delay/);
-assert.match(scss, /transition:\s*background-color 300ms ease/);
-assert.match(scss, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.cell\.fill-placed/);
+assert.match(
+  scss,
+  /@media \(prefers-reduced-motion: no-preference\)[\s\S]*transition:\s*background-color 300ms ease, box-shadow 300ms ease/
+);
+const fadeRule = scss.slice(scss.indexOf("&.fill-placed.fill-fading,"), scss.indexOf("prefers-reduced-motion: no-preference"));
+assert.equal(fadeRule.includes("transition"), false, "fill fade has no transition until motion is allowed");
+assert.match(
+  scss,
+  /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.cell\.fill-placed\.fill-fading[\s\S]*transition:\s*none/
+);
 assert.match(scss, /\.fill-chip[\s\S]*position:\s*absolute/);
 assert.match(scss, /\.selected\.fill-placed[\s\S]*background:\s*var\(--selected\)/);
 
@@ -230,7 +271,7 @@ assert.match(community, /function skipFinish/);
 assert.match(community, /function abandonOpen/);
 
 console.log(
-  `practice ok (hidden pair ${hidden.jumped.applied.length} steps, x-wing ${wing.jumped.applied.length} steps, skyscraper ${skyscraper.jumped.applied.length}, kite ${kite.jumped.applied.length}, xyz ${xyz.jumped.applied.length}, w-wing ${wwing.jumped.applied.length}, rectangle ${rectangle.jumped.applied.length}, naked singles ${filled.applied.length})`
+  `practice ok (hidden pair ${hidden.jumped.applied.length} steps, x-wing ${wing.jumped.applied.length} steps, skyscraper ${skyscraper.jumped.applied.length}, kite ${kite.jumped.applied.length}, xyz ${xyz.jumped.applied.length}, w-wing ${wwing.jumped.applied.length}, rectangle ${rectangle.jumped.applied.length}, bug ${bug.jumped.applied.length}, naked singles ${filled.applied.length})`
 );
 
 vm.runInContext(fs.readFileSync(path.join(root, "assets/js/share.js"), "utf8"), context);

@@ -2,7 +2,7 @@
 @use "sass:color"; // Import the color module
 
 // Core theme colors
-$background-start: #ffffff;        // Pure white start
+$background-start: #faf9f7;        // Warm off-white start
 $background-end: #e0e0e0;          // Light gray end
 $primary-text: #0f335c;            // Dark blue text
 $primary-border: #333333;            // Dark gray text
@@ -10,7 +10,7 @@ $accent: #4a90e2;                  // Soft blue for buttons/highlights
 $highlight: #e94e77;               // Coral for invalid/button-solved
 
 // Cell states
-$cell-background: #f5f5f5;         // Off-white cells
+$cell-background: #f5f4f1;         // Warm recessed cells
 $cell-initial-text: #666666;       // Medium gray for pre-populated
 $cell-user-solved-text: #333333;   // Dark gray for user guesses
 // $cell-button-solved-text: $highlight; // Coral for auto-solved

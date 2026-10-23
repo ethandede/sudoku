@@ -25,10 +25,11 @@ const PATTERNS = {
   swordfish: { focus: [2, 6, 29, 33, 56, 60] },
   "xy-wing": { focus: [20, 24, 56] },
   "w-wing": { focus: [10, 19, 55, 64] },
-  "unique-rectangle": { focus: [0, 3, 27], accent: [30] },
+  "unique-rectangle": { focus: [19, 22, 46, 49] },
   skyscraper: { focus: [1, 19, 14, 68] },
   "two-string-kite": { focus: [2, 20, 23, 47] },
   "xyz-wing": { focus: [30, 34, 66] },
+  "bug-plus-one": { focus: [66] },
   coloring: { focus: [10, 28, 46], accent: [16, 34, 52] },
   "xy-chain": { focus: [0, 4, 22, 40, 44, 62, 80] },
 };
@@ -158,6 +159,9 @@ const cards = [
 ];
 
 const only = process.argv[2] || "";
+if (only && !cards.some((card) => card.slug === only)) {
+  throw new Error(`No OG card for ${only}`);
+}
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
 for (const card of cards) {

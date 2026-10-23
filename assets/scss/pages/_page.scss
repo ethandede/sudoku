@@ -13,17 +13,17 @@
   }
 
   .page-content {
-    background: white;
+    background: #faf9f7;
     border-radius: 12px;
     padding: 2.25rem 2.5rem 2.5rem;
-    border: 1px solid #d5dbe2;
+    border: 1px solid #ddd8d2;
     box-shadow: none;
   }
 
   .page-header {
     margin-bottom: 2rem;
     padding-bottom: 1.5rem;
-    border-bottom: 1px solid #d5dbe2;
+    border-bottom: 1px solid #ddd8d2;
 
     .page-title {
       font-size: 2.5rem;
@@ -35,7 +35,7 @@
 
   .page-body {
     line-height: 1.8;
-    color: #333;
+    color: #3a352f;
     font-size: 1.1rem;
 
     h2 {
@@ -91,7 +91,7 @@
       td {
         text-align: left;
         padding: 0.45rem 0.55rem;
-        border-bottom: 1px solid #ddd;
+        border-bottom: 1px solid #ddd8d2;
         vertical-align: top;
       }
     }
@@ -112,7 +112,7 @@
 
     hr {
       border: none;
-      border-top: 1px solid #e0e0e0;
+      border-top: 1px solid #e4e0da;
       margin: 2rem 0;
     }
 
@@ -121,7 +121,7 @@
       padding-left: 1.5rem;
       margin: 2rem 0;
       font-style: italic;
-      color: #666;
+      color: #5e5954;
     }
 
     img {
@@ -150,7 +150,7 @@
         margin-top: 0.5rem;
         font-size: 0.95rem;
         line-height: 1.4;
-        color: #555;
+        color: #5a534c;
       }
     }
   }
