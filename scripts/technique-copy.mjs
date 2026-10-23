@@ -6,7 +6,10 @@
 // the "next harder" link both sort by it, so array position does not matter.
 // A tenth breaks ties (claiming after pointing, a hidden subset after the
 // naked one, XY-chain after coloring). Leave the gaps. A new technique slots
-// in by setting `order` and nothing else:
+// in by setting `order` and nothing else.
+// `example` is optional. Capture wins when it finds a board. Otherwise the
+// build checks `example`: unique puzzle, and the stated step at that position.
+// A page with neither still builds.
 //   skyscraper 72, two-string-kite 74 (after x-wing, before xy-wing)
 //   xyz-wing 82, w-wing 84 (after xy-wing, before swordfish)
 //   unique-rectangle 92, bug-plus-one 94 (after swordfish, before coloring)

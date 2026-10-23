@@ -146,11 +146,9 @@ export function captureExamples(root) {
     );
   }
 
-  if (wanted.size) {
-    throw new Error(`No solver example for: ${[...wanted].join(", ")}`);
-  }
-
+  // A missing slug is not fatal. The build uses a hand-built example when the
+  // technique page supplies one, and still publishes the page when it does not.
   const examples = {};
-  for (const slug of techniqueOrder) examples[slug] = found.get(slug);
+  for (const slug of techniqueOrder) examples[slug] = found.get(slug) || null;
   return examples;
 }

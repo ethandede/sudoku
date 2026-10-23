@@ -18,7 +18,7 @@ import {
   stripUnpublishedLinks,
   wrapTables,
 } from "./articles.mjs";
-import { captureExamples } from "./capture-examples.mjs";
+import { resolveTechniqueExamples } from "./example-board.mjs";
 import { nextTechnique, orderedTechniques, techniques } from "./technique-copy.mjs";
 import { adsensePushScript, housePair, renderHousePromos } from "./house-promos.mjs";
 import { phosphorArrow } from "./icons.mjs";
@@ -875,7 +875,7 @@ visibleArticles.forEach((article, index) => {
   );
 });
 
-const examples = captureExamples(root);
+const examples = resolveTechniqueExamples(root, techniques);
 const bySlug = new Map(techniques.map((technique) => [technique.slug, technique]));
 
 function pencilHtml(digits) {
@@ -968,7 +968,10 @@ function lessonSections(technique) {
 function renderLesson(technique, example) {
   return lessonSections(technique)
     .map((section) => {
-      if (section.demo) return demoBlock(example, section);
+      if (section.demo) {
+        if (!example) return `<p>No worked board for this step yet.</p>`;
+        return demoBlock(example, section);
+      }
       let html = "";
       if (section.h) html += `<h2>${escapeHtml(section.h)}</h2>\n`;
       if (section.h3) html += `<h3>${escapeHtml(section.h3)}</h3>\n`;
@@ -1143,11 +1146,13 @@ techniques.forEach((technique) => {
     "@type": "HowTo",
     name: `How to spot ${technique.name} in Sudoku`,
     description: technique.description,
-    step: [
-      { "@type": "HowToStep", name: "See the pattern", text: example.step.look },
-      { "@type": "HowToStep", name: "What gets eliminated", text: example.step.explain },
-      { "@type": "HowToStep", name: "The result", text: resultSentence(example.step) },
-    ],
+    step: example
+      ? [
+          { "@type": "HowToStep", name: "See the pattern", text: example.step.look },
+          { "@type": "HowToStep", name: "What gets eliminated", text: example.step.explain },
+          { "@type": "HowToStep", name: "The result", text: resultSentence(example.step) },
+        ]
+      : [{ "@type": "HowToStep", name: technique.name, text: technique.description }],
   };
   const lesson = renderLesson(technique, example);
   const harder = nextTechnique(technique);
@@ -1161,7 +1166,7 @@ techniques.forEach((technique) => {
       description: meta.description,
       canonical: `${SITE}${path}`,
       jsonLd: howto,
-      demo: true,
+      demo: Boolean(example),
       main: `<main class="standard-page technique-page">
   <div class="container">
     <article class="page-content">
@@ -1181,12 +1186,16 @@ techniques.forEach((technique) => {
     </article>
   </div>
 </main>
-<script type="application/json" id="technique-example">${JSON.stringify({
-        given: example.given,
-        board: example.board,
-        pencil: example.pencil,
-        step: example.step,
-      }).replace(/</g, "\\u003c")}</script>`,
+${
+        example
+          ? `<script type="application/json" id="technique-example">${JSON.stringify({
+              given: example.given,
+              board: example.board,
+              pencil: example.pencil,
+              step: example.step,
+            }).replace(/</g, "\\u003c")}</script>`
+          : ""
+      }`,
     }),
     path
   );

@@ -26,6 +26,7 @@
     "test:motion": "node scripts/test-motion.mjs",
     "test:stats-page": "node scripts/test-stats-page.mjs",
     "test:home": "node scripts/test-home-copy.mjs",
+    "test:examples": "node scripts/test-example-board.mjs",
     "test:not-found": "node scripts/test-not-found.mjs",
     "test:meta": "node scripts/test-meta.mjs"
   },
