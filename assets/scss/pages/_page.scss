@@ -3,7 +3,7 @@
 // Standard Page Template (About, Contact, etc.)
 .standard-page {
   padding: 4rem 0;
-  background: #f4f6f8;
+  background: transparent;
   min-height: 60vh;
 
   .container {
@@ -14,15 +14,16 @@
 
   .page-content {
     background: white;
-    border-radius: 8px;
-    padding: 3rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 2.25rem 2.5rem 2.5rem;
+    border: 1px solid #d5dbe2;
+    box-shadow: none;
   }
 
   .page-header {
     margin-bottom: 2rem;
     padding-bottom: 1.5rem;
-    border-bottom: 3px solid vars.$accent-color;
+    border-bottom: 1px solid #d5dbe2;
 
     .page-title {
       font-size: 2.5rem;
@@ -71,7 +72,7 @@
       transition: color 0.3s ease;
 
       &:hover {
-        color: vars.$highlight-color;
+        color: vars.$accent-color;
       }
     }
 

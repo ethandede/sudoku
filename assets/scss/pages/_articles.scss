@@ -4,7 +4,7 @@
 // Articles List Page
 .articles-page {
   padding: 4rem 0;
-  background: #f4f6f8;
+  background: transparent;
 
   .container {
     max-width: 1200px;
@@ -40,11 +40,10 @@
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: border-color 0.2s ease;
 
     &:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      border-color: vars.$accent-color;
     }
 
     .article-thumbnail {
@@ -92,11 +91,10 @@
     .read-more {
       color: vars.$accent-color;
       text-decoration: none;
-      font-weight: 600;
-      transition: color 0.3s ease;
+      font-weight: 700;
 
       &:hover {
-        color: vars.$highlight-color;
+        color: #083a64;
       }
     }
   }
@@ -139,7 +137,7 @@
 // Single Article Page
 .article-single-page {
   padding: 4rem 0;
-  background: #f4f6f8;
+  background: transparent;
 
   .container {
     max-width: 800px;
@@ -149,9 +147,10 @@
 
   .article-content {
     background: white;
-    border-radius: 8px;
-    padding: 3rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 2.25rem 2.5rem 2.5rem;
+    border: 1px solid #d5dbe2;
+    box-shadow: none;
   }
 
   .article-header {
@@ -166,10 +165,11 @@
     }
 
     .article-title {
-      font-size: 2.5rem;
-      color: vars.$text-color;
-      line-height: 1.2;
-      margin-bottom: 2rem;
+      font-size: 2.35rem;
+      color: #1e232b;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.85rem;
     }
 
     .article-featured-image {
@@ -257,7 +257,7 @@
       text-decoration: underline;
 
       &:hover {
-        color: vars.$highlight-color;
+        color: #083a64;
       }
     }
   }
@@ -265,7 +265,7 @@
   .article-footer {
     margin-top: 3rem;
     padding-top: 2rem;
-    border-top: 2px solid #eee;
+    border-top: 1px solid #d5dbe2;
 
     .article-tags {
       margin-bottom: 2rem;

@@ -1,0 +1,209 @@
+// Site chrome in the House marks system. The game screen is untouched:
+// these rules never select the board, keypad, notes, or play column.
+
+html:not(:has(.sudoku-page)) body {
+  background-color: #f4f6f8;
+  background-image:
+    linear-gradient(rgba(12, 79, 134, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(12, 79, 134, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.brand-kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.45rem;
+  color: #0c4f86;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.brand-mark {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.page-header-copy {
+  min-width: 0;
+}
+
+.page-header-has-art {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-header-art {
+  width: 96px;
+  height: 72px;
+  flex: none;
+  color: #0c4f86;
+  --soft: #d4e8f7;
+  --paper: #f4f6f8;
+  --rule: #8aa4bb;
+  --pattern: #0b6e5f;
+}
+
+.page-header-art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.standard-page,
+.articles-page,
+.article-single-page,
+.skills-page {
+  background: transparent;
+}
+
+.standard-page .page-content,
+.article-single-page .article-content,
+.articles-page .article-card {
+  border: 1px solid #d5dbe2;
+  box-shadow: none;
+}
+
+.standard-page .page-header,
+.articles-page .page-header {
+  border-bottom: 1px solid #d5dbe2;
+}
+
+.standard-page .page-header .page-title,
+.articles-page .page-header h1,
+.article-single-page .article-title,
+.skills-page h1 {
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+
+.articles-page .page-header {
+  text-align: left;
+}
+
+.articles-page .page-description,
+.skills-lead {
+  color: #5c6670;
+}
+
+.page-body a:hover,
+.article-body a:hover,
+.articles-page .read-more:hover {
+  color: #0c4f86;
+}
+
+.stats-empty,
+.no-articles {
+  padding: 1rem 1.1rem;
+  border: 1px dashed #8aa4bb;
+  border-radius: 10px;
+  background: #f4f6f8;
+  color: #1e232b;
+}
+
+.skills-header {
+  margin-bottom: 0.35rem;
+}
+
+html[data-theme="dark"] {
+  &:not(:has(.sudoku-page)) body {
+    background-color: #121416;
+    background-image:
+      linear-gradient(rgba(158, 210, 248, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(158, 210, 248, 0.05) 1px, transparent 1px);
+    background-size: 24px 24px;
+    color: #e6e9ed;
+  }
+
+  .site-header {
+    background-color: #1a1e24;
+    background-image:
+      linear-gradient(rgba(158, 210, 248, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(158, 210, 248, 0.05) 1px, transparent 1px);
+    background-size: 16px 16px;
+    border-bottom-color: #9ed2f8;
+    box-shadow: none;
+
+    .site-logo,
+    .nav-primary a,
+    .dropdown-menu a {
+      color: #e6e9ed;
+    }
+
+    .site-logo .logo-mark,
+    .site-logo .logo-echo {
+      color: #9ed2f8;
+    }
+
+    .nav-menu,
+    .dropdown-menu {
+      background: #22262c;
+      border-color: #3e4650;
+    }
+
+    .mobile-menu-toggle span {
+      background: #e6e9ed;
+    }
+  }
+
+  .brand-kicker,
+  .page-header-art {
+    color: #9ed2f8;
+  }
+
+  .page-header-art {
+    --soft: #2a4560;
+    --paper: #1a1e24;
+    --rule: #7f95a8;
+    --pattern: #7ddec8;
+  }
+
+  .standard-page,
+  .articles-page,
+  .article-single-page,
+  .skills-page {
+    background: transparent;
+  }
+
+  .standard-page .page-content,
+  .article-single-page .article-content,
+  .articles-page .article-card {
+    border-color: #3e4650;
+  }
+
+  .standard-page .page-header,
+  .articles-page .page-header {
+    border-bottom-color: #3e4650;
+  }
+
+  .articles-page .page-description,
+  .skills-lead {
+    color: #b7c0c8;
+  }
+
+  .stats-empty,
+  .no-articles {
+    background: #1a1e24;
+    border-color: #7f95a8;
+    color: #e6e9ed;
+  }
+
+  .site-footer {
+    background: #12161b;
+    border-top-color: #9ed2f8;
+  }
+}
+
+@media (max-width: 560px) {
+  .page-header-art {
+    width: 72px;
+    height: 54px;
+  }
+}

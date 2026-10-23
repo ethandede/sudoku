@@ -67,6 +67,27 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;");
 }
 
+function brandMark(className = "brand-mark") {
+  return `<svg class="${className}" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M1.2 1.2h13.6v13.6H1.2z" fill="none" stroke="currentColor" stroke-width="1.15"/><path d="M5.7 1.2v13.6M10.3 1.2v13.6M1.2 5.7h13.6M1.2 10.3h13.6" fill="none" stroke="currentColor" stroke-width="1" opacity="0.55"/><rect x="6.15" y="6.15" width="3.7" height="3.7" fill="currentColor"/></svg>`;
+}
+
+function brandKicker(label) {
+  return `<p class="brand-kicker">${brandMark()}<span>${escapeHtml(label)}</span></p>`;
+}
+
+const HEADER_ART = {
+  techniques: `<svg viewBox="0 0 96 72" aria-hidden="true" focusable="false"><rect width="96" height="72" rx="6" fill="var(--paper)"/><rect x="16" y="14" width="20" height="20" fill="var(--soft)"/><rect x="56" y="14" width="20" height="20" fill="var(--soft)"/><rect x="16" y="40" width="20" height="20" fill="var(--soft)"/><rect x="56" y="40" width="20" height="20" fill="var(--soft)"/><path d="M16 14h60v46H16zM36 14v46M56 14v46M16 34h60M16 40h60" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M26 24L66 50M66 24L26 50" fill="none" stroke="var(--pattern)" stroke-width="1.6"/></svg>`,
+  articles: `<svg viewBox="0 0 96 72" aria-hidden="true" focusable="false"><rect x="20" y="8" width="56" height="56" rx="4" fill="var(--paper)" stroke="currentColor" stroke-width="1.7"/><path d="M30 24h26M30 34h20M30 44h14" fill="none" stroke="var(--rule)" stroke-width="2" stroke-linecap="square"/><rect x="58" y="40" width="8" height="8" fill="currentColor"/></svg>`,
+  stats: `<svg viewBox="0 0 96 72" aria-hidden="true" focusable="false"><path d="M14 58h68" fill="none" stroke="currentColor" stroke-width="1.7"/><rect x="20" y="36" width="12" height="22" fill="var(--soft)"/><rect x="38" y="26" width="12" height="32" fill="var(--soft)"/><rect x="56" y="32" width="12" height="26" fill="var(--soft)"/><rect x="74" y="14" width="12" height="44" fill="currentColor"/></svg>`,
+  skills: `<svg viewBox="0 0 96 72" aria-hidden="true" focusable="false"><path d="M24 12v48" fill="none" stroke="currentColor" stroke-width="2"/><path d="M24 20h34M24 34h46M24 48h34" fill="none" stroke="var(--rule)" stroke-width="2"/><rect x="66" y="29" width="8" height="8" fill="currentColor"/></svg>`,
+};
+
+function headerArt(name) {
+  const svg = HEADER_ART[name];
+  if (!svg) return "";
+  return `<div class="page-header-art" aria-hidden="true">${svg}</div>`;
+}
+
 const CONSENT_REGIONS = ["AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU","IS","IE","IT","LV","LI","LT","LU","MT","NL","NO","PL","PT","RO","SK","SI","ES","SE","GB","CH"];
 
 function withSlash(path) {
@@ -271,7 +292,7 @@ ${analyticsTags}${adsTag}</head>
   <div class="container">
     <nav class="main-navigation" role="navigation">
       <div class="nav-brand">
-        <a href="/" class="site-logo">SudokuSudoku</a>
+        <a href="/" class="site-logo">${brandMark("logo-mark")}<span class="logo-word">Sudoku<span class="logo-echo">Sudoku</span></span></a>
       </div>
       <button class="mobile-menu-toggle" aria-label="Toggle menu">
         <span></span>
@@ -318,6 +339,13 @@ ${analyticsTags}${adsTag}</head>
 ${main}
 <footer class="site-footer">
   <div class="container">
+    <div class="footer-brand">
+      ${brandMark("logo-mark")}
+      <div>
+        <p class="footer-name">Sudoku<span>Sudoku</span></p>
+        <p class="footer-line">Graded by the hardest move, not the clue count.</p>
+      </div>
+    </div>
     <nav class="footer-nav">
       <ul class="footer-links">
         <li><a href="/about/">About</a></li>
@@ -369,6 +397,8 @@ function scriptTag(path) {
 function standardPage(title, bodyHtml, description, path, options = {}) {
   const canonicalPath = withSlash(path);
   const house = options.ads === false ? "" : options.house || "";
+  const kicker = options.kicker ? brandKicker(options.kicker) : "";
+  const art = headerArt(options.art);
   return layout({
     title: `${title} | SudokuSudoku`,
     description,
@@ -382,8 +412,12 @@ function standardPage(title, bodyHtml, description, path, options = {}) {
     main: `<main class="standard-page">
   <div class="container">
     <article class="page-content">
-      <header class="page-header">
-        <h1 class="page-title">${escapeHtml(title)}</h1>
+      <header class="page-header${art ? " page-header-has-art" : ""}">
+        <div class="page-header-copy">
+          ${kicker}
+          <h1 class="page-title">${escapeHtml(title)}</h1>
+        </div>
+        ${art}
       </header>
       <div class="page-body">
         ${bodyHtml}
@@ -578,7 +612,10 @@ write(
   <div class="container">
     <article class="page-content">
       <header class="page-header">
-        <h1 class="page-title">Page not found</h1>
+        <div class="page-header-copy">
+          ${brandKicker("Empty square")}
+          <h1 class="page-title">Page not found</h1>
+        </div>
       </header>
       <div class="page-body">
         <figure class="teddy-figure">
@@ -608,7 +645,7 @@ publish(
     marked.parse(aboutMarkdown),
     "Ethan Ede builds websites and plays Sudoku almost every day. SudokuSudoku grades a puzzle by its hardest move, and the hints teach that move.",
     "/about/",
-    { jsonLd: personNode(), house: houseSlot("about", "/about/") }
+    { jsonLd: personNode(), house: houseSlot("about", "/about/"), kicker: "Who made this" }
   ),
   "/about"
 );
@@ -620,7 +657,7 @@ publish(
     read("links-page-content.html").trim(),
     "Other Sudoku sites, books, and communities, listed separately from the puzzles on SudokuSudoku.",
     "/links/",
-    { ads: false }
+    { ads: false, kicker: "Other places" }
   ),
   "/links"
 );
@@ -632,7 +669,7 @@ publish(
     read("contact-page-content.html").trim(),
     "Send a note about a bug, a technique page, or the site. The form uses a spam check and does not show an email address.",
     "/contact/",
-    { contact: true, house: houseSlot("contact", "/contact/") }
+    { contact: true, house: houseSlot("contact", "/contact/"), kicker: "Send a note" }
   ),
   "/contact"
 );
@@ -687,9 +724,13 @@ publish(
   <div class="container">
     <div class="articles-with-rail">
       <div class="articles-main">
-        <header class="page-header">
-          <h1>Sudoku Articles &amp; Guides</h1>
-          <p class="page-description">How to play, what the puzzles measure, and notes from building this site.</p>
+        <header class="page-header page-header-has-art">
+          <div class="page-header-copy">
+            ${brandKicker("Shorter than a puzzle")}
+            <h1>Articles</h1>
+            <p class="page-description">How to play, what the puzzles measure, and notes from building this site.</p>
+          </div>
+          ${headerArt("articles")}
         </header>
         <div class="articles-grid">
           ${cards}
@@ -787,6 +828,7 @@ visibleArticles.forEach((article, index) => {
         <div class="article-meta">
           <span class="article-reading-time">${article.minutes} min read</span>
         </div>
+        ${brandKicker("Note")}
         <h1 class="article-title">${escapeHtml(article.heading)}</h1>
         ${byline}
         ${featured}
@@ -883,8 +925,12 @@ publish(
     main: `<main class="standard-page technique-page">
   <div class="container">
     <article class="page-content">
-      <header class="page-header">
-        <h1 class="page-title">Techniques</h1>
+      <header class="page-header page-header-has-art">
+        <div class="page-header-copy">
+          ${brandKicker("Named steps")}
+          <h1 class="page-title">Techniques</h1>
+        </div>
+        ${headerArt("techniques")}
       </header>
       <div class="page-body">
         <p>These are the steps the solver on this site actually uses, easiest first. Each one has a board taken from a real solve, not a diagram drawn by hand. The level named on the row is where that step first becomes necessary.</p>
@@ -920,8 +966,12 @@ publish(
     main: `<main class="standard-page stats-page">
   <div class="container">
     <article class="page-content">
-      <header class="page-header">
-        <h1 class="page-title">Community stats</h1>
+      <header class="page-header page-header-has-art">
+        <div class="page-header-copy">
+          ${brandKicker("How long it takes")}
+          <h1 class="page-title">Community stats</h1>
+        </div>
+        ${headerArt("stats")}
       </header>
       <div class="page-body">
         ${read("stats-page-content.html").trim()}
@@ -952,9 +1002,15 @@ publish(
     skills: true,
     main: `<main id="skills" class="skills-page">
   <div class="skills-wrap">
-    <p class="skills-back"><a href="/">← Play</a></p>
-    <h1>Skill ladder</h1>
-    <p class="skills-lead">Techniques you have solved, from easiest to hardest. Everything stays on this device.</p>
+    <header class="skills-header page-header-has-art">
+      <div class="page-header-copy">
+        <p class="skills-back"><a href="/">← Play</a></p>
+        ${brandKicker("Your ladder")}
+        <h1>Skill ladder</h1>
+        <p class="skills-lead">Techniques you have solved, from easiest to hardest. Everything stays on this device.</p>
+      </div>
+      ${headerArt("skills")}
+    </header>
     <div id="skills-root"></div>
     ${houseSlot("skills", "/skills/")}
   </div>
@@ -996,7 +1052,7 @@ techniques.forEach((technique) => {
   <div class="container">
     <article class="page-content">
       <header class="page-header">
-        <p class="technique-level"><a href="/techniques/">Techniques</a> · ${escapeHtml(technique.level)}</p>
+        <p class="technique-level brand-kicker">${brandMark()}<span><a href="/techniques/">Techniques</a> · ${escapeHtml(technique.level)}</span></p>
         <h1 class="page-title">${escapeHtml(technique.name)}</h1>
       </header>
       <div class="page-body">
@@ -1118,7 +1174,10 @@ write(
   <div class="container">
     <article class="page-content">
       <header class="page-header">
-        <h1 class="page-title">You're offline</h1>
+        <div class="page-header-copy">
+          ${brandKicker("Saved here")}
+          <h1 class="page-title">You're offline</h1>
+        </div>
       </header>
       <div class="page-body">
         <p>The puzzle is saved on this device. Open SudokuSudoku to keep playing, including a new game or today's daily.</p>
