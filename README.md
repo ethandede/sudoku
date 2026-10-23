@@ -41,6 +41,7 @@ The site stays plain HTML, CSS, and vanilla JS. No React and no Motion package. 
 - Inputs. Na3ar-17's simple field, https://uiverse.io/Na3ar-17/calm-panda-30. Contact form and the skill-ladder transfer fields.
 - Cards. adamgiebl's card, https://uiverse.io/adamgiebl/new-crab-79. Article cards, stats cards, and the standard page sheet. The shadow is lighter than the original.
 - Loader. adamgiebl's pulsing dots, https://uiverse.io/adamgiebl/thin-lionfish-5. Three small dots on the stats loading line.
+- Dealing animation. Magic UI's number ticker, https://magicui.design/docs/components/number-ticker (MIT, copyright Magic UI). A scan sweeps the board while a puzzle is built, and the digits roll like tickers before the givens lock. Vanilla, in `assets/scss/components/_deal-scan.scss`. The circular gauge is not used: it covered the cells this scan needs.
 - Tooltip. Cksunandh's simple tooltip, https://uiverse.io/Cksunandh/afraid-snail-51. The short stats time labels show the full label on hover.
 
 Light accents, kept small: a page dot grid (the idea is Magic UI's Dot Pattern, written here as a radial-gradient) and a 1px press. Skiper UI is not ported. Arrow icons are Phosphor `arrow-left` and `arrow-right` (MIT, copyright 2023 Phosphor Icons), in `scripts/icons.mjs`.

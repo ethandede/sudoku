@@ -4,7 +4,7 @@
 // Dot Pattern (MIT). Their component is not copied.
 
 html:not(:has(.sudoku-page)) body {
-  background-color: #f4f6f8;
+  background-color: #f5f4f1;
   background-image: radial-gradient(rgba(12, 79, 134, 0.2) 1px, transparent 1.15px);
   background-size: 22px 22px;
 }
@@ -46,8 +46,8 @@ html:not(:has(.sudoku-page)) body {
   flex: none;
   color: #0c4f86;
   --soft: #d4e8f7;
-  --paper: #f4f6f8;
-  --rule: #8aa4bb;
+  --paper: #f5f4f1;
+  --rule: #948f88;
   --pattern: #0b6e5f;
 }
 
@@ -67,13 +67,13 @@ html:not(:has(.sudoku-page)) body {
 .standard-page .page-content,
 .article-single-page .article-content,
 .articles-page .article-card {
-  border: 1px solid #d5dbe2;
+  border: 1px solid #ddd8d2;
   box-shadow: none;
 }
 
 .standard-page .page-header,
 .articles-page .page-header {
-  border-bottom: 1px solid #d5dbe2;
+  border-bottom: 1px solid #ddd8d2;
 }
 
 .standard-page .page-header .page-title,
@@ -90,7 +90,7 @@ html:not(:has(.sudoku-page)) body {
 
 .articles-page .page-description,
 .skills-lead {
-  color: #5c6670;
+  color: #5e5954;
 }
 
 .page-body a:hover,
@@ -102,10 +102,10 @@ html:not(:has(.sudoku-page)) body {
 .stats-empty,
 .no-articles {
   padding: 1rem 1.1rem;
-  border: 1px dashed #8aa4bb;
+  border: 1px dashed #948f88;
   border-radius: 10px;
-  background: #f4f6f8;
-  color: #1e232b;
+  background: #faf9f7;
+  color: #1f1c19;
 }
 
 .skills-header {
@@ -114,14 +114,14 @@ html:not(:has(.sudoku-page)) body {
 
 html[data-theme="dark"] {
   &:not(:has(.sudoku-page)) body {
-    background-color: #121416;
+    background-color: #141311;
     background-image: radial-gradient(rgba(158, 210, 248, 0.16) 1px, transparent 1.15px);
     background-size: 22px 22px;
-    color: #e6e9ed;
+    color: #f3f0eb;
   }
 
   .site-header {
-    background-color: #1a1e24;
+    background-color: #1c1b19;
     background-image: radial-gradient(rgba(158, 210, 248, 0.18) 1px, transparent 1.15px);
     background-size: 16px 16px;
     border-bottom-color: #9ed2f8;
@@ -130,7 +130,7 @@ html[data-theme="dark"] {
     .site-logo,
     .nav-primary a,
     .dropdown-menu a {
-      color: #e6e9ed;
+      color: #f3f0eb;
     }
 
     .site-logo .logo-mark,
@@ -140,12 +140,12 @@ html[data-theme="dark"] {
 
     .nav-menu,
     .dropdown-menu {
-      background: #22262c;
-      border-color: #3e4650;
+      background: #242220;
+      border-color: #3d3a36;
     }
 
     .mobile-menu-toggle span {
-      background: #e6e9ed;
+      background: #f3f0eb;
     }
   }
 
@@ -156,8 +156,8 @@ html[data-theme="dark"] {
 
   .page-header-art {
     --soft: #2a4560;
-    --paper: #1a1e24;
-    --rule: #7f95a8;
+    --paper: #1c1b19;
+    --rule: #8a847c;
     --pattern: #7ddec8;
   }
 
@@ -171,28 +171,28 @@ html[data-theme="dark"] {
   .standard-page .page-content,
   .article-single-page .article-content,
   .articles-page .article-card {
-    border-color: #3e4650;
+    border-color: #3d3a36;
   }
 
   .standard-page .page-header,
   .articles-page .page-header {
-    border-bottom-color: #3e4650;
+    border-bottom-color: #3d3a36;
   }
 
   .articles-page .page-description,
   .skills-lead {
-    color: #b7c0c8;
+    color: #c4beb6;
   }
 
   .stats-empty,
   .no-articles {
-    background: #1a1e24;
-    border-color: #7f95a8;
-    color: #e6e9ed;
+    background: #1c1b19;
+    border-color: #8a847c;
+    color: #f3f0eb;
   }
 
   .site-footer {
-    background: #12161b;
+    background: #141311;
     border-top-color: #9ed2f8;
   }
 }

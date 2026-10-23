@@ -25,7 +25,7 @@
   let windowKey = "30d";
 
   function clock(seconds) {
-    if (seconds == null) return "—";
+    if (seconds == null) return "n/a";
     const total = Math.max(0, Math.floor(seconds));
     const mins = Math.floor(total / 60);
     const secs = total % 60;
@@ -114,8 +114,8 @@
   }
 
   function facts(bucket) {
-    const mistakes = bucket.medianMistakes == null ? "—" : countSpan(bucket.medianMistakes);
-    const noHints = bucket.noHintPct == null ? "—" : `${countSpan(bucket.noHintPct)}%`;
+    const mistakes = bucket.medianMistakes == null ? "n/a" : countSpan(bucket.medianMistakes);
+    const noHints = bucket.noHintPct == null ? "n/a" : `${countSpan(bucket.noHintPct)}%`;
     return `<dl class="stats-facts">
       <div><dt>Starts</dt><dd>${countSpan(bucket.starts)}</dd></div>
       <div><dt>Finishes</dt><dd>${countSpan(bucket.finishes)}</dd></div>
@@ -180,8 +180,54 @@
     host.textContent = `Today's daily: ${today.solvePct}% solved · median ${clock(today.medianSeconds)}.`;
   }
 
+  function gameTime(seconds) {
+    const total = Math.max(0, Math.floor(Number(seconds)));
+    const mins = Math.floor(total / 60);
+    const secs = total % 60;
+    return `${mins}:${String(secs).padStart(2, "0")}`;
+  }
+
+  function timeSpan(seconds) {
+    if (seconds == null || Number.isNaN(Number(seconds))) return "–";
+    const total = Math.max(0, Math.floor(Number(seconds)));
+    const text = gameTime(total);
+    if (total <= 0) return text;
+    return `<span class="count-up" data-count="${total}" data-format="time">${text}</span>`;
+  }
+
   function animateCounts(scope) {
+    scope.querySelectorAll('.count-up[data-format="time"]').forEach((node) => {
+      node.classList.remove("count-up");
+    });
     if (window.RareCounter) window.RareCounter.watch(scope);
+  }
+
+  function renderYourGames() {
+    const host = document.getElementById("your-games");
+    if (!host) return;
+    const progress = window.SudokuProgress;
+    if (!progress || typeof progress.playerRecord !== "function") {
+      host.innerHTML = `<section class="hint-block"><h2>Your games</h2><p class="stats-empty">Your game record is not available in this browser.</p></section>`;
+      return;
+    }
+    const record = progress.playerRecord();
+    const rows = record.levels
+      .map((level) => {
+        return `<tr><th scope="row">${escapeHtml(level.label)}</th><td>${countSpan(level.played)}</td><td>${timeSpan(level.best)}</td><td>${timeSpan(level.average)}</td></tr>`;
+      })
+      .join("");
+    host.innerHTML = `<section class="hint-block">
+      <h2>Your games</h2>
+      <p class="stats-note">Played, best, and average match the solved screen. The streak is the daily run. These stay on this device, and on your account if you are signed in.</p>
+      <p class="streak-line">Daily streak ${countSpan(record.streak)} · longest ${countSpan(record.longest)}</p>
+      <div class="your-games-wrap">
+        <table class="hint-table your-games">
+          <thead><tr><th>Puzzle</th><th>Played</th><th>Best</th><th>Average</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </section>`;
+    animateCounts(host);
   }
 
   function renderYours() {
@@ -241,6 +287,7 @@
     });
   }
 
+  renderYourGames();
   renderYours();
   bindWindow();
   fetch("/api/stats/summary")

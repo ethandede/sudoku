@@ -3,7 +3,7 @@
 // level's technique window. No symmetry.
 //
 // Not Easy / Hard bottleneck gates come from the archived NYT window
-// (Jan 2023–Mar 2024), measured with this solver:
+// (August 30, 2021 through March 2, 2024), measured with this solver:
 //   Medium, pointing only, ≤3 steps, ≤2 stalls (n=387):
 //     bottlenecks p10 3, median 5, p90 8, max 11, mean 5.0
 //   Hard, pair or triple, ≥4 steps (n=314):
@@ -11,6 +11,72 @@
 // Generated Not Easy puzzles must land in 3–11, Hard in 5–21.
 
 let rng = Math.random;
+
+// Real build progress for the gauge. A null sink costs one check and returns.
+// The percent is work done (cells removed, uniqueness checks, grades, attempts),
+// capped at 96 until the caller has a finished puzzle. It is not a timer.
+let progressSink = null;
+let progressState = null;
+let progressSent = 0;
+
+function blankProgress(attempts) {
+  return {
+    stage: "layout",
+    attempt: 0,
+    attempts: attempts || 1,
+    removed: 0,
+    removeTarget: 1,
+    checks: 0,
+    grades: 0,
+  };
+}
+
+function resetProgress(attempts) {
+  progressState = blankProgress(attempts);
+  progressSent = 0;
+  emitProgress(true);
+}
+
+function noteProgress(patch) {
+  if (!progressSink || !progressState) return;
+  const prevStage = progressState.stage;
+  const prevAttempt = progressState.attempt;
+  if (patch.stage) progressState.stage = patch.stage;
+  if (patch.attempt != null) progressState.attempt = patch.attempt;
+  if (patch.attempts != null) progressState.attempts = patch.attempts;
+  if (patch.removed != null) progressState.removed = patch.removed;
+  if (patch.removeTarget != null) progressState.removeTarget = patch.removeTarget;
+  if (patch.check) progressState.checks += patch.check;
+  if (patch.grade) progressState.grades += patch.grade;
+  emitProgress(progressState.stage !== prevStage || progressState.attempt !== prevAttempt);
+}
+
+function progressValue() {
+  const target = progressState.removeTarget || 1;
+  const dug = Math.min(1, progressState.removed / target);
+  const work = progressState.checks + progressState.grades * 6 + progressState.attempt * 3 + dug * 12;
+  return Math.max(0, Math.min(96, Math.round(100 * (1 - Math.exp(-work / 90)))));
+}
+
+function emitProgress(force) {
+  if (!progressSink || !progressState) return;
+  progressSent += 1;
+  if (!force && progressSent % 16 !== 0) return;
+  progressSink({
+    stage: progressState.stage,
+    attempt: progressState.attempt,
+    attempts: progressState.attempts,
+    removed: progressState.removed,
+    removeTarget: progressState.removeTarget,
+    checks: progressState.checks,
+    grades: progressState.grades,
+    value: progressValue(),
+  });
+}
+
+function setProgress(fn) {
+  progressSink = typeof fn === "function" ? fn : null;
+}
 
 function random() {
   return rng();
@@ -58,8 +124,20 @@ function shuffledIndexes() {
   return order;
 }
 
+function uniqueCount(puzzle) {
+  const count = solver().countSolutions(puzzle, 2);
+  noteProgress({ check: 1 });
+  return count;
+}
+
+function scorePuzzle(puzzle, options) {
+  noteProgress({ stage: "grade", grade: 1 });
+  return solver().grade(puzzle, options);
+}
+
 function digUnique(puzzle, order, target) {
-  const { countSolutions } = solver();
+  const removeTarget = Math.max(1, countClues(puzzle) - target);
+  noteProgress({ stage: "unique", removeTarget, removed: 0 });
   const removed = [];
   for (let n = 0; n < order.length; n++) {
     if (countClues(puzzle) <= target) break;
@@ -67,8 +145,11 @@ function digUnique(puzzle, order, target) {
     if (!puzzle[i]) continue;
     const saved = puzzle[i];
     puzzle[i] = 0;
-    if (countSolutions(puzzle, 2) !== 1) puzzle[i] = saved;
-    else removed.push(i);
+    if (uniqueCount(puzzle) !== 1) puzzle[i] = saved;
+    else {
+      removed.push(i);
+      noteProgress({ removed: removed.length, removeTarget });
+    }
   }
   return removed;
 }
@@ -104,7 +185,8 @@ function pack(found, difficulty, seed, relaxed) {
 }
 
 function carveSingles(bounds, mode) {
-  const { fillGrid, grade } = solver();
+  const { fillGrid } = solver();
+  noteProgress({ stage: "layout" });
   const solution = fillGrid(random);
   if (!solution) return null;
   const puzzle = solution.slice();
@@ -117,7 +199,7 @@ function carveSingles(bounds, mode) {
   digUnique(puzzle, shuffledIndexes(), target);
   const clues = countClues(puzzle);
   if (clues < bounds.minC || clues > bounds.maxC) return null;
-  const graded = grade(puzzle, {
+  const graded = scorePuzzle(puzzle, {
     solution,
     boxOnly: mode === "quick",
     maxRank: mode === "quick" ? 1 : 2,
@@ -132,7 +214,8 @@ function carveSingles(bounds, mode) {
 }
 
 function carveWindow(spec) {
-  const { fillGrid, grade, countSolutions } = solver();
+  const { fillGrid } = solver();
+  noteProgress({ stage: "layout" });
   const solution = fillGrid(random);
   if (!solution) return null;
   const puzzle = solution.slice();
@@ -156,13 +239,13 @@ function carveWindow(spec) {
     return true;
   }
 
-  let current = grade(puzzle, capped);
+  let current = scorePuzzle(puzzle, capped);
   if (!acceptable(current, countClues(puzzle))) {
     for (let k = removed.length - 1; k >= 0; k--) {
       const index = removed[k];
       if (puzzle[index]) continue;
       puzzle[index] = solution[index];
-      current = grade(puzzle, capped);
+      current = scorePuzzle(puzzle, capped);
       if (acceptable(current, countClues(puzzle))) break;
     }
   }
@@ -176,11 +259,11 @@ function carveWindow(spec) {
       if (!puzzle[index]) continue;
       const saved = puzzle[index];
       puzzle[index] = 0;
-      if (countSolutions(puzzle, 2) !== 1) {
+      if (uniqueCount(puzzle) !== 1) {
         puzzle[index] = saved;
         continue;
       }
-      const graded = grade(puzzle, capped);
+      const graded = scorePuzzle(puzzle, capped);
       const clues = countClues(puzzle);
       if (fitted && !spec.fit(graded, clues)) {
         puzzle[index] = saved;
@@ -194,13 +277,13 @@ function carveWindow(spec) {
       current = graded;
       fitted = spec.fit(graded, clues);
       if (ready(graded, clues, pass === 0)) {
-        const full = grade(puzzle, { solution });
-        if (spec.fit(full, clues) && cellsMatch(full, solution) && countSolutions(puzzle, 2) === 1) {
+        const full = scorePuzzle(puzzle, { solution });
+        if (spec.fit(full, clues) && cellsMatch(full, solution) && uniqueCount(puzzle) === 1) {
           return { puzzle, solution, grade: full, clues };
         }
         puzzle[index] = saved;
         removed.pop();
-        current = grade(puzzle, capped);
+        current = scorePuzzle(puzzle, capped);
         fitted = spec.fit(current, countClues(puzzle));
       }
     }
@@ -208,8 +291,8 @@ function carveWindow(spec) {
 
   const settledClues = countClues(puzzle);
   if (spec.fit(current, settledClues)) {
-    const full = grade(puzzle, { solution });
-    if (spec.fit(full, settledClues) && cellsMatch(full, solution) && countSolutions(puzzle, 2) === 1) {
+    const full = scorePuzzle(puzzle, { solution });
+    if (spec.fit(full, settledClues) && cellsMatch(full, solution) && uniqueCount(puzzle) === 1) {
       return { puzzle, solution, grade: full, clues: settledClues };
     }
   }
@@ -221,10 +304,10 @@ function carveWindow(spec) {
     if (puzzle[index]) continue;
     puzzle[index] = solution[index];
     const clues = countClues(puzzle);
-    const graded = grade(puzzle, capped);
+    const graded = scorePuzzle(puzzle, capped);
     if (ready(graded, clues, false)) {
-      const full = grade(puzzle, { solution });
-      if (spec.fit(full, clues) && cellsMatch(full, solution) && countSolutions(puzzle, 2) === 1) {
+      const full = scorePuzzle(puzzle, { solution });
+      if (spec.fit(full, clues) && cellsMatch(full, solution) && uniqueCount(puzzle) === 1) {
         return { puzzle, solution, grade: full, clues };
       }
     }
@@ -383,7 +466,7 @@ function takePool(kind, seed) {
   const start = Math.floor(random() * pool.length) % pool.length;
   for (let n = 0; n < pool.length; n++) {
     const entry = pool[(start + n) % pool.length];
-    const quick = grade(entry.puzzle, { solution: entry.solution });
+    const quick = scorePuzzle(entry.puzzle, { solution: entry.solution });
     if (!levelStillFits(kind, quick, entry.metadata || {})) continue;
     const meta = entry.metadata || {};
     const found = {
@@ -424,14 +507,18 @@ function attemptLevel(kind, relax) {
 function generateLevel(difficulty, seed) {
   const kind = ATTEMPTS[difficulty] ? difficulty : "easy";
   const attempts = ATTEMPTS[kind];
+  resetProgress(attempts + 13);
 
   for (let i = 0; i < attempts; i++) {
+    noteProgress({ attempt: i, stage: "layout" });
     const found = attemptLevel(kind, false);
     if (found) return pack(found, kind, seed, false);
   }
+  noteProgress({ attempt: attempts, stage: "grade" });
   const pooled = takePool(kind, seed);
   if (pooled) return pooled;
   for (let i = 0; i < 12; i++) {
+    noteProgress({ attempt: attempts + 1 + i, stage: "layout" });
     const found = attemptLevel(kind, true);
     if (found) return pack(found, kind, seed, true);
   }
@@ -467,13 +554,16 @@ function generateLevel(difficulty, seed) {
   return packed;
 }
 
-function generate(difficulty, seed) {
+function generate(difficulty, seed, onProgress) {
   const previous = rng;
+  const previousSink = progressSink;
+  if (typeof onProgress === "function") progressSink = onProgress;
   if (seed !== undefined && seed !== null) rng = mulberry32(hashSeed(seed));
   try {
     return generateLevel(difficulty, seed);
   } finally {
     rng = previous;
+    progressSink = previousSink;
   }
 }
 
@@ -498,6 +588,9 @@ const TECHNIQUE_RANK = {
   skyscraper: 9.1,
   "two-string-kite": 9.2,
   "xyz-wing": 9.3,
+  "w-wing": 9.4,
+  "unique-rectangle": 9.5,
+  "bug-plus-one": 9.6,
   coloring: 10,
   "xy-chain": 10.1,
 };
@@ -538,6 +631,30 @@ const TRAIN = {
     budget: 80,
     puzzle: [0,5,3,0,1,0,0,0,0,2,0,0,0,0,4,0,0,0,4,0,8,2,6,0,0,9,0,0,2,0,0,0,7,6,0,0,0,0,0,5,4,0,8,0,0,1,0,0,0,9,0,0,0,0,7,0,0,3,2,0,0,0,0,0,0,0,0,0,0,0,0,0,8,0,9,0,0,0,4,3,2],
     solution: [6,5,3,9,1,8,2,7,4,2,9,1,7,5,4,3,6,8,4,7,8,2,6,3,1,9,5,5,2,4,8,3,7,6,1,9,9,3,6,5,4,1,8,2,7,1,8,7,6,9,2,5,4,3,7,4,5,3,2,6,9,8,1,3,1,2,4,8,9,7,5,6,8,6,9,1,7,5,4,3,2],
+  },
+  "w-wing": {
+    level: "expert",
+    name: "W-wing",
+    live: 2,
+    budget: 80,
+    puzzle: [0,0,0,0,2,8,7,0,0,0,0,0,0,0,0,0,6,0,0,8,0,0,6,7,0,0,3,2,0,0,6,0,0,0,1,0,0,0,0,1,0,0,0,5,0,0,0,0,0,7,0,2,0,0,0,4,0,9,0,0,5,0,0,5,0,0,0,0,1,0,7,6,0,0,1,0,0,0,0,4,0],
+    solution: [6,1,3,5,2,8,7,9,4,4,2,7,3,1,9,8,6,5,9,8,5,4,6,7,1,2,3,2,7,9,6,5,3,4,1,8,8,3,4,1,9,2,6,5,7,1,5,6,8,7,4,2,3,9,7,4,2,9,3,6,5,8,1,5,9,8,2,4,1,3,7,6,3,6,1,7,8,5,9,4,2],
+  },
+  "unique-rectangle": {
+    level: "expert",
+    name: "Unique rectangle",
+    live: 2,
+    budget: 80,
+    puzzle: [0,7,0,0,0,0,8,5,0,0,2,0,3,0,5,0,0,0,1,0,0,0,9,0,0,0,0,0,1,0,4,0,0,0,0,0,0,0,0,1,0,0,5,6,0,2,0,4,8,0,0,0,0,0,0,0,0,0,0,0,0,0,1,3,0,0,0,0,0,0,4,0,6,5,9,0,0,0,0,0,3],
+    solution: [4,7,3,6,2,1,8,5,9,9,2,8,3,4,5,1,7,6,1,6,5,7,9,8,4,3,2,5,1,6,4,7,9,3,2,8,8,9,7,1,3,2,5,6,4,2,3,4,8,5,6,9,1,7,7,4,2,5,8,3,6,9,1,3,8,1,9,6,7,2,4,5,6,5,9,2,1,4,7,8,3],
+  },
+  "bug-plus-one": {
+    level: "expert",
+    name: "BUG+1",
+    live: 2,
+    budget: 80,
+    puzzle: [0,2,0,0,0,6,8,4,0,0,0,0,0,4,0,2,9,1,0,0,0,3,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,6,0,0,5,0,0,0,0,9,8,0,6,0,4,1,0,9,0,0,4,5,0,0,6,7,5,0,7,0,0,0,0,3,0,0,0,0,0,0,0,0,0,2],
+    solution: [7,2,9,5,1,6,8,4,3,6,5,3,7,4,8,2,9,1,8,1,4,3,9,2,7,5,6,1,7,5,9,3,4,6,2,8,2,4,6,1,8,5,3,7,9,3,9,8,2,6,7,4,1,5,9,8,2,4,5,3,1,6,7,5,6,7,8,2,1,9,3,4,4,3,1,6,7,9,5,8,2],
   },
   coloring: { level: "mental", live: 2, budget: 120 },
   "xy-chain": { level: "mental", live: 2, budget: 120 },
@@ -590,7 +707,8 @@ function gradePool(level) {
   const rows = [];
   for (let n = 0; n < pool.length; n++) {
     const entry = pool[n];
-    const quick = grade(entry.puzzle, { solution: entry.solution, metrics: false });
+    noteProgress({ attempt: n, attempts: pool.length, stage: "grade" });
+    const quick = scorePuzzle(entry.puzzle, { solution: entry.solution, metrics: false });
     if (!quick.solved || quick.corrupt) continue;
     rows.push({ entry, path: quick.path || [] });
   }
@@ -613,7 +731,7 @@ function exemplarTrain(slug, allowed) {
   const spec = TRAIN[slug];
   if (!spec || !spec.puzzle || !spec.solution) return null;
   const { grade } = solver();
-  const quick = grade(spec.puzzle, { solution: spec.solution, metrics: false });
+  const quick = scorePuzzle(spec.puzzle, { solution: spec.solution, metrics: false });
   if (!quick.solved || quick.corrupt) return null;
   const path = quick.path || [];
   if (hardestSlug(path) !== slug) return null;
@@ -623,7 +741,7 @@ function exemplarTrain(slug, allowed) {
 
 function packTrain(entry, slug, relaxed) {
   const { grade } = solver();
-  const full = grade(entry.puzzle, { solution: entry.solution });
+  const full = scorePuzzle(entry.puzzle, { solution: entry.solution });
   const clues = countClues(entry.puzzle);
   const packed = pack(
     { puzzle: entry.puzzle.slice(), solution: entry.solution.slice(), grade: full, clues },
@@ -667,7 +785,7 @@ function approximateTrain(slug) {
   const pooled = takePool(level, null);
   if (pooled) {
     const { grade } = solver();
-    const quick = grade(pooled.puzzle, { solution: pooled.solution, metrics: false });
+    const quick = scorePuzzle(pooled.puzzle, { solution: pooled.solution, metrics: false });
     pooled.metadata.path = quick.path || [];
     pooled.metadata.trainTarget = slug;
     pooled.metadata.trainApproximate = true;
@@ -691,10 +809,13 @@ function approximateTrain(slug) {
 // checked first; live carving is a short fallback.
 function generateForTechnique(slug, options) {
   const spec = TRAIN[slug];
-  if (!spec) return generate("easy", options && options.seed);
+  if (!spec) return generate("easy", options && options.seed, options && options.onProgress);
   const opt = options || {};
   const previous = rng;
+  const previousSink = progressSink;
+  if (typeof opt.onProgress === "function") progressSink = opt.onProgress;
   if (opt.seed !== undefined && opt.seed !== null) rng = mulberry32(hashSeed(opt.seed));
+  resetProgress(48);
   try {
     const list = Array.isArray(opt.allowed) ? opt.allowed : [];
     const allowed = new Set(list.filter((item) => item && item !== slug));
@@ -711,6 +832,7 @@ function generateForTechnique(slug, options) {
     return approximateTrain(slug);
   } finally {
     rng = previous;
+    progressSink = previousSink;
   }
 }
 
@@ -737,13 +859,106 @@ const TARGETS = {
     minSteps: 4,
     maxSteps: HARD_MAX_STEPS,
   },
-  expert: { minClues: 22, maxClues: 26, hardest: "quad, fish, wing, skyscraper, or two-string kite" },
+  expert: { minClues: 22, maxClues: 26, hardest: "quad, fish, wing, skyscraper, two-string kite, W-wing, unique rectangle, or BUG+1" },
   mental: { minClues: 17, maxClues: 24, hardest: "chain or coloring" },
 };
+
+let genWorker = null;
+let genPending = null;
+let genJob = 0;
+
+function workerScriptUrl() {
+  if (typeof document === "undefined") return "";
+  const current = document.querySelector('script[src*="generator.js"]');
+  const version = current ? new URL(current.src, location.href).search : "";
+  return `/assets/js/generate-worker.js${version}`;
+}
+
+function dropWorker() {
+  if (genPending) {
+    const pending = genPending;
+    genPending = null;
+    const error = new Error("superseded");
+    error.superseded = true;
+    pending.reject(error);
+  }
+  if (genWorker) {
+    genWorker.terminate();
+    genWorker = null;
+  }
+}
+
+function ensureGenWorker() {
+  if (genWorker) return genWorker;
+  if (typeof Worker === "undefined" || typeof document === "undefined") return null;
+  const url = workerScriptUrl();
+  if (!url) return null;
+  genWorker = new Worker(url);
+  genWorker.onmessage = (event) => {
+    const data = event.data || {};
+    if (!genPending || data.id !== genPending.id) return;
+    if (data.type === "progress") {
+      if (genPending.onProgress) genPending.onProgress(data.info);
+      return;
+    }
+    const pending = genPending;
+    genPending = null;
+    if (data.type === "done") pending.resolve(data.result);
+    else pending.reject(new Error(data.message || "Could not build a puzzle"));
+  };
+  genWorker.onerror = () => {
+    if (!genPending) {
+      dropWorker();
+      return;
+    }
+    const pending = genPending;
+    genPending = null;
+    if (genWorker) {
+      genWorker.terminate();
+      genWorker = null;
+    }
+    pending.reject(new Error("Could not build a puzzle"));
+  };
+  return genWorker;
+}
+
+function generateOffMain(request, onProgress) {
+  const job = request || {};
+  if (genPending) dropWorker();
+  const worker = ensureGenWorker();
+  if (!worker) {
+    if (job.op === "technique") {
+      return Promise.resolve(generateForTechnique(job.slug, { ...(job.options || {}), onProgress }));
+    }
+    return Promise.resolve(generate(job.difficulty, job.seed, onProgress));
+  }
+  const id = ++genJob;
+  return new Promise((resolve, reject) => {
+    genPending = { id, resolve, reject, onProgress };
+    worker.postMessage({
+      id,
+      op: job.op === "technique" ? "technique" : "generate",
+      difficulty: job.difficulty,
+      seed: job.seed == null ? null : job.seed,
+      slug: job.slug || null,
+      options: job.options ? { allowed: job.options.allowed || [], seed: job.options.seed ?? null } : null,
+    });
+  });
+}
+
+if (typeof document !== "undefined" && typeof Worker !== "undefined") {
+  try {
+    ensureGenWorker();
+  } catch {
+    genWorker = null;
+  }
+}
 
 globalThis.SudokuGenerator = {
   generate,
   generateForTechnique,
+  generateOffMain,
+  setProgress,
   trainLevel(slug) {
     const spec = TRAIN[slug];
     return spec ? spec.level : null;

@@ -6,8 +6,10 @@ import vm from "node:vm";
 import {
   applyHintStep,
   legalCandidates,
+  noteClears,
   peerIndexes,
   placesOnApply,
+  previewSentence,
 } from "../functions/hint-apply.mjs";
 
 const root = new URL("..", import.meta.url);
@@ -129,6 +131,13 @@ function assertElimination(found, label) {
     if (applied.board[item.index] === 0) assert.ok(hasRemoval(applied.removed, item), `${label} records ${item.index}:${item.digit}`);
   }
   assert.match(applied.copy, /Ruled out/, `${label} names the elimination when notes are empty`);
+  for (const item of found.step.eliminate) {
+    if (found.board[item.index] !== 0) continue;
+    assert.ok(
+      applied.fades.some((fade) => fade.index === item.index && fade.digit === item.digit),
+      `${label} fades a digit that was not in the notes`
+    );
+  }
   if (label === "pointing") assert.match(applied.copy, /row 2, columns/, "pointing names the row once");
   assert.equal(applied.copy.includes("your notes"), false, `${label} does not claim notes changed`);
   assert.equal(applied.copy.includes("—"), false, `${label} copy has no em dash`);
@@ -156,6 +165,13 @@ function assertElimination(found, label) {
     if (seeded[item.index].includes(9)) assert.ok(withNotes.notes[item.index].includes(9), `${label} keeps unrelated notes`);
   }
   assert.match(withNotes.copy, /your notes/, `${label} says the notes changed`);
+  for (const item of found.step.eliminate) {
+    assert.equal(
+      withNotes.fades.some((fade) => fade.index === item.index && fade.digit === item.digit),
+      false,
+      `${label} does not fade a digit that was in the notes`
+    );
+  }
   for (const item of found.step.eliminate) {
     if (withNotes.board[item.index] === 0) assert.ok(hasRemoval(withNotes.removed, item), `${label} still records removals when notes exist`);
   }
@@ -229,18 +245,104 @@ for (const [label, found] of [
   }
 }
 
+// r4c6/r9c6 are a {4,6} pair in column 6. r5c6's pencil notes include 4 and
+// 6 even though the solver does not count them as candidates there.
+const column = Array.from({ length: 9 }, (_, row) => row * 9 + 5);
+const pairStep = {
+  slug: "naked-pair",
+  name: "Naked pair",
+  pattern: [3 * 9 + 5, 8 * 9 + 5],
+  region: column,
+  eliminate: [
+    { index: 1 * 9 + 5, digit: 4 },
+    { index: 1 * 9 + 5, digit: 6 },
+    { index: 7 * 9 + 5, digit: 4 },
+    { index: 7 * 9 + 5, digit: 6 },
+  ],
+  candidates: [
+    { index: 3 * 9 + 5, digits: [4, 6] },
+    { index: 8 * 9 + 5, digits: [4, 6] },
+  ],
+};
+const pairNotes = emptyNotes();
+pairNotes[4 * 9 + 5] = [4, 6, 8, 9];
+pairNotes[1 * 9 + 5] = [4, 6, 1];
+pairNotes[3 * 9 + 5] = [4, 6];
+pairNotes[0] = [4, 6];
+const pairApplied = applyHintStep(stateFrom({ puzzle: emptyNotes().map(() => 0), solution: emptyNotes().map(() => 0), board: emptyNotes().map(() => 0), removed: [] }, pairNotes), pairStep);
+assert.deepEqual(pairApplied.notes[4 * 9 + 5], [8, 9], "pair digits leave notes the solver skipped");
+assert.deepEqual(pairApplied.notes[1 * 9 + 5], [1], "pair digits leave notes the solver did count");
+assert.deepEqual(pairApplied.notes[3 * 9 + 5], [4, 6], "the pair cells keep their own notes");
+assert.deepEqual(pairApplied.notes[0], [4, 6], "a cell outside the house keeps the digits");
+assert.equal(
+  pairApplied.removed.some((item) => item.index === 4 * 9 + 5),
+  false,
+  "a note the solver never counted is not stored as a candidate removal"
+);
+assert.equal(noteClears(pairStep).some((item) => item.index === 4 * 9 + 5 && item.digit === 4), true);
+const hidden = {
+  slug: "hidden-pair",
+  pattern: [3 * 9 + 5, 8 * 9 + 5],
+  region: column,
+  eliminate: [{ index: 3 * 9 + 5, digit: 1 }],
+  candidates: [{ index: 3 * 9 + 5, digits: [4, 6] }],
+};
+assert.equal(
+  noteClears(hidden).some((item) => item.index === 4 * 9 + 5),
+  false,
+  "a hidden pair does not strip the house"
+);
+const realPair = walk((step) => step.slug === "naked-pair" && (step.region || []).length === 9);
+assert.ok(realPair, "a real naked pair is available");
+const realPattern = new Set(realPair.step.pattern);
+const quiet = realPair.step.region.find(
+  (index) => !realPattern.has(index) && !(realPair.step.eliminate || []).some((item) => item.index === index)
+);
+assert.ok(quiet != null, "the house has a cell the solver does not eliminate");
+const realDigits = [];
+(realPair.step.candidates || []).forEach((item) => {
+  if (realPattern.has(item.index)) item.digits.forEach((digit) => {
+    if (!realDigits.includes(digit)) realDigits.push(digit);
+  });
+});
+const spareDigit = [1, 2, 3, 4, 5, 6, 7, 8, 9].find((digit) => !realDigits.includes(digit));
+const realNotes = emptyNotes();
+realNotes[quiet] = realDigits.concat(spareDigit);
+const realApplied = applyHintStep(stateFrom(realPair, realNotes), realPair.step);
+assert.deepEqual(realApplied.notes[quiet], [spareDigit], "apply strips the pair from notes outside the solver targets");
+assert.equal(
+  realApplied.removed.some((item) => item.index === quiet && realDigits.includes(item.digit)),
+  false
+);
+
 const page = fs.readFileSync(new URL("../assets/js/sudoku.js", import.meta.url), "utf8");
 const applyFn = page.slice(page.indexOf("function applyHint()"), page.indexOf("function hint()"));
 const stepPart = applyFn.split("const step = hintView.step;")[1];
 assert.equal(stepPart.match(/pushUndo\(/g).length, 1, "an elimination apply is one undo step");
 assert.ok(stepPart.indexOf("pushUndo()") < stepPart.indexOf("applyHintStep"), "undo is recorded before the step is applied");
-assert.ok(page.includes("hint.stage >= 2 ? hintStruck"), "stage 3 keeps eliminated digits struck");
+assert.equal(previewSentence([{ index: 54, digit: 2 }]), "Rules out 2 in row 7, column 1.");
+assert.equal(previewSentence([]), "");
+assert.equal(previewSentence([{ index: 54, digit: 2 }]).includes("—"), false);
+assert.equal(page.includes("hint.stage >= 2 ? hintStruck"), false, "stage 3 does not keep eliminated digits struck");
+assert.ok(page.includes('mark.classList.add("on", "struck", "fading")'), "a digit that was not noted fades out");
+assert.ok(page.includes("hint.stage === 2 ? hintStruck"), "stage 2 strikes the eliminated digit");
+assert.ok(page.includes("SudokuHintApply.previewSentence"), "stage 2 says what the step rules out");
+assert.ok(page.includes("fadeUntil"), "the strike fade has a deadline");
+const built = fs.readFileSync(new URL("../scripts/build.mjs", import.meta.url), "utf8");
+assert.ok(built.includes("previewSentence: previewSentence"), "the page can call previewSentence");
+const sheet = fs.readFileSync(new URL("../assets/scss/pages/_sudoku.scss", import.meta.url), "utf8");
+assert.equal(sheet.includes("--hint-eliminate"), false, "the old eliminate color is gone");
+assert.ok(sheet.includes("color-mix(in srgb, var(--danger) 8%, var(--cell-bg))"), "light eliminate mix");
+assert.ok(sheet.includes("color-mix(in srgb, var(--danger) 14%, var(--cell-bg))"), "dark eliminate mix");
+assert.ok(sheet.includes("animation: struck-out 600ms ease-out forwards"), "the strike fades over 600ms");
+assert.ok(sheet.includes(".marks span.struck.fading"), "reduced motion drops the strike animation");
 assert.ok(page.includes("hintView.follow"), "a chained single is offered from the elimination hint");
 assert.ok(page.includes('next.textContent = "Place it"'), "the chained action places");
 assert.ok(page.includes("aria-keyshortcuts"), "the place button advertises Enter");
 assert.ok(page.includes("hintSlugs: (state.hintSlugs || []).slice()"), "undo snapshots hint names");
 assert.ok(page.includes("continueHint"), "a wrong digit continues into the next hint");
 assert.ok(page.includes("function noteTechniqueHint(slug)"), "technique hints have one recorder");
+assert.ok(page.includes("SudokuHintApply.noteClears"), "fill and apply clear house notes the solver skipped");
 assert.equal(page.includes("state.hintSlugs.push(step.slug)"), false, "a hint slug is not pushed on every open");
 assert.ok(page.includes("if (state.hintSlugs.includes(slug)) return"), "a technique hint is counted once per game");
 assert.ok(page.includes("function noteCheck()"), "wrong-digit checks are tracked");

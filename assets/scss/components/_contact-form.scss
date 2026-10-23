@@ -6,7 +6,7 @@
 
   // Form wrapper
   .wpcf7-form {
-    background: white;
+    background: #faf9f7;
     padding: 0;
   }
 
@@ -31,17 +31,19 @@
   textarea {
     width: 100%;
     padding: 0.75rem 1rem;
-    border: 2px solid #ddd;
+    border: 2px solid #ddd8d2;
     border-radius: 4px;
     font-size: 1rem;
     font-family: vars.$body-font;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    background: white;
+    background: #faf9f7;
 
     &:focus {
       outline: none;
       border-color: vars.$accent-color;
-      box-shadow: 0 0 0 3px rgba(69, 116, 140, 0.1);
+      box-shadow: none;
+      outline: 2px solid vars.$accent-color;
+      outline-offset: 2px;
     }
 
     &::placeholder {
@@ -58,11 +60,11 @@
   select {
     width: 100%;
     padding: 0.75rem 1rem;
-    border: 2px solid #ddd;
+    border: 2px solid #ddd8d2;
     border-radius: 4px;
     font-size: 1rem;
     font-family: vars.$body-font;
-    background: white;
+    background: #faf9f7;
     cursor: pointer;
     transition: border-color 0.3s ease;
 
@@ -82,7 +84,7 @@
   input[type="submit"],
   button[type="submit"] {
     background: vars.$accent-color;
-    color: white;
+    color: #f7f6f3;
     padding: 0.875rem 2rem;
     border: none;
     border-radius: 4px;
@@ -101,7 +103,7 @@
     }
 
     &:disabled {
-      background: #ccc;
+      background: #cfc8be;
       cursor: not-allowed;
       transform: none;
     }
@@ -130,9 +132,9 @@
     border-left: 4px solid;
 
     &.wpcf7-validation-errors {
-      background: #fff3cd;
-      border-color: #ffc107;
-      color: #856404;
+      background: color-mix(in srgb, var(--accent-color) 10%, var(--card));
+      border-color: var(--accent-color);
+      color: var(--ink);
     }
 
     &.wpcf7-mail-sent-ok {
@@ -201,7 +203,7 @@
 // File upload
 .wpcf7-file {
   padding: 0.5rem;
-  border: 2px dashed #ddd;
+  border: 2px dashed #ddd8d2;
   border-radius: 4px;
   cursor: pointer;
   transition: border-color 0.3s ease;
@@ -240,12 +242,12 @@
     width: 100%;
     min-height: 44px;
     padding: 0.65rem 0.75rem;
-    border: 2px solid #ddd;
+    border: 2px solid #ddd8d2;
     border-radius: 4px;
     font: inherit;
     font-size: 1rem;
     color: #222;
-    background: #fff;
+    background: #faf9f7;
     touch-action: manipulation;
   }
 
@@ -260,7 +262,7 @@
     border: 0;
     border-radius: 4px;
     background: vars.$accent-color;
-    color: #fff;
+    color: #f7f6f3;
     font: inherit;
     font-size: 1rem;
     font-weight: 700;

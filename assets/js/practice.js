@@ -17,6 +17,9 @@
   skyscraper: 9.1,
   "two-string-kite": 9.2,
   "xyz-wing": 9.3,
+  "w-wing": 9.4,
+  "unique-rectangle": 9.5,
+  "bug-plus-one": 9.6,
   coloring: 10,
   "xy-chain": 10.1,
 };
@@ -37,6 +40,9 @@
     skyscraper: "Apply all skyscrapers",
     "two-string-kite": "Apply all two-string kites",
     "xyz-wing": "Apply all XYZ-wings",
+    "w-wing": "Apply all W-wings",
+    "unique-rectangle": "Apply all unique rectangles",
+    "bug-plus-one": "Apply all BUG+1",
     coloring: "Apply all simple coloring",
     "xy-chain": "Apply all XY-chains",
   };
@@ -75,6 +81,8 @@
     "Hidden triple": "Hidden triples",
     "X-wing": "X-wings",
     "XY-wing": "XY-wings",
+    "W-wing": "W-wings",
+    "Unique rectangle": "Unique rectangles",
     "XY-chain": "XY-chains",
   };
 
@@ -302,6 +310,57 @@
     return `${techniqueLabel(batch.name, batch.cells.length)} · ${batch.cells.length}`;
   }
 
+  // A naked pair is found from the solver's candidates. Applying it also
+  // clears those digits from pencil notes in the rest of the house, even
+  // when the solver does not count those notes as candidates. The chip
+  // counts cells whose placed digit, notes, or solver eliminations changed.
+  function visibleFillTouches(diff) {
+    const beforeBoard = diff.beforeBoard || [];
+    const beforeNotes = diff.beforeNotes || [];
+    const beforeRemoved = diff.beforeRemoved || [];
+    const board = diff.board || [];
+    const notes = diff.notes || [];
+    const removed = diff.removed || [];
+    const slug = diff.slug || "";
+    const name = diff.name || slug;
+    const prior = new Map();
+    beforeRemoved.forEach((item) => {
+      if (!item) return;
+      if (!prior.has(item.index)) prior.set(item.index, new Set());
+      prior.get(item.index).add(item.digit);
+    });
+    const nextRemoved = new Map();
+    removed.forEach((item) => {
+      if (!item) return;
+      if (!nextRemoved.has(item.index)) nextRemoved.set(item.index, new Set());
+      nextRemoved.get(item.index).add(item.digit);
+    });
+    const touches = [];
+    for (let index = 0; index < 81; index += 1) {
+      if ((beforeBoard[index] || 0) !== (board[index] || 0) && board[index]) {
+        touches.push({ slug, name, index, kind: "placed", digits: [board[index]] });
+        continue;
+      }
+      const lost = [];
+      const was = prior.get(index) || new Set();
+      const now = nextRemoved.get(index) || new Set();
+      now.forEach((digit) => {
+        if (!was.has(digit)) lost.push(digit);
+      });
+      if (!diff.auto) {
+        const after = new Set(notes[index] || []);
+        (beforeNotes[index] || []).forEach((digit) => {
+          if (!after.has(digit) && !lost.includes(digit)) lost.push(digit);
+        });
+      }
+      if (lost.length) {
+        lost.sort((a, b) => a - b);
+        touches.push({ slug, name, index, kind: "cleared", digits: lost });
+      }
+    }
+    return touches;
+  }
+
   function cellDetail(cell) {
     const digits = (cell && cell.digits ? cell.digits : []).slice().sort((a, b) => a - b);
     const list = digits.join(", ");
@@ -326,6 +385,7 @@
     highlightOf,
     reviewCopy,
     reviewCopyShort,
+    visibleFillTouches,
     cellDetail,
   };
 })(typeof globalThis !== "undefined" ? globalThis : window);

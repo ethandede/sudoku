@@ -12,7 +12,7 @@
 // technique hints, and they do not change clean, hinted, or the no-hint badges.
 // "Your next technique" is the first one that is not yet Comfortable.
 //
-// The badge set is 33. Deviations, so it stays a short list:
+// The badge set is 36. Deviations, so it stays a short list:
 //   Technique firsts are four leaps (Pointing, a pair, X-wing, a chain),
 //   not a separate first badge for every technique. Mastered covers every
 //   technique.
@@ -29,25 +29,30 @@
   const MASTERED_AT = 8;
   const HISTORY_LIMIT = 200;
 
+  // Same `order` as scripts/technique-copy.mjs. Sort here so the ladder,
+  // the practice list, and "next technique" follow that field.
   const TECHNIQUES = [
-    { slug: "naked-single", name: "Naked single" },
-    { slug: "hidden-single", name: "Hidden single" },
-    { slug: "pointing", name: "Pointing" },
-    { slug: "claiming", name: "Claiming" },
-    { slug: "naked-pair", name: "Naked pair" },
-    { slug: "hidden-pair", name: "Hidden pair" },
-    { slug: "naked-triple", name: "Naked triple" },
-    { slug: "hidden-triple", name: "Hidden triple" },
-    { slug: "quads", name: "Quads" },
-    { slug: "x-wing", name: "X-wing" },
-    { slug: "swordfish", name: "Swordfish" },
-    { slug: "xy-wing", name: "XY-wing" },
-    { slug: "skyscraper", name: "Skyscraper" },
-    { slug: "two-string-kite", name: "Two-string kite" },
-    { slug: "xyz-wing", name: "XYZ-wing" },
-    { slug: "coloring", name: "Simple coloring" },
-    { slug: "xy-chain", name: "XY-chain" },
-  ];
+    { slug: "naked-single", name: "Naked single", order: 0 },
+    { slug: "hidden-single", name: "Hidden single", order: 20 },
+    { slug: "pointing", name: "Pointing", order: 30 },
+    { slug: "claiming", name: "Claiming", order: 31 },
+    { slug: "naked-pair", name: "Naked pair", order: 40 },
+    { slug: "hidden-pair", name: "Hidden pair", order: 41 },
+    { slug: "naked-triple", name: "Naked triple", order: 50 },
+    { slug: "hidden-triple", name: "Hidden triple", order: 51 },
+    { slug: "quads", name: "Quads", order: 60 },
+    { slug: "x-wing", name: "X-wing", order: 70 },
+    { slug: "skyscraper", name: "Skyscraper", order: 72 },
+    { slug: "two-string-kite", name: "Two-string kite", order: 74 },
+    { slug: "xy-wing", name: "XY-wing", order: 80 },
+    { slug: "xyz-wing", name: "XYZ-wing", order: 82 },
+    { slug: "w-wing", name: "W-wing", order: 84 },
+    { slug: "unique-rectangle", name: "Unique rectangle", order: 92 },
+    { slug: "bug-plus-one", name: "BUG+1", order: 94 },
+    { slug: "swordfish", name: "Swordfish", order: 90 },
+    { slug: "coloring", name: "Simple coloring", order: 100 },
+    { slug: "xy-chain", name: "XY-chain", order: 101 },
+  ].sort((a, b) => a.order - b.order);
 
   const LEVELS = ["quick", "easy", "not easy", "hard", "expert", "mental"];
   const LEVEL_LABEL = {
@@ -506,6 +511,59 @@
     const today = new Date().toISOString().slice(0, 10);
     const current = completed[today] ? streakEnding(completed, today) : streakEnding(completed, shiftDate(today, -1));
     return Math.max(longest, current);
+  }
+
+  // The run the solved screen shows. streakNow() is the badge figure, which
+  // keeps the longer of the current run and the stored record.
+  function currentStreak(stats, today) {
+    if (!stats || !stats.daily) return 0;
+    const completed = stats.daily.completed || {};
+    const day = today || new Date().toISOString().slice(0, 10);
+    if (completed[day]) return streakEnding(completed, day);
+    return streakEnding(completed, shiftDate(day, -1));
+  }
+
+  function emptyPlayerStats() {
+    const bucket = () => ({ played: 0, won: 0, best: null, totalTime: 0 });
+    const stats = { version: 1, daily: { ...bucket(), completed: {}, longestStreak: 0 } };
+    LEVELS.forEach((id) => {
+      stats[id] = bucket();
+    });
+    return stats;
+  }
+
+  function storedPlayerStats() {
+    const raw = readJson(STATS_KEY);
+    const merge = root.SudokuAccountMerge;
+    if (raw == null) return emptyPlayerStats();
+    if (merge && typeof merge.migrateStats === "function") {
+      const migrated = merge.migrateStats(raw);
+      if (!migrated.ok) return emptyPlayerStats();
+      return migrated.stats;
+    }
+    return raw;
+  }
+
+  function playerRecord(today) {
+    const stats = storedPlayerStats();
+    const rows = [["daily", LEVEL_LABEL.daily], ...LEVELS.map((id) => [id, LEVEL_LABEL[id]])];
+    return {
+      streak: currentStreak(stats, today),
+      longest: (stats.daily && stats.daily.longestStreak) || 0,
+      levels: rows.map(([id, label]) => {
+        const bucket = stats[id] || { played: 0, won: 0, best: null, totalTime: 0 };
+        const won = bucket.won | 0;
+        const best = bucket.best == null || bucket.best === "" ? null : Number(bucket.best);
+        return {
+          id,
+          label,
+          played: bucket.played | 0,
+          won,
+          best: best == null || Number.isNaN(best) ? null : best,
+          average: won ? Number(bucket.totalTime) / won : null,
+        };
+      }),
+    };
   }
 
   function bestFromStats(stats) {
@@ -1090,5 +1148,7 @@
     celebrate,
     escapeHtml,
     streakNow,
+    currentStreak,
+    playerRecord,
   };
 })(typeof globalThis !== "undefined" ? globalThis : window);

@@ -399,6 +399,8 @@ export function sanitizeProgress(input) {
     version: PROGRESS_VERSION,
     kind: input.kind,
     dailyDate: typeof input.dailyDate === "string" && DAY.test(input.dailyDate) ? input.dailyDate : null,
+    shareDate: typeof input.shareDate === "string" && DAY.test(input.shareDate) ? input.shareDate : null,
+    permalink: Boolean(input.permalink),
     puzzle,
     solution,
     board,

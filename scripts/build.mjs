@@ -18,11 +18,15 @@ import {
   stripUnpublishedLinks,
   wrapTables,
 } from "./articles.mjs";
-import { captureExamples } from "./capture-examples.mjs";
+import { resolveTechniqueExamples } from "./example-board.mjs";
 import { nextTechnique, orderedTechniques, techniques } from "./technique-copy.mjs";
 import { adsensePushScript, housePair, renderHousePromos } from "./house-promos.mjs";
 import { phosphorArrow } from "./icons.mjs";
 import { faqJsonLd, homeCopy, renderHomeBelow, renderHomeIntro } from "../home-copy.mjs";
+import { articleMeta, assertSiteMeta, assertUniqueMeta, catalogPages, staticMeta, techniqueMeta } from "./seo-meta.mjs";
+import { dailyMeta, listDailyDates, utcToday } from "../functions/daily-permalink.mjs";
+import { gitDate, gitFirstDate, lastmod } from "./lastmod.mjs";
+import { articleImage, breadcrumbList } from "./schema.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "dist");
@@ -56,9 +60,26 @@ function write(relativePath, contents) {
   writeFileSync(target, contents);
 }
 
-function publish(relativePath, contents, path) {
+function shareCard(kind, slug, alt) {
+  const relative = join("assets/og", kind, `${slug}.png`);
+  const file = join(root, relative);
+  if (!existsSync(file)) throw new Error(`Missing OG image ${relative}`);
+  const png = readFileSync(file);
+  const width = png.readUInt32BE(16);
+  const height = png.readUInt32BE(20);
+  if (png[0] !== 0x89 || width !== 1200 || height !== 630) {
+    throw new Error(`OG image ${relative} must be a 1200x630 PNG`);
+  }
+  if (alt.includes("\u2014")) throw new Error(`OG alt for ${slug} has an em dash`);
+  return {
+    shareImage: `${SITE}/og/${kind}/${slug}.png`,
+    shareImageAlt: alt,
+  };
+}
+
+function publish(relativePath, contents, path, sources = []) {
   write(relativePath, contents);
-  if (path) sitemap.push(withSlash(path));
+  if (path) sitemap.push({ path: withSlash(path), sources });
 }
 
 function escapeHtml(value) {
@@ -96,6 +117,12 @@ function withSlash(path) {
   if (!path || path === "/") return "/";
   if (path.endsWith(".html") || path.endsWith("/")) return path;
   return `${path}/`;
+}
+
+function jsonLdExtras(jsonLd, crumbNode) {
+  const extras = Array.isArray(jsonLd) ? [...jsonLd] : jsonLd ? [jsonLd] : [];
+  if (crumbNode) extras.push(crumbNode);
+  return extras;
 }
 
 function structuredData(extra) {
@@ -137,6 +164,9 @@ function layout({
   robots = "",
   contact = false,
   stats = false,
+  crumb = "",
+  shareImage = "",
+  shareImageAlt = "",
 }) {
   const descriptionTag = description
     ? `<meta name="description" content="${escapeHtml(description)}">`
@@ -144,11 +174,17 @@ function layout({
   const canonicalHref = canonical ? withSlash(canonical) : "";
   const canonicalTag = canonicalHref ? `<link rel="canonical" href="${escapeHtml(canonicalHref)}">` : "";
   const robotsTag = robots ? `<meta name="robots" content="${escapeHtml(robots)}">` : "";
-  const jsonLdTag = `<script type="application/ld+json">${JSON.stringify(structuredData(jsonLd)).replace(/</g, "\\u003c")}</script>`;
+  const crumbNode = breadcrumbList(SITE, canonicalHref, crumb);
+  const canonicalPath = canonicalHref.startsWith(SITE) ? canonicalHref.slice(SITE.length) : canonicalHref;
+  if (canonicalPath && canonicalPath !== "/" && !crumbNode) {
+    throw new Error(`Missing breadcrumb name for ${canonicalHref}`);
+  }
+  const jsonLdTag = `<script type="application/ld+json">${JSON.stringify(structuredData(jsonLdExtras(jsonLd, crumbNode))).replace(/</g, "\\u003c")}</script>`;
   const shareTitle = escapeHtml(title);
   const shareDescription = escapeHtml(description || "Free daily Sudoku with teaching hints.");
   const shareUrl = escapeHtml(canonicalHref || `${SITE}/`);
-  const image = `${SITE}/og.png`;
+  const image = escapeHtml(shareImage || `${SITE}/og.png`);
+  const imageAlt = escapeHtml(shareImageAlt || "SudokuSudoku board beside a number-pad box map");
   const adsTag = ads
     ? `  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9345046210950956" crossorigin="anonymous"></script>\n`
     : "";
@@ -236,8 +272,8 @@ function layout({
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f6f8">
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#121416">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f4f1">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141311">
   <meta name="color-scheme" content="light dark">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -255,12 +291,12 @@ function layout({
   <meta property="og:image" content="${image}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="SudokuSudoku board beside a number-pad box map">
+  <meta property="og:image:alt" content="${imageAlt}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${shareTitle}">
   <meta name="twitter:description" content="${shareDescription}">
   <meta name="twitter:image" content="${image}">
-  <meta name="twitter:image:alt" content="SudokuSudoku board beside a number-pad box map">
+  <meta name="twitter:image:alt" content="${imageAlt}">
   ${jsonLdTag}
   <script>
     try {
@@ -345,6 +381,7 @@ ${main}
       <ul class="footer-links">
         <li><a href="/about/">About</a></li>
         <li><a href="/techniques/">Techniques</a></li>
+        <li><a href="/how-difficulty-works/">How difficulty works</a></li>
         <li><a href="/skills/">Skills</a></li>
         <li><a href="/stats/">Stats</a></li>
         <li><a href="/articles/">Articles</a></li>
@@ -356,9 +393,10 @@ ${privacyChoiceItem}      </ul>
     </nav>
 ${privacyChoiceNote}    <p class="copyright">&copy; ${year} SudokuSudoku. All rights reserved.</p>
     <p class="footer-credit">Number counters and the delete control are adapted from <a href="https://rareui.com">Rare UI</a> by Swami Malode.</p>
+    <p class="footer-credit">The dealing animation is adapted from <a href="https://magicui.design/docs/components/number-ticker">Magic UI</a>.</p>
   </div>
 </footer>
-${game ? ["solver", "pools", "generator", "progress", "community", "share", "account-merge", "rare-delete", "account", "practice"].map((name) => scriptTag(`/assets/js/${name}.js`)).join("\n") : ""}
+${game ? ["solver", "pools", "generator", "progress", "community", "share", "daily", "account-merge", "rare-delete", "account", "practice"].map((name) => scriptTag(`/assets/js/${name}.js`)).join("\n") : ""}
 ${skills ? scriptTag("/assets/js/progress.js") : ""}
 ${skills ? scriptTag("/assets/js/rare-counter.js") : ""}
 ${skills ? scriptTag("/assets/js/rare-delete.js") : ""}
@@ -368,6 +406,7 @@ ${scriptTag("/assets/js/sudoku.js")}
 ${skills ? scriptTag("/assets/js/skills.js") : ""}
 ${demo ? scriptTag("/assets/js/technique-demo.js") : ""}
 ${contact ? scriptTag("/assets/js/contact.js") : ""}
+${stats ? scriptTag("/assets/js/account-merge.js") : ""}
 ${stats ? scriptTag("/assets/js/progress.js") : ""}
 ${stats ? scriptTag("/assets/js/rare-counter.js") : ""}
 ${stats ? scriptTag("/assets/js/rare-delete.js") : ""}
@@ -384,7 +423,12 @@ function accountMergeForBrowser(source) {
 
 function hintApplyForBrowser(source) {
   const body = source.replace(/^export /gm, "");
-  return `(function (root) {\n${body}\n  root.SudokuHintApply = {\n    applyHintStep: applyHintStep,\n    placesOnApply: placesOnApply,\n    legalCandidates: legalCandidates,\n    eliminationSentence: eliminationSentence,\n    resultCopy: resultCopy,\n    cellName: cellName\n  };\n})(typeof globalThis !== "undefined" ? globalThis : this);\n`;
+  return `(function (root) {\n${body}\n  root.SudokuHintApply = {\n    applyHintStep: applyHintStep,\n    placesOnApply: placesOnApply,\n    legalCandidates: legalCandidates,\n    eliminationSentence: eliminationSentence,\n    previewSentence: previewSentence,\n    noteClears: noteClears,\n    resultCopy: resultCopy,\n    cellName: cellName\n  };\n})(typeof globalThis !== "undefined" ? globalThis : this);\n`;
+}
+
+function dailyForBrowser(source) {
+  const body = source.replace(/^export /gm, "");
+  return `(function (root) {\n${body}\n  root.SudokuDaily = {\n    DAILY_START,\n    gameRequest,\n    launchFields,\n    dateStatus,\n    parseDailyPath,\n    listDailyDates,\n    dailyMeta\n  };\n})(typeof globalThis !== "undefined" ? globalThis : this);\n`;
 }
 
 function silentUpdateForBrowser(source) {
@@ -396,14 +440,15 @@ function scriptTag(path) {
   return `<script src="${asset(path)}"></script>`;
 }
 
-function standardPage(title, bodyHtml, description, path, options = {}) {
+function standardPage(title, bodyHtml, path, options = {}) {
+  const meta = staticMeta(path);
   const canonicalPath = withSlash(path);
   const house = options.ads === false ? "" : options.house || "";
   const kicker = options.kicker ? brandKicker(options.kicker) : "";
   const art = headerArt(options.art);
   return layout({
-    title: `${title} | SudokuSudoku`,
-    description,
+    title: meta.title,
+    description: meta.description,
     canonical: path ? `${SITE}${canonicalPath}` : "",
     ads: options.ads !== false,
     analytics: options.analytics !== false,
@@ -411,6 +456,7 @@ function standardPage(title, bodyHtml, description, path, options = {}) {
     robots: options.robots || "",
     contact: Boolean(options.contact),
     jsonLd: options.jsonLd,
+    crumb: title,
     main: `<main class="standard-page">
   <div class="container">
     <article class="page-content">
@@ -517,6 +563,7 @@ write("assets/css/style.css", versionFontUrls(compiled.css, ASSET_VERSION));
 write("assets/js/solver.js", read("assets/js/solver.js"));
 write("assets/js/pools.js", read("assets/js/pools.js"));
 write("assets/js/generator.js", read("assets/js/generator.js"));
+write("assets/js/generate-worker.js", read("assets/js/generate-worker.js"));
 write("assets/js/sudoku.js", read("assets/js/sudoku.js"));
 write("assets/js/technique-demo.js", read("assets/js/technique-demo.js"));
 write("assets/js/progress.js", read("assets/js/progress.js"));
@@ -525,6 +572,7 @@ write("assets/js/skills.js", read("assets/js/skills.js"));
 write("assets/js/contact.js", read("assets/js/contact.js"));
 write("assets/js/community.js", read("assets/js/community.js"));
 write("assets/js/share.js", read("assets/js/share.js"));
+write("assets/js/daily.js", dailyForBrowser(read("functions/daily-permalink.mjs")));
 write("assets/js/account-merge.js", accountMergeForBrowser(read("functions/account-merge.mjs")));
 write("assets/js/silent-update.js", silentUpdateForBrowser(read("functions/silent-update.mjs")));
 write("assets/js/hint-apply.js", hintApplyForBrowser(read("functions/hint-apply.mjs")));
@@ -539,6 +587,7 @@ cpSync(join(root, "assets/img"), join(dist, "assets/img"), { recursive: true });
 cpSync(join(root, "articles/images"), join(dist, "articles/images"), { recursive: true });
 cpSync(join(root, "articles/data"), join(dist, "articles/data"), { recursive: true });
 copyFileSync(join(root, "src/og.png"), join(dist, "og.png"));
+cpSync(join(root, "assets/og"), join(dist, "og"), { recursive: true });
 write("_redirects", read("src/_redirects"));
 copyFileSync(join(root, "src/favicon.ico"), join(dist, "favicon.ico"));
 copyFileSync(join(root, "src/favicon.svg"), join(dist, "favicon.svg"));
@@ -611,15 +660,18 @@ publish(
       return homeGame.replace(homeMarker, `<div class="house-home">\n${homePromo}\n</div>`);
     })(),
   }),
-  "/"
+  "/",
+  ["src/game.html", "home-copy.mjs"]
 );
 
+const missing = staticMeta("/404.html");
 const notFoundHtml = layout({
-    title: "Page not found | SudokuSudoku",
-    description: "That page is not on SudokuSudoku.",
+    title: missing.title,
+    description: missing.description,
     canonical: `${SITE}/404.html`,
     robots: "noindex",
     ads: false,
+    crumb: "Page not found",
     main: `<main class="standard-page">
   <div class="container">
     <article class="page-content">
@@ -660,11 +712,11 @@ publish(
   standardPage(
     "About",
     marked.parse(aboutMarkdown),
-    "Ethan Ede builds websites and plays Sudoku almost every day. SudokuSudoku grades a puzzle by its hardest move, and the hints teach that move.",
     "/about/",
     { jsonLd: personNode(), house: houseSlot("about", "/about/"), kicker: "Who made this" }
   ),
-  "/about"
+  "/about",
+  ["about-page-content.md"]
 );
 
 publish(
@@ -672,11 +724,11 @@ publish(
   standardPage(
     "Links",
     read("links-page-content.html").trim(),
-    "Other Sudoku sites, books, and communities, listed separately from the puzzles on SudokuSudoku.",
     "/links/",
     { ads: false, kicker: "Other places" }
   ),
-  "/links"
+  "/links",
+  ["links-page-content.html"]
 );
 
 publish(
@@ -684,11 +736,11 @@ publish(
   standardPage(
     "Contact",
     read("contact-page-content.html").trim(),
-    "Send a note about a bug, a technique page, or the site. The form uses a spam check and does not show an email address.",
     "/contact/",
     { contact: true, house: houseSlot("contact", "/contact/"), kicker: "Send a note" }
   ),
-  "/contact"
+  "/contact",
+  ["contact-page-content.html"]
 );
 
 publish(
@@ -696,11 +748,11 @@ publish(
   standardPage(
     "Privacy Policy",
     read("privacy-policy-content.html").trim(),
-    "How SudokuSudoku handles on-device puzzle data, the optional email account, anonymous community stats, Google Analytics, AdSense consent, and the contact form.",
     "/privacy-policy/",
     { ads: false, analytics: false, privacyChoices: false }
   ),
-  "/privacy-policy"
+  "/privacy-policy",
+  ["privacy-policy-content.html"]
 );
 
 publish(
@@ -708,11 +760,11 @@ publish(
   standardPage(
     "Terms of Use",
     read("terms-of-use-content.html").trim(),
-    "Terms for SudokuSudoku, a free browser Sudoku game with an optional email account, a contact form, and ads.",
     "/terms/",
     { ads: false, analytics: false, privacyChoices: false, kicker: "The rules" }
   ),
-  "/terms"
+  "/terms",
+  ["terms-of-use-content.html"]
 );
 
 const cards = visibleArticles
@@ -746,9 +798,10 @@ const articleIndexPromos = houseSlots("articles", "/articles/", [
 publish(
   "articles/index.html",
   layout({
-    title: "Articles | SudokuSudoku",
-    description: "How to play, what makes a puzzle hard, and notes from building SudokuSudoku.",
+    title: staticMeta("/articles/").title,
+    description: staticMeta("/articles/").description,
     canonical: `${SITE}/articles/`,
+    crumb: "Articles",
     main: `<main id="articles" class="articles-page">
   <div class="container">
     <div class="articles-with-rail">
@@ -773,8 +826,38 @@ publish(
   </div>
 </main>`,
   }),
-  "/articles"
+  "/articles",
+  visibleArticles.map((article) => article.file)
 );
+
+const GUIDE_SLUGS = new Set(["beginners-guide", "common-mistakes"]);
+
+function articleSchema(article) {
+  const personArticle = article.authored || GUIDE_SLUGS.has(article.slug);
+  const orgArticle = article.slug === "nyt-medium-vs-hard";
+  if (!personArticle && !orgArticle) return null;
+  const first = gitFirstDate(root, article.file);
+  const last = gitDate(root, article.file);
+  const datePublished = article.publishDate || first;
+  const dateModified = [datePublished, last].filter(Boolean).sort().at(-1) || "";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(datePublished) || !/^\d{4}-\d{2}-\d{2}$/.test(dateModified)) {
+    throw new Error(`No article dates for ${article.slug}`);
+  }
+  const image = articleImage(SITE, article.image);
+  if (GUIDE_SLUGS.has(article.slug) && !image?.url) {
+    throw new Error(`${article.slug} needs an article image`);
+  }
+  const node = articleJsonLd({
+    title: article.heading || article.title,
+    description: article.excerpt,
+    url: `${SITE}${article.href}`,
+    publishDate: datePublished,
+    dateModified,
+    image,
+    author: personArticle ? undefined : { "@type": "Organization", name: "SudokuSudoku" },
+  });
+  return personArticle ? [node, personNode()] : node;
+}
 
 function relatedArticlesHtml(article) {
   const items = article.relatedSlugs
@@ -815,41 +898,18 @@ visibleArticles.forEach((article, index) => {
     : "";
   const tagBlock = tags ? `<div class="article-tags"><span class="tags-label">Tags:</span> ${tags}</div>` : "";
 
-  const articleLd = article.authored
-    ? [
-        articleJsonLd({
-          title: article.title,
-          description: article.excerpt,
-          url: `${SITE}${article.href}`,
-          publishDate: article.publishDate,
-        }),
-        personNode(),
-      ]
-    : article.slug === "nyt-medium-vs-hard"
-      ? {
-          "@context": "https://schema.org",
-          "@type": "Article",
-          headline: article.title,
-          description: article.excerpt,
-          mainEntityOfPage: `${SITE}${article.href}`,
-          datePublished: "2026-10-21",
-          dateModified: "2026-10-21",
-          author: { "@type": "Organization", name: "SudokuSudoku" },
-          publisher: {
-            "@type": "Organization",
-            name: "SudokuSudoku",
-            logo: { "@type": "ImageObject", url: `${SITE}/icons/icon-512.png` },
-          },
-        }
-      : null;
+  const articleLd = articleSchema(article);
 
+  const meta = articleMeta(article);
   publish(
     `articles/${article.slug}/index.html`,
     layout({
-      title: `${article.title} | SudokuSudoku`,
-      description: article.excerpt,
+      title: meta.title,
+      description: meta.description,
       canonical: `${SITE}${article.href}`,
       jsonLd: articleLd,
+      crumb: article.heading,
+      ...shareCard("articles", article.slug, `${article.heading} on SudokuSudoku`),
       main: `<main id="article-single" class="article-single-page">
   <article class="article-content">
     <div class="container">
@@ -877,11 +937,12 @@ visibleArticles.forEach((article, index) => {
   </article>
 </main>`,
     }),
-    article.href
+    article.href,
+    [article.file]
   );
 });
 
-const examples = captureExamples(root);
+const examples = resolveTechniqueExamples(root, techniques);
 const bySlug = new Map(techniques.map((technique) => [technique.slug, technique]));
 
 function pencilHtml(digits) {
@@ -974,7 +1035,10 @@ function lessonSections(technique) {
 function renderLesson(technique, example) {
   return lessonSections(technique)
     .map((section) => {
-      if (section.demo) return demoBlock(example, section);
+      if (section.demo) {
+        if (!example) return `<p>No worked board for this step yet.</p>`;
+        return demoBlock(example, section);
+      }
       let html = "";
       if (section.h) html += `<h2>${escapeHtml(section.h)}</h2>\n`;
       if (section.h3) html += `<h3>${escapeHtml(section.h3)}</h3>\n`;
@@ -1012,10 +1076,10 @@ const techniqueIndexPromo = housePair(
 publish(
   "techniques/index.html",
   layout({
-    title: "Techniques | SudokuSudoku",
-    description:
-      "Sudoku techniques from naked singles to XY-chains, each with a plain explanation and a puzzle state from this site's solver.",
+    title: staticMeta("/techniques/").title,
+    description: staticMeta("/techniques/").description,
     canonical: `${SITE}/techniques/`,
+    crumb: "Techniques",
     main: `<main class="standard-page technique-page">
   <div class="container">
     <article class="page-content">
@@ -1028,7 +1092,7 @@ publish(
       </header>
       <div class="page-body">
         <p>These are the steps the solver on this site actually uses, easiest first. Each one has a board taken from a real solve, not a diagram drawn by hand. The level named on the row is where that step first becomes necessary.</p>
-        <p>The New York Times labels overlap in a way these levels don't. That measurement is written up in <a href="/articles/nyt-medium-vs-hard/">why Medium sometimes feels harder than Hard</a>.</p>
+        <p>The New York Times labels overlap in a way these levels don't. That measurement is written up in <a href="/articles/nyt-medium-vs-hard/">why Medium sometimes feels harder than Hard</a>. How the six levels are actually graded is on <a href="/how-difficulty-works/">how difficulty works</a>.</p>
         <ol class="technique-index">
           ${indexItems}
         </ol>
@@ -1038,17 +1102,30 @@ publish(
   </div>
 </main>`,
   }),
-  "/techniques"
+  "/techniques",
+  ["scripts/technique-copy.mjs"]
+);
+
+publish(
+  "how-difficulty-works/index.html",
+  standardPage(
+    "How difficulty works",
+    stripUnpublishedLinks(read("how-difficulty-works-content.html").trim(), unpublishedSlugs),
+    "/how-difficulty-works/",
+    { kicker: "The grader", house: houseSlot("grading", "/how-difficulty-works/") }
+  ),
+  "/how-difficulty-works",
+  ["how-difficulty-works-content.html"]
 );
 
 publish(
   "stats/index.html",
   layout({
-    title: "Stats | SudokuSudoku",
-    description:
-      "Your hint record, plus anonymous SudokuSudoku stats by difficulty: median solve time, average hints, and the techniques players need hints for.",
+    title: staticMeta("/stats/").title,
+    description: staticMeta("/stats/").description,
     canonical: `${SITE}/stats/`,
     stats: true,
+    crumb: "Stats",
     jsonLd: {
       "@type": "Dataset",
       name: "SudokuSudoku community puzzle stats",
@@ -1068,6 +1145,12 @@ publish(
         ${headerArt("stats")}
       </header>
       <div class="page-body">
+        <div id="your-games">
+          <section class="hint-block">
+            <h2>Your games</h2>
+            <p class="stats-empty">Loading your games.</p>
+          </section>
+        </div>
         <div id="your-hints">
           <section class="hint-block">
             <h2>Your hints</h2>
@@ -1090,18 +1173,19 @@ publish(
   </div>
 </main>`,
   }),
-  "/stats"
+  "/stats",
+  ["stats-page-content.html", "assets/js/stats-page.js"]
 );
 
 publish(
   "skills/index.html",
   layout({
-    title: "Skill ladder | SudokuSudoku",
-    description:
-      "A technique ladder stored on this device: what you have solved, what to train next, and badges from finished puzzles.",
+    title: staticMeta("/skills/").title,
+    description: staticMeta("/skills/").description,
     canonical: `${SITE}/skills/`,
     robots: "noindex, follow",
     skills: true,
+    crumb: "Skill ladder",
     main: `<main id="skills" class="skills-page">
   <div class="skills-wrap">
     <header class="skills-header page-header-has-art">
@@ -1128,17 +1212,20 @@ techniques.forEach((technique) => {
       return `<a href="/techniques/${slug}/">${escapeHtml(other.name)}</a>`;
     })
     .join(" · ");
+  const meta = techniqueMeta(technique);
   const path = `/techniques/${technique.slug}/`;
   const howto = {
     "@context": "https://schema.org",
     "@type": "HowTo",
     name: `How to spot ${technique.name} in Sudoku`,
     description: technique.description,
-    step: [
-      { "@type": "HowToStep", name: "See the pattern", text: example.step.look },
-      { "@type": "HowToStep", name: "What gets eliminated", text: example.step.explain },
-      { "@type": "HowToStep", name: "The result", text: resultSentence(example.step) },
-    ],
+    step: example
+      ? [
+          { "@type": "HowToStep", name: "See the pattern", text: example.step.look },
+          { "@type": "HowToStep", name: "What gets eliminated", text: example.step.explain },
+          { "@type": "HowToStep", name: "The result", text: resultSentence(example.step) },
+        ]
+      : [{ "@type": "HowToStep", name: technique.name, text: technique.description }],
   };
   const lesson = renderLesson(technique, example);
   const harder = nextTechnique(technique);
@@ -1148,11 +1235,13 @@ techniques.forEach((technique) => {
   publish(
     `techniques/${technique.slug}/index.html`,
     layout({
-      title: `${technique.name} | SudokuSudoku`,
-      description: technique.description,
+      title: meta.title,
+      description: meta.description,
       canonical: `${SITE}${path}`,
       jsonLd: howto,
-      demo: true,
+      crumb: technique.name,
+      ...shareCard("techniques", technique.slug, `${technique.name} Sudoku technique on SudokuSudoku`),
+      demo: Boolean(example),
       main: `<main class="standard-page technique-page">
   <div class="container">
     <article class="page-content">
@@ -1172,26 +1261,42 @@ techniques.forEach((technique) => {
     </article>
   </div>
 </main>
-<script type="application/json" id="technique-example">${JSON.stringify({
-        given: example.given,
-        board: example.board,
-        pencil: example.pencil,
-        step: example.step,
-      }).replace(/</g, "\\u003c")}</script>`,
+${
+        example
+          ? `<script type="application/json" id="technique-example">${JSON.stringify({
+              given: example.given,
+              board: example.board,
+              pencil: example.pencil,
+              step: example.step,
+            }).replace(/</g, "\\u003c")}</script>`
+          : ""
+      }`,
     }),
-    path
+    path,
+    ["scripts/technique-copy.mjs"]
   );
 });
 
-const today = new Date().toISOString().slice(0, 10);
+const dailyToday = utcToday();
+for (const iso of listDailyDates(dailyToday)) {
+  sitemap.push({
+    path: `/daily/${iso}/`,
+    sources: ["assets/js/generator.js", "functions/daily-permalink.mjs"],
+    published: iso,
+  });
+}
+
 write(
   "sitemap.xml",
   `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${sitemap
-  .map(
-    (path) => `  <url><loc>${SITE}${path === "/" ? "/" : path}</loc><lastmod>${today}</lastmod></url>`
-  )
+  .map((entry) => {
+    const loc = entry.path === "/" ? "/" : entry.path;
+    const touched = lastmod(root, entry.sources);
+    const day = entry.published && entry.published > touched ? entry.published : touched;
+    return `  <url><loc>${SITE}${loc}</loc><lastmod>${day}</lastmod></url>`;
+  })
   .join("\n")}
 </urlset>
 `
@@ -1235,8 +1340,8 @@ write(
       scope: "/",
       display: "standalone",
       orientation: "portrait",
-      background_color: "#f4f6f8",
-      theme_color: "#f4f6f8",
+      background_color: "#f5f4f1",
+      theme_color: "#f5f4f1",
       categories: ["games"],
       icons: manifestIcons,
     },
@@ -1252,12 +1357,13 @@ write(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="robots" content="noindex">
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f6f8">
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#121416">
-  <title>Offline | SudokuSudoku</title>
-  <meta name="description" content="SudokuSudoku is offline. The puzzle on this device still opens.">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f4f1">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141311">
+  <title>${escapeHtml(staticMeta("/offline.html").title)}</title>
+  <meta name="description" content="${escapeHtml(staticMeta("/offline.html").description)}">
   <meta name="robots" content="noindex">
   <link rel="canonical" href="https://sudokusudoku.com/offline.html">
+  <script type="application/ld+json">${JSON.stringify(structuredData(breadcrumbList(SITE, `${SITE}/offline.html`, "You're offline"))).replace(/</g, "\\u003c")}</script>
   <link rel="preload" href="${asset("/assets/fonts/open-sans-latin-400.woff2")}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="${asset("/assets/css/style.css")}">
   <link rel="manifest" href="/manifest.webmanifest">
@@ -1316,12 +1422,14 @@ const shellPaths = [
   "assets/js/solver.js",
   "assets/js/pools.js",
   "assets/js/generator.js",
+  "assets/js/generate-worker.js",
   "assets/js/progress.js",
   "assets/js/practice.js",
   "assets/js/skills.js",
   "assets/js/sudoku.js",
   "assets/js/community.js",
   "assets/js/share.js",
+  "assets/js/daily.js",
   "assets/js/account-merge.js",
   "assets/js/account.js",
   "assets/js/rare-counter.js",
@@ -1359,6 +1467,11 @@ write(
 );
 
 assertAssetVersions();
+assertSiteMeta({ dist, home: homeCopy, techniques, articles: parsedArticles });
+assertUniqueMeta([
+  ...catalogPages({ home: homeCopy, techniques, articles: parsedArticles }),
+  ...listDailyDates(dailyToday).map((iso) => dailyMeta(iso)),
+]);
 console.log(`Built ${dist}`);
 
 function assertAssetVersions() {

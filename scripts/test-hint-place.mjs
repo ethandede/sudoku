@@ -215,12 +215,17 @@ async function check(name, fn) {
   }
 }
 
-async function openGame(viewport, save) {
-  const context = await browser.newContext({ viewport });
+async function openGame(viewport, save, options = {}) {
+  const context = await browser.newContext({
+    viewport,
+    colorScheme: options.colorScheme,
+    reducedMotion: options.reducedMotion,
+  });
   await context.addInitScript((payload) => {
-    localStorage.setItem("sudoku-progress", JSON.stringify(payload));
-    localStorage.setItem("sudoku-progress-at", String(payload.updatedAt));
-  }, save);
+    localStorage.setItem("sudoku-progress", JSON.stringify(payload.save));
+    localStorage.setItem("sudoku-progress-at", String(payload.save.updatedAt));
+    if (payload.settings) localStorage.setItem("sudoku-settings", JSON.stringify(payload.settings));
+  }, { save, settings: options.settings || null });
   const page = await context.newPage();
   await page.route("**/*", (route) => {
     const url = route.request().url();
@@ -258,18 +263,31 @@ async function placeSingle(page) {
   await page.waitForFunction(() => /Placed/.test(document.getElementById("hint-text").textContent));
 }
 
-async function placeChain(page) {
+async function placeChain(page, afterApply) {
   await page.click("#hint-btn");
   await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Show why");
   await page.click("#hint-next");
   await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Apply");
+  const why = await page.locator("#hint-text").innerText();
+  assert(/Rules out \d+ in row \d+, column \d+/.test(why), "stage 2 names the ruled-out digit");
+  assert(!why.includes("—"), "stage 2 has no em dash");
   await page.click("#hint-next");
   await page.waitForFunction(() => {
     const next = document.getElementById("hint-next");
     return next && !next.hidden && next.textContent === "Place it";
   });
+  if (afterApply) await afterApply(page);
   await page.click("#hint-next");
   await page.waitForFunction(() => /Placed/.test(document.getElementById("hint-text").textContent));
+}
+
+function openElimination(found) {
+  const empty = (found.step.eliminate || []).filter((item) => found.board[item.index] === 0);
+  return empty.find((item) => item.index !== found.step.place.index) || empty[0] || null;
+}
+
+function fadeMark(page, index, digit) {
+  return page.locator(".cell").nth(index).locator(`.marks span[data-digit="${digit}"]`);
 }
 
 async function expectPlaced(page, found, { notes, auto, chain }) {
@@ -293,8 +311,12 @@ async function expectPlaced(page, found, { notes, auto, chain }) {
   if (chain) {
     const eliminated = (found.step.eliminate || []).find((item) => found.board[item.index] === 0 && item.index !== index);
     if (eliminated) {
-      const struck = await marks(page, eliminated.index, "struck");
-      assert(struck.includes(String(eliminated.digit)), "elimination stays struck after the place");
+      const stuck = await page
+        .locator(".cell")
+        .nth(eliminated.index)
+        .locator(`.marks span.on.struck:not(.fading)[data-digit="${eliminated.digit}"]`)
+        .count();
+      assert(stuck === 0, "elimination does not stay struck after it fades");
       if (auto) assert(!(await marks(page, eliminated.index, "auto")).includes(String(eliminated.digit)), "eliminated digit left auto-candidates");
     }
     assert((await page.locator(".cell").nth(index).locator(".marks span.struck").count()) === 0, "filled cell has no strike");
@@ -325,9 +347,48 @@ for (const [name, found, chain] of [
           const { context, page } = await openGame(viewport, saveFor(found, { auto, notes: plan && plan.notes }));
           try {
             assert((await page.locator("#auto-candidates").isChecked()) === auto, "auto toggle matches");
-            if (chain) await placeChain(page);
-            else await placeSingle(page);
+            const eliminated = chain ? openElimination(found) : null;
+            const watchFade = chain && name === "x-wing chain" && viewportName === "phone" && !auto && !withNotes;
+            const notedDigit =
+              Boolean(withNotes && plan && eliminated && (plan.notes[eliminated.index] || []).includes(eliminated.digit));
+            if (chain) {
+              await placeChain(page, async () => {
+                if (!eliminated) return;
+                const mark = fadeMark(page, eliminated.index, eliminated.digit);
+                const className = (await mark.getAttribute("class")) || "";
+                if (notedDigit) {
+                  assert(!className.includes("struck"), "a noted digit is removed with no strike");
+                  return;
+                }
+                assert(className.includes("struck") && className.includes("fading"), "eliminated digit fades when it was not in notes");
+                if (!watchFade) return;
+                await page.screenshot({ path: "/opt/cursor/artifacts/screenshots/elimination-apply-phone-light.png" });
+                const style = await mark.evaluate((el) => {
+                  const computed = getComputedStyle(el);
+                  return {
+                    color: computed.color,
+                    weight: computed.fontWeight,
+                    thickness: computed.textDecorationThickness,
+                  };
+                });
+                assert(style.color === "rgb(176, 0, 22)", "strike uses the danger color");
+                assert(style.weight === "700", "strike weight");
+                assert(style.thickness === "2px", "strike thickness");
+                const cellStyle = await page.locator(".cell").nth(eliminated.index).evaluate((el) => {
+                  const computed = getComputedStyle(el);
+                  return `${el.className} | ${computed.boxShadow} | ${computed.backgroundColor}`;
+                });
+                assert(cellStyle.includes("176, 0, 22") && cellStyle.includes("2px"), `eliminate ring uses danger (${cellStyle})`);
+                await page.waitForTimeout(720);
+                const after = (await mark.getAttribute("class")) || "";
+                assert(!after.includes("struck"), "the strike is gone after the fade");
+              });
+            } else await placeSingle(page);
             await expectPlaced(page, found, { notes: withNotes, auto, chain });
+            if (watchFade && eliminated) {
+              const afterPlace = (await fadeMark(page, eliminated.index, eliminated.digit).getAttribute("class")) || "";
+              assert(!afterPlace.includes("struck"), "placing does not restart a finished fade");
+            }
             if (name === "pointing chain" && viewportName === "phone" && !auto && !withNotes) {
               await page.screenshot({ path: "/opt/cursor/artifacts/screenshots/chained-place-phone.png" });
             }
@@ -503,6 +564,102 @@ await check("Enter on the place button places and returns focus to the cell", as
     const focused = await page.evaluate(() => Number(document.activeElement.dataset.index));
     assert(focused === naked.step.place.index, "focus returns to the placed cell");
     assert((await valueAt(page, naked.step.place.index)) === naked.step.place.digit, "Enter placed the digit");
+  } finally {
+    await context.close();
+  }
+});
+
+await check("a noted elimination is removed without a strike", async () => {
+  const eliminated = openElimination(xwing);
+  const banned = new Set(
+    xwing.step.eliminate.filter((item) => item.index === eliminated.index).map((item) => item.digit)
+  );
+  const spare = [1, 2, 3, 4, 5, 6, 7, 8, 9].find((digit) => !banned.has(digit));
+  const notes = emptyNotes();
+  notes[eliminated.index] = [eliminated.digit, spare];
+  const row = Math.floor(eliminated.index / 9) + 1;
+  const col = (eliminated.index % 9) + 1;
+  const { context, page } = await openGame(phone, saveFor(xwing, { auto: false, notes }));
+  try {
+    await page.click("#hint-btn");
+    await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Show why");
+    await page.click("#hint-next");
+    await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Apply");
+    const why = await page.locator("#hint-text").innerText();
+    assert(why.includes(`${eliminated.digit} in row ${row}, column ${col}`), "stage 2 names this cell");
+    const before = (await fadeMark(page, eliminated.index, eliminated.digit).getAttribute("class")) || "";
+    assert(before.includes("struck") && !before.includes("fading"), "stage 2 strikes the digit in its slot");
+    await page.screenshot({ path: "/opt/cursor/artifacts/screenshots/elimination-stage2-phone-light.png" });
+    await page.click("#hint-next");
+    await page.waitForFunction(() => {
+      const next = document.getElementById("hint-next");
+      return next && !next.hidden && next.textContent === "Place it";
+    });
+    const after = (await fadeMark(page, eliminated.index, eliminated.digit).getAttribute("class")) || "";
+    assert(!after.includes("struck"), "a noted digit is removed with no strike");
+    const left = await marks(page, eliminated.index, "user-note");
+    assert(!left.includes(String(eliminated.digit)), "the noted digit is gone");
+    assert(left.includes(String(spare)), "the other note stays");
+    assert(/Removed /.test(await page.locator("#hint-text").innerText()), "the result stays in the past tense");
+    await page.screenshot({ path: "/opt/cursor/artifacts/screenshots/elimination-apply-noted-phone-light.png" });
+  } finally {
+    await context.close();
+  }
+});
+
+await check("dark stage 2 uses the danger color", async () => {
+  const eliminated = openElimination(xwing);
+  const { context, page } = await openGame(phone, saveFor(xwing, { auto: true }), {
+    colorScheme: "dark",
+    settings: { theme: "dark", version: 1 },
+  });
+  try {
+    await page.click("#hint-btn");
+    await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Show why");
+    await page.click("#hint-next");
+    await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Apply");
+    const mark = fadeMark(page, eliminated.index, eliminated.digit);
+    const style = await mark.evaluate((el) => {
+      const computed = getComputedStyle(el);
+      return { color: computed.color, weight: computed.fontWeight, thickness: computed.textDecorationThickness };
+    });
+    assert(style.color === "rgb(255, 180, 180)", "dark strike uses the danger color");
+    assert(style.weight === "700", "dark strike weight");
+    assert(style.thickness === "2px", "dark strike thickness");
+    const ring = await page.locator(".cell").nth(eliminated.index).evaluate((el) => {
+      const computed = getComputedStyle(el);
+      return `${el.className} | ${computed.boxShadow} | ${computed.backgroundColor}`;
+    });
+    assert(ring.includes("255, 180, 180") && ring.includes("2px"), `dark eliminate ring uses danger (${ring})`);
+    await page.screenshot({ path: "/opt/cursor/artifacts/screenshots/elimination-stage2-phone-dark.png" });
+    await page.click("#hint-next");
+    await page.waitForFunction(() => {
+      const next = document.getElementById("hint-next");
+      return next && !next.hidden && next.textContent === "Place it";
+    });
+    const fading = (await mark.getAttribute("class")) || "";
+    assert(fading.includes("struck") && fading.includes("fading"), "dark apply fades a digit that was not noted");
+    await page.screenshot({ path: "/opt/cursor/artifacts/screenshots/elimination-apply-phone-dark.png" });
+  } finally {
+    await context.close();
+  }
+});
+
+await check("reduced motion drops an unnoted digit immediately", async () => {
+  const eliminated = openElimination(xwing);
+  const { context, page } = await openGame(phone, saveFor(xwing, { auto: false }), { reducedMotion: "reduce" });
+  try {
+    await page.click("#hint-btn");
+    await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Show why");
+    await page.click("#hint-next");
+    await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Apply");
+    await page.click("#hint-next");
+    await page.waitForFunction(() => {
+      const next = document.getElementById("hint-next");
+      return next && !next.hidden && next.textContent === "Place it";
+    });
+    const after = (await fadeMark(page, eliminated.index, eliminated.digit).getAttribute("class")) || "";
+    assert(!after.includes("struck") && !after.includes("fading"), "reduced motion removes the digit with no fade");
   } finally {
     await context.close();
   }
