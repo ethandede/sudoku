@@ -19,6 +19,7 @@
   "xyz-wing": 9.3,
   "w-wing": 9.4,
   "unique-rectangle": 9.5,
+  "bug-plus-one": 9.6,
   coloring: 10,
   "xy-chain": 10.1,
 };
@@ -41,6 +42,7 @@
     "xyz-wing": "Apply all XYZ-wings",
     "w-wing": "Apply all W-wings",
     "unique-rectangle": "Apply all unique rectangles",
+    "bug-plus-one": "Apply all BUG+1",
     coloring: "Apply all simple coloring",
     "xy-chain": "Apply all XY-chains",
   };

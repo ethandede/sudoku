@@ -1,15 +1,18 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homeCopy } from "../home-copy.mjs";
 import { techniques } from "./technique-copy.mjs";
+import { breadcrumbList } from "./schema.mjs";
 import {
   articleMeta,
   assertSearchTerms,
   assertUniqueMeta,
   catalogPages,
   hasEmDash,
+  TECHNIQUE_SEARCH,
   techniqueMeta,
 } from "./seo-meta.mjs";
 
@@ -74,7 +77,48 @@ assert.equal(catalog[0].title, homeCopy.title);
 assert.equal(catalog[0].description, homeCopy.description);
 assert.equal(catalog.some((page) => page.title.includes("—")), false);
 
+const bug = techniqueMeta({
+  slug: "bug-plus-one",
+  name: "BUG+1",
+  description: "BUG+1 on Expert puzzles.",
+});
+assert.equal(bug.title, "BUG+1 Sudoku Technique, Explained on Real Boards | SudokuSudoku");
+assert.equal(bug.title.includes("—"), false);
+assert.equal(bug.description.includes("—"), false);
+assertSearchTerms([bug]);
+assert.deepEqual(
+  breadcrumbList("https://sudokusudoku.com", "https://sudokusudoku.com/techniques/bug-plus-one/", "BUG+1").itemListElement.map(
+    (item) => item.name
+  ),
+  ["Home", "Techniques", "BUG+1"]
+);
+
 const built = spawnSync("npm", ["run", "build"], { cwd: root, stdio: "inherit" });
 if (built.status !== 0) process.exit(built.status ?? 1);
+
+function pngSize(relativePath) {
+  const png = readFileSync(join(root, relativePath));
+  assert.equal(png[0], 0x89, relativePath);
+  return [png.readUInt32BE(16), png.readUInt32BE(20)];
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+for (const slug of ["w-wing", "unique-rectangle", "bug-plus-one"]) {
+  assert.ok(TECHNIQUE_SEARCH[slug], slug);
+  assert.deepEqual(pngSize(`assets/og/techniques/${slug}.png`), [1200, 630], slug);
+  const page = techniques.find((technique) => technique.slug === slug);
+  assert.ok(page, slug);
+  const html = readFileSync(join(root, "dist", "techniques", slug, "index.html"), "utf8");
+  const meta = techniqueMeta(page);
+  assert.match(html, new RegExp(`<title>${escapeRegExp(meta.title)}</title>`));
+  assert.match(html, new RegExp(`property="og:image" content="https://sudokusudoku.com/og/techniques/${slug}.png"`));
+  assert.match(html, /"@type":"BreadcrumbList"/);
+  assert.match(html, new RegExp(`"name":"${escapeRegExp(page.name)}"`));
+  assert.equal(meta.title.includes("—"), false);
+  assert.equal(meta.description.includes("—"), false);
+}
 
 console.log("meta tests passed");

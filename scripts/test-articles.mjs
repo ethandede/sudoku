@@ -195,12 +195,24 @@ assert.equal(redirectRules.some((line) => /wp-admin|wp-login|xmlrpc/.test(line))
 const dynamicAt = redirectRules.findIndex((line) => line.includes("*") || line.includes(":"));
 assert.equal(dynamicAt > 0 && redirectRules.slice(0, dynamicAt).every((line) => !line.includes("*") && !line.includes(":")), true);
 
+function visibleWords(text) {
+  const plain = text
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/[#>*_`]/g, " ");
+  return plain.split(/\s+/).filter((token) => /[A-Za-z]/.test(token)).length;
+}
+
 const about = readFileSync(new URL("../about-page-content.md", import.meta.url), "utf8");
 assert.match(about, /^Hi, I'm Ethan Ede\./);
 assert.match(about, /Teddy, chief puzzle supervisor\. Never once helpful\./);
 assert.match(about, /\/contact\//);
+assert.match(about, /\/how-difficulty-works\//);
+assert.match(about, /\/techniques\//);
 assert.equal(about.includes("DRAFT"), false);
 assert.equal(about.includes("—"), false);
+assert.equal(about.includes("–"), false);
+assert.ok(visibleWords(about) >= 450, `about words ${visibleWords(about)}`);
 
 const HARD_LINK =
   '<a href="/articles/what-makes-a-sudoku-hard/">Here\'s what actually makes a Sudoku hard</a>';
@@ -350,6 +362,14 @@ assert.equal(contact.includes("There is no account"), false);
 assert.match(contact, /An account is optional/);
 assert.match(contact, /6-digit code/);
 assert.match(contact, /no password/i);
+assert.match(contact, /id="contact-form"/);
+assert.match(contact, /Bug reports are welcome/);
+assert.match(contact, /Puzzle issues are welcome/);
+assert.match(contact, /Technique questions are welcome/);
+assert.match(contact, /not a promise/);
+assert.equal(contact.includes("—"), false);
+assert.equal(contact.includes("–"), false);
+assert.ok(visibleWords(contact) >= 450, `contact words ${visibleWords(contact)}`);
 
 const home = readFileSync(new URL("../home-copy.mjs", import.meta.url), "utf8");
 assert.match(home, /title: "Free Sudoku, Graded by the Hardest Move \| SudokuSudoku"/);

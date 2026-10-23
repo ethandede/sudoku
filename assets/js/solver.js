@@ -919,6 +919,64 @@
     return hits;
   }
 
+  // BUG+1. Every empty cell has two candidates except one cell with three.
+  // The candidate that appears three times in a house is the one that stays.
+  function bugHits(state) {
+    const hits = [];
+    if (!ensureUnique(state)) return hits;
+    let tri = -1;
+    for (let i = 0; i < 81; i++) {
+      if (state.v[i]) continue;
+      const pop = POP[state.c[i]];
+      if (pop === 2) continue;
+      if (pop === 3 && tri < 0) {
+        tri = i;
+        continue;
+      }
+      return hits;
+    }
+    if (tri < 0) return hits;
+    const extraDigits = [];
+    const groups = [ROWS, COLS, BOXS];
+    for (let g = 0; g < groups.length; g++) {
+      const lines = groups[g];
+      for (let li = 0; li < 9; li++) {
+        const line = lines[li];
+        let holdsTri = false;
+        const counts = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+        for (let k = 0; k < 9; k++) {
+          const cell = line[k];
+          if (cell === tri) holdsTri = true;
+          const mask = state.c[cell];
+          for (let d = 0; d < 9; d++) if (mask & (1 << d)) counts[d]++;
+        }
+        for (let d = 0; d < 9; d++) {
+          const count = counts[d];
+          if (count === 0 || count === 2) continue;
+          if (count === 3 && holdsTri && (state.c[tri] & (1 << d))) {
+            extraDigits.push(d);
+            continue;
+          }
+          return hits;
+        }
+      }
+    }
+    const kinds = [];
+    for (let i = 0; i < extraDigits.length; i++) if (kinds.indexOf(extraDigits[i]) < 0) kinds.push(extraDigits[i]);
+    if (kinds.length !== 1) return hits;
+    const keep = 1 << kinds[0];
+    const elim = state.c[tri] & ~keep & FULL;
+    if (POP[elim] !== 2) return hits;
+    hits.push({
+      targets: [tri],
+      mask: elim,
+      bit: keep,
+      type: "bug",
+      pattern: [tri],
+    });
+    return hits;
+  }
+
   const TECHNIQUES = [
     { name: "locked", rank: 3, find: lockedHits },
     { name: "naked_pair", rank: 4, find: (state) => nakedHits(state, 2) },
@@ -935,6 +993,7 @@
     { name: "xyzwing", rank: 9, find: xyzwingHits },
     { name: "wwing", rank: 9, find: wwingHits },
     { name: "uniquerect", rank: 9, find: uniqueRectangleHits },
+    { name: "bug", rank: 9, find: bugHits },
     { name: "coloring", rank: 10, find: coloringHits },
     { name: "xychain", rank: 10, find: xyChainHits },
   ];
@@ -1040,6 +1099,7 @@ function stepWidth(state, singleCount, rankCap) {
     xyzwing: "xyz-wing",
     wwing: "w-wing",
     uniquerect: "unique-rectangle",
+    bug: "bug-plus-one",
     coloring: "coloring",
     xychain: "xy-chain",
   };
@@ -1354,6 +1414,7 @@ function stepWidth(state, singleCount, rankCap) {
     xyzwing: "xyz-wing",
     wwing: "w-wing",
     uniquerect: "unique-rectangle",
+    bug: "bug-plus-one",
     coloring: "coloring",
     xychain: "xy-chain",
   };
@@ -1375,6 +1436,7 @@ function stepWidth(state, singleCount, rankCap) {
     xyzwing: "XYZ-wing",
     wwing: "W-wing",
     uniquerect: "Unique rectangle",
+    bug: "BUG+1",
     coloring: "Simple coloring",
     xychain: "XY-chain",
   };
@@ -1504,6 +1566,10 @@ function stepWidth(state, singleCount, rankCap) {
       const digits = joinDigits(maskDigits(hit.mask));
       look = "Look at these four cells.";
       explain = `Three corners hold only ${digits}. This puzzle has one solution, so ${digits} come out of the fourth corner.`;
+      region = hit.pattern.slice();
+    } else if (type === "bug") {
+      look = "Look at this cell.";
+      explain = `Every other empty cell has two candidates. ${digit} is the extra one here, so the other two come out. The puzzle has one solution.`;
       region = hit.pattern.slice();
     } else if (type === "coloring") {
       const outside = hit.targets.some((index) => hit.pattern.indexOf(index) === -1);
