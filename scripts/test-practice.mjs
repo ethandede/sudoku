@@ -600,6 +600,29 @@ async function runFillReviewUi(fillUrl) {
     }
   });
 
+  await check("an unknown practice slug explains itself and links to a normal game", async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    await context.addInitScript(() => localStorage.clear());
+    const page = await context.newPage();
+    await page.goto(`${origin}/?practice=not-a-real-technique`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => {
+      const cover = document.getElementById("board-cover");
+      return cover && !cover.hidden && document.getElementById("board-cover-text").textContent.includes("isn't available yet");
+    });
+    const text = await page.locator("#board-cover-text").textContent();
+    checkAssert(text === "Practice for this technique isn't available yet", text);
+    const link = page.locator("#practice-unavailable a");
+    checkAssert((await link.getAttribute("href")) === "/?difficulty=easy", "missing normal-game link");
+    checkAssert((await page.locator("#resume-btn").getAttribute("hidden")) !== null, "resume is hidden");
+    await page.goto(`${origin}/?practice=naked-single`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => {
+      const prompt = document.getElementById("practice-prompt");
+      const link = document.getElementById("practice-unavailable");
+      return prompt && !prompt.hidden && prompt.textContent.includes("Naked single") && link && link.hidden;
+    });
+    await context.close();
+  });
+
   await browser.close();
   server.close();
   if (failures.length) {
