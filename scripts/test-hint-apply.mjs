@@ -6,6 +6,7 @@ import vm from "node:vm";
 import {
   applyHintStep,
   legalCandidates,
+  peerIndexes,
   placesOnApply,
 } from "../functions/hint-apply.mjs";
 
@@ -73,11 +74,50 @@ function hasRemoval(removed, item) {
 
 const pointing = walk((step) => step.slug === "pointing" && step.eliminate.length && !step.place);
 const pointingChain = walk((step) => step.slug === "pointing" && step.eliminate.length && step.place);
+const claimingChain = walk((step) => step.slug === "claiming" && step.eliminate.length && step.place);
+const nakedPairChain = walk((step) => step.slug === "naked-pair" && step.eliminate.length && step.place);
+const xwingChain = walk((step) => step.slug === "x-wing" && step.eliminate.length && step.place);
 const claiming = walk((step) => step.slug === "claiming" && step.eliminate.length);
 const nakedPair = walk((step) => step.slug === "naked-pair" && step.eliminate.length);
 const nakedSingle = walk((step) => step.slug === "naked-single" && step.place);
 const hiddenSingle = walk((step) => step.slug === "hidden-single" && step.place);
-assert.ok(pointing && pointingChain && claiming && nakedPair && nakedSingle && hiddenSingle, "fixtures for each technique");
+assert.ok(
+  pointing && pointingChain && claimingChain && nakedPairChain && xwingChain && claiming && nakedPair && nakedSingle && hiddenSingle,
+  "fixtures for each technique"
+);
+
+function seedPlaceNotes(found) {
+  const notes = emptyNotes();
+  const index = found.step.place.index;
+  const digit = found.step.place.digit;
+  const extra = digit === 9 ? 8 : digit + 1;
+  const peer = peerIndexes(index).find((other) => found.board[other] === 0);
+  notes[index] = [digit, extra];
+  if (peer != null) notes[peer] = [digit, extra === 1 ? 2 : 1];
+  return { notes, peer, extra, digit, index };
+}
+
+function assertPlacement(found, label) {
+  const seeded = seedPlaceNotes(found);
+  const applied = applyHintStep(stateFrom(found, seeded.notes), found.step);
+  assert.equal(applied.placed, true, `${label} places`);
+  assert.equal(applied.board[seeded.index], seeded.digit, `${label} writes the solution digit`);
+  assert.deepEqual(applied.notes[seeded.index], [], `${label} clears notes in the placed cell`);
+  if (seeded.peer != null) {
+    assert.equal(applied.notes[seeded.peer].includes(seeded.digit), false, `${label} clears the digit from a peer note`);
+    assert.ok(applied.notes[seeded.peer].length > 0, `${label} keeps the peer's other notes`);
+  }
+  const peer = peerIndexes(seeded.index).find((other) => applied.board[other] === 0);
+  if (peer != null) {
+    assert.equal(
+      legalCandidates(applied.board, applied.removed, peer).includes(seeded.digit),
+      false,
+      `${label} auto-candidates drop the placed digit`
+    );
+  }
+  assert.match(applied.copy, /Placed/, `${label} says it placed`);
+  assert.equal(applied.chain, false, `${label} does not chain another place`);
+}
 
 function assertElimination(found, label) {
   const fresh = stateFrom(found, emptyNotes());
@@ -150,12 +190,43 @@ for (const [label, found] of [
   ["naked single", nakedSingle],
   ["hidden single", hiddenSingle],
 ]) {
-  const applied = applyHintStep(stateFrom(found, emptyNotes()), found.step);
   assert.equal(placesOnApply(found.step), true, `${label} still places on apply`);
-  assert.equal(applied.placed, true, `${label} writes the digit`);
-  assert.equal(applied.chain, false, `${label} does not ask for another hint`);
-  assert.equal(applied.board[found.step.place.index], found.step.place.digit, `${label} digit is on the board`);
-  assert.match(applied.copy, /Placed/, `${label} says it placed the digit`);
+  assertPlacement(found, label);
+}
+
+for (const [label, found] of [
+  ["pointing chain", pointingChain],
+  ["claiming chain", claimingChain],
+  ["naked pair chain", nakedPairChain],
+  ["x-wing chain", xwingChain],
+]) {
+  const opened = applyHintStep(stateFrom(found, emptyNotes()), found.step);
+  assert.equal(opened.chain, true, `${label} offers the placement`);
+  assert.equal(opened.placed, false, `${label} waits to place`);
+  const follow = SudokuSolver.explain(opened.board, opened.removed);
+  assert.equal(placesOnApply(follow), true, `${label} follow-up is a single`);
+  assert.equal(follow.place.index, found.step.place.index, `${label} follow-up cell`);
+  assert.equal(follow.place.digit, found.step.place.digit, `${label} follow-up digit`);
+  const placed = applyHintStep(
+    { ...stateFrom(found, emptyNotes()), board: opened.board, removed: opened.removed, notes: opened.notes },
+    follow
+  );
+  assert.equal(placed.board[follow.place.index], follow.place.digit, `${label} places on the next apply`);
+  const peer = peerIndexes(follow.place.index).find((other) => opened.board[other] === 0 && other !== follow.place.index);
+  if (peer != null) {
+    const noted = emptyNotes();
+    noted[peer] = [follow.place.digit, follow.place.digit === 1 ? 2 : 1];
+    const withNotes = applyHintStep(
+      { ...stateFrom(found, noted), board: opened.board.slice(), removed: opened.removed.map((item) => ({ ...item })) },
+      follow
+    );
+    assert.equal(withNotes.notes[peer].includes(follow.place.digit), false, `${label} clears the digit from peer notes`);
+    assert.equal(
+      legalCandidates(withNotes.board, withNotes.removed, peer).includes(follow.place.digit),
+      false,
+      `${label} auto-candidates drop the placed digit`
+    );
+  }
 }
 
 const page = fs.readFileSync(new URL("../assets/js/sudoku.js", import.meta.url), "utf8");
@@ -164,6 +235,10 @@ const stepPart = applyFn.split("const step = hintView.step;")[1];
 assert.equal(stepPart.match(/pushUndo\(/g).length, 1, "an elimination apply is one undo step");
 assert.ok(stepPart.indexOf("pushUndo()") < stepPart.indexOf("applyHintStep"), "undo is recorded before the step is applied");
 assert.ok(page.includes("hint.stage >= 2 ? hintStruck"), "stage 3 keeps eliminated digits struck");
-assert.ok(page.includes('next.textContent = "Next hint"'), "a chained single is offered as the next hint");
+assert.ok(page.includes("hintView.follow"), "a chained single is offered from the elimination hint");
+assert.ok(page.includes('next.textContent = "Place it"'), "the chained action places");
+assert.ok(page.includes("aria-keyshortcuts"), "the place button advertises Enter");
+assert.ok(page.includes("hintSlugs: (state.hintSlugs || []).slice()"), "undo snapshots hint names");
+assert.ok(page.includes("continueHint"), "a wrong digit continues into the next hint");
 
 console.log("hint apply ok");
