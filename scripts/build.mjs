@@ -24,7 +24,8 @@ import { adsensePushScript, housePair, renderHousePromos } from "./house-promos.
 import { phosphorArrow } from "./icons.mjs";
 import { faqJsonLd, homeCopy, renderHomeBelow, renderHomeIntro } from "../home-copy.mjs";
 import { articleMeta, assertSiteMeta, staticMeta, techniqueMeta } from "./seo-meta.mjs";
-import { lastmod } from "./lastmod.mjs";
+import { gitDate, gitFirstDate, lastmod } from "./lastmod.mjs";
+import { articleImage, breadcrumbList } from "./schema.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "dist");
@@ -100,6 +101,12 @@ function withSlash(path) {
   return `${path}/`;
 }
 
+function jsonLdExtras(jsonLd, crumbNode) {
+  const extras = Array.isArray(jsonLd) ? [...jsonLd] : jsonLd ? [jsonLd] : [];
+  if (crumbNode) extras.push(crumbNode);
+  return extras;
+}
+
 function structuredData(extra) {
   const graph = [
     {
@@ -139,6 +146,7 @@ function layout({
   robots = "",
   contact = false,
   stats = false,
+  crumb = "",
 }) {
   const descriptionTag = description
     ? `<meta name="description" content="${escapeHtml(description)}">`
@@ -146,7 +154,12 @@ function layout({
   const canonicalHref = canonical ? withSlash(canonical) : "";
   const canonicalTag = canonicalHref ? `<link rel="canonical" href="${escapeHtml(canonicalHref)}">` : "";
   const robotsTag = robots ? `<meta name="robots" content="${escapeHtml(robots)}">` : "";
-  const jsonLdTag = `<script type="application/ld+json">${JSON.stringify(structuredData(jsonLd)).replace(/</g, "\\u003c")}</script>`;
+  const crumbNode = breadcrumbList(SITE, canonicalHref, crumb);
+  const canonicalPath = canonicalHref.startsWith(SITE) ? canonicalHref.slice(SITE.length) : canonicalHref;
+  if (canonicalPath && canonicalPath !== "/" && !crumbNode) {
+    throw new Error(`Missing breadcrumb name for ${canonicalHref}`);
+  }
+  const jsonLdTag = `<script type="application/ld+json">${JSON.stringify(structuredData(jsonLdExtras(jsonLd, crumbNode))).replace(/</g, "\\u003c")}</script>`;
   const shareTitle = escapeHtml(title);
   const shareDescription = escapeHtml(description || "Free daily Sudoku with teaching hints.");
   const shareUrl = escapeHtml(canonicalHref || `${SITE}/`);
@@ -411,6 +424,7 @@ function standardPage(title, bodyHtml, path, options = {}) {
     robots: options.robots || "",
     contact: Boolean(options.contact),
     jsonLd: options.jsonLd,
+    crumb: title,
     main: `<main class="standard-page">
   <div class="container">
     <article class="page-content">
@@ -620,6 +634,7 @@ const notFoundHtml = layout({
     canonical: `${SITE}/404.html`,
     robots: "noindex",
     ads: false,
+    crumb: "Page not found",
     main: `<main class="standard-page">
   <div class="container">
     <article class="page-content">
@@ -749,6 +764,7 @@ publish(
     title: staticMeta("/articles/").title,
     description: staticMeta("/articles/").description,
     canonical: `${SITE}/articles/`,
+    crumb: "Articles",
     main: `<main id="articles" class="articles-page">
   <div class="container">
     <div class="articles-with-rail">
@@ -776,6 +792,35 @@ publish(
   "/articles",
   visibleArticles.map((article) => article.file)
 );
+
+const GUIDE_SLUGS = new Set(["beginners-guide", "common-mistakes"]);
+
+function articleSchema(article) {
+  const personArticle = article.authored || GUIDE_SLUGS.has(article.slug);
+  const orgArticle = article.slug === "nyt-medium-vs-hard";
+  if (!personArticle && !orgArticle) return null;
+  const first = gitFirstDate(root, article.file);
+  const last = gitDate(root, article.file);
+  const datePublished = article.publishDate || first;
+  const dateModified = [datePublished, last].filter(Boolean).sort().at(-1) || "";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(datePublished) || !/^\d{4}-\d{2}-\d{2}$/.test(dateModified)) {
+    throw new Error(`No article dates for ${article.slug}`);
+  }
+  const image = articleImage(SITE, article.image);
+  if (GUIDE_SLUGS.has(article.slug) && !image?.url) {
+    throw new Error(`${article.slug} needs an article image`);
+  }
+  const node = articleJsonLd({
+    title: article.heading || article.title,
+    description: article.excerpt,
+    url: `${SITE}${article.href}`,
+    publishDate: datePublished,
+    dateModified,
+    image,
+    author: personArticle ? undefined : { "@type": "Organization", name: "SudokuSudoku" },
+  });
+  return personArticle ? [node, personNode()] : node;
+}
 
 function relatedArticlesHtml(article) {
   const items = article.relatedSlugs
@@ -816,33 +861,7 @@ visibleArticles.forEach((article, index) => {
     : "";
   const tagBlock = tags ? `<div class="article-tags"><span class="tags-label">Tags:</span> ${tags}</div>` : "";
 
-  const articleLd = article.authored
-    ? [
-        articleJsonLd({
-          title: article.title,
-          description: article.excerpt,
-          url: `${SITE}${article.href}`,
-          publishDate: article.publishDate,
-        }),
-        personNode(),
-      ]
-    : article.slug === "nyt-medium-vs-hard"
-      ? {
-          "@context": "https://schema.org",
-          "@type": "Article",
-          headline: article.title,
-          description: article.excerpt,
-          mainEntityOfPage: `${SITE}${article.href}`,
-          datePublished: "2026-10-21",
-          dateModified: "2026-10-21",
-          author: { "@type": "Organization", name: "SudokuSudoku" },
-          publisher: {
-            "@type": "Organization",
-            name: "SudokuSudoku",
-            logo: { "@type": "ImageObject", url: `${SITE}/icons/icon-512.png` },
-          },
-        }
-      : null;
+  const articleLd = articleSchema(article);
 
   const meta = articleMeta(article);
   publish(
@@ -852,6 +871,7 @@ visibleArticles.forEach((article, index) => {
       description: meta.description,
       canonical: `${SITE}${article.href}`,
       jsonLd: articleLd,
+      crumb: article.heading,
       main: `<main id="article-single" class="article-single-page">
   <article class="article-content">
     <div class="container">
@@ -1021,6 +1041,7 @@ publish(
     title: staticMeta("/techniques/").title,
     description: staticMeta("/techniques/").description,
     canonical: `${SITE}/techniques/`,
+    crumb: "Techniques",
     main: `<main class="standard-page technique-page">
   <div class="container">
     <article class="page-content">
@@ -1066,6 +1087,7 @@ publish(
     description: staticMeta("/stats/").description,
     canonical: `${SITE}/stats/`,
     stats: true,
+    crumb: "Stats",
     jsonLd: {
       "@type": "Dataset",
       name: "SudokuSudoku community puzzle stats",
@@ -1125,6 +1147,7 @@ publish(
     canonical: `${SITE}/skills/`,
     robots: "noindex, follow",
     skills: true,
+    crumb: "Skill ladder",
     main: `<main id="skills" class="skills-page">
   <div class="skills-wrap">
     <header class="skills-header page-header-has-art">
@@ -1178,6 +1201,7 @@ techniques.forEach((technique) => {
       description: meta.description,
       canonical: `${SITE}${path}`,
       jsonLd: howto,
+      crumb: technique.name,
       demo: Boolean(example),
       main: `<main class="standard-page technique-page">
   <div class="container">
@@ -1290,6 +1314,7 @@ write(
   <meta name="description" content="${escapeHtml(staticMeta("/offline.html").description)}">
   <meta name="robots" content="noindex">
   <link rel="canonical" href="https://sudokusudoku.com/offline.html">
+  <script type="application/ld+json">${JSON.stringify(structuredData(breadcrumbList(SITE, `${SITE}/offline.html`, "You're offline"))).replace(/</g, "\\u003c")}</script>
   <link rel="preload" href="${asset("/assets/fonts/open-sans-latin-400.woff2")}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="${asset("/assets/css/style.css")}">
   <link rel="manifest" href="/manifest.webmanifest">

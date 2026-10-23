@@ -162,6 +162,8 @@ assert.equal(ld.author.name, "Ethan Ede");
 assert.equal(ld.author.url, "https://sudokusudoku.com/about/");
 assert.equal(ld.author.sameAs, "https://ethanede.com");
 assert.equal(ld.datePublished, "2026-10-28");
+assert.equal(ld.dateModified, "2026-10-28");
+assert.equal(ld.image, undefined);
 
 const redirects = readFileSync(new URL("../src/_redirects", import.meta.url), "utf8");
 for (const [from, to] of [
