@@ -32,8 +32,8 @@
 .contact-form textarea:focus-visible,
 .skills-page .transfer-text:focus-visible,
 .stats-switch button:focus-visible {
-  outline: 2px solid var(--btn-focus);
-  outline-offset: 2px;
+  outline: var(--btn-focus-width) solid var(--btn-focus);
+  outline-offset: var(--btn-focus-offset);
 }
 
 .contact-form button[type="submit"]:disabled {
@@ -56,8 +56,8 @@
 .skills-page .transfer-text:focus {
   border-color: var(--btn-focus);
   box-shadow: none;
-  outline: 2px solid var(--btn-focus);
-  outline-offset: 2px;
+  outline: var(--btn-focus-width) solid var(--btn-focus);
+  outline-offset: var(--btn-focus-offset);
 }
 
 .articles-page .article-card,

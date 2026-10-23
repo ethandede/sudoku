@@ -2049,6 +2049,44 @@ html.is-standalone:has(.sudoku-page) body {
   padding: 0;
 }
 
+.undo-btn,
+.erase-key,
+.mode-toggle button,
+.number-pad button,
+.text-btn,
+.icon-btn {
+  transition:
+    background-color var(--btn-duration) var(--btn-ease),
+    border-color var(--btn-duration) var(--btn-ease),
+    color var(--btn-duration) var(--btn-ease),
+    box-shadow var(--btn-duration) var(--btn-ease);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .undo-btn,
+  .erase-key,
+  .mode-toggle button,
+  .number-pad button,
+  .text-btn,
+  .icon-btn:not(#hint-btn) {
+    transition:
+      background-color var(--btn-duration) var(--btn-ease),
+      border-color var(--btn-duration) var(--btn-ease),
+      color var(--btn-duration) var(--btn-ease),
+      box-shadow var(--btn-duration) var(--btn-ease),
+      transform var(--btn-duration) var(--btn-ease);
+  }
+
+  .undo-btn:active:not(:disabled),
+  .erase-key:active,
+  .mode-toggle button:active,
+  .number-pad button:active,
+  .text-btn:active,
+  .icon-btn:not(#hint-btn):active {
+    transform: translateY(var(--btn-press));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .celebrate .confetti span {
     animation: none;
