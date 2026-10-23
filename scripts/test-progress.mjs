@@ -30,7 +30,7 @@ function check(name, ok) {
   }
 }
 
-check("badge count is 30", progress.BADGES.length === 30);
+check("badge count is 33", progress.BADGES.length === 33);
 check("mastered badges cover every technique", progress.TECHNIQUES.every((tech) => progress.BADGES.some((badge) => badge.id === `mastered-${tech.slug}`)));
 
 const empty = progress.load();

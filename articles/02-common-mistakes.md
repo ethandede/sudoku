@@ -8,7 +8,7 @@
 
 ## Introduction
 
-You're halfway through a Sudoku puzzle, feeling confident, when suddenly—nothing fits. You've hit a wall. After 20 minutes of frustration, you discover a mistake from 10 moves ago, and now you have to start over.
+You're halfway through a Sudoku puzzle, feeling confident, when suddenly nothing fits. You've hit a wall. After 20 minutes of frustration, you discover a mistake from 10 moves ago, and now you have to start over.
 
 Sound familiar?
 
@@ -22,7 +22,7 @@ In this article, we'll cover the 7 most common Sudoku mistakes, show you exactly
 
 ### The Problem
 
-This is THE most common mistake beginners make. You find an empty cell, see that the number isn't in the row or column, and immediately fill it in—forgetting to check if it's already in the 3x3 box.
+This is THE most common mistake beginners make. You find an empty cell, see that the number isn't in the row or column, and immediately fill it in, forgetting to check if it's already in the 3x3 box.
 
 ### What It Looks Like
 
@@ -78,7 +78,7 @@ You think: "I need to find where 6 goes," but you misread the 8 as a 6, so you s
 
 - After placing 5-10 numbers, PAUSE and review what you've written
 - When scanning for a specific number, point your finger or cursor at each occurrence to avoid missing any
-- If a puzzle feels unusually hard, check for misread numbers—it's probably a simple transcription error
+- If a puzzle feels unusually hard, check for misread numbers. It's probably a simple transcription error
 
 **Use Visual Aids:**
 
@@ -147,7 +147,7 @@ But you forget to erase 5 from your pencil marks in row 3, column 7:
 Cell at (3, 7) still shows: [5, 8]
 ```
 
-Later, you try to place another 5 in the same row because your pencil mark told you it was possible—error!
+Later, you try to place another 5 in the same row because your pencil mark told you it was possible. Error!
 
 ### The Fix
 
@@ -194,7 +194,7 @@ Don't randomly scan. Instead:
 - Continue through all 9 numbers
 
 **Step 3: Look for Hidden Singles**
-A "hidden single" is when a number can only go in one cell within a row, column, or box—even if that cell has multiple candidates.
+A "hidden single" is when a number can only go in one cell within a row, column, or box, even if that cell has multiple candidates.
 
 Example:
 ```
@@ -234,7 +234,7 @@ Problem: "Later" might be 20 moves from now, after you've built a complex chain 
 
 **Rule #1: Every Sudoku Puzzle Has a Logical Solution**
 
-If you can't find the next move, it's not because guessing is required—it's because you haven't looked carefully enough.
+If you can't find the next move, it's not because guessing is required. It's because you haven't looked carefully enough.
 
 **Use These Advanced Logic Techniques:**
 
@@ -312,8 +312,6 @@ Focus on fixing the 2-3 mistakes you identified above in your next 10 puzzles. D
 ---
 
 ## Summary: Your Error-Prevention Checklist
-
-Print this checklist and keep it next to your puzzle:
 
 ### Before Placing Any Number:
 - [ ] Is this number already in the row?

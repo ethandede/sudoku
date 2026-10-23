@@ -12,9 +12,9 @@
 // technique hints, and they do not change clean, hinted, or the no-hint badges.
 // "Your next technique" is the first one that is not yet Comfortable.
 //
-// The badge set is 30. Deviations, so it stays a short list:
+// The badge set is 33. Deviations, so it stays a short list:
 //   Technique firsts are four leaps (Pointing, a pair, X-wing, a chain),
-//   not a separate first badge for all 14 techniques. Mastered covers every
+//   not a separate first badge for every technique. Mastered covers every
 //   technique.
 //   No-hint and speed badges are Easy, Hard, and Expert. Quick is too short
 //   to mark, Not Easy sits between those, and Mental has no stable fair time.
@@ -42,6 +42,9 @@
     { slug: "x-wing", name: "X-wing" },
     { slug: "swordfish", name: "Swordfish" },
     { slug: "xy-wing", name: "XY-wing" },
+    { slug: "skyscraper", name: "Skyscraper" },
+    { slug: "two-string-kite", name: "Two-string kite" },
+    { slug: "xyz-wing", name: "XYZ-wing" },
     { slug: "coloring", name: "Simple coloring" },
     { slug: "xy-chain", name: "XY-chain" },
   ];
