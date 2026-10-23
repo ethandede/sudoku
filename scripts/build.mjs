@@ -40,6 +40,7 @@ const articles = [
   { file: "articles/01-beginners-guide.md", slug: "beginners-guide" },
   { file: "articles/02-common-mistakes.md", slug: "common-mistakes" },
   { file: "articles/04-nyt-medium-vs-hard.md", slug: "nyt-medium-vs-hard" },
+  { file: "articles/where-the-solver-stops.md", slug: "where-the-solver-stops" },
   { file: "articles/what-makes-a-sudoku-hard.md", slug: "what-makes-a-sudoku-hard" },
   { file: "articles/history-of-sudoku.md", slug: "history-of-sudoku" },
   { file: "articles/sudoku-variants.md", slug: "sudoku-variants" },
