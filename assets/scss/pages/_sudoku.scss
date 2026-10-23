@@ -1,8 +1,8 @@
 .sudoku-page,
 .technique-page {
-  --board-bg: #ffffff;
-  --cell-bg: #ffffff;
-  --given-bg: #ffffff;
+  --board-bg: #fbfaf8;
+  --cell-bg: #fbfaf8;
+  --given-bg: #fbfaf8;
   --ink: #1e232b;
   --user-ink: var(--accent-color);
   --line: #1c232c;
@@ -54,9 +54,9 @@
 
 html[data-theme="dark"] .sudoku-page,
 html[data-theme="dark"] .technique-page {
-  --board-bg: #1c2026;
-  --cell-bg: #1c2026;
-  --given-bg: #1c2026;
+  --board-bg: #1e1d1b;
+  --cell-bg: #1e1d1b;
+  --given-bg: #1e1d1b;
   --ink: #e6e9ed;
   --user-ink: var(--accent-on-dark);
   --line: #e6e9ed;
