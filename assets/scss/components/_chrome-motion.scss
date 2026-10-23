@@ -1,29 +1,10 @@
-// Small chrome motion. Original CSS. No React, no Motion runtime.
-//
-// Press: a 1px :active shift. The idea is the tactile press in Rare UI and
-// Skiper UI. Their code is not included. Rare UI's Commons Clause forbids
-// porting components, and Skiper UI publishes no open-source license.
-//
-// Border trace: a conic-gradient ring on House marks hover. The idea is
-// Aceternity UI's Border Beam and Magic UI's border beam. This is not their
-// React component.
-//
-// Loading dots: three dots beside the stats loading line. The idea is a
-// Uiverse loader. No Uiverse markup is copied.
-//
-// Dot grids live in _brand.scss and _header.scss. Same idea as Magic UI's
-// Dot Pattern, written here as a radial-gradient.
-//
-// Icons are Phosphor arrow-left and arrow-right, inlined from scripts/icons.mjs
-// under the MIT notice in that file.
-//
+// Light accents around the Uiverse chrome in _uiverse.scss.
+// A 1px press is original CSS. Rare UI and Skiper UI are not ported.
+// The page dot grid, in _brand.scss and _header.scss, is an original
+// radial-gradient. The idea is Magic UI's Dot Pattern (MIT).
+// Icons are Phosphor arrow-left and arrow-right. The MIT notice is in
+// scripts/icons.mjs. Count-up lives in assets/js/stats-page.js.
 // Nothing here selects the board, keypad, notes, timer, or technique stepper.
-
-@property --hm-beam {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 0deg;
-}
 
 .ph-arrow {
   display: inline-block;
@@ -51,34 +32,16 @@
   font-feature-settings: "tnum";
 }
 
-.stats-loading::after {
-  content: "";
-  display: inline-block;
-  width: 1.35rem;
-  height: 0.4rem;
-  margin-left: 0.45rem;
-  vertical-align: 0.05rem;
-  background:
-    radial-gradient(circle, currentColor 55%, transparent 60%) 0 50% / 0.35rem 0.35rem no-repeat,
-    radial-gradient(circle, currentColor 55%, transparent 60%) 50% 50% / 0.35rem 0.35rem no-repeat,
-    radial-gradient(circle, currentColor 55%, transparent 60%) 100% 50% / 0.35rem 0.35rem no-repeat;
-}
-
-.house-slot a.house-promo {
-  position: relative;
-}
-
 @media (prefers-reduced-motion: no-preference) {
   .articles-page .article-card,
   .house-slot a.house-promo,
   .stats-switch button,
   .articles-page .read-more,
-  a.play-technique {
+  .cta-button,
+  .contact-form button[type="submit"],
+  .skills-page .primary-btn,
+  .skills-page .secondary-btn {
     transition: transform 120ms ease;
-  }
-
-  .cta-button {
-    transition: background-color 0.3s ease, transform 120ms ease;
   }
 
   .articles-page .article-card:active,
@@ -86,68 +49,9 @@
   .stats-switch button:active,
   .articles-page .read-more:active,
   .cta-button:active,
-  a.play-technique:active {
+  .contact-form button[type="submit"]:active,
+  .skills-page .primary-btn:active,
+  .skills-page .secondary-btn:active {
     transform: translateY(1px);
-  }
-
-  .house-slot a.house-promo::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: conic-gradient(
-      from var(--hm-beam),
-      transparent 0deg,
-      transparent 300deg,
-      var(--hm-accent) 340deg,
-      transparent 360deg
-    );
-    mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    mask-composite: exclude;
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    opacity: 0;
-    pointer-events: none;
-    animation: hm-beam 2.8s linear infinite;
-    animation-play-state: paused;
-  }
-
-  .house-slot a.house-promo:hover::before,
-  .house-slot a.house-promo:focus-visible::before {
-    opacity: 1;
-    animation-play-state: running;
-  }
-
-  .stats-loading::after {
-    animation: stats-load 1.1s ease-in-out infinite;
-  }
-}
-
-@keyframes hm-beam {
-  to {
-    --hm-beam: 360deg;
-  }
-}
-
-@keyframes stats-load {
-  0%,
-  100% {
-    opacity: 0.35;
-  }
-
-  50% {
-    opacity: 1;
-  }
-}
-
-@media (forced-colors: active) {
-  .house-slot a.house-promo::before,
-  .stats-loading::after {
-    display: none;
   }
 }

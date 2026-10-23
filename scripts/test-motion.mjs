@@ -7,6 +7,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (path) => readFileSync(join(root, path), "utf8");
 
 const motion = read("assets/scss/components/_chrome-motion.scss");
+const uiverse = read("assets/scss/components/_uiverse.scss");
 const brand = read("assets/scss/components/_brand.scss");
 const main = read("assets/scss/main.scss");
 const icons = read("scripts/icons.mjs");
@@ -17,17 +18,26 @@ const promoCss = read("assets/scss/components/_house-promos.scss");
 const sudoku = read("assets/scss/pages/_sudoku.scss");
 
 assert.match(main, /@use 'components\/chrome-motion'/);
+assert.match(main, /@use 'components\/uiverse'/);
 assert.match(brand, /radial-gradient\(rgba\(12, 79, 134/);
 assert.match(motion, /prefers-reduced-motion:\s*no-preference/);
 assert.match(motion, /translateY\(1px\)/);
-assert.match(motion, /@property --hm-beam/);
-assert.match(motion, /animation-play-state:\s*paused/);
-assert.match(motion, /stats-loading::after/);
+assert.equal(motion.includes("--hm-beam"), false);
 assert.equal(motion.includes("framer-motion"), false);
 assert.equal(motion.includes("@motionone"), false);
+assert.match(uiverse, /From Uiverse\.io by Dear31/);
+assert.match(uiverse, /From Uiverse\.io by G4b413l/);
+assert.match(uiverse, /From Uiverse\.io by Na3ar-17/);
+assert.match(uiverse, /From Uiverse\.io by adamgiebl/);
+assert.match(uiverse, /From Uiverse\.io by Cksunandh/);
+assert.match(uiverse, /https:\/\/uiverse\.io\/Dear31\/good-yak-38/);
+assert.match(uiverse, /prefers-reduced-motion:\s*reduce/);
+assert.match(build, /class="ui-dots"/);
 
-for (const selector of [".sudoku-grid", ".number-pad", ".erase-key", ".mode-toggle", ".cell", "#timer", ".technique-controls"]) {
-  assert.equal(motion.includes(selector), false, `${selector} leaked into motion CSS`);
+for (const source of [motion, uiverse]) {
+  for (const selector of [".sudoku-grid", ".number-pad", ".erase-key", ".mode-toggle", ".cell", "#timer", ".technique-controls", "#auto-candidates"]) {
+    assert.equal(source.includes(selector), false, `${selector} leaked into chrome CSS`);
+  }
 }
 
 assert.match(sudoku, /\.play-column[\s\S]*?height:\s*100dvh/);

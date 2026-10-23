@@ -982,7 +982,7 @@ publish(
           <button type="button" data-stats-window="all" aria-pressed="false">All time</button>
         </div>
         <div id="stats-root">
-          <p class="stats-empty stats-loading">Loading community stats</p>
+          <p class="stats-empty stats-loading">Loading community stats<span class="ui-dots" aria-hidden="true"><span></span><span></span><span></span></span></p>
         </div>
       </div>
       ${houseSlot("stats", "/stats/")}

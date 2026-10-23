@@ -32,18 +32,20 @@ Real AdSense units stay off. `ADSENSE_UNITS_ENABLED` in `scripts/house-promos.mj
 
 Privacy, the 404 page, links, and account screens do not get a unit. The game unit sits below the homepage copy, outside the play column, so the phone keypad stays on the first screen.
 
-## Chrome motion
+## Chrome controls
 
-The site stays plain HTML, CSS, and vanilla JS. No React and no Motion package.
+The site stays plain HTML, CSS, and vanilla JS. No React and no Motion package. Uiverse.io is the source for the chrome controls. Each element is MIT. The adapted CSS, with the author and the element URL, is in `assets/scss/components/_uiverse.scss`. Colors are Palette A. The game's board, keypad, mode toggle, technique stepper, and settings checkboxes are not restyled.
 
-- Dot grid on the page and header. Original `radial-gradient`. The idea is Magic UI's Dot Pattern (MIT). Their component is not in this repo. The game page does not get the page grid.
-- 1px press on article cards, House marks, the stats window switch, article links, and the technique practice link. Original CSS. Rare UI (MIT plus Commons Clause) and Skiper UI (no open-source license) are inspiration only. Their code is not ported and is not credited as a dependency.
-- Hover border trace on House marks. Original `conic-gradient` ring. The idea is Aceternity UI's Border Beam and Magic UI's border beam. Their React components are not included. Aceternity's terms allow use in a project and forbid republishing the components as a library.
-- Stats count-up for integer totals, written with `requestAnimationFrame` in `assets/js/stats-page.js`. The final width is reserved before the count starts. Clocks stay as clocks. Reduced motion shows the final number immediately.
-- Three loading dots on the stats loading line. Original CSS. The idea is a Uiverse loader (MIT). No Uiverse component is copied.
-- Arrow icons are Phosphor `arrow-left` and `arrow-right` (MIT, copyright 2023 Phosphor Icons). The paths and the license notice live in `scripts/icons.mjs`.
+- Buttons. Dear31's simple hover button, https://uiverse.io/Dear31/good-yak-38. Used on the article back link, the contact submit button, and the skill-ladder actions.
+- Switch. G4b413l's minimalist switch, https://uiverse.io/G4b413l/bitter-hound-66. The stats window is a two-button track with a filled selection.
+- Inputs. Na3ar-17's simple field, https://uiverse.io/Na3ar-17/calm-panda-30. Contact form and the skill-ladder transfer fields.
+- Cards. adamgiebl's card, https://uiverse.io/adamgiebl/new-crab-79. Article cards, stats cards, and the standard page sheet. The shadow is lighter than the original.
+- Loader. adamgiebl's pulsing dots, https://uiverse.io/adamgiebl/thin-lionfish-5. Three small dots on the stats loading line.
+- Tooltip. Cksunandh's simple tooltip, https://uiverse.io/Cksunandh/afraid-snail-51. The short stats time labels show the full label on hover.
 
-Motion is off when `prefers-reduced-motion: reduce` is set. The board, keypad, and play column are not restyled.
+Light accents, kept small: a page dot grid (the idea is Magic UI's Dot Pattern, written here as a radial-gradient), a 1px press, and a stats count-up in `assets/js/stats-page.js`. Rare UI and Skiper UI are not ported. Arrow icons are Phosphor `arrow-left` and `arrow-right` (MIT, copyright 2023 Phosphor Icons), in `scripts/icons.mjs`.
+
+Motion is off when `prefers-reduced-motion: reduce` is set. The hover then changes the button color without the expanding circle.
 
 After the first deploy, attach the custom domain `sudokusudoku.com` (and `www`) to the Pages project. The zone is already on Cloudflare. Remove the old A records that point at a deleted origin. Pages will publish the hostname on its own.
 

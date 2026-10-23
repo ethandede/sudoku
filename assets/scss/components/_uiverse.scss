@@ -1,0 +1,397 @@
+// Chrome controls adapted from Uiverse.io. Each element there is MIT.
+// Colors, sizes, and motion are fitted to Palette A. The game screen is not
+// styled here: no board, keypad, mode toggle, technique stepper, or settings
+// checkboxes. Those controls stay as they are.
+//
+// Button. The resting fill plus a circle that grows from the center on hover.
+// From Uiverse.io by Dear31 (MIT): https://uiverse.io/Dear31/good-yak-38
+// Tags: simple, button, hover. The comic shadow and teal are not used.
+//
+// Switch. A rounded track with a filled selected state.
+// From Uiverse.io by G4b413l (MIT): https://uiverse.io/G4b413l/bitter-hound-66
+// Tags: minimalist, switch. Used on the stats window, which is two buttons,
+// not a checkbox. The red and green knob is not used.
+//
+// Input. A plain field whose border color changes on focus.
+// From Uiverse.io by Na3ar-17 (MIT): https://uiverse.io/Na3ar-17/calm-panda-30
+// Tags: simple, input. Applied to the contact form and the skills transfer fields.
+//
+// Card. A quiet radius and a soft shadow.
+// From Uiverse.io by adamgiebl (MIT): https://uiverse.io/adamgiebl/new-crab-79
+// Tags: card. The heavy drop shadow is lightened.
+//
+// Loader. Three pulsing dots.
+// From Uiverse.io by adamgiebl (MIT): https://uiverse.io/adamgiebl/thin-lionfish-5
+// Tags: loader, dots, pulse. Five large dots became three small ones.
+//
+// Tooltip. A small label above the trigger, with a square turned into an arrow.
+// From Uiverse.io by Cksunandh (MIT): https://uiverse.io/Cksunandh/afraid-snail-51
+// Tags: simple, tooltip. Used on the abbreviated stats time labels.
+
+.cta-button,
+.contact-form button[type="submit"],
+.skills-page .primary-btn,
+.skills-page .secondary-btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.cta-button,
+.contact-form button[type="submit"],
+.skills-page .primary-btn {
+  border: 1px solid #083a64;
+  background: #0c4f86;
+  color: #fff;
+}
+
+.cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+}
+
+.skills-page .secondary-btn {
+  border: 1px solid #0c4f86;
+  background: #fff;
+  color: #0c4f86;
+}
+
+.cta-button::after,
+.contact-form button[type="submit"]::after,
+.skills-page .primary-btn::after,
+.skills-page .secondary-btn::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: -1;
+  width: 140%;
+  height: 140%;
+  border-radius: 50%;
+  background: #083a64;
+  transform: translate(-50%, -50%) scale(0);
+}
+
+.skills-page .secondary-btn::after {
+  background: #0c4f86;
+}
+
+.cta-button:focus-visible,
+.contact-form button[type="submit"]:focus-visible,
+.skills-page .primary-btn:focus-visible,
+.skills-page .secondary-btn:focus-visible,
+.contact-form input:focus-visible,
+.contact-form textarea:focus-visible,
+.skills-page .transfer-text:focus-visible,
+.stats-switch button:focus-visible {
+  outline: 3px solid #0c4f86;
+  outline-offset: 3px;
+}
+
+.contact-form button[type="submit"]:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.contact-form input,
+.contact-form textarea,
+.skills-page .transfer-text {
+  border: 2px solid #d5dbe2;
+  border-radius: 8px;
+  background: #fff;
+  color: #1e232b;
+  box-shadow: none;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus,
+.skills-page .transfer-text:focus {
+  border-color: #0c4f86;
+  box-shadow: 0 0 0 3px rgba(12, 79, 134, 0.16);
+}
+
+.articles-page .article-card,
+.stats-card,
+.standard-page .page-content,
+.article-single-page .article-content {
+  border: 1px solid #d5dbe2;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgba(30, 35, 43, 0.05),
+    0 10px 22px -16px rgba(30, 35, 43, 0.28);
+}
+
+.stats-switch {
+  display: inline-flex;
+  gap: 0;
+  width: fit-content;
+  margin: 0 0 1rem;
+  padding: 3px;
+  border: 1px solid #d5dbe2;
+  border-radius: 999px;
+  background: #e7ebf0;
+}
+
+.stats-switch button {
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #1e232b;
+  box-shadow: none;
+}
+
+.stats-switch button[aria-pressed="true"] {
+  background: #0c4f86;
+  border-color: transparent;
+  color: #fff;
+}
+
+.ui-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  margin-left: 0.45rem;
+  vertical-align: 0.05rem;
+}
+
+.ui-dots span {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.45;
+}
+
+.stats-col-label {
+  position: relative;
+}
+
+.stats-col-label:hover::before,
+.stats-col-label:hover::after {
+  opacity: 1;
+}
+
+.stats-col-label::after {
+  content: attr(title);
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: calc(100% + 0.45rem);
+  padding: 0.28rem 0.5rem;
+  border-radius: 6px;
+  background: #1e232b;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.stats-col-label::before {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: calc(100% + 0.2rem);
+  width: 0.5rem;
+  height: 0.5rem;
+  background: #1e232b;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cta-button::after,
+  .contact-form button[type="submit"]::after,
+  .skills-page .primary-btn::after,
+  .skills-page .secondary-btn::after {
+    transition: transform 0.3s ease;
+  }
+
+  .cta-button:hover::after,
+  .cta-button:focus-visible::after,
+  .contact-form button[type="submit"]:hover::after,
+  .contact-form button[type="submit"]:focus-visible::after,
+  .skills-page .primary-btn:hover::after,
+  .skills-page .primary-btn:focus-visible::after,
+  .skills-page .secondary-btn:hover::after,
+  .skills-page .secondary-btn:focus-visible::after {
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .skills-page .secondary-btn:hover,
+  .skills-page .secondary-btn:focus-visible {
+    color: #fff;
+  }
+
+  html[data-theme="dark"] .skills-page .secondary-btn:hover,
+  html[data-theme="dark"] .skills-page .secondary-btn:focus-visible {
+    color: #121416;
+  }
+
+  .contact-form button[type="submit"]:disabled::after,
+  .contact-form button[type="submit"]:disabled:hover::after {
+    transform: translate(-50%, -50%) scale(0);
+  }
+
+  .ui-dots span {
+    animation: ui-dot 1.2s ease-in-out infinite;
+  }
+
+  .ui-dots span:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+
+  .ui-dots span:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+}
+
+@keyframes ui-dot {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+html[data-theme="dark"] {
+  .cta-button,
+  .contact-form button[type="submit"],
+  .skills-page .primary-btn {
+    border-color: #9ed2f8;
+    background: #9ed2f8;
+    color: #121416;
+  }
+
+  .cta-button::after,
+  .contact-form button[type="submit"]::after,
+  .skills-page .primary-btn::after {
+    background: #d4e8f7;
+  }
+
+  .skills-page .secondary-btn {
+    border-color: #9ed2f8;
+    background: #1a1e24;
+    color: #9ed2f8;
+  }
+
+  .skills-page .secondary-btn::after {
+    background: #9ed2f8;
+  }
+
+  .cta-button:focus-visible,
+  .contact-form button[type="submit"]:focus-visible,
+  .skills-page .primary-btn:focus-visible,
+  .skills-page .secondary-btn:focus-visible,
+  .contact-form input:focus-visible,
+  .contact-form textarea:focus-visible,
+  .skills-page .transfer-text:focus-visible,
+  .stats-switch button:focus-visible {
+    outline-color: #9ed2f8;
+  }
+
+  .contact-form input,
+  .contact-form textarea,
+  .skills-page .transfer-text {
+    border-color: #3e4650;
+    background: #1a1e24;
+    color: #e6e9ed;
+  }
+
+  .contact-form input:focus,
+  .contact-form textarea:focus,
+  .skills-page .transfer-text:focus {
+    border-color: #9ed2f8;
+    box-shadow: 0 0 0 3px rgba(158, 210, 248, 0.2);
+  }
+
+  .articles-page .article-card,
+  .stats-card,
+  .standard-page .page-content,
+  .article-single-page .article-content {
+    border-color: #3e4650;
+    background: #22262c;
+    box-shadow: none;
+  }
+
+  .stats-switch {
+    border-color: #3e4650;
+    background: #1a1e24;
+  }
+
+  .stats-switch button {
+    color: #e6e9ed;
+  }
+
+  .stats-switch button[aria-pressed="true"] {
+    background: #9ed2f8;
+    color: #121416;
+  }
+
+  .stats-col-label::after {
+    background: #9ed2f8;
+    color: #121416;
+  }
+
+  .stats-col-label::before {
+    background: #9ed2f8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta-button:hover,
+  .cta-button:focus-visible,
+  .contact-form button[type="submit"]:hover,
+  .contact-form button[type="submit"]:focus-visible,
+  .skills-page .primary-btn:hover,
+  .skills-page .primary-btn:focus-visible {
+    background: #083a64;
+  }
+
+  .skills-page .secondary-btn:hover,
+  .skills-page .secondary-btn:focus-visible {
+    background: #0c4f86;
+    color: #fff;
+  }
+
+  html[data-theme="dark"] .cta-button:hover,
+  html[data-theme="dark"] .cta-button:focus-visible,
+  html[data-theme="dark"] .contact-form button[type="submit"]:hover,
+  html[data-theme="dark"] .contact-form button[type="submit"]:focus-visible,
+  html[data-theme="dark"] .skills-page .primary-btn:hover,
+  html[data-theme="dark"] .skills-page .primary-btn:focus-visible {
+    background: #d4e8f7;
+  }
+
+  html[data-theme="dark"] .skills-page .secondary-btn:hover,
+  html[data-theme="dark"] .skills-page .secondary-btn:focus-visible {
+    background: #9ed2f8;
+    color: #121416;
+  }
+}
+
+@media (forced-colors: active) {
+  .cta-button::after,
+  .contact-form button[type="submit"]::after,
+  .skills-page .primary-btn::after,
+  .skills-page .secondary-btn::after,
+  .stats-col-label::before,
+  .stats-col-label::after,
+  .ui-dots {
+    display: none;
+  }
+}
