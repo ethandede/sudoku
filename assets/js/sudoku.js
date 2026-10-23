@@ -79,11 +79,12 @@
     });
   }
 
-  const Update = window.SudokuUpdate || null;
+  const Silent = window.SudokuSilent || null;
   const hasBoard = Boolean(document.getElementById("sudoku-grid"));
   let gameGate = hasBoard ? "pending" : "idle";
-  let waitingVersion = "";
-  let refreshing = false;
+  let pendingUpdate = false;
+  let applyingUpdate = false;
+  const RELOAD_AT = "sudoku-sw-reloaded";
 
   function storageGet(key) {
     try {
@@ -103,139 +104,53 @@
   }
 
   function noteGameGate(state) {
-    if (!Update) return;
-    gameGate = Update.gameGate(state, hasBoard);
-    syncUpdateBanner();
+    if (!Silent) return;
+    gameGate = Silent.gameGate(state, hasBoard);
+    applySilentUpdate();
   }
 
-  function syncUpdateBanner() {
-    const update = document.getElementById("app-update");
-    if (!update || !Update) return;
-    const reloadedVersion = storageGet(Update.RELOAD_FLAG);
-    if (Update.clearReloadFlag({ reloadedVersion, waitingVersion })) storageSet(Update.RELOAD_FLAG, "");
-    update.hidden = !Update.bannerVisible({
-      waitingVersion,
+  function applySilentUpdate() {
+    if (!Silent) return;
+    const reloadedAt = Number(storageGet(RELOAD_AT)) || 0;
+    if (!Silent.shouldApplyUpdate({
+      hidden: document.visibilityState === "hidden",
       gate: gameGate,
-      dismissedVersion: storageGet(Update.DISMISS_FLAG),
-      reloadedVersion: storageGet(Update.RELOAD_FLAG),
-    });
-  }
-
-  function workerVersion(worker) {
-    return new Promise((resolve) => {
-      if (!worker) {
-        resolve("");
-        return;
-      }
-      const channel = new MessageChannel();
-      const timer = window.setTimeout(() => resolve(""), 800);
-      channel.port1.onmessage = (event) => {
-        window.clearTimeout(timer);
-        const version = event.data && event.data.version;
-        resolve(typeof version === "string" ? version : "");
-      };
-      try {
-        worker.postMessage({ type: "GET_VERSION" }, [channel.port2]);
-      } catch {
-        window.clearTimeout(timer);
-        resolve("");
-      }
-    });
-  }
-
-  function reloadForUpdate(version) {
-    if (!Update) return;
-    if (!Update.shouldReload({
-      refreshing,
-      reloadedVersion: storageGet(Update.RELOAD_FLAG),
-      waitingVersion: version,
+      pending: pendingUpdate,
+      refreshing: applyingUpdate,
+      reloadedAt,
+      now: Date.now(),
     })) return;
-    refreshing = true;
-    storageSet(Update.RELOAD_FLAG, version || "1");
+    applyingUpdate = true;
+    pendingUpdate = false;
+    storageSet(RELOAD_AT, String(Date.now()));
     try {
       writeSave();
     } catch {
       /* the board is not on this page */
     }
-    if (window.SudokuAccount) window.SudokuAccount.flush();
-    const url = new URL(window.location.href);
-    url.searchParams.set("sudoku-updated", version || "1");
-    window.location.replace(url.toString());
+    if (window.SudokuAccount && typeof window.SudokuAccount.flush === "function") window.SudokuAccount.flush();
+    window.location.reload();
   }
 
   function initAppShell() {
-    const update = document.getElementById("app-update");
-    const updateGo = document.getElementById("app-update-go");
-    const updateDismiss = document.getElementById("app-update-dismiss");
-    if (Update) {
-      const cleaned = Update.stripUpdateParam(window.location.href);
-      if (cleaned) window.history.replaceState(null, "", cleaned);
-    }
-    if (!("serviceWorker" in navigator) || !Update) return;
+    if (!("serviceWorker" in navigator)) return;
+    let hadController = Boolean(navigator.serviceWorker.controller);
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (!hadController) {
+        hadController = true;
+        return;
+      }
+      pendingUpdate = true;
+      applySilentUpdate();
+    });
     navigator.serviceWorker.register("/sw.js").then((registration) => {
-      const showWaiting = async (worker) => {
-        if (!worker || worker.state === "redundant") {
-          if (!registration.waiting && !registration.installing) {
-            waitingVersion = "";
-            syncUpdateBanner();
-          }
-          return;
-        }
-        if (!navigator.serviceWorker.controller) {
-          worker.postMessage({ type: "SKIP_WAITING" });
-          worker.postMessage({ type: "skip-waiting" });
-          return;
-        }
-        if (worker.state !== "installed") return;
-        waitingVersion = (await workerVersion(worker)) || "waiting";
-        syncUpdateBanner();
-      };
-      const track = (worker) => {
-        if (!worker) return;
-        worker.addEventListener("statechange", () => {
-          if (worker.state === "installed") showWaiting(worker);
-          if (worker.state === "activated") showWaiting(registration.waiting);
-        });
-      };
-      track(registration.installing);
-      track(registration.waiting);
-      showWaiting(registration.waiting);
-      registration.addEventListener("updatefound", () => track(registration.installing));
-      window.setInterval(() => {
-        if (registration.waiting) showWaiting(registration.waiting);
-      }, 1000);
       document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") registration.update();
+        if (document.visibilityState === "visible") {
+          registration.update();
+          return;
+        }
+        applySilentUpdate();
       });
-      if (updateDismiss) {
-        updateDismiss.addEventListener("click", () => {
-          storageSet(Update.DISMISS_FLAG, waitingVersion || "waiting");
-          syncUpdateBanner();
-        });
-      }
-      if (updateGo) {
-        updateGo.addEventListener("click", async () => {
-          const worker = registration.waiting || registration.installing;
-          const version = waitingVersion || (worker ? await workerVersion(worker) : "") || "waiting";
-          if (!Update.shouldReload({
-            refreshing,
-            reloadedVersion: storageGet(Update.RELOAD_FLAG),
-            waitingVersion: version,
-          })) return;
-          if (worker) {
-            const onChange = () => reloadForUpdate(version);
-            navigator.serviceWorker.addEventListener("controllerchange", onChange, { once: true });
-            worker.addEventListener("statechange", () => {
-              if (worker.state === "activated") reloadForUpdate(version);
-            });
-            worker.postMessage({ type: "SKIP_WAITING" });
-            worker.postMessage({ type: "skip-waiting" });
-            window.setTimeout(() => reloadForUpdate(version), 4000);
-            return;
-          }
-          reloadForUpdate(version);
-        });
-      }
     }).catch(() => {
       /* private mode or insecure origin */
     });

@@ -4,6 +4,9 @@ const SHELL_CACHE = `sudoku-shell-${VERSION}`;
 const CONTENT_CACHE = `sudoku-content-${VERSION}`;
 
 self.addEventListener("install", (event) => {
+  // Take the waiting slot immediately so an open tab never sits on a
+  // worker that only activates when the page posts SKIP_WAITING.
+  self.skipWaiting();
   event.waitUntil(caches.open(SHELL_CACHE).then((cache) => cache.addAll(SHELL)));
 });
 
