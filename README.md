@@ -24,6 +24,14 @@ The build writes:
 
 The www hostname should redirect to the apex with a Cloudflare redirect rule. That rule lives in the dashboard, not in this repo.
 
+## House promos
+
+Reserved ad boxes are filled by House marks, a small in-house series that links to other pages on this site. The graphics and copy are the page. They are not labeled as ads.
+
+Real AdSense units stay off. `ADSENSE_UNITS_ENABLED` in `scripts/house-promos.mjs` is false, and every unit id is still `REPLACE_WITH_SLOT`. The publisher id is `ca-pub-9345046210950956`. Flip the flag only after those ids are live units. The boxes keep the same sizes, so the swap does not move the layout. The AdSense script in the page head is unchanged.
+
+Privacy, the 404 page, links, and account screens do not get a unit. The game unit sits below the homepage copy, outside the play column, so the phone keypad stays on the first screen.
+
 After the first deploy, attach the custom domain `sudokusudoku.com` (and `www`) to the Pages project. The zone is already on Cloudflare. Remove the old A records that point at a deleted origin. Pages will publish the hostname on its own.
 
 ## Contact form

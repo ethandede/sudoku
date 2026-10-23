@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { copyFileSync, cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { marked } from "marked";
@@ -20,6 +20,7 @@ import {
 } from "./articles.mjs";
 import { captureExamples } from "./capture-examples.mjs";
 import { techniques } from "./technique-copy.mjs";
+import { adsensePushScript, housePair, renderHousePromos } from "./house-promos.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "dist");
@@ -159,6 +160,10 @@ function layout({
   const privacyChoiceNote = privacyChoices
     ? `    <p id="privacy-choices-note" class="privacy-choices-note" hidden>The privacy message did not load on this page. Open the home page and use Privacy choices there.</p>\n`
     : "";
+  const houseClicks = main.includes("data-promo-slot")
+    ? `${scriptTag("/assets/js/house-promos.js")}\n`
+    : "";
+  const adPushes = adsensePushScript((main.match(/class="adsbygoogle"/g) || []).length);
   const privacyChoiceScript = privacyChoices
     ? `<script>
 (function () {
@@ -337,7 +342,7 @@ ${skills ? scriptTag("/assets/js/skills.js") : ""}
 ${demo ? scriptTag("/assets/js/technique-demo.js") : ""}
 ${contact ? scriptTag("/assets/js/contact.js") : ""}
 ${stats ? scriptTag("/assets/js/stats-page.js") : ""}
-${privacyChoiceScript}${webAnalyticsTag}</body>
+${houseClicks}${adPushes}${privacyChoiceScript}${webAnalyticsTag}</body>
 </html>
 `;
 }
@@ -363,6 +368,7 @@ function scriptTag(path) {
 
 function standardPage(title, bodyHtml, description, path, options = {}) {
   const canonicalPath = withSlash(path);
+  const house = options.ads === false ? "" : options.house || "";
   return layout({
     title: `${title} | SudokuSudoku`,
     description,
@@ -382,6 +388,7 @@ function standardPage(title, bodyHtml, description, path, options = {}) {
       <div class="page-body">
         ${bodyHtml}
       </div>
+      ${house}
     </article>
   </div>
 </main>`,
@@ -486,6 +493,7 @@ write("assets/js/update-banner.js", updateBannerForBrowser(read("functions/updat
 write("assets/js/hint-apply.js", hintApplyForBrowser(read("functions/hint-apply.mjs")));
 write("assets/js/account.js", read("assets/js/account.js"));
 write("assets/js/stats-page.js", read("assets/js/stats-page.js"));
+write("assets/js/house-promos.js", read("assets/js/house-promos.js"));
 write("ads.txt", read("ads.txt").trim() + "\n");
 cpSync(join(root, "assets/fonts"), join(dist, "assets/fonts"), { recursive: true });
 cpSync(join(root, "assets/img"), join(dist, "assets/img"), { recursive: true });
@@ -519,6 +527,23 @@ if (unpublishedSlugs.size) {
   console.log(`Scheduled later: ${[...unpublishedSlugs].join(", ")}`);
 }
 
+const PRACTICE_HREF = existsSync(join(root, "src/practice.html")) ? "/practice/" : null;
+const publishedPromoHrefs = new Set(visibleArticles.map((article) => article.href));
+
+function houseSlots(section, path, plans) {
+  return renderHousePromos(plans, {
+    section,
+    path,
+    today: articleToday,
+    publishedHrefs: publishedPromoHrefs,
+    practiceHref: PRACTICE_HREF,
+  });
+}
+
+function houseSlot(section, path, slot = `${section}-end`, size = "rectangle") {
+  return houseSlots(section, path, [{ slot, size }])[slot] || "";
+}
+
 publish(
   "index.html",
   layout({
@@ -527,9 +552,15 @@ publish(
       "Every puzzle on SudokuSudoku is graded by its hardest move, not the number of clues. Hints name the move and teach the technique behind it. Just play.",
     canonical: `${SITE}/`,
     game: true,
-    main: gateHomepageCopy(read("src/game.html").trim(), articleToday, {
-      techniques: techniques.length > 0,
-    }),
+    main: (() => {
+      const homeMarker = "<!-- house-slot:home-below -->";
+      const homeGame = gateHomepageCopy(read("src/game.html").trim(), articleToday, {
+        techniques: techniques.length > 0,
+      });
+      if (!homeGame.includes(homeMarker)) throw new Error("Homepage is missing the house promo slot");
+      const homePromo = houseSlot("home", "/", "home-below", "billboard");
+      return homeGame.replace(homeMarker, `<div class="house-home">\n${homePromo}\n</div>`);
+    })(),
   }),
   "/"
 );
@@ -576,7 +607,7 @@ publish(
     marked.parse(aboutMarkdown),
     "Ethan Ede builds websites and plays Sudoku almost every day. SudokuSudoku grades a puzzle by its hardest move, and the hints teach that move.",
     "/about/",
-    { jsonLd: personNode() }
+    { jsonLd: personNode(), house: houseSlot("about", "/about/") }
   ),
   "/about"
 );
@@ -600,7 +631,7 @@ publish(
     read("contact-page-content.html").trim(),
     "Send a note about a bug, a technique page, or the site. The form uses a spam check and does not show an email address.",
     "/contact/",
-    { contact: true }
+    { contact: true, house: houseSlot("contact", "/contact/") }
   ),
   "/contact"
 );
@@ -640,6 +671,11 @@ const cards = visibleArticles
   })
   .join("\n");
 
+const articleIndexPromos = houseSlots("articles", "/articles/", [
+  { slot: "articles-end", size: "rectangle" },
+  { slot: "articles-rail", size: "skyscraper" },
+]);
+
 publish(
   "articles/index.html",
   layout({
@@ -648,12 +684,20 @@ publish(
     canonical: `${SITE}/articles/`,
     main: `<main id="articles" class="articles-page">
   <div class="container">
-    <header class="page-header">
-      <h1>Sudoku Articles &amp; Guides</h1>
-      <p class="page-description">How to play, what the puzzles measure, and notes from building this site.</p>
-    </header>
-    <div class="articles-grid">
-      ${cards}
+    <div class="articles-with-rail">
+      <div class="articles-main">
+        <header class="page-header">
+          <h1>Sudoku Articles &amp; Guides</h1>
+          <p class="page-description">How to play, what the puzzles measure, and notes from building this site.</p>
+        </header>
+        <div class="articles-grid">
+          ${cards}
+        </div>
+        ${articleIndexPromos["articles-end"]}
+      </div>
+      <div class="house-rail">
+        ${articleIndexPromos["articles-rail"]}
+      </div>
     </div>
   </div>
 </main>`,
@@ -749,6 +793,7 @@ visibleArticles.forEach((article, index) => {
       <div class="article-body">
         ${article.html}
       </div>
+      ${houseSlot("article", article.href, "article-end")}
       ${authorBox}
       ${relatedArticlesHtml(article)}
       <footer class="article-footer">
@@ -818,6 +863,15 @@ const indexItems = techniques
   })
   .join("\n");
 
+const techniqueIndexPromos = houseSlots("techniques", "/techniques/", [
+  { slot: "techniques-bar", size: "leaderboard" },
+  { slot: "techniques-end", size: "rectangle" },
+]);
+const techniqueIndexPromo = housePair(
+  techniqueIndexPromos["techniques-bar"],
+  techniqueIndexPromos["techniques-end"]
+);
+
 publish(
   "techniques/index.html",
   layout({
@@ -838,6 +892,7 @@ publish(
           ${indexItems}
         </ol>
       </div>
+      ${techniqueIndexPromo}
     </article>
   </div>
 </main>`,
@@ -878,6 +933,7 @@ publish(
           <p class="stats-empty">Loading community stats…</p>
         </div>
       </div>
+      ${houseSlot("stats", "/stats/")}
     </article>
   </div>
 </main>`,
@@ -899,6 +955,7 @@ publish(
     <h1>Skill ladder</h1>
     <p class="skills-lead">Techniques you have solved, from easiest to hardest. Everything stays on this device.</p>
     <div id="skills-root"></div>
+    ${houseSlot("skills", "/skills/")}
   </div>
 </main>`,
   }),
@@ -959,6 +1016,7 @@ techniques.forEach((technique) => {
         <h2>Related</h2>
         <p class="related-techniques">${related}</p>
       </div>
+      ${houseSlot("technique", path, "technique-end")}
     </article>
   </div>
 </main>
@@ -1109,6 +1167,7 @@ const shellPaths = [
   "assets/js/account.js",
   "assets/js/update-banner.js",
   "assets/js/hint-apply.js",
+  "assets/js/house-promos.js",
   ...iconSizes.map((size) => `icons/icon-${size}.png`),
   "icons/maskable-192.png",
   "icons/maskable-512.png",
