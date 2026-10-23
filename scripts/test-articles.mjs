@@ -17,6 +17,7 @@ import {
 } from "./articles.mjs";
 
 const schedule = {
+  "where-the-solver-stops": "2026-10-27",
   "what-makes-a-sudoku-hard": "2026-10-28",
   "history-of-sudoku": "2026-10-28",
   "sudoku-variants": "2026-11-04",
@@ -44,16 +45,26 @@ function live(today) {
 }
 
 assert.deepEqual(live("2026-10-21"), []);
-assert.deepEqual(live("2026-10-27"), []);
-assert.deepEqual(live("2026-10-28"), ["what-makes-a-sudoku-hard", "history-of-sudoku"]);
-assert.deepEqual(live("2026-11-03"), ["what-makes-a-sudoku-hard", "history-of-sudoku"]);
+assert.deepEqual(live("2026-10-27"), ["where-the-solver-stops"]);
+assert.deepEqual(live("2026-10-28"), [
+  "where-the-solver-stops",
+  "what-makes-a-sudoku-hard",
+  "history-of-sudoku",
+]);
+assert.deepEqual(live("2026-11-03"), [
+  "where-the-solver-stops",
+  "what-makes-a-sudoku-hard",
+  "history-of-sudoku",
+]);
 assert.deepEqual(live("2026-11-04"), [
+  "where-the-solver-stops",
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
   "sudoku-variants",
   "why-ai-is-bad-at-sudoku",
 ]);
 const beforeFewest = [
+  "where-the-solver-stops",
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
   "sudoku-variants",
@@ -414,5 +425,66 @@ for (const [label, text] of Object.entries(nytSources)) {
 }
 assert.equal(nytSources["what-makes"].includes("publishDate: 2026-10-28"), true);
 assert.equal(nytSources.ai.includes("publishDate: 2026-11-04"), true);
+
+const stops = readArticle("where-the-solver-stops");
+assert.equal(stops.includes("publishDate: 2026-10-27"), true);
+assert.equal(stops.includes("\u2014"), false);
+assert.equal(stops.includes("\u2013"), false);
+assert.equal(stops.includes("why-ai-is-bad-at-sudoku"), false);
+assert.equal(stops.includes("millisecond"), false);
+assert.equal(stops.includes("seconds"), false);
+const stopsBody = stops.split(/^---$/m).slice(2).join("---").replace(/<!--[\s\S]*?-->/g, " ");
+const stopsWords = stopsBody.trim().split(/\s+/).filter(Boolean);
+assert.ok(stopsWords.length >= 1000 && stopsWords.length <= 1400, `solver-stops words ${stopsWords.length}`);
+const stopsSummary = JSON.parse(
+  readFileSync(new URL("../articles/data/solver-stops/summary.json", import.meta.url), "utf8")
+);
+const escargot = stopsSummary.famous[0];
+const inkala = stopsSummary.famous[1];
+assert.equal(escargot.clues, 23);
+assert.equal(escargot.solutionsAtMost2, 1);
+assert.equal(escargot.solved, false);
+assert.equal(escargot.cellsPlaced, 1);
+assert.equal(escargot.cellsFilled, 24);
+assert.equal(escargot.cellsEmpty, 57);
+assert.equal(escargot.stalls, 1);
+assert.deepEqual(escargot.path, ["hidden-single"]);
+assert.equal(escargot.used.hidden_box, 1);
+assert.deepEqual(escargot.techniques, []);
+assert.equal(inkala.clues, 21);
+assert.equal(inkala.solutionsAtMost2, 1);
+assert.equal(inkala.solved, false);
+assert.equal(inkala.cellsPlaced, 0);
+assert.equal(inkala.cellsFilled, 21);
+assert.equal(inkala.cellsEmpty, 60);
+assert.equal(inkala.stalls, 1);
+assert.deepEqual(inkala.path, []);
+assert.deepEqual(inkala.techniques, []);
+assert.equal(stopsSummary.nyt.levels.easy.n, 495);
+assert.equal(stopsSummary.nyt.levels.medium.n, 494);
+assert.equal(stopsSummary.nyt.levels.hard.n, 494);
+assert.equal(stopsSummary.nyt.levels.easy.solved, 495);
+assert.equal(stopsSummary.nyt.levels.medium.solved, 494);
+assert.equal(stopsSummary.nyt.levels.hard.solved, 494);
+assert.equal(stopsSummary.nyt.levels.easy.corrupt, 0);
+assert.equal(stopsSummary.nyt.levels.medium.corrupt, 0);
+assert.equal(stopsSummary.nyt.levels.hard.corrupt, 0);
+assert.equal(stopsSummary.nyt.levels.easy.notUnique, 0);
+assert.equal(stopsSummary.nyt.levels.medium.notUnique, 0);
+assert.equal(stopsSummary.nyt.levels.hard.notUnique, 0);
+for (const figure of ["1,483", "495", "494", "57", "60", "23", "21"]) {
+  assert.equal(stops.includes(figure), true, figure);
+}
+assert.match(stops, /articles\/data\/solver-stops\/analyze\.mjs/);
+assert.match(stops, /\/articles\/nyt-medium-vs-hard\//);
+assert.match(stops, /\/how-difficulty-works\//);
+assert.match(build, /articles\/where-the-solver-stops\.md/);
+const preparedStops = prepareArticle(stops);
+assert.deepEqual(preparedStops.relatedSlugs, ["nyt-medium-vs-hard"]);
+assert.equal((preparedStops.content.match(/class="puzzle-grid"/g) || []).length, 2);
+assert.equal((preparedStops.content.match(/class="puzzle-cell/g) || []).length, 162);
+assert.equal(preparedStops.content.includes("+-------+-------+-------+"), false);
+assert.match(preparedStops.content, /100007090030020008009600500005300900010080002600004000300000010040000007007000300/);
+assert.match(preparedStops.content, /800000000003600000070090200050007000000045700000100030001000068008500010090000400/);
 
 console.log("article publish tests passed");

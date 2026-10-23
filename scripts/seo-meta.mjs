@@ -127,6 +127,7 @@ const ARTICLE_TERM = {
   "beginners-guide": "how to play sudoku",
   "common-mistakes": "sudoku mistakes",
   "nyt-medium-vs-hard": "nyt medium",
+  "where-the-solver-stops": "where our solver stops",
   "what-makes-a-sudoku-hard": "makes a sudoku hard",
   "history-of-sudoku": "where sudoku came from",
   "sudoku-variants": "sudoku variants",

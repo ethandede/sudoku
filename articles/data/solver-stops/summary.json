@@ -1,0 +1,66 @@
+{
+  "solver": "assets/js/solver.js",
+  "famous": [
+    {
+      "name": "AI Escargot (2006)",
+      "clues": 23,
+      "solutionsAtMost2": 1,
+      "solved": false,
+      "corrupt": false,
+      "cellsPlaced": 1,
+      "cellsFilled": 24,
+      "cellsEmpty": 57,
+      "steps": 0,
+      "stalls": 1,
+      "hardestName": "stuck",
+      "techniques": [],
+      "path": [
+        "hidden-single"
+      ],
+      "used": {
+        "hidden_box": 1
+      }
+    },
+    {
+      "name": "Inkala 2012",
+      "clues": 21,
+      "solutionsAtMost2": 1,
+      "solved": false,
+      "corrupt": false,
+      "cellsPlaced": 0,
+      "cellsFilled": 21,
+      "cellsEmpty": 60,
+      "steps": 0,
+      "stalls": 1,
+      "hardestName": "stuck",
+      "techniques": [],
+      "path": [],
+      "used": {}
+    }
+  ],
+  "nyt": {
+    "source": "https://github.com/vivrao9/nyt-sudoku",
+    "file": "data-collection/nyt-sudoku.db",
+    "window": "2021-08-30 through 2024-03-02",
+    "levels": {
+      "easy": {
+        "n": 495,
+        "solved": 495,
+        "corrupt": 0,
+        "notUnique": 0
+      },
+      "medium": {
+        "n": 494,
+        "solved": 494,
+        "corrupt": 0,
+        "notUnique": 0
+      },
+      "hard": {
+        "n": 494,
+        "solved": 494,
+        "corrupt": 0,
+        "notUnique": 0
+      }
+    }
+  }
+}
