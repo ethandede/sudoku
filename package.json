@@ -28,7 +28,8 @@
     "test:home": "node scripts/test-home-copy.mjs",
     "test:examples": "node scripts/test-example-board.mjs",
     "test:not-found": "node scripts/test-not-found.mjs",
-    "test:meta": "node scripts/test-meta.mjs"
+    "test:meta": "node scripts/test-meta.mjs",
+    "test:sitemap": "node scripts/test-sitemap.mjs"
   },
   "devDependencies": {
     "marked": "^15.0.12",
