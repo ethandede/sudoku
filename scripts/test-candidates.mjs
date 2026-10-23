@@ -1108,6 +1108,8 @@ await check("the phone keypad keys and mini-grid cells are square", async () => 
         clientWidth: document.documentElement.clientWidth,
         scrollWidth: document.documentElement.scrollWidth,
         footerTop: footer.top,
+        keypadBottom: Math.max(...keys.map((key) => key.bottom)),
+        columnJustify: getComputedStyle(document.querySelector(".board-column")).justifyContent,
         header: getComputedStyle(document.querySelector(".site-header")).display,
         intro: getComputedStyle(document.querySelector(".game-intro")).display,
         subhead: getComputedStyle(document.querySelector(".game-intro .supporting-text")).display,
@@ -1124,6 +1126,10 @@ await check("the phone keypad keys and mini-grid cells are square", async () => 
     assert(metrics.help === "none", `${width} hides the instructions`);
     assert(metrics.padDisplay === "contents", `${width} keeps the 5 by 2 pad`);
     assert(metrics.eraseBottom <= metrics.vh + 1, `${width} keypad bottom ${metrics.eraseBottom} is inside ${metrics.vh}`);
+    assert(metrics.columnJustify === "center", `${width} centers the board in the column`);
+    if (width === 390 && height === 844) {
+      assert(metrics.keypadBottom <= 792, `${width} keypad bottom ${metrics.keypadBottom} is past 792`);
+    }
     assert(metrics.auxBottom <= metrics.vh + 1, `${width} controls bottom ${metrics.auxBottom} is inside ${metrics.vh}`);
     assert(metrics.vh - metrics.auxBottom <= 16, `${width} leaves ${metrics.vh - metrics.auxBottom}px under the controls`);
     assert(metrics.keys.length === 10, `${width} has 9 digits and erase`);
@@ -1170,11 +1176,13 @@ await check("the phone keypad keys and mini-grid cells are square", async () => 
       scrollWidth: document.documentElement.scrollWidth,
       clientWidth: document.documentElement.clientWidth,
       header: getComputedStyle(document.querySelector(".site-header")).display,
+      columnJustify: getComputedStyle(document.querySelector(".board-column")).justifyContent,
       subhead: getComputedStyle(document.querySelector(".game-intro .supporting-text")).display,
       h1: document.querySelector(".game-intro h1").textContent,
     };
   });
   assert(desktop.header === "none", "desktop uses the app header");
+  assert(desktop.columnJustify === "flex-start", "desktop leaves the board at the top of its column");
   assert(desktop.subhead !== "none", "desktop shows the subhead");
   assert(desktop.h1 === homeCopy.h1, "desktop heading");
   assert(desktop.eraseLeft >= desktop.boardRight - 2, "desktop keypad sits beside the board");

@@ -1845,6 +1845,10 @@ button:disabled {
     display: none;
   }
 
+  .board-column {
+    justify-content: center;
+  }
+
   .sudoku-copy h2 {
     font-size: 1.35rem;
   }
