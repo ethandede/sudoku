@@ -27,7 +27,7 @@ const ADSENSE_SLOT_IDS = {
 };
 
 const BLOCKED_SECTIONS = new Set(["privacy", "missing", "links", "account", "offline"]);
-const BLOCKED_PATHS = new Set(["/privacy-policy/", "/links/", "/404.html", "/offline.html"]);
+const BLOCKED_PATHS = new Set(["/privacy-policy/", "/terms/", "/links/", "/404.html", "/offline.html"]);
 
 const PUBLISHED_ARTICLES = new Set([
   "/articles/beginners-guide/",
