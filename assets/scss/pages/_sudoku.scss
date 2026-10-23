@@ -297,9 +297,9 @@ html[data-theme="dark"] .game-brand-echo {
   margin: 0;
   padding: 0.35rem;
   background: var(--card);
-  border: 1px solid var(--pad-border);
-  border-radius: 0.7rem;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 1px 1px rgba(31, 28, 25, 0.08), 0 16px 32px -20px rgba(31, 28, 25, 0.45);
 
   &.is-open {
     display: flex;
@@ -312,17 +312,22 @@ html[data-theme="dark"] .game-brand-echo {
     border: 0;
     background: transparent;
     color: var(--ink);
-    border-radius: 0.45rem;
+    border-radius: var(--btn-radius);
     padding: 0 0.85rem;
     font: inherit;
     font-weight: 650;
     cursor: pointer;
   }
 
+  button:hover,
+  button:focus-visible {
+    background: var(--recess);
+  }
+
   button[aria-selected="true"] {
-    background: var(--accent-btn);
-    color: var(--accent-on);
-    border-color: var(--accent-btn);
+    background: var(--btn-primary);
+    color: var(--btn-primary-ink);
+    box-shadow: inset 0 1px 0 var(--btn-highlight);
   }
 }
 
@@ -523,9 +528,9 @@ html[data-theme="dark"] .game-brand-echo {
   min-width: 11rem;
   background: var(--card);
   color: var(--ink);
-  border: 1px solid var(--pad-border);
-  border-radius: 0.6rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 1px 1px rgba(31, 28, 25, 0.08), 0 16px 32px -20px rgba(31, 28, 25, 0.45);
   padding: 0.35rem;
   display: flex;
   flex-direction: column;
@@ -541,13 +546,14 @@ html[data-theme="dark"] .game-brand-echo {
     color: inherit;
     min-height: 44px;
     padding: 0 0.75rem;
-    border-radius: 0.4rem;
+    border-radius: var(--btn-radius);
     font: inherit;
+    font-weight: 650;
     cursor: pointer;
 
     &:hover,
     &:focus-visible {
-      background: var(--peer);
+      background: var(--recess);
     }
   }
 }
@@ -1265,10 +1271,10 @@ kbd {
   overflow: auto;
   background: var(--card);
   color: var(--ink);
-  border: 1px solid var(--pad-border);
-  border-radius: 0.9rem 0.9rem 0 0;
+  border: 1px solid var(--line);
+  border-radius: 12px 12px 0 0;
   padding: 0.2rem 0.85rem calc(0.6rem + env(safe-area-inset-bottom));
-  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 1px 1px rgba(31, 28, 25, 0.08), 0 -16px 32px -20px rgba(31, 28, 25, 0.45);
   touch-action: none;
 
   &[hidden] {
@@ -1650,7 +1656,7 @@ button:disabled {
   position: fixed;
   inset: 0;
   z-index: 3000;
-  background: rgba(16, 12, 20, 0.55);
+  background: rgba(20, 19, 17, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1662,9 +1668,10 @@ button:disabled {
   width: min(100%, 28rem);
   background: var(--card);
   color: var(--ink);
-  border-radius: 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
   padding: 1.25rem 1.25rem 1.4rem;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 1px rgba(31, 28, 25, 0.08), 0 18px 40px -24px rgba(31, 28, 25, 0.5);
   overflow: auto;
   max-height: calc(100dvh - 2rem);
 
@@ -1686,12 +1693,20 @@ button:disabled {
 }
 
 .icon-close {
+  width: 44px;
+  height: 44px;
   border: 0;
-  background: transparent;
+  border-radius: var(--btn-radius);
+  background: var(--btn-secondary-bg);
   color: var(--ink);
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   line-height: 1;
   min-width: 44px;
+  box-shadow: inset 0 0 0 1px var(--btn-secondary-edge), inset 0 1px 0 var(--btn-highlight);
+
+  &:hover {
+    background: color-mix(in srgb, var(--btn-secondary-bg) 78%, var(--recess));
+  }
 }
 
 .modal-actions {
@@ -1742,8 +1757,53 @@ button:disabled {
 .settings-card label {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.65rem;
   min-height: 44px;
+  padding: 0 0.2rem;
+  border-radius: var(--btn-radius);
+}
+
+.settings-card input {
+  margin: 0;
+  flex: none;
+  accent-color: var(--btn-primary);
+}
+
+.settings-card input[type="checkbox"] {
+  appearance: none;
+  width: 2.35rem;
+  height: 1.3rem;
+  border: 1px solid var(--btn-secondary-edge);
+  border-radius: 999px;
+  background-color: var(--track);
+  background-image: radial-gradient(circle at 0.65rem 50%, var(--paper) 0 0.38rem, transparent 0.42rem);
+  box-shadow: inset 0 1px 2px rgba(31, 28, 25, 0.16);
+}
+
+.settings-card input[type="checkbox"]:checked {
+  background-color: var(--btn-primary);
+  border-color: var(--btn-primary-edge);
+  background-image: radial-gradient(circle at 1.65rem 50%, var(--btn-primary-ink) 0 0.38rem, transparent 0.42rem);
+}
+
+.settings-card input[type="radio"] {
+  appearance: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  border: 1px solid var(--btn-secondary-edge);
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: inset 0 1px 0 var(--btn-highlight);
+}
+
+.settings-card input[type="radio"]:checked {
+  border-color: var(--btn-primary);
+  background: radial-gradient(circle, var(--btn-primary) 0 0.32rem, var(--paper) 0.36rem);
+}
+
+.settings-card input:focus-visible {
+  outline: var(--btn-focus-width) solid var(--btn-focus);
+  outline-offset: var(--btn-focus-offset);
 }
 
 .stats-table {
@@ -2236,6 +2296,17 @@ html.is-standalone:has(.sudoku-page) body {
   .text-btn:active,
   .icon-btn:not(#hint-btn):active {
     transform: translateY(var(--btn-press));
+  }
+
+  .more-menu button,
+  .difficulty-tabs button,
+  .settings-card input,
+  .auto-toggle input,
+  .icon-close {
+    transition:
+      background-color var(--btn-duration) var(--btn-ease),
+      border-color var(--btn-duration) var(--btn-ease),
+      box-shadow var(--btn-duration) var(--btn-ease);
   }
 }
 
