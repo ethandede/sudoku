@@ -45,7 +45,7 @@ assert.equal(sitemapWriter.includes("new Date()"), false);
 assert.match(sitemapWriter, /lastmod\(root, entry\.sources\)/);
 
 const grading = readFileSync(join(root, "dist/how-difficulty-works/index.html"), "utf8");
-assert.match(grading, /<title>How Sudoku Difficulty Works \| SudokuSudoku<\/title>/);
-assert.match(grading, /How Sudoku difficulty works/);
+assert.match(grading, /<title>How Difficulty Works \| SudokuSudoku<\/title>/);
+assert.match(grading, /How difficulty works/);
 
 console.log("sitemap lastmod tests passed");

@@ -59,12 +59,6 @@ const STATIC_PAGES = {
       "SudokuSudoku terms of use for a free browser Sudoku game with an optional email account, a contact form, and ads.",
     term: "terms of use",
   },
-  "/how-difficulty-works/": {
-    title: "How Sudoku Difficulty Works | SudokuSudoku",
-    description:
-      "How Sudoku difficulty works on SudokuSudoku: Quick through Mental are graded by the hardest technique, then set next to 1,483 New York Times puzzles.",
-    term: "sudoku difficulty",
-  },
   "/articles/": {
     title: "Sudoku Articles on How to Play and Difficulty | SudokuSudoku",
     description:

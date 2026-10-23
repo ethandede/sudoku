@@ -7,24 +7,48 @@ import { statSync } from "node:fs";
 import { join } from "node:path";
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
+let historyReady = false;
+
+function git(root, args) {
+  return execFileSync("git", args, {
+    cwd: root,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  }).trim();
+}
 
 // Pages checks out one commit. git log on that copy dates every file as
 // the tip, which is the build. Deepen the clone once before reading dates.
+// A still-shallow checkout must fail the build: file mtimes there are the
+// clone time, so they are the build clock too.
 function ensureHistory(root) {
+  if (historyReady) return;
+  let shallow = "";
   try {
-    const shallow = execFileSync("git", ["rev-parse", "--is-shallow-repository"], {
-      cwd: root,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-    }).trim();
-    if (shallow !== "true") return;
-    execFileSync("git", ["fetch", "--unshallow"], {
-      cwd: root,
-      stdio: ["ignore", "ignore", "pipe"],
-    });
+    shallow = git(root, ["rev-parse", "--is-shallow-repository"]);
   } catch {
-    /* a full local checkout has nothing to fetch */
+    historyReady = true;
+    return;
   }
+  if (shallow !== "true") {
+    historyReady = true;
+    return;
+  }
+  try {
+    git(root, ["fetch", "--unshallow"]);
+  } catch {
+    throw new Error("Sitemap dates need the full git history, and unshallow failed.");
+  }
+  let still = "true";
+  try {
+    still = git(root, ["rev-parse", "--is-shallow-repository"]);
+  } catch {
+    still = "true";
+  }
+  if (still === "true") {
+    throw new Error("Sitemap dates need the full git history. The checkout is still shallow.");
+  }
+  historyReady = true;
 }
 
 export function gitDate(root, relativePath) {
