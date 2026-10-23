@@ -969,6 +969,22 @@ export const techniques = [
     ],
   },
   {
+    slug: "unique-rectangle",
+    name: "Unique rectangle",
+    description:
+      "Three corners of a rectangle hold two digits, so those digits leave the fourth. Unique rectangles on Expert puzzles.",
+    level: "Expert",
+    play: "expert",
+    order: 92,
+    related: ["swordfish", "xy-wing"],
+    when: "Unique rectangles are Expert. They come after the swordfish and before coloring.",
+    nyt: "The 1,483 archived NYT puzzles never need a unique rectangle. Their hardest steps stop at triples.",
+    paragraphs: [
+      "A unique rectangle is four cells in two rows, two columns, and two boxes. Three of the corners hold the same two digits and nothing else. The fourth holds those two plus at least one more.",
+      "If the fourth corner were only those two digits, the rectangle could flip and the puzzle would have two solutions. It does not. Those two digits come out of the fourth corner.",
+    ],
+  },
+  {
     slug: "coloring",
     name: "Simple coloring",
     description:

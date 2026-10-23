@@ -32,6 +32,7 @@ const SOLVER_ORDER = [
   "xyz-wing",
   "w-wing",
   "swordfish",
+  "unique-rectangle",
   "coloring",
   "xy-chain",
 ];
@@ -48,9 +49,8 @@ for (let i = 0; i < ordered.length - 1; i += 1) {
 }
 assert.equal(nextTechnique(ordered[ordered.length - 1]), null);
 
-const rectangle = { slug: "unique-rectangle", name: "Unique rectangle", order: 92, related: [] };
 const bug = { slug: "bug-plus-one", name: "BUG+1", order: 94, related: [] };
-const slotted = orderedTechniques([...techniques, bug, rectangle]);
+const slotted = orderedTechniques([...techniques, bug]);
 const slottedSlugs = slotted.map((technique) => technique.slug);
 function follows(before, after) {
   assert.equal(slottedSlugs[slottedSlugs.indexOf(before) + 1], after, `${before} -> ${after}`);
@@ -66,7 +66,7 @@ follows("unique-rectangle", "bug-plus-one");
 follows("bug-plus-one", "coloring");
 assert.equal(nextTechnique(techniques.find((technique) => technique.slug === "x-wing"), slotted).slug, "skyscraper");
 
-const EXPANDED = SOLVER_ORDER.filter((slug) => slug !== "w-wing");
+const EXPANDED = SOLVER_ORDER.filter((slug) => slug !== "w-wing" && slug !== "unique-rectangle");
 const bySlug = new Map(techniques.map((technique) => [technique.slug, technique]));
 
 function proseWords(technique) {
@@ -133,7 +133,7 @@ for (const file of ["assets/js/solver.js", "assets/js/pools.js", "assets/js/gene
 }
 
 const { SudokuSolver: solver, SudokuGenerator: generator, SudokuPools: pools } = context;
-const NEW = ["skyscraper", "two-string-kite", "xyz-wing", "w-wing"];
+const NEW = ["skyscraper", "two-string-kite", "xyz-wing", "w-wing", "unique-rectangle"];
 
 function sees(a, b) {
   const ar = Math.floor(a / 9);
@@ -274,6 +274,31 @@ function assertWwing(found) {
   assert.equal(step.explain.includes("\u2014"), false);
 }
 
+function assertRectangle(found) {
+  const step = found.step;
+  assert.equal(step.slug, "unique-rectangle");
+  assert.equal(step.pattern.length, 4);
+  const digits = [...new Set(step.eliminate.map((item) => item.digit))].sort((a, b) => a - b);
+  assert.equal(digits.length, 2);
+  const extra = step.pattern[3];
+  const corners = step.pattern.slice(0, 3);
+  const key = (index) => step.pencil[index].slice().sort((a, b) => a - b).join(",");
+  for (const index of corners) assert.equal(key(index), digits.join(","));
+  for (const digit of digits) assert.equal(step.pencil[extra].includes(digit), true);
+  assert.equal(step.pencil[extra].length > 2, true);
+  const rows = new Set(step.pattern.map((index) => Math.floor(index / 9)));
+  const cols = new Set(step.pattern.map((index) => index % 9));
+  assert.equal(rows.size, 2);
+  assert.equal(cols.size, 2);
+  const boxOf = (index) => Math.floor(Math.floor(index / 9) / 3) * 3 + Math.floor((index % 9) / 3);
+  assert.equal(new Set(step.pattern.map(boxOf)).size, 2);
+  for (const item of step.eliminate) {
+    assert.equal(item.index, extra);
+    assert.equal(digits.includes(item.digit), true);
+  }
+  assert.equal(step.explain.includes("\u2014"), false);
+}
+
 for (const slug of NEW) {
   const result = generator.generateForTechnique(slug, { seed: `technique-${slug}` });
   assert.equal(result.metadata.trainApproximate, undefined);
@@ -289,6 +314,20 @@ for (const slug of NEW) {
   if (slug === "two-string-kite") assertKite(found);
   if (slug === "xyz-wing") assertXyz(found);
   if (slug === "w-wing") assertWwing(found);
+  if (slug === "unique-rectangle") {
+    assertRectangle(found);
+    const loose = result.puzzle.slice();
+    for (let i = 0; i < 81; i += 1) {
+      if (!loose[i]) continue;
+      const saved = loose[i];
+      loose[i] = 0;
+      if (solver.countSolutions(loose, 2) > 1) break;
+      loose[i] = saved;
+    }
+    assert.equal(solver.countSolutions(loose, 2) > 1, true, "rectangle check has a second solution");
+    const looseGrade = solver.grade(loose, { metrics: false });
+    assert.equal((looseGrade.path || []).includes("unique-rectangle"), false, "a second solution blocks the rectangle");
+  }
 
   const broken = found.removed.concat([{ index: found.step.pattern[0], digit: found.step.eliminate[0].digit }]);
   const after = solver.explain(found.board, broken);
