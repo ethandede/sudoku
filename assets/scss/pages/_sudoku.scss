@@ -29,10 +29,10 @@
   --auto-on-selected: #4f4b46;
   --note-on-selected: var(--accent-color);
   --ghost-on-selected: #2c4558;
-  --card: #ffffff;
+  --card: #fbfaf8;
   --page: #f4f6f8;
   --accent-btn: var(--accent-color);
-  --accent-on: #ffffff;
+  --accent-on: #fbfaf8;
   --focus: var(--accent-color);
   --danger: #b00016;
   --hint-pattern: #0b6e5f;
@@ -1387,7 +1387,7 @@ kbd {
   padding: 0 1rem;
   border-radius: 0.6rem;
   background: var(--accent-btn, var(--accent-color));
-  color: var(--accent-on, #fff);
+  color: var(--accent-on, #fbfaf8);
   text-decoration: none;
 }
 

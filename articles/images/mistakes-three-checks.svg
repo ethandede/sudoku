@@ -14,7 +14,7 @@
       <path d="M96 0 V304 M192 0 V304 M0 96 H304 M0 192 H304"/>
     </g>
     <circle cx="176" cy="144" r="12" fill="#0c4f86"/>
-    <text x="176" y="149" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#fff">5</text>
+    <text x="176" y="149" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#fbfaf8">5</text>
   </g>
   <g font-family="sans-serif" fill="#1f4d63">
     <text x="360" y="90" font-size="22" font-weight="700">Check all three</text>

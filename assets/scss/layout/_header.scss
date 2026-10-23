@@ -1,7 +1,7 @@
 @use "../abstracts/variables" as vars;
 
 .site-header {
-  background-color: #fff;
+  background-color: #fbfaf8;
   background-image: radial-gradient(rgba(12, 79, 134, 0.18) 1px, transparent 1.15px);
   background-size: 16px 16px;
   border-bottom: 2px solid #0c4f86;
@@ -155,7 +155,7 @@
           position: absolute;
           top: 100%;
           left: 0;
-          background: white;
+          background: #fbfaf8;
           border: 1px solid #d5dbe2;
           box-shadow: none;
           border-radius: 8px;
@@ -214,7 +214,7 @@
       top: 100%;
       left: 0;
       right: 0;
-      background: white;
+      background: #fbfaf8;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       max-height: 0;
       overflow: hidden;

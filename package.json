@@ -26,6 +26,7 @@
     "test:techniques": "node scripts/test-techniques.mjs",
     "test:finish": "node scripts/test-finish-save.mjs",
     "test:brand": "node scripts/test-brand.mjs",
+    "test:white": "node scripts/test-no-white.mjs",
     "test:motion": "node scripts/test-motion.mjs",
     "test:stats-page": "node scripts/test-stats-page.mjs",
     "test:home": "node scripts/test-home-copy.mjs",

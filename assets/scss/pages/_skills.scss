@@ -1,11 +1,11 @@
 .skills-page {
   --ink: #1e232b;
   --muted: #5c6670;
-  --card: #ffffff;
+  --card: #fbfaf8;
   --page: #f4f6f8;
   --line: #d5dbe2;
   --accent: var(--accent-color);
-  --accent-ink: #ffffff;
+  --accent-ink: #fbfaf8;
   --pad: #eef1f4;
   --pad-ink: #1e232b;
   --learning: #1e232b;
@@ -13,10 +13,10 @@
   --comfort: #0b6e5f;
   --comfort-bg: #d7f3ec;
   --master: var(--accent-color);
-  --master-bg: color-mix(in srgb, var(--accent-color) 16%, #ffffff);
+  --master-bg: color-mix(in srgb, var(--accent-color) 16%, #fbfaf8);
   --locked: #5c6670;
   --locked-bg: #e7ebf0;
-  --next: color-mix(in srgb, var(--accent-color) 8%, #ffffff);
+  --next: color-mix(in srgb, var(--accent-color) 8%, #fbfaf8);
 
   background: transparent;
   color: var(--ink);
@@ -368,7 +368,7 @@ html[data-theme="dark"] .skills-page {
   gap: 0.65rem;
   padding: 0.7rem 0.55rem 0.7rem 0.75rem;
   border-radius: 0.85rem;
-  background: #fff;
+  background: #fbfaf8;
   color: #2a313c;
   border: 1px solid #d3d9e0;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
