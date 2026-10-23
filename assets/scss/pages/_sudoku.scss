@@ -1849,6 +1849,12 @@ button:disabled {
     justify-content: center;
   }
 
+  // Centering is inside the column. The flex gap sits only under the board,
+  // so it would leave the lower gap about 6px larger than the upper one.
+  .play-surface {
+    gap: 0;
+  }
+
   .sudoku-copy h2 {
     font-size: 1.35rem;
   }
@@ -2059,6 +2065,19 @@ html.is-standalone {
 
 html.is-standalone:has(.sudoku-page) body {
   padding: 0;
+}
+
+@media (max-width: 720px) {
+  html .game-intro h1 {
+    font-size: clamp(14px, 3.9vw, 16px);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: 0;
+    color: var(--ink);
+    margin: 0;
+    padding: 8px 16px 2px;
+    white-space: normal;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -55,6 +55,11 @@ assert(sudokuScss.includes("--auto-ink: #4f4b46"), "light auto candidates use th
 assert(sudokuScss.includes("--auto-ink: #c4bfb8"), "dark auto candidates stay off the muted chrome");
 assert(sudokuScss.includes("--auto-on-selected: #ecebe8"), "selected auto candidates lighten in dark mode");
 assert(!sudokuScss.includes("#24303a") && !sudokuScss.includes("#2c4256") && !sudokuScss.includes("#355068"), "dark cell tints are no longer cool slate");
+const phoneHeading = sudokuScss.slice(sudokuScss.indexOf("html .game-intro h1"), sudokuScss.indexOf("html .game-intro h1") + 360);
+assert(phoneHeading.includes("font-size: clamp(14px, 3.9vw, 16px)"), "phone heading uses the tight clamp");
+assert(phoneHeading.includes("padding: 8px 16px 2px"), "phone heading uses the tight padding");
+assert(phoneHeading.includes("white-space: normal"), "phone heading keeps the default wrap");
+assert(!phoneHeading.includes("ellipsis") && !phoneHeading.includes("nowrap"), "phone heading is not truncated");
 
 function peerIndexes(index) {
   const row = Math.floor(index / 9);
@@ -1097,6 +1102,13 @@ await check("the phone keypad keys and mini-grid cells are square", async () => 
       const keys = [...document.querySelectorAll("#number-pad button, #erase-btn")].map(box);
       const cells = [...document.querySelectorAll("#number-pad .box-map i")].slice(0, 9).map(box);
       const footer = document.querySelector(".site-footer").getBoundingClientRect();
+      const h1 = document.querySelector(".game-intro h1");
+      const h1Style = getComputedStyle(h1);
+      const h1Box = h1.getBoundingClientRect();
+      const range = document.createRange();
+      range.selectNodeContents(h1);
+      const chrome = document.querySelector(".play-chrome").getBoundingClientRect();
+      const mode = document.querySelector(".mode-toggle").getBoundingClientRect();
       return {
         eraseBottom: erase.bottom,
         auxBottom: aux.bottom,
@@ -1113,7 +1125,24 @@ await check("the phone keypad keys and mini-grid cells are square", async () => 
         header: getComputedStyle(document.querySelector(".site-header")).display,
         intro: getComputedStyle(document.querySelector(".game-intro")).display,
         subhead: getComputedStyle(document.querySelector(".game-intro .supporting-text")).display,
-        h1: document.querySelector(".game-intro h1").getBoundingClientRect(),
+        h1: {
+          height: h1Box.height,
+          width: h1Box.width,
+          text: h1.textContent,
+          lines: range.getClientRects().length,
+          fontSize: h1Style.fontSize,
+          fontWeight: h1Style.fontWeight,
+          lineHeight: h1Style.lineHeight,
+          letterSpacing: h1Style.letterSpacing,
+          padding: h1Style.padding,
+          margin: h1Style.margin,
+          whiteSpace: h1Style.whiteSpace,
+          textOverflow: h1Style.textOverflow,
+          color: h1Style.color,
+          ink: getComputedStyle(document.querySelector(".sudoku-page")).color,
+        },
+        gapAbove: board.top - chrome.bottom,
+        gapBelow: mode.top - board.bottom,
         help: getComputedStyle(document.querySelector(".key-help")).display,
         padDisplay: getComputedStyle(document.querySelector("#number-pad")).display,
       };
@@ -1121,14 +1150,61 @@ await check("the phone keypad keys and mini-grid cells are square", async () => 
     assert(metrics.header === "none", `${width} hides the site header`);
     assert(metrics.intro !== "none", `${width} shows the heading`);
     assert(metrics.subhead === "none", `${width} hides the subhead`);
-    assert(metrics.h1.height > 0 && metrics.h1.height <= 28, `${width} heading is one line (${metrics.h1.height})`);
+    assert(metrics.h1.text === homeCopy.h1, `${width} heading words`);
+    assert(metrics.h1.lines === 1, `${width} heading is one line (${metrics.h1.lines}, ${metrics.h1.height})`);
+    assert(metrics.h1.height > 0 && metrics.h1.height <= 34, `${width} heading height is ${metrics.h1.height}`);
     assert(metrics.h1.width <= metrics.clientWidth + 1, `${width} heading stays on screen`);
+    assert(metrics.h1.fontWeight === "600", `${width} heading weight`);
+    assert(metrics.h1.letterSpacing === "0px" || metrics.h1.letterSpacing === "normal", `${width} heading tracking is ${metrics.h1.letterSpacing}`);
+    assert(metrics.h1.padding === "8px 16px 2px", `${width} heading padding`);
+    assert(metrics.h1.margin === "0px", `${width} heading margin`);
+    assert(metrics.h1.whiteSpace === "normal", `${width} heading can wrap`);
+    assert(metrics.h1.textOverflow === "clip", `${width} heading is not ellipsized`);
+    assert(metrics.h1.color === metrics.h1.ink, `${width} heading uses the ink color`);
+    const expectedSize = Math.min(16, Math.max(14, width * 0.039));
+    assert(Math.abs(parseFloat(metrics.h1.fontSize) - expectedSize) <= 0.2, `${width} heading size ${metrics.h1.fontSize}`);
+    assert(Math.abs(parseFloat(metrics.h1.lineHeight) - parseFloat(metrics.h1.fontSize) * 1.25) <= 0.2, `${width} heading line height`);
+    assert(Math.abs(metrics.gapAbove - metrics.gapBelow) <= 4, `${width} board gaps ${metrics.gapAbove.toFixed(2)} and ${metrics.gapBelow.toFixed(2)}`);
     assert(metrics.help === "none", `${width} hides the instructions`);
     assert(metrics.padDisplay === "contents", `${width} keeps the 5 by 2 pad`);
     assert(metrics.eraseBottom <= metrics.vh + 1, `${width} keypad bottom ${metrics.eraseBottom} is inside ${metrics.vh}`);
     assert(metrics.columnJustify === "center", `${width} centers the board in the column`);
     if (width === 390 && height === 844) {
       assert(metrics.keypadBottom <= 792, `${width} keypad bottom ${metrics.keypadBottom} is past 792`);
+      assert(Math.abs(metrics.h1.height - 26) <= 4, `390 heading height ${metrics.h1.height}px is about 26px`);
+      const dark = await page.evaluate(() => {
+        document.documentElement.dataset.theme = "dark";
+        const h1 = document.querySelector(".game-intro h1");
+        const style = getComputedStyle(h1);
+        const range = document.createRange();
+        range.selectNodeContents(h1);
+        const board = document.querySelector(".sudoku-grid").getBoundingClientRect();
+        const chrome = document.querySelector(".play-chrome").getBoundingClientRect();
+        const mode = document.querySelector(".mode-toggle").getBoundingClientRect();
+        const keys = [...document.querySelectorAll("#number-pad button, #erase-btn")].map((el) => {
+          const rect = el.getBoundingClientRect();
+          return { width: rect.width, height: rect.height, bottom: rect.bottom };
+        });
+        return {
+          lines: range.getClientRects().length,
+          text: h1.textContent,
+          color: style.color,
+          ink: getComputedStyle(document.querySelector(".sudoku-page")).color,
+          gapAbove: board.top - chrome.bottom,
+          gapBelow: mode.top - board.bottom,
+          keypadBottom: Math.max(...keys.map((key) => key.bottom)),
+          square: keys.every((key) => Math.abs(key.width - key.height) <= 1.5),
+        };
+      });
+      await page.evaluate(() => {
+        document.documentElement.dataset.theme = "light";
+      });
+      assert(dark.text === homeCopy.h1, "dark heading words");
+      assert(dark.lines === 1, "dark heading is one line");
+      assert(dark.color === dark.ink, `dark heading color ${dark.color} is not ink ${dark.ink}`);
+      assert(Math.abs(dark.gapAbove - dark.gapBelow) <= 4, `dark board gaps ${dark.gapAbove.toFixed(2)} and ${dark.gapBelow.toFixed(2)}`);
+      assert(dark.keypadBottom <= 792, `dark keypad bottom ${dark.keypadBottom} is past 792`);
+      assert(dark.square, "dark keys stay square");
     }
     assert(metrics.auxBottom <= metrics.vh + 1, `${width} controls bottom ${metrics.auxBottom} is inside ${metrics.vh}`);
     assert(metrics.vh - metrics.auxBottom <= 16, `${width} leaves ${metrics.vh - metrics.auxBottom}px under the controls`);
@@ -1167,6 +1243,8 @@ await check("the phone keypad keys and mini-grid cells are square", async () => 
     const board = document.querySelector(".sudoku-grid").getBoundingClientRect();
     const erase = document.querySelector("#erase-btn").getBoundingClientRect();
     const aux = document.querySelector(".aux-row").getBoundingClientRect();
+    const h1 = document.querySelector(".game-intro h1");
+    const h1Style = getComputedStyle(h1);
     return {
       boardRight: board.right,
       eraseLeft: erase.left,
@@ -1178,13 +1256,23 @@ await check("the phone keypad keys and mini-grid cells are square", async () => 
       header: getComputedStyle(document.querySelector(".site-header")).display,
       columnJustify: getComputedStyle(document.querySelector(".board-column")).justifyContent,
       subhead: getComputedStyle(document.querySelector(".game-intro .supporting-text")).display,
-      h1: document.querySelector(".game-intro h1").textContent,
+      h1: h1.textContent,
+      h1Weight: h1Style.fontWeight,
+      h1Spacing: h1Style.letterSpacing,
+      h1White: h1Style.whiteSpace,
+      h1Padding: h1Style.padding,
+      h1Size: parseFloat(h1Style.fontSize),
     };
   });
   assert(desktop.header === "none", "desktop uses the app header");
   assert(desktop.columnJustify === "flex-start", "desktop leaves the board at the top of its column");
   assert(desktop.subhead !== "none", "desktop shows the subhead");
   assert(desktop.h1 === homeCopy.h1, "desktop heading");
+  assert(desktop.h1Weight === "750", "desktop heading weight stays 750");
+  assert(parseFloat(desktop.h1Spacing) < 0, "desktop heading keeps its tracking");
+  assert(desktop.h1White === "nowrap", "desktop heading stays on one line");
+  assert(desktop.h1Padding === "0px", "desktop heading padding is unchanged");
+  assert(desktop.h1Size > 18, `desktop heading stays at ${desktop.h1Size}px`);
   assert(desktop.eraseLeft >= desktop.boardRight - 2, "desktop keypad sits beside the board");
   assert(desktop.eraseBottom <= desktop.vh + 1, "desktop keypad is inside the viewport");
   assert(desktop.auxBottom <= desktop.vh + 1, "desktop controls are inside the viewport");
