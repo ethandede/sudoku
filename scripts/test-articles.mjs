@@ -206,6 +206,10 @@ function visibleWords(text) {
 const about = readFileSync(new URL("../about-page-content.md", import.meta.url), "utf8");
 assert.match(about, /^Hi, I'm Ethan Ede\./);
 assert.match(about, /Teddy, chief puzzle supervisor\. Never once helpful\./);
+assert.match(about, /\/assets\/img\/teddy\/teddy\.svg/);
+assert.match(about, /red collar/);
+assert.equal(about.includes("anime style"), false);
+assert.equal(about.includes("teddy-256.webp"), false);
 assert.match(about, /\/contact\//);
 assert.match(about, /\/how-difficulty-works\//);
 assert.match(about, /\/techniques\//);
@@ -236,6 +240,16 @@ assert.equal(noLibrary.includes(HARD_LINK), true);
 
 const build = readFileSync(new URL("./build.mjs", import.meta.url), "utf8");
 assert.match(build, /"404.html"[\s\S]*?ads: false/);
+assert.match(build, /\/assets\/img\/teddy\/teddy\.svg/);
+assert.equal(build.includes("anime style"), false);
+assert.equal(build.includes("teddy-256.webp"), false);
+const teddy = readFileSync(new URL("../assets/img/teddy/teddy.svg", import.meta.url), "utf8");
+const teddyIcon = readFileSync(new URL("../assets/img/teddy/teddy-icon.svg", import.meta.url), "utf8");
+assert.equal(/#F4A0AE|#FFD24A|#FFB08C|#E98A9C/i.test(teddy + teddyIcon), false);
+assert.match(teddy, /#b00016/i);
+assert.match(teddyIcon, /#fbfaf8/i);
+assert.match(teddy, /#1A1A1A/);
+assert.match(teddy, /#A06A42/i);
 assert.match(build, /SudokuSudoku\. All rights reserved\./);
 assert.equal(build.includes("Sudoku Online"), false);
 assert.match(build, /articles\/fewest-and-most-sudoku-clues\.md/);
