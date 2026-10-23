@@ -365,6 +365,7 @@ ${scriptTag("/assets/js/sudoku.js")}
 ${skills ? scriptTag("/assets/js/skills.js") : ""}
 ${demo ? scriptTag("/assets/js/technique-demo.js") : ""}
 ${contact ? scriptTag("/assets/js/contact.js") : ""}
+${stats ? scriptTag("/assets/js/account-merge.js") : ""}
 ${stats ? scriptTag("/assets/js/progress.js") : ""}
 ${stats ? scriptTag("/assets/js/stats-page.js") : ""}
 ${houseClicks}${adPushes}${privacyChoiceScript}${webAnalyticsTag}</body>
@@ -1061,6 +1062,12 @@ publish(
         ${headerArt("stats")}
       </header>
       <div class="page-body">
+        <div id="your-games">
+          <section class="hint-block">
+            <h2>Your games</h2>
+            <p class="stats-empty">Loading your games.</p>
+          </section>
+        </div>
         <div id="your-hints">
           <section class="hint-block">
             <h2>Your hints</h2>
