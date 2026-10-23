@@ -1236,8 +1236,8 @@ button:disabled {
   line-height: 1.4;
 }
 
-// Placeholder ad boxes are gone. A future in-content unit is commented out
-// in src/game.html, below .sudoku-copy, and should reserve min-height: 280px.
+// The in-content unit sits below .sudoku-copy (outside .play-column) and is
+// 280px tall. House marks fills it until AdSense units are enabled.
 
 .sudoku-copy {
   max-width: 40rem;

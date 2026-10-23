@@ -17,7 +17,8 @@
     "test:cache": "node scripts/test-cache-bust.mjs",
     "test:update": "node scripts/test-update-banner.mjs",
     "test:hint": "node scripts/test-hint-apply.mjs",
-    "test:play": "node scripts/test-candidates.mjs"
+    "test:play": "node scripts/test-candidates.mjs",
+    "test:promos": "node scripts/test-promos.mjs"
   },
   "devDependencies": {
     "marked": "^15.0.12",
