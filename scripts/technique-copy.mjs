@@ -785,9 +785,59 @@ export const techniques = [
     related: ["x-wing", "two-string-kite"],
     when: "Skyscrapers are Expert. They sit with the fish and the wings, and a puzzle that needs one is not Mental.",
     nyt: "The 1,483 archived NYT puzzles never need a skyscraper. Their hardest steps stop at triples.",
-    paragraphs: [
-      "A skyscraper is two rows that each hold a digit in exactly two cells. One column is shared. The other two cells, the roof, sit in different columns. The shared column cannot be the digit twice, so at least one roof cell is the digit.",
-      "Any other cell that sees both roof cells loses the digit. Drawn the other way, two columns share a row and the roof runs across. It is the X-wing with one corner slid out of line.",
+    sections: [
+      {
+        h: "The fourth corner slid over",
+        p: [
+          "A skyscraper is two strong links on one digit that share one end and miss the other. On this board the digit is 5. Row 3 holds a 5 in exactly two cells, and row 8 holds a 5 in exactly two cells. Both rows use column 3. The other two cells, the roof, sit in column 7 and column 9. They do not line up.",
+          "An [X-wing](/techniques/x-wing/) would have wanted those free ends in the same column. They refused. The rectangle is still there if you let one corner wander, and the digit still has to live on that roof.",
+        ],
+      },
+      {
+        h: "Why one roof cell is 5",
+        p: [
+          "Column 3 can take the 5 only once. Row 3, column 3 and row 8, column 3 cannot both be 5, so at least one roof cell is the digit. If row 3, column 3 is not 5, then row 3, column 7 is 5. If row 8, column 3 is not 5, then row 8, column 9 is 5. The two base cells cannot fail together. One of the roofs has the 5, and a cell that sees both roofs sees it.",
+          "Turn the picture onto columns and the roof runs sideways. Two columns share a row, and the free ends sit in different rows. Same argument. I still find the row version first, and the column version only after I have talked myself out of a rectangle.",
+        ],
+      },
+      {
+        h: "What I actually scan",
+        ol: [
+          "Pick a digit that is down to two cells in a row, or in a column.",
+          "Find a parallel line with two cells of that digit, sharing exactly one crossing line.",
+          "The other two cells are the roof. If they share a crossing line as well, stop. That is an X-wing, and it clears a whole line.",
+          "Any other cell that sees both roof cells loses the digit. The four pattern cells keep it.",
+        ],
+      },
+      {
+        demo: true,
+        h: "Rows 3 and 8, the digit 5",
+        intro:
+          "Each of those rows has two 5s, and column 3 is the end that lines up. Step through. The 5 leaves two cells that see both roofs, and one of those cells becomes 1.",
+      },
+      {
+        h: "The four cells, then the two that pay",
+        p: [
+          "Row 3 is nearly placed. Row 3, column 1 is 3. Row 3, column 2 is 9. Row 3, column 4 is 2, row 3, column 5 is 4, row 3, column 8 is 6, and row 3, column 9 is 8. Three cells are still open. Row 3, column 3 can be 5 or 7. Row 3, column 6 can be 1 or 7, and it has no 5. Row 3, column 7 can be 1 or 5. Two homes: column 3 and column 7.",
+          "Row 8, column 1 is 1. Row 8, column 4 is 4 and row 8, column 7 is 9. The other open cells are row 8, column 2 (2, 7, or 8), row 8, column 5 (3 or 6), row 8, column 6 (3 or 6), and row 8, column 8 (2 or 8). None of them lists a 5. The 5s are row 8, column 3 (2, 5, or 7) and row 8, column 9 (2, 5, or 7).",
+          "The base is column 3. The roof is row 3, column 7 and row 8, column 9. Row 2, column 9 can be 1, 3, or 5. It shares box 3 with row 3, column 7, and it shares column 9 with row 8, column 9. The 5 leaves. 1 and 3 stay, and the cell is not solved.",
+          "Row 7, column 7 can be 1 or 5. It shares column 7 with row 3, column 7, and it shares box 9 with row 8, column 9. The 5 leaves, and 1 is the only mark left. The step places 1 in row 7, column 7.",
+        ],
+      },
+      {
+        h: "One roof is a near miss",
+        p: [
+          "The look-alike is the X-wing you almost had. Both free ends in one column, and you clear that column. Here column 7 and column 9 are different, so the deletion is not a whole line. Row 7, column 9 still lists 1, 4, and 5. It sees row 8, column 9, and it does not see row 3, column 7. One roof is not enough. The 5 stays.",
+          "The other miss is cleaning the base. Row 2, column 3 still lists 2, 5, and 6. It sits in the shared column, beside the pattern, and it does not see both roofs. I have deleted that 5 because the column looked used. The column is why the roofs work. The digit leaves the cells that see the roof, and the base cells keep their candidates.",
+        ],
+      },
+      {
+        h: "Just after the rectangle",
+        p: [
+          "Skyscrapers are Expert. On this site they sit after the X-wing and before the [two-string kite](/techniques/two-string-kite/). A puzzle that needs one is not Mental. The 1,483 archived NYT puzzles never need a skyscraper. Their hardest steps stop at triples.",
+          "I look for the rectangle first. When the fourth corner has slid into the next column, and each line really has only two cells, this is the step. A pointing pair inside one box is still cheaper when it is on the board. I take that before I go hunting roofs.",
+        ],
+      },
     ],
   },
   {
@@ -801,9 +851,49 @@ export const techniques = [
     related: ["skyscraper", "x-wing"],
     when: "Two-string kites are Expert, with skyscrapers and wings. Mental is still reserved for coloring and XY-chains.",
     nyt: "No puzzle in the NYT archive needs a two-string kite. That set never goes beyond triples.",
-    paragraphs: [
-      "A two-string kite is one digit with two strong links. A row has the digit in exactly two cells, and a column has it in exactly two other cells. One cell from the row and one from the column sit in the same box, so the links are tied.",
-      "The other two cells are the ends. One of those ends is the digit. A cell that sees both ends loses it.",
+    sections: [
+      {
+        h: "A row and a column, tied in one box",
+        p: [
+          "A two-string kite is one digit with two strong links that are not parallel. A row has the digit in exactly two cells. A column has it in exactly two other cells. One cell from the row and one from the column sit in the same box, and that box is the knot. The other two cells are the ends. One of those ends is the digit. A cell that sees both ends loses it.",
+          "On this board the digit is 8. Row 5 holds it in row 5, column 5 and row 5, column 7. Column 8 holds it in row 2, column 8 and row 6, column 8. Row 5, column 7 and row 6, column 8 are both in box 6. The ends are row 5, column 5 and row 2, column 8. The name is a lot of string for two lines and a box. The picture is simpler than the name.",
+        ],
+      },
+      {
+        h: "The houses, before the story",
+        p: [
+          "Row 5 is mostly filled. Row 5, column 1 is 3, row 5, column 3 is 4, row 5, column 4 is 7, row 5, column 8 is 6, and row 5, column 9 is 5. Row 5, column 2 can be 1 or 9. Row 5, column 6 can be 1 or 2. Neither lists an 8. The two homes are row 5, column 5, which can be 2, 8, or 9, and row 5, column 7, which can be 2 or 8.",
+          "Column 8 is the other string. Row 1, column 8 is 3. Row 4, column 8 is 4, row 5, column 8 is 6, and row 8, column 8 is 1. Row 3, column 8 can be 2 or 7. Row 7, column 8 and row 9, column 8 can each be 5 or 9. The only 8s left in the column are row 2, column 8 (2, 7, or 8) and row 6, column 8 (2 or 8).",
+        ],
+      },
+      {
+        h: "Why one end has to be 8",
+        p: [
+          "A box holds 8 once, so the two links cannot both put their 8 in box 6. If row 5, column 7 is 8, then row 6, column 8 is not, and column 8's 8 is row 2, column 8. If row 6, column 8 is 8, then row 5, column 7 is not, and row 5's 8 is row 5, column 5. One of the ends is 8. You never learn which.",
+          "Row 2, column 5 can be 2, 4, 6, 7, or 8. It shares row 2 with row 2, column 8, and it shares column 5 with row 5, column 5. Both ends. The 8 leaves. 2, 4, 6, and 7 stay. The step places nothing. A kite that only cleans one note is still a kite. I used to wait for a placement and miss the move.",
+        ],
+      },
+      {
+        demo: true,
+        h: "Row 5 meets column 8",
+        intro:
+          "The two 8s in the row and the two 8s in the column meet in box 6. Step through. One 8 leaves the cell that sees both ends.",
+      },
+      {
+        h: "Parallel lines are a different fish",
+        p: [
+          "A [skyscraper](/techniques/skyscraper/) uses two rows, or two columns. This uses one of each. If I catch myself checking whether the free ends share a column, I am still on the fish. The tie here is box 6, and the lines cross.",
+          "The deletion sits on the ends, not on the two cells that share the box. Row 5, column 7 and row 6, column 8 are the knot. They keep their 8s. Rubbing the 8 off either of them throws the link away.",
+          "A cell has to see both ends. Row 2, column 7 can be 1, 2, or 8. It sees row 2, column 8 along the row, and it does not see row 5, column 5. The 8 stays. One end is the near miss I still make, on a cell that shares a row with one end and nothing with the other. If it misses the second end, it is not this move.",
+        ],
+      },
+      {
+        h: "Expert, between the skyscraper and the wing",
+        p: [
+          "Two-string kites are Expert. They sit after the skyscraper and before the [XY-wing](/techniques/xy-wing/). Mental is still reserved for coloring and XY-chains. No puzzle in the NYT archive needs a two-string kite. That set never goes beyond triples.",
+          "I reach for it when one digit has a two-cell row and a two-cell column, and one cell from each falls in the same box. An [X-wing](/techniques/x-wing/) is the simpler fish when the two lines are parallel and the ends line up. I take that first, then the skyscraper, and the kite is what is left when the links refuse to be parallel.",
+        ],
+      },
     ],
   },
   {
@@ -817,9 +907,49 @@ export const techniques = [
     related: ["xy-wing", "naked-triple"],
     when: "XYZ-wings are Expert. They are the next step after an XY-wing, and they stay short of coloring and XY-chains.",
     nyt: "XYZ-wings do not appear in the 1,483 NYT puzzles. Hard stops at triples.",
-    paragraphs: [
-      "An XYZ-wing is an XY-wing with a busier pivot. The pivot has three candidates. Each wing has two, and each wing uses a different pair from the pivot. Both wings see the pivot. They do not have to see each other.",
-      "The digit the wings share has to sit in the pivot or in one of the wings. A cell that can see all three loses that digit.",
+    sections: [
+      {
+        h: "The pivot kept a third digit",
+        p: [
+          "An XYZ-wing is three cells. The pivot has three candidates. Each wing has two, and each wing uses a different pair drawn from the pivot. Both wings see the pivot. They do not have to see each other.",
+          "The [XY-wing](/techniques/xy-wing/) on this site has a pivot of two. Row 7, column 5 there was 6 or 9. Here the pivot is row 5, column 1, and it can be 1, 3, or 5. One wing is row 4, column 2, in the same box, and it can be 3 or 5. The other wing is row 8, column 1, down the column, and it can be 1 or 3. The wings share 3. The pivot can be 3 as well. That extra seat is the whole technique.",
+        ],
+      },
+      {
+        h: "Every story puts a 3 in the pattern",
+        p: [
+          "If the pivot is 1, row 8, column 1 cannot be 1, so that wing is 3. If the pivot is 5, row 4, column 2 cannot be 5, so that wing is 3. If the pivot is 3, the digit is already in row 5, column 1. The 3 lives in the pivot or in a wing. A cell that sees all three cannot be 3.",
+          "On an XY-wing the pivot cannot hold the digit the wings share, so the victim only has to see the wings. Here the pivot is allowed to be 3. A cell that misses the pivot can still be 3, on the story where the pivot takes it. I learned that by deleting the 3 and then watching the pivot want it.",
+        ],
+      },
+      {
+        demo: true,
+        h: "Three cells, and the middle one is busier",
+        intro:
+          "Row 5, column 1 is the pivot. It sees both wings, and the wings do not see each other. Step through. The 3 leaves the one cell that can see all three.",
+      },
+      {
+        h: "Who sees whom on this board",
+        p: [
+          "Row 4, column 2 sits in box 4 with the pivot. Row 5, column 2 is 2 and row 5, column 3 is 9, so the link is the box. Row 8, column 1 shares column 1 with row 5, column 1. Row 6, column 1 is already 8 and row 7, column 1 is 9, which is why the second wing is down in row 8 rather than next door.",
+          "Row 4, column 2 and row 8, column 1 are different rows, different columns, and different boxes. Box 4 and box 7. They do not see each other. The pivot is the cell that has to see both, and it does.",
+          "Row 4, column 1 can be 1, 3, 4, or 5. It sees row 5, column 1 down column 1 and inside box 4. It sees row 4, column 2 along the row. It sees row 8, column 1 down the same column. All three. The 3 leaves. 1, 4, and 5 stay. Nothing is placed.",
+        ],
+      },
+      {
+        h: "The cell that only sees the wings",
+        p: [
+          "Row 8, column 2 can be 3 or 8. It sees row 8, column 1 along the row, and it sees row 4, column 2 down column 2. Both wings. It does not see row 5, column 1. The pivot can still be 3, so row 8, column 2 keeps the 3. That is the XY-wing deletion on the wrong pattern. I have crossed it off, and then put it back.",
+          "A [naked triple](/techniques/naked-triple/) needs the three pattern cells in one house. These three are split. Row 8, column 1 is in box 7, and row 5, column 1 and row 4, column 2 are in box 4. The candidates together are 1, 3, and 5, which looks tidy on a list. The houses are what make it a wing.",
+        ],
+      },
+      {
+        h: "One step past the shorter wing",
+        p: [
+          "XYZ-wings are Expert. They come after the XY-wing and before the [swordfish](/techniques/swordfish/). They stay short of coloring and XY-chains. XYZ-wings do not appear in the 1,483 NYT puzzles. Hard stops at triples.",
+          "I look for one when a two-digit cell is touching a three-digit cell, and a second two-digit cell takes the pair that is left. Two candidates on the pivot means the shorter wing, and that page is the one to use. Three candidates on the pivot means the victim has to see all three cells, pivot included.",
+        ],
+      },
     ],
   },
   {
@@ -838,7 +968,7 @@ export const techniques = [
         h: "One digit, tied in pairs",
         p: [
           "Pick a digit. Wherever it has exactly two homes in a house, those two cells are tied. One of them is the digit and the other is not. Follow the ties and alternate a color. Two colors cover the chain. Simple coloring is that chain, plus one of two bad endings.",
-          "If two cells of the same color can see each other, that color is impossible, and every cell of that color loses the digit. The other ending does not break the chain at all. A cell outside it that sees both colors loses the digit, because one of the colors is real. The board below is that second ending. The chain is consistent. Row 2, column 9 is the problem.",
+          "If two cells of the same color can see each other, that color is impossible, and every cell of that color loses the digit. The other ending does not break the chain at all. A cell outside it that sees both colors loses the digit, because one of the colors is real. The board below is that second ending. The chain is consistent. Row 3, column 9 is the problem.",
         ],
       },
       {
@@ -856,24 +986,24 @@ export const techniques = [
       },
       {
         demo: true,
-        h: "The 5s, first color then second",
+        h: "The 8s, first color then second",
         intro:
-          "The highlighted cells are the chain. The board does not paint the two colors, so the alternation is written out under it. Step through. One 5 outside the chain leaves, and box 3 places a 5.",
+          "The highlighted cells are the chain. The board does not paint the two colors, so the alternation is written out under it. Step through. One 8 outside the chain leaves, and row 3, column 9 becomes 1.",
       },
       {
-        h: "Four cells, and one outsider",
+        h: "Twelve cells, and one outsider",
         p: [
-          "Column 1 has 5 in exactly two cells. Row 2, column 1 can be 2, 5, or 6. Row 7, column 1 can be 4, 5, 6, or 8. Call row 2, column 1 the first color. Row 7, column 1 is the second.",
-          "Box 7 also has 5 in exactly two cells: row 7, column 1 and row 8, column 3. The first of those is already the second color, so row 8, column 3 (2, 5, or 7) takes the first color. Row 8 has 5 in row 8, column 3 and row 8, column 9 (2, 5, or 7). Row 8, column 9 takes the second color.",
-          "First color: row 2, column 1 and row 8, column 3. They do not see each other. Second color: row 7, column 1 and row 8, column 9. They do not see each other either. The chain is not fighting itself.",
-          "Row 2, column 9 can be 1, 3, or 5. It sees row 2, column 1, the first color, and row 8, column 9, the second color. It loses 5. Box 3 had two homes left for 5, this cell and row 3, column 7. Row 3, column 7 can be 1 or 5. The other home is gone, so the step places 5 in row 3, column 7.",
+          "Call row 1, column 3 the first color. It can be 4 or 8. Row 1 has two 8s, column 3 has two 8s, and box 1 has two 8s, so three partners take the second color: row 1, column 7 (2 or 8) along the row, row 9, column 3 (1 or 8) down the column, and row 3, column 2 (5 or 8) in the box.",
+          "The rest of the first color is row 9, column 4 (1 or 8), row 8, column 2 (3 or 8), row 4, column 5 (2, 3, or 8), row 7, column 9 (1, 2, 5, or 8), and row 5, column 8 (1 or 8). The rest of the second color is row 4, column 4 (2 or 8), row 7, column 5 (1 or 8), and row 8, column 8 (1 or 8).",
+          "Row 9, column 4 shares row 9 with row 9, column 3, so it flips off that second-color cell. Row 8, column 2 shares box 7 with row 9, column 3 and column 2 with row 3, column 2. Both ties give it the first color. Row 4, column 4 shares column 4 with row 9, column 4. Row 4, column 5 shares row 4 and box 5 with row 4, column 4. Row 7, column 5 shares column 5 with row 4, column 5, and box 8 with row 9, column 4. Row 7, column 9 shares row 7 with row 7, column 5. Row 8, column 8 shares box 9 with row 7, column 9 and row 8 with row 8, column 2. Row 5, column 8 shares column 8 with row 8, column 8. Where a cell is reached twice, the color agrees.",
+          "Row 3, column 9 can be 1 or 8. It sees row 1, column 7 in box 3 and row 3, column 2 along the row, both the second color. It sees row 7, column 9 down column 9, the first color. The 8 leaves, and the step places 1 in row 3, column 9.",
         ],
       },
       {
         h: "I flip a color and the rest is fiction",
         p: [
-          "Four cells is about as far as I can hold without writing the colors down. One flipped link and every deletion after it is junk. If you cannot name a cell's color, mark it before you delete anything.",
-          "This board does not have the same-color crash. Do not delete 5 from row 2, column 1 because an outside cell got involved. The outside cell is the one that loses the digit. The chain stays. Coloring also follows a single digit the whole way. An [XY-chain](/techniques/xy-chain/) changes digit at every step. If your link suddenly involves a 6, you have left coloring.",
+          "Twelve cells is past what I hold without writing the colors down. One flipped link and every deletion after it is junk. If you cannot name a cell's color, mark it before you delete anything.",
+          "This board does not have the same-color crash. Row 3, column 7 still lists 1, 2, and 8. It sees the second color, in row 1, column 7 and in row 3, column 2, and it sees none of the first color. The 8 stays. The cell that sees both colors is the one that loses the digit. The chain stays. Coloring follows a single digit the whole way. An [XY-chain](/techniques/xy-chain/) changes digit at every step. If your link suddenly involves a 6, you have left coloring.",
         ],
       },
       {
