@@ -1,354 +1,103 @@
-# 7 Common Sudoku Mistakes (And How to Fix Them)
+# Sudoku mistakes I still make
 
-**Meta Description:** Seven Sudoku mistakes that create a contradiction later, and what to check instead.
+**Meta Description:** Sudoku mistakes I still make: skipping the box, a misread 6, notes left behind by a wrong digit, and a guess in a cell that still has two candidates.
+
+**Keywords:** sudoku mistakes, notes, checking a placement
 
 ---
 
 ![A digit checked against its row, column, and box.](/articles/images/mistakes-three-checks.svg "640x360")
 
-## Introduction
+I still get a grid that goes dead. Nothing left fits. I sit there blaming the puzzle, then find a 6 I placed about twenty moves earlier. The 6 was never legal. I had checked the row and the column and felt done. The box already had a 6. I would like to say I only did this as a beginner. I still do it.
 
-You're halfway through a Sudoku puzzle, feeling confident, when suddenly nothing fits. You've hit a wall. After 20 minutes of frustration, you discover a mistake from 10 moves ago, and now you have to start over.
+These are the ones I actually hit. Each of them makes a later cell look impossible, and the later cell is usually fine.
 
-Sound familiar?
+## Skipping the box
 
-**You're not alone.** Even experienced Sudoku players make these mistakes. The good news? Once you learn to recognize and avoid them, your solving speed and accuracy will improve dramatically.
+The rule is short. A digit can go in a cell when its row, its column, and its box do not already contain it. I wrote that up, with a 4×4 and a full Easy, in [how to play Sudoku](/articles/beginners-guide/). The mistake is dropping the third check when you are moving fast.
 
-In this article, we'll cover the 7 most common Sudoku mistakes, show you exactly what they look like, and give you practical strategies to fix them.
+This board was generated here. 38 clues, one solution, and the grader never has to leave singles. You can follow the cell below on the starting grid. Nothing else has to be filled in first.
 
----
-
-## Mistake #1: Forgetting to Check All Three Constraints
-
-### The Problem
-
-This is THE most common mistake beginners make. You find an empty cell, see that the number isn't in the row or column, and immediately fill it in, forgetting to check if it's already in the 3x3 box.
-
-### What It Looks Like
-
-**Example:**
 ```
-Box 1 (top-left):
-+-------+
-| 5 3 _ |
-| 6 _ _ |
-| _ 9 8 |
-+-------+
++-------+-------+-------+
+| 8 2 . | . 9 6 | 3 . . |
+| . . 1 | . . 7 | . . . |
+| 9 . 3 | 1 4 2 | 5 . . |
++-------+-------+-------+
+| 4 3 . | 7 . . | 2 . . |
+| 7 . . | . 3 5 | 1 . . |
+| . . . | 9 2 . | 8 . . |
++-------+-------+-------+
+| . . . | 4 5 . | 6 . 3 |
+| 3 1 . | . . 9 | 4 8 2 |
+| . . 4 | . . 3 | 7 . 9 |
++-------+-------+-------+
 ```
 
-You want to place a 6 in row 1, column 3. You check:
-- ✓ Row 1 doesn't have a 6
-- ✓ Column 3 doesn't have a 6
-- ✗ **WAIT!** Box 1 already has a 6 in row 2, column 1
+Look at row 2, column 5. Empty. It is in the top-middle box, with row 1, column 6.
 
-**Result:** The 6 you just placed is invalid, and every subsequent move built on that mistake is also wrong.
+Row 2 already has 1 and 7. Column 5 already has 9 (row 1), 4 (row 3), 3 (row 5), 2 (row 6), and 5 (row 7). The box already has 9, 6, 7, 1, 4, and 2.
 
-### The Fix
+Put those together and eight digits are spoken for: 1, 2, 3, 4, 5, 6, 7, and 9. The cell is 8. One cell, one digit. That is a [naked single](/techniques/naked-single/).
 
-**Use the "Triple-Check Method":**
+Now the bad version, which is the one I play. Ask only whether 6 can go there. Row 2 has no 6. Column 5 has no 6. So 6 looks open. It is not open. Row 1, column 6 is a 6, and that given sits in the same box. Place the 6 and every later digit is being asked to survive a board that already broke.
 
-Every time you place a number, verify it against ALL three constraints:
+The 8 was there the whole time. The box was the difference between a single and a mess.
 
-1. **Scan the entire ROW** (left to right)
-2. **Scan the entire COLUMN** (top to bottom)
-3. **Scan the entire 3x3 BOX** (visually trace the box boundaries)
+On this site the selected cell highlights its row, its column, and its box. That highlight is on by default. I still walk past it. Saying the three checks is slower than trusting my eyes, and the eyes are the problem. [Practice a naked single](/?practice=naked-single) if you want a pile of these with the earlier steps filled in.
 
-**Pro Tip:** Say it out loud or in your head: "Row clear, column clear, box clear." This verbal check engages a different part of your brain and catches errors you might otherwise miss.
+## Reading a 6 as something else
 
----
+Same board, same given. Row 1, column 6 is a 6. Read it as an 8 and the story flips.
 
-## Mistake #2: Rushing and Misreading Numbers
+You now think the box already has an 8, so row 2, column 5 cannot be 8. You also think the box has no 6. The row has no 6 and the column has no 6, so 6 becomes the digit you place. The real single was 8. The misread handed you the trap from the last section and hid the answer at the same time.
 
-### The Problem
+6 and 8 do this to me. So do 1 and 7, on a small phone, late. The fix is dull. When a region feels tighter than the level should be, I go back to the givens in that box and read the ink, not the digit I expected. A given does not move. If my story needs a given to be a different number, the story is wrong.
 
-You're in the zone, solving quickly, when you accidentally read a 6 as an 8 or miss that a 3 is already in the row. This simple misreading cascades into multiple errors.
+The site will mark a conflict once two of the same digit share a house, if that highlight is on. It will not catch a given you misread before you have placed the duplicate. The misread feels like a hard puzzle. It is a reading error. I have burned a Hint on one of these and felt ridiculous when the hint pointed at a cell I had simply misread.
 
-### What It Looks Like
-
-**Real-world scenario:**
-```
-Row 5: [4 _ _ 8 _ 3 _ _ 1]
-```
-
-You think: "I need to find where 6 goes," but you misread the 8 as a 6, so you skip checking column 4. Later, you place a 6 in that column, creating a duplicate.
-
-### The Fix
-
-**Slow Down at Critical Moments:**
-
-- After placing 5-10 numbers, PAUSE and review what you've written
-- When scanning for a specific number, point your finger or cursor at each occurrence to avoid missing any
-- If a puzzle feels unusually hard, check for misread numbers. It's probably a simple transcription error
-
-**Use Visual Aids:**
-
-- Highlight or circle all instances of the number you're currently working with
-- Use different colors for pencil marks vs. confirmed numbers
-- On paper: Use a ruler to scan rows/columns without your eyes jumping
-
----
-
-## Mistake #3: Overusing (or Underusing) Pencil Marks
+## Notes that stayed, or notes that left
 
 ![A cell whose remaining notes are 2, 5, and 8.](/articles/images/mistakes-notes.svg "640x360")
 
-### The Problem
+Pencil marks are how you remember a cell that is not a single yet. They are also a second grid you can lie to.
 
-**Scenario A:** You fill EVERY empty cell with ALL possible candidates (pencil marks). Your puzzle looks like a mess of tiny numbers, and you're overwhelmed.
+On paper I do both extremes. Some days every empty cell wears six tiny digits and I cannot see a single if it waves. Some days I keep it all in my head and then forget which cell was 3 or 7. What works for me is narrower. I write notes when a cell is down to two or three digits. I skip the cells that still have a crowd. Then I actually look at the pairs.
 
-**Scenario B:** You never use pencil marks, relying entirely on memory. You keep forgetting which cells could be 2 or 7, forcing you to re-scan repeatedly.
+The N key toggles notes. In that mode, keys 1 through 9 add or remove a candidate in the selected cell. Auto Candidate Mode, under the pad, fills every empty cell from the rules. It is off until you turn it on. Those notes are computed, so they follow the board. They cannot go stale on their own. Handwritten notes can, and a wrong placement makes a special mess of them.
 
-### What It Looks Like
+Here is the part that bit me on this site. When you place a digit, the game removes it from your notes in that row, column, and box. It does this even when the digit is wrong. The notes are now consistent with a bad board. A candidate that was legal is gone, because the wrong digit "used it up." If you keep solving from those notes, they will argue for the mistake.
 
-**Too Many Pencil Marks:**
-```
-Every empty cell looks like this:
-+-------+
-| 2 4 6 |
-| 7 8 9 |
-+-------+
-```
-Result: You can't see the forest for the trees.
+Erase is not the repair. Erase clears the cell. The mistake count stays, and the notes that were stripped stay stripped. Undo puts the entry back, puts the notes back, and rolls the mistake count back with that entry. If you erased first, one Undo restores the wrong digit. Undo again to take the placement itself off. I lost a puzzle by erasing, nodding at the clean cell, and trusting notes that still believed the error.
 
-**Too Few Pencil Marks:**
-You remember a cell could be 3 or 7, solve 10 other cells, then forget which numbers were possibilities and have to re-analyze.
+If Check guesses as you go is on, a wrong entry also counts. That setting is on by default, and the counter shows it. Four wrong entries and the puzzle stops. The screen says too many mistakes. Undo from that screen still rolls one back. You can turn the check off. Then there is no limit, which sounds friendly until a wrong digit sits there unmarked and the notes rearrange around it. I leave the check on.
 
-### The Fix
+## Guessing while a single is still there
 
-**Use Pencil Marks Strategically:**
+A guess is a digit you place in a cell that still has two or more legal candidates, because you are tired of looking.
 
-**✓ DO mark candidates:**
-- In cells you're actively analyzing
-- When a cell has only 2-3 possibilities
-- In difficult sections where you'll return later
+On the board above, row 2, column 1 can be 5 or 6. Both fit that row, that column, and that box on the starting grid. The 6 at row 1, column 6 is a different box, so it does not block this cell. The solution is 5. Place a 6 and the puzzle no longer has a solution. You will not feel that at the cell. You will feel it later, when some other cell has nowhere to go.
 
-**✗ DON'T mark candidates:**
-- In every single cell at the start
-- When a cell has 5+ possibilities (too many to be useful)
-- In easy sections you'll solve quickly
+That is the annoying shape. The guess was legal where you put it. The digits after it can all be legal given the guess. The contradiction is downstream. Unwinding twenty placements by hand is a bad afternoon. Undo is faster, if I notice before I have stacked a lot of them.
 
-**The "Work-in-Progress" Method:**
-Only pencil-mark cells in the region you're currently solving. Once that section is done, move to the next and mark those cells. This keeps your puzzle clean and focused.
+Before I guess, I want a pass that could have found a single. One digit at a time, 1 through 9. For each digit, every row, every column, every box. A [hidden single](/techniques/hidden-single/) is a digit with one home in a house, even when that cell still shows another candidate. Naked singles are the cells with one candidate left. If either one exists, the guess can wait. [Practice a hidden single](/?practice=hidden-single) if that pass is the part that slips.
 
----
+If the pass is actually empty, you are off singles. Easy on this site stops at singles. [Not Easy](/?difficulty=not-easy) is where pointing or claiming shows up. Hard asks for a pair or a triple. Guessing there still does not teach the move. The hint names the technique, shows the cells, then shows the placement. I would rather take the name and open the page than bury a guess under a finished-looking grid. The names live in the [technique library](/techniques/). How those names become a level is [how difficulty works](/how-difficulty-works/).
 
-## Mistake #4: Not Updating Pencil Marks After Placing Numbers
+## A grid that has already broken
 
-### The Problem
+Sometimes the mistake is not the cell in front of you. It is that you are still playing.
 
-You place a number but forget to erase that candidate from other cells in the same row, column, and box. This leaves "ghost candidates" that mislead you later.
+Two signs. The same digit twice in a row, a column, or a box. Or a cell whose candidates are gone, while the cell is still empty. Both mean an earlier placement cannot stay. A new technique will not rescue it. I have invented some very creative logic to avoid walking backwards. None of it was logic.
 
-### What It Looks Like
+Stop. Check the last few digits you were sure about, then the ones you were not. On this site, Undo is the walk back. If the counter already moved, that entry was wrong at the time, even if Erase has since cleaned the ink.
 
-**Example:**
-```
-You place a 5 in row 3, column 4.
-But you forget to erase 5 from your pencil marks in row 3, column 7:
-Cell at (3, 7) still shows: [5, 8]
-```
+Then I look at the givens in the box where it broke. Misreads hide there. So do skipped boxes. The [beginner's board](/articles/beginners-guide/) has the same shape as the 6 in this article: a 5 that looks fine in a row and a column, and is already sitting in the box.
 
-Later, you try to place another 5 in the same row because your pencil mark told you it was possible. Error!
+## What I do on the next one
 
-### The Fix
+I pick a cell. I check the row, the column, and the box, in that order, out loud if the room is empty. If more than one digit fits, I note them or I leave the cell. I do not spend it.
 
-**Immediate Update Rule:**
+When I am stuck I run one digit across the whole grid before I change digits. If that finds nothing, I take a hint and I read the name of the move before I let it place anything. Then I play another puzzle and try to spot that move myself.
 
-Every time you place a number, IMMEDIATELY:
-1. Cross out that number from all pencil marks in the same ROW
-2. Cross out that number from all pencil marks in the same COLUMN
-3. Cross out that number from all pencil marks in the same BOX
-
-**Digital Advantage:** Online Sudoku games often have "auto-eliminate" features that remove candidates automatically. Use this feature, especially when learning!
-
-**Checklist After Each Number:**
-"I just placed a 7. Let me erase 7 from all affected cells."
-
----
-
-## Mistake #5: Giving Up When Stuck (Instead of Taking a Systematic Approach)
-
-### The Problem
-
-You're stuck. You scan the puzzle 10 times and don't see any obvious moves. Frustrated, you either:
-- Start guessing (bad!)
-- Quit and start a new puzzle (learning nothing)
-- Stare at it for 30 minutes, getting more frustrated
-
-### What It Looks Like
-
-You've filled 60 of 81 cells, and the remaining 21 cells all seem equally impossible. You keep scanning the same rows repeatedly, seeing nothing new.
-
-### The Fix
-
-**The Systematic Reset Method:**
-
-When stuck, follow this exact process:
-
-**Step 1: Take a 5-Minute Break**
-Walk away from the puzzle. Get water, stretch, or look at something else. Your subconscious keeps working, and you'll often see the solution immediately when you return.
-
-**Step 2: Start Fresh with a System**
-Don't randomly scan. Instead:
-- Pick ONE number (e.g., 1) and scan the ENTIRE grid systematically (every row, column, box)
-- Move to the next number (2) and repeat
-- Continue through all 9 numbers
-
-**Step 3: Look for Hidden Singles**
-A "hidden single" is when a number can only go in one cell within a row, column, or box, even if that cell has multiple candidates.
-
-Example:
-```
-Box 5 (center) needs a 9.
-Looking at all empty cells in Box 5, only ONE cell doesn't have a 9 ruled out by row/column constraints.
-That cell MUST be 9, even if it could also be 3 or 6.
-```
-
-**Step 4: Audit Your Pencil Marks**
-Go through your pencil marks and verify they're still correct. You might have missed updating one earlier.
-
-**Step 5: Check for Errors**
-Before continuing, verify your last 10-15 placements. A single early mistake can make everything else impossible.
-
----
-
-## Mistake #6: Guessing Instead of Using Logic
-
-### The Problem
-
-You have a cell that could be 4 or 9. You don't see a logical way to determine which, so you guess 4 and continue solving. If it works, great! If not, you'll find out later when the puzzle becomes impossible.
-
-**Why This Is Bad:**
-- It defeats the purpose of Sudoku (which is a logic puzzle)
-- You don't learn proper techniques
-- Backtracking is frustrating and time-consuming
-
-### What It Looks Like
-
-**The "I'll Try This and See" Approach:**
-
-You think: "I'll put 4 here. If it's wrong, I'll erase it later."
-
-Problem: "Later" might be 20 moves from now, after you've built a complex chain of deductions on that wrong guess. Unwinding it is painful.
-
-### The Fix
-
-**Rule #1: Every Sudoku Puzzle Has a Logical Solution**
-
-If you can't find the next move, it's not because guessing is required. It's because you haven't looked carefully enough.
-
-**Use These Advanced Logic Techniques:**
-
-1. **Naked Pairs:** If two cells in a row both can only be [4, 9], then 4 and 9 can't appear anywhere else in that row.
-
-2. **Hidden Pairs:** If only two cells in a column can contain 6 or 8, then those cells must be 6 and 8 (even if they have other candidates too).
-
-3. **Pointing Pairs:** If a number can only appear in one row within a box, you can eliminate that number from the rest of that row outside the box.
-
-4. **X-Wing:** Advanced pattern where a number forms a rectangular pattern, allowing eliminations.
-
-**Pro Tip:** If you're genuinely stuck and have exhausted all logical techniques, consult a hint system or solution. Learn WHY you were stuck, so you can recognize that pattern next time.
-
----
-
-## Mistake #7: Not Reviewing Solved Puzzles
-
-### The Problem
-
-You finish a puzzle (or give up halfway) and immediately start a new one, never analyzing what went wrong or what patterns you could have spotted earlier.
-
-### What It Looks Like
-
-You repeatedly make the same mistakes because you never identified them. Your solving time doesn't improve, and difficult puzzles stay difficult.
-
-### The Fix
-
-**Post-Puzzle Analysis (5 Minutes):**
-
-After completing (or abandoning) a puzzle, spend 5 minutes reviewing:
-
-**Questions to Ask:**
-1. Where did I get stuck?
-2. What technique finally broke through?
-3. Looking back, could I have spotted that move earlier?
-4. Did I make any errors that cascaded into bigger problems?
-5. What's one thing I learned from this puzzle?
-
-**Track Your Progress:**
-Keep a simple log:
-- Date
-- Difficulty level
-- Time to complete
-- Mistakes made
-- New techniques learned
-
-Over time, you'll see patterns: "I always struggle with Box 8" or "I forget to check columns." Once you're aware, you can focus on those weaknesses.
-
-**Use Online Puzzle Analyzers:**
-Many Sudoku websites offer "hint" or "explain" features that show you the logical next step. Use these as teaching tools, not crutches.
-
----
-
-## Self-Diagnosis Quiz: Which Mistakes Are You Making?
-
-**Answer these questions honestly:**
-
-1. Do you ever place a number and later find a duplicate in the same row/column/box? → **Mistake #1**
-
-2. Do you sometimes misread numbers and confuse 6 with 8, or 1 with 7? → **Mistake #2**
-
-3. Is your puzzle covered in messy pencil marks, or do you refuse to use them at all? → **Mistake #3**
-
-4. Do your pencil marks still show numbers that you've already placed elsewhere? → **Mistake #4**
-
-5. Do you get stuck and keep scanning the same areas without a system? → **Mistake #5**
-
-6. Do you ever think, "I'll just try this number and see what happens"? → **Mistake #6**
-
-7. Do you immediately start a new puzzle after finishing one without reflecting? → **Mistake #7**
-
-**Your Action Plan:**
-Focus on fixing the 2-3 mistakes you identified above in your next 10 puzzles. Don't try to fix everything at once.
-
----
-
-## Summary: Your Error-Prevention Checklist
-
-### Before Placing Any Number:
-- [ ] Is this number already in the row?
-- [ ] Is this number already in the column?
-- [ ] Is this number already in the 3x3 box?
-
-### After Placing A Number:
-- [ ] Update pencil marks in the affected row
-- [ ] Update pencil marks in the affected column
-- [ ] Update pencil marks in the affected box
-
-### When Stuck:
-- [ ] Take a 5-minute break
-- [ ] Systematically scan each number (1-9)
-- [ ] Check for hidden singles
-- [ ] Review pencil marks for errors
-- [ ] Verify recent placements for mistakes
-
-### After Completing:
-- [ ] Reflect on what worked
-- [ ] Identify where you struggled
-- [ ] Note new patterns learned
-
----
-
-## Conclusion
-
-Every Sudoku master was once a beginner who made these exact mistakes. The difference? They learned to recognize and fix them.
-
-Start with Mistake #1 (checking the row, the column, and the box) and Mistake #5 (a systematic scan when you are stuck). Those two are the ones that usually create the contradiction you find twenty moves later.
-
-Making a wrong entry is part of learning the pattern. The useful part is noticing it before the rest of the grid depends on it.
-
----
-
-**Related:**
-- [How to play Sudoku](/articles/beginners-guide/)
-- [Technique library](/techniques/)
-
-**Keywords:** sudoku mistakes, notes, checking a placement
+[An Easy](/?difficulty=easy) is the right place to practice the box check. The board in this article is one of those. The contradiction you find twenty moves later is almost always one of the mistakes above, sitting there, looking like a hard puzzle.
