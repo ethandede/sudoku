@@ -137,7 +137,28 @@ body:has(.sudoku-page) .site-header {
   padding: 0;
 }
 
-.game-intro,
+.game-intro {
+  flex: 0 0 auto;
+  min-width: 0;
+  padding: 2px 0 0;
+
+  h1 {
+    margin: 0;
+    font-size: clamp(0.84rem, 4.05vw, 1.25rem);
+    font-weight: 750;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+
+  .supporting-text {
+    margin: 0.12rem 0 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.3;
+  }
+}
+
 #community-line,
 .key-help {
   display: none;
@@ -1407,6 +1428,14 @@ button:disabled {
     color: var(--ink);
   }
 
+  h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 1.15rem 0 0.3rem;
+    color: var(--ink);
+  }
+
   p {
     margin: 0 0 1rem;
     font-size: 1rem;
@@ -1420,6 +1449,32 @@ button:disabled {
 
   a {
     color: var(--user-ink);
+  }
+}
+
+.home-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.1rem;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  a {
+    font-weight: 700;
+  }
+}
+
+.home-faq {
+  margin: 0.4rem 0 0;
+
+  dt {
+    margin-top: 0.95rem;
+    font-weight: 700;
+  }
+
+  dd {
+    margin: 0.2rem 0 0;
   }
 }
 
@@ -1720,10 +1775,15 @@ button:disabled {
 }
 
 @media (max-width: 720px) {
+  .game-intro,
   .play-chrome,
   .controls {
     padding-left: max(6px, env(safe-area-inset-left));
     padding-right: max(6px, env(safe-area-inset-right));
+  }
+
+  .game-intro .supporting-text {
+    display: none;
   }
 
   .sudoku-copy h2 {
@@ -1902,14 +1962,14 @@ button:disabled {
   }
 
   .game-intro {
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.15rem;
 
     .supporting-text {
       display: none;
     }
 
     h1 {
-      font-size: 1.35rem;
+      font-size: clamp(0.84rem, 4.05vw, 1.15rem);
     }
   }
 
