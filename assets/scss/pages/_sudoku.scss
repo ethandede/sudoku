@@ -225,11 +225,21 @@ html[data-theme="dark"] .game-brand-echo {
   align-items: center;
   justify-content: center;
   border: 0;
-  background: transparent;
+  background: var(--btn-secondary-bg);
   color: var(--ink);
   padding: 0;
   text-decoration: none;
-  border-radius: 0.45rem;
+  border-radius: var(--btn-radius);
+  box-shadow: inset 0 0 0 1px var(--btn-secondary-edge), inset 0 1px 0 var(--btn-highlight);
+
+  &:hover {
+    background: color-mix(in srgb, var(--btn-secondary-bg) 78%, var(--recess));
+  }
+
+  &:focus-visible {
+    outline: var(--btn-focus-width) solid var(--btn-focus);
+    outline-offset: var(--btn-focus-offset);
+  }
 
   svg {
     width: 22px;
@@ -253,8 +263,8 @@ html[data-theme="dark"] .game-brand-echo {
 #pause-btn {
   width: 44px;
   min-width: 44px;
-  justify-content: flex-start;
-  padding-left: 2px;
+  justify-content: center;
+  padding-left: 0;
 }
 
 #pause-btn svg {
@@ -374,7 +384,7 @@ html[data-theme="dark"] .game-brand-echo {
   text-overflow: ellipsis;
   white-space: nowrap;
   border: 0;
-  background: transparent;
+  background: var(--btn-secondary-bg);
   color: var(--ink);
   font: inherit;
   font-size: 1.2rem;
@@ -382,7 +392,13 @@ html[data-theme="dark"] .game-brand-echo {
   line-height: 1;
   min-height: 44px;
   padding: 0;
+  border-radius: var(--btn-radius);
+  box-shadow: inset 0 0 0 1px var(--btn-secondary-edge);
   cursor: pointer;
+
+  &:hover {
+    background: color-mix(in srgb, var(--btn-secondary-bg) 78%, var(--recess));
+  }
 }
 
 .timer-group {
@@ -1007,14 +1023,21 @@ html[data-theme="dark"] .cell.hint-eliminate {
   flex: 0 0 auto;
   min-width: 4.6rem;
   min-height: 44px;
+  height: 44px;
   border: 0;
-  border-radius: 0.6rem;
-  background: var(--pad);
+  border-radius: var(--btn-radius);
+  background: var(--btn-secondary-bg);
   color: var(--ink);
   font: inherit;
-  font-weight: 750;
+  font-weight: 650;
+  letter-spacing: var(--btn-tracking);
   padding: 0 0.85rem;
   cursor: pointer;
+  box-shadow: inset 0 0 0 1px var(--btn-secondary-edge), inset 0 1px 0 var(--btn-highlight);
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--btn-secondary-bg) 78%, var(--recess));
+  }
 }
 
 .undo-btn:disabled {
@@ -1036,11 +1059,12 @@ html[data-theme="dark"] .cell.hint-eliminate {
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: stretch;
-  background: var(--pad);
+  background: var(--track);
   border: 0;
-  border-radius: 0.7rem;
+  border-radius: 999px;
   padding: 0.18rem;
   min-height: 44px;
+  box-shadow: inset 0 0 0 1px var(--line);
   container-type: inline-size;
 
   button {
@@ -1054,8 +1078,9 @@ html[data-theme="dark"] .cell.hint-eliminate {
     border: 0;
     background: transparent;
     color: var(--pad-ink);
-    border-radius: 0.55rem;
-    font-weight: 750;
+    border-radius: 999px;
+    font-weight: 650;
+    letter-spacing: var(--btn-tracking);
     font-size: 0.88rem;
     white-space: nowrap;
     min-height: 44px;
@@ -1075,8 +1100,9 @@ html[data-theme="dark"] .cell.hint-eliminate {
   }
 
   button[aria-pressed="true"] {
-    background: var(--accent-btn);
-    color: var(--accent-on);
+    background: var(--btn-primary);
+    color: var(--btn-primary-ink);
+    box-shadow: inset 0 1px 0 var(--btn-highlight);
   }
 }
 
@@ -1189,9 +1215,9 @@ kbd {
   align-self: start;
   justify-self: stretch;
   border: 0;
-  background: color-mix(in srgb, var(--pad-ink) 10%, var(--pad));
-  color: var(--pad-ink);
-  border-radius: 0.7rem;
+  background: var(--btn-secondary-bg);
+  color: var(--ink);
+  border-radius: var(--btn-radius);
   min-width: 0;
   min-height: 0;
   width: 100%;
@@ -1199,6 +1225,11 @@ kbd {
   aspect-ratio: 1;
   padding: 0;
   cursor: pointer;
+  box-shadow: inset 0 0 0 1px var(--btn-secondary-edge), inset 0 1px 0 var(--btn-highlight);
+
+  &:hover {
+    background: color-mix(in srgb, var(--btn-secondary-bg) 78%, var(--recess));
+  }
 }
 
 .erase-word {
@@ -1486,10 +1517,36 @@ button:disabled {
 .auto-toggle {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.55rem;
   min-height: 44px;
+  height: 44px;
   font-size: 1rem;
   color: var(--ink);
+
+  input {
+    appearance: none;
+    width: 2.45rem;
+    height: 1.35rem;
+    margin: 0;
+    flex: none;
+    border: 1px solid var(--btn-secondary-edge);
+    border-radius: 999px;
+    background-color: var(--track);
+    background-image: radial-gradient(circle at 0.68rem 50%, var(--paper) 0 0.4rem, transparent 0.44rem);
+    box-shadow: inset 0 1px 2px rgba(31, 28, 25, 0.16);
+    cursor: pointer;
+  }
+
+  input:checked {
+    background-color: var(--btn-primary);
+    border-color: var(--btn-primary-edge);
+    background-image: radial-gradient(circle at 1.72rem 50%, var(--btn-primary-ink) 0 0.4rem, transparent 0.44rem);
+  }
+
+  input:focus-visible {
+    outline: var(--btn-focus-width) solid var(--btn-focus);
+    outline-offset: var(--btn-focus-offset);
+  }
 }
 
 .key-help {
