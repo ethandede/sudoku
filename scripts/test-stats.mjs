@@ -13,7 +13,7 @@ import {
   validateFinish,
   validateStart,
 } from "../functions/stats-core.mjs";
-import { handleConsent, handleFinish, handleStart, handleSummary } from "../functions/stats-handlers.mjs";
+import { blockedUserAgent, handleConsent, handleFinish, handleStart, handleSummary } from "../functions/stats-handlers.mjs";
 
 const schema = readFileSync(new URL("../migrations/0001_stats.sql", import.meta.url), "utf8")
   .split("\n")
@@ -60,12 +60,19 @@ function openDb() {
   return { sqlite, env: { STATS_DB: wrap(sqlite) } };
 }
 
-function post(path, body) {
+const BROWSER_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
+function post(path, body, userAgent = BROWSER_UA) {
   return new Request(`https://sudokusudoku.com${path}`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", "user-agent": userAgent },
     body: JSON.stringify(body),
   });
+}
+
+function summaryRequest(url = "https://preview.example/api/stats/summary", userAgent = BROWSER_UA) {
+  return new Request(url, { headers: { "user-agent": userAgent } });
 }
 
 const client = "a".repeat(32);
@@ -349,12 +356,13 @@ assert.equal(summary.windows["30d"].levels.hard.topHint.slug, "x-wing");
     },
   };
   const summaryResponse = await handleSummary({
-    request: new Request("https://preview.example/api/stats/summary"),
+    request: summaryRequest(),
     env,
     now,
     cache: cacheStore,
   });
   assert.equal(summaryResponse.headers.get("cache-control"), "public, s-maxage=600, max-age=60");
+  assert.match(summaryResponse.headers.get("link") || "", /rel=preload/);
   const publicBody = await summaryResponse.json();
   assert.equal(publicBody.windows["30d"].levels.hard.suppressed, false);
   assert.equal(publicBody.windows["30d"].levels.hard.solvePct, 100);
@@ -369,7 +377,7 @@ assert.equal(summary.windows["30d"].levels.hard.topHint.slug, "x-wing");
     return original(sql);
   };
   const cached = await handleSummary({
-    request: new Request("https://preview.example/api/stats/summary"),
+    request: summaryRequest(),
     env,
     now,
     cache: cacheStore,
@@ -422,6 +430,29 @@ assert.equal(summary.windows["30d"].levels.hard.topHint.slug, "x-wing");
   assert.deepEqual(await open.json(), { consentRequired: false });
   const local = await handleConsent({ request: {} });
   assert.deepEqual(await local.json(), { consentRequired: false });
+  assert.match(local.headers.get("link") || "", /rel=preload/);
+
+  const { env, sqlite } = openDb();
+  const early = await handleSummary({
+    request: summaryRequest("https://sudokusudoku.com/api/stats/summary", "nginx-ssl early hints"),
+    env,
+    now,
+  });
+  assert.equal(early.status, 204);
+  const headless = await handleStart({
+    request: post("/api/stats/start", startBody(), "Mozilla/5.0 HeadlessChrome/131.0.0.0"),
+    env,
+    now,
+  });
+  assert.equal(headless.status, 400);
+  const emptyAgent = await handleStart({
+    request: post("/api/stats/start", startBody({ playId: "2".repeat(32) }), ""),
+    env,
+    now,
+  });
+  assert.equal(emptyAgent.status, 400);
+  assert.equal(blockedUserAgent(post("/api/stats/start", startBody())), false);
+  assert.equal(sqlite.prepare(`SELECT COUNT(*) AS n FROM plays WHERE id = ?`).get("2".repeat(32)).n, 0);
 }
 
 const build = readFileSync(new URL("../scripts/build.mjs", import.meta.url), "utf8");
@@ -437,5 +468,20 @@ const policy = readFileSync(new URL("../privacy-policy-content.html", import.met
 assert.match(policy, /sudoku-anon-id/);
 assert.match(policy, /analytics storage/);
 assert.match(policy, /does not load Google Analytics/);
+assert.match(policy, /Cloudflare Web Analytics/);
+assert.match(build, /static\.cloudflareinsights\.com\/beacon\.min\.js/);
+assert.match(build, /8456007bb7a345e098de29b4d44a2f82/);
+const onNew = community.slice(community.indexOf("async function openGame"), community.indexOf("function onNewGame"));
+assert.doesNotMatch(onNew, /\/api\/stats\/start/);
+const firstMove = community.slice(community.indexOf("async function beginLogging"), community.indexOf("function noteFirstMove"));
+assert.match(firstMove, /\/api\/stats\/start/);
+assert.match(firstMove, /game_start/);
+assert.match(community, /game_complete/);
+assert.match(community, /game_abandon/);
+assert.match(community, /navigator\.webdriver/);
+assert.match(community, /HeadlessChrome/);
+const game = readFileSync(new URL("../assets/js/sudoku.js", import.meta.url), "utf8");
+assert.match(game, /noteFirstMove/);
+assert.match(game, /function markGameplay/);
 
 console.log("stats tests passed");

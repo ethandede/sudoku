@@ -128,6 +128,7 @@ function layout({
   const adsTag = ads
     ? `  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9345046210950956" crossorigin="anonymous"></script>\n`
     : "";
+  const webAnalyticsTag = `<!-- Cloudflare Web Analytics --><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"8456007bb7a345e098de29b4d44a2f82"}'></script><!-- End Cloudflare Web Analytics -->\n`;
   const analyticsTags = analytics
     ? `  <script>
     window.dataLayer = window.dataLayer || [];
@@ -335,7 +336,7 @@ ${skills ? scriptTag("/assets/js/skills.js") : ""}
 ${demo ? scriptTag("/assets/js/technique-demo.js") : ""}
 ${contact ? scriptTag("/assets/js/contact.js") : ""}
 ${stats ? scriptTag("/assets/js/stats-page.js") : ""}
-${privacyChoiceScript}</body>
+${privacyChoiceScript}${webAnalyticsTag}</body>
 </html>
 `;
 }
@@ -1059,6 +1060,7 @@ write(
     </article>
   </div>
 </main>
+<!-- Cloudflare Web Analytics --><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"8456007bb7a345e098de29b4d44a2f82"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>
 `
@@ -1070,6 +1072,10 @@ write(
 /manifest.webmanifest
   Content-Type: application/manifest+json
   Cache-Control: no-cache
+/api/stats/summary
+  Link: </favicon.svg>; rel=preload; as=image
+/api/stats/consent
+  Link: </favicon.svg>; rel=preload; as=image
 `
 );
 
