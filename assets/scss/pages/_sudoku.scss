@@ -1425,11 +1425,13 @@ kbd {
   button {
     min-height: 48px;
     font-size: 1.05rem;
-    font-weight: 800;
-    border-radius: 0.6rem;
-    border: 1px solid var(--pad-border, #ddd8d2);
-    background: var(--pad, #efece7);
-    color: var(--pad-ink, #1f1c19);
+    font-weight: 650;
+    letter-spacing: var(--btn-tracking);
+    border-radius: var(--btn-radius);
+    border: 1px solid var(--btn-secondary-edge);
+    background: var(--btn-secondary-bg);
+    color: var(--btn-secondary-ink);
+    box-shadow: inset 0 1px 0 var(--btn-highlight), 0 1px 1px rgba(31, 28, 25, 0.04);
     touch-action: manipulation;
     cursor: pointer;
   }
@@ -1457,9 +1459,11 @@ kbd {
   justify-content: center;
   min-height: 48px;
   padding: 0 1rem;
-  border-radius: 0.6rem;
-  background: var(--accent-btn, var(--accent-color));
-  color: var(--accent-on, #f7f6f3);
+  border-radius: var(--btn-radius);
+  background: var(--btn-primary);
+  color: var(--btn-primary-ink);
+  border: 1px solid var(--btn-primary-edge);
+  box-shadow: inset 0 1px 0 var(--btn-highlight), var(--btn-shadow);
   text-decoration: none;
 }
 
