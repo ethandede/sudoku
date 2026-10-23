@@ -50,6 +50,6 @@ This site doesn't reuse the NYT labels, because those two overlap. The split fol
 - **Hard** requires a pair or a triple, and at least four non-single steps, so it does not include the pointing-only puzzles that NYT calls Hard. Of the archived Hard puzzles, 314 need a pair or a triple and at least four such steps. That window's mean bottleneck count is 8.9, and it fills 7.2 cells before the first stall.
 - **Expert** is where a quad, an X-wing, a swordfish, or an XY-wing is required. **Mental** is coloring or an XY-chain. Neither shows up in this NYT set.
 
-A Not Easy puzzle can still feel tight. That is the Medium problem, kept on purpose: few hard steps, and a path that keeps narrowing. A Hard puzzle here will actually ask for a pair or a triple. The names describe the technique, which is the part the NYT labels sometimes don't.
+A Not Easy puzzle can still feel tight. That is the Medium problem, kept on purpose: few hard steps, and a path that keeps narrowing. A Hard puzzle here will actually ask for a pair or a triple. The names describe the technique, which is the part the NYT labels sometimes don't. The windows, and one Hard board that passed them, are on [how difficulty works](/how-difficulty-works/).
 
 The steps themselves are written up, with a board from this solver, in the [technique library](/techniques/). Pointing is the one [every Medium needs](/techniques/pointing/). The pair that shows up on about half of NYT Hard is the [naked pair](/techniques/naked-pair/).

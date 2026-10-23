@@ -121,10 +121,16 @@ export function renderHomeBelow({ techniqueCount = 0 } = {}) {
   if (techniqueCount > 0) {
     links.push({ href: "/techniques/", text: `See all ${techniqueCount} techniques` });
   }
-  links.push({
-    href: "/articles/nyt-medium-vs-hard/",
-    text: "Why NYT Medium feels harder than Hard",
-  });
+  links.push(
+    {
+      href: "/how-difficulty-works/",
+      text: "How these levels are graded",
+    },
+    {
+      href: "/articles/nyt-medium-vs-hard/",
+      text: "Why NYT Medium feels harder than Hard",
+    }
+  );
   const linkList = links
     .map((link) => `<li><a href="${escapeHtml(link.href)}">${escapeHtml(link.text)}</a></li>`)
     .join("");
