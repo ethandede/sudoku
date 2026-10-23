@@ -129,6 +129,7 @@ const ARTICLE_TERM = {
   "nyt-medium-vs-hard": "nyt medium",
   "what-makes-a-sudoku-hard": "makes a sudoku hard",
   "history-of-sudoku": "where sudoku came from",
+  "sudoku-techniques-in-order": "sudoku techniques",
   "sudoku-variants": "sudoku variants",
   "why-ai-is-bad-at-sudoku": "bad at sudoku",
   "does-sudoku-keep-your-brain-sharp": "brain sharp",
