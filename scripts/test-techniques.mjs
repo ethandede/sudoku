@@ -65,7 +65,16 @@ follows("unique-rectangle", "bug-plus-one");
 follows("bug-plus-one", "coloring");
 assert.equal(nextTechnique(techniques.find((technique) => technique.slug === "x-wing"), slotted).slug, "skyscraper");
 
-const EXPANDED = ["naked-single", "hidden-single", "pointing", "claiming"];
+const EXPANDED = [
+  "naked-single",
+  "hidden-single",
+  "pointing",
+  "claiming",
+  "naked-pair",
+  "hidden-pair",
+  "naked-triple",
+  "hidden-triple",
+];
 const bySlug = new Map(techniques.map((technique) => [technique.slug, technique]));
 
 function proseWords(technique) {

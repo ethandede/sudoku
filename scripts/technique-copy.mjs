@@ -314,9 +314,62 @@ export const techniques = [
     related: ["hidden-pair", "naked-triple"],
     when: "Hard puzzles require a pair or a triple, and at least four steps that are not singles. A naked pair is enough to put a puzzle in Hard.",
     nyt: "A naked pair is the hardest step on 51% of the 494 NYT Hard puzzles. Nothing in the archive goes beyond triples.",
-    paragraphs: [
-      "A naked pair is two cells in the same row, column, or box whose only candidates are the same two digits. Those two cells will be those two digits, in one order or the other. Either way, both digits are used up, so they come out of every other cell in the house.",
-      "The cells have to share a house. Two cells with {2, 4} that don't see each other are not a pair, and they eliminate nothing.",
+    sections: [
+      {
+        h: "These two sit at opposite ends of the row",
+        p: [
+          "Row 5, column 2 and row 5, column 9 each hold 2 and 3, and nothing else. They do not share a box. One is in box 4, the other in box 6. They share the row, and that is enough. A naked pair is two cells in the same row, column, or box whose only candidates are the same two digits.",
+          "Those cells will be 2 and 3, one way or the other. I cannot tell which cell gets the 2 yet. I do not need to. Both digits are spent, so they come out of every other cell in the row.",
+        ],
+      },
+      {
+        h: "Why the rest of the house loses both",
+        p: [
+          "Suppose the first cell is 2. Then the second is 3. Suppose the first is 3. Then the second is 2. Neither cell has a third candidate, so there is no third story. The house has used its 2 and its 3. Another cell in that house cannot take either digit.",
+          "The two cells have to see each other. Two cells that both read 2 and 3, and do not share a row, a column, or a box, are just two cells. They eliminate nothing. I have chased that shape across a puzzle and felt sharp right up until the notes did not change.",
+        ],
+      },
+      {
+        h: "Where I look",
+        p: [
+          "Singles and locked candidates come first. A naked pair on a board that still has a [hidden single](/techniques/hidden-single/) or a [pointing](/techniques/pointing/) means I skipped an easier move. On Hard those easier moves do run out, and then the pair is the one to find.",
+        ],
+        ol: [
+          "Scan one house for cells with exactly two candidates.",
+          "Find two of those cells with the same two digits.",
+          "Confirm they share that house. A row pair may sit in different boxes. A box pair has to sit inside the box.",
+          "Delete both digits from the other cells in the house. Leave the pair cells alone.",
+        ],
+      },
+      {
+        demo: true,
+        h: "Row 5, the 2 and the 3",
+        intro:
+          "The highlighted cells are the pair, one at each end of the row. Step through and watch 2 and 3 leave the cells between them.",
+      },
+      {
+        h: "What leaves, and the 7 that appears",
+        p: [
+          "Row 5 already shows 8 in column 1, 9 in column 3, 1 in column 5, and 5 in column 7. The open cells are column 2 with 2 and 3, column 4 with 3, 4, and 6, column 6 with 2, 4, 6, and 7, column 8 with 2, 3, and 7, and column 9 with 2 and 3.",
+          "Row 5, column 2 and row 5, column 9 are the pair. Row 5, column 4 loses its 3 and keeps 4 and 6. Row 5, column 6 loses its 2 and keeps 4, 6, and 7. Row 5, column 8 loses both 2 and 3. It was 2, 3, and 7, so it is left with 7, and the step places 7 in row 5, column 8.",
+          "The pair cells stay unsolved. Both still read 2 and 3. The profit is the rest of the row. If you spot the pair and never clear the house, the 7 stays buried under the 2 and the 3.",
+        ],
+      },
+      {
+        h: "Pairs that are not this",
+        p: [
+          "A [hidden pair](/techniques/hidden-pair/) is the same two digits found from the other direction. You notice that the digits have only two homes, and those homes are still wearing extra candidates. You delete the extras from the pair cells. Here the cells are already bare, so you delete the two digits from everyone else. Strip 2 and 3 off the pair cells and you have erased the cells that were supposed to hold them.",
+          "A cell with 2 and 3, next to a cell with 2, 3, and 7, is not a naked pair. The second cell can still be 7, so 2 and 3 are not reserved. On this row that second cell is row 5, column 8. It is what the pair cleans, not a member of it.",
+          "Three cells whose notes add up to three digits are a naked triple. I look there after the pairs in the house are quiet. Pairs are smaller, and on newspaper Hards they are the move you actually meet.",
+        ],
+      },
+      {
+        h: "Hard starts with this",
+        p: [
+          "Hard puzzles here need a pair or a triple, and at least four steps that are not singles. One naked pair is enough to put a puzzle in Hard. After it fires I sweep singles again. The 7 in row 5, column 8 is a naked single that was not there a moment earlier.",
+          "A naked pair is the hardest step on 51% of the 494 NYT Hard puzzles. Nothing in that archive goes past triples. See this often enough and most of what the Times calls Hard comes apart. The Hard grade on this site is built so a pair or a triple really is required.",
+        ],
+      },
     ],
   },
   {
@@ -330,9 +383,56 @@ export const techniques = [
     related: ["naked-pair", "hidden-triple"],
     when: "Hidden pairs are a Hard technique, same grade as a naked pair. The puzzle still has to need a pair or a triple, with at least four non-single steps.",
     nyt: "A hidden pair is the hardest step on 18% of NYT Hard.",
-    paragraphs: [
-      "A hidden pair is two digits that appear in only two cells of a house. Those cells often carry extra candidates, which is why the pair is hidden. The two digits have nowhere else to go, so they own the two cells, and every other candidate on those cells is removed.",
-      "After that cleanup, the two cells are an ordinary naked pair. The hidden pair is the step that gets you there.",
+    sections: [
+      {
+        h: "Count the digits, ignore the clutter",
+        p: [
+          "A hidden pair is two digits that fit in only two cells of one house. Those cells usually carry extra candidates, which is why the pair does not look naked. The digits have nowhere else to go, so they own the two cells, and every other candidate on those cells comes off.",
+          "I count them the way I count a hidden single, and I stop at two homes instead of one. On the board below, 4 and 7 each have two homes in row 3, and the homes are the same two cells.",
+        ],
+      },
+      {
+        demo: true,
+        h: "4 and 7 in a nearly empty row",
+        intro:
+          "Row 3 has one digit filled and a lot of noise. The highlighted cells are the pair. Step through and the extra marks come off them. Nothing gets placed.",
+      },
+      {
+        h: "The same two cells, twice",
+        p: [
+          "Row 3, column 1 is filled with 6. Everyone else in the row is open. Row 3, column 2 can be 1, 5, 8, or 9. Row 3, column 3 can be 1, 5, or 8. Row 3, column 4 can be 3 or 9. Row 3, column 5 can be 3, 4, or 7. Row 3, column 6 can be 4, 7, or 9. Row 3, column 7 can be 1, 2, or 8. Row 3, column 8 can be 1, 2, 3, 5, or 8. Row 3, column 9 can be 2, 3, 5, or 8.",
+          "The digit 4 shows up in row 3, column 5 and row 3, column 6, and nowhere else in the row. The digit 7 shows up in those same two cells, and nowhere else. That is the pair. They happen to be neighbors, both inside box 2. On a naked pair the cells might sit at opposite ends of the house. Distance is irrelevant. Sharing the house is the rule.",
+          "Row 3, column 5 loses its 3 and keeps 4 and 7. Row 3, column 6 loses its 9 and keeps 4 and 7. No digit is placed. A lot of hidden pairs end this way. You cleaned two cells, and the single shows up on a later pass. If you only respect a move that types a number in, you will leave the junk on the cells and stall.",
+        ],
+      },
+      {
+        h: "The count, in order",
+        ol: [
+          "Pick a house whose cells still have three or four candidates. Solved houses do not hide pairs.",
+          "For one digit, list every cell in the house that can still hold it.",
+          "Find a second digit with exactly those same cells, and no others.",
+          "Delete every candidate on those cells that is not one of the two digits.",
+        ],
+      },
+      {
+        p: [
+          "What you have left is an ordinary [naked pair](/techniques/naked-pair/). In this row, no other cell still holds a 4 or a 7, so that naked pair would have nothing further to delete. The hidden pair was the whole step. I still glance at the box afterward. Cells you just cleaned in a row are also cells in a box, and the box may still be carrying the digits you removed from the row.",
+        ],
+      },
+      {
+        h: "People strip the pair off",
+        p: [
+          "The easy mistake is to play it as a naked pair and remove 4 and 7 from the two cells. Those digits have to stay. The 3 on row 3, column 5 leaves. The 9 on row 3, column 6 leaves. Anything that is not 4 or 7 leaves. Anything that is 4 or 7 stays, even if the cell looked too busy to be a pair.",
+          "If the two digits do not land on the same two cells, you do not have a pair. A 4 in three cells, with a 7 in two of them, is a crowded row. I have talked myself into a pair by ignoring the third 4. Count the whole house before you erase anything.",
+        ],
+      },
+      {
+        h: "Same shelf as a naked pair",
+        p: [
+          "Hidden pairs are Hard, the same grade as a naked pair. The puzzle still needs a pair or a triple, and at least four steps that are not singles. I look for naked pairs first, because they are visible. This is the pass for when those are gone and the notes still feel heavier than the board.",
+          "A hidden pair is the hardest step on 18% of NYT Hard. Less common than the naked kind, common enough that skipping the count stalls a real puzzle. A triple is rarer. I do not go looking for one while a pair is still sitting in the row.",
+        ],
+      },
     ],
   },
   {
@@ -346,9 +446,49 @@ export const techniques = [
     related: ["hidden-triple", "naked-pair", "quads"],
     when: "A naked triple is a Hard technique. Triples share the Hard grade with pairs. Expert is where quads, fish, and wings begin.",
     nyt: "Triples, naked or hidden, are the hardest step on 6% of NYT Hard. The archive never needs a harder idea than that.",
-    paragraphs: [
-      "A naked triple is three cells in one house that use only three digits between them. Each cell can hold two of the digits, or all three. What matters is the union: three digits, three cells, nothing else.",
-      "Those three digits are then deleted from the other cells in the house. The same pattern with two cells is a naked pair. With four, it is a naked quad.",
+    sections: [
+      {
+        h: "None of the three cells lists every digit",
+        p: [
+          "I spent a long time waiting for three cells that each said 1, 2, and 6. They almost never do. A naked triple is three cells in one house that use only three digits between them. A cell may hold two of those digits, or all three. You add the cells up. Three digits in the union, three cells, and no fourth digit anywhere in the group.",
+          "Row 9 on the board below is the ordinary version. Row 9, column 3 is only 1 and 2. Row 9, column 5 is only 2 and 6. Row 9, column 8 is only 1 and 6. Not one of them lists 1, 2, and 6 together. Together, they use exactly those digits.",
+        ],
+      },
+      {
+        h: "Three cells have to absorb three digits",
+        p: [
+          "Those cells will be filled with 1, 2, and 6, one each. Three seats, three digits, no outsider on any seat. Any other story would need a fourth digit, and none of the cells has one. So the rest of the house loses 1, 2, and 6, wherever those are still written.",
+          "You may still not know which cell gets which digit. You are not placing inside the triple unless some later deletion collapses a cell. A [naked pair](/techniques/naked-pair/) is this with two cells and two digits. Four cells and four digits is a quad, and quads are Expert. I mention that so the pattern has a top end. I do not hunt quads from a Hard.",
+        ],
+      },
+      {
+        demo: true,
+        h: "Row 9, spread out",
+        intro:
+          "The highlighted cells do not match each other. That is normal. Step through and watch the 6 leave the other cells in the row.",
+      },
+      {
+        h: "Only the 6 has somewhere to leave",
+        p: [
+          "Row 9, column 4 is 5 and row 9, column 6 is 4. The open cells are row 9, column 1 with 3, 6, 7, and 8, row 9, column 2 with 6, 7, and 9, row 9, column 3 with 1 and 2, row 9, column 5 with 2 and 6, row 9, column 7 with 3 and 6, row 9, column 8 with 1 and 6, and row 9, column 9 with 3, 8, and 9.",
+          "The triple is row 9, column 3, row 9, column 5, and row 9, column 8. Their notes are 1 and 2, then 2 and 6, then 1 and 6. The union is 1, 2, and 6. Outside the triple, 1 and 2 are not written on anyone, so only 6 moves. Row 9, column 1 loses 6 and keeps 3, 7, and 8. Row 9, column 2 loses 6 and keeps 7 and 9. Row 9, column 7 was 3 and 6, loses the 6, and keeps 3. The step places 3 in row 9, column 7.",
+          "A triple can look like a lot of machinery and then delete one candidate. Take it. The 3 in row 9, column 7 is why the pattern was worth seeing.",
+        ],
+      },
+      {
+        h: "The drawing in the book is the rare one",
+        p: [
+          "The picture most guides draw is three identical cells, each holding 1, 2, and 6. That arrangement is legal. It is also the one I almost never meet. The working ones are mixed: a pair of the digits here, a different pair there, sometimes one cell with all three. A fourth digit on any of the three cells breaks it.",
+          "The other miss is deleting inside the triple. Row 9, column 3 keeps 1 and 2. The 6s come off row 9, column 1, row 9, column 2, and row 9, column 7. A [hidden triple](/techniques/hidden-triple/) cleans the other side of the line. Extras come off the pattern cells, and the rest of the house is left where it was.",
+        ],
+      },
+      {
+        h: "I still look for pairs first",
+        p: [
+          "A naked triple is Hard, in the same grade as pairs. Expert is where quads, fish, and wings start. Triples, naked or hidden, are the hardest step on 6% of NYT Hard, and that archive never needs anything past them. Worth knowing. A poor thing to scan for first.",
+          "Singles, then pointing and claiming, then both kinds of pair. If the house is still stuck and three cells add up to three digits, take the triple. On this row a lone pair was not enough. The cell with 1 and 2 needed the other two before 6 had a reason to leave row 9, column 7.",
+        ],
+      },
     ],
   },
   {
@@ -362,9 +502,49 @@ export const techniques = [
     related: ["naked-triple", "hidden-pair", "quads"],
     when: "Hidden triples are Hard, alongside naked triples and both kinds of pair.",
     nyt: "Triples of either kind are the hardest step on 6% of NYT Hard. No archived NYT puzzle needs a quad, a fish, or a chain.",
-    paragraphs: [
-      "A hidden triple is three digits that, inside one house, fit in only three cells. The cells may have other candidates written on them. Those extras are wrong: the three digits have to occupy the three cells, so anything else on them is eliminated.",
-      "It is the hidden-pair idea with one more digit. Once the extras are gone, the three cells read as a naked triple.",
+    sections: [
+      {
+        h: "Column 1 looked like leftovers",
+        p: [
+          "A hidden triple is three digits that, inside one house, fit in only three cells. The cells are usually covered in other candidates. Those extras are wrong. The three digits have to occupy the three cells, so anything else written there goes.",
+          "It is the hidden-pair count with one more digit. I nearly moved on from column 1 below. It looked like a junk drawer. Counting 3, then 5, then 9 showed they all lived in the same three cells.",
+        ],
+      },
+      {
+        h: "A digit can skip one of the cells",
+        p: [
+          "The three digits do not each have to appear in all three cells. One of them can be missing from a cell. The rule is narrower than that: inside this house, none of the three digits appears outside those cells. The cells are reserved. Their other candidates come off.",
+          "What remains reads as a naked triple. Sometimes that triple then deletes digits from the rest of the house. Sometimes the rest of the house was already clean, and all you did was fix the notes. I used to demand a placement. The notes were the placement's raw material, one step later.",
+        ],
+      },
+      {
+        demo: true,
+        h: "3, 5, and 9 in column 1",
+        intro:
+          "The highlighted cells are the only homes in this column for 3, 5, and 9. Step through. Extra marks leave those cells, and no digit is placed yet.",
+      },
+      {
+        h: "Walking down the column",
+        p: [
+          "Row 2, column 1 is 1. Row 3, column 1 is 2. The open cells are row 1, column 1 with 5 and 9, row 4, column 1 with 4 and 6, row 5, column 1 with 4, 7, and 8, row 6, column 1 with 6, 7, and 8, row 7, column 1 with 3, 4, 5, and 8, row 8, column 1 with 6 and 8, and row 9, column 1 with 3, 5, 8, and 9.",
+          "A 3 can sit in row 7, column 1 and row 9, column 1. A 5 can sit in row 1, column 1, row 7, column 1, and row 9, column 1. A 9 can sit in row 1, column 1 and row 9, column 1. All three digits stay inside row 1, column 1, row 7, column 1, and row 9, column 1. The 9 is not even a candidate on row 7, column 1. It does not need to be.",
+          "The extras leave. Row 7, column 1 loses 4 and 8, and keeps 3 and 5. Row 9, column 1 loses 8, and keeps 3, 5, and 9. Row 1, column 1 was already 5 and 9, so it gives nothing up. No new digit is written in. The column is just telling the truth.",
+        ],
+      },
+      {
+        h: "Naked triples clean the other side",
+        p: [
+          "A [naked triple](/techniques/naked-triple/) deletes the pattern digits from the rest of the house. A hidden triple deletes every digit that is not part of the pattern, and it deletes those from the pattern cells. Here, 4 and 8 leave row 7, column 1, and 8 leaves row 9, column 1. I do not go wipe 3, 5, and 9 off row 4, column 1 or row 6, column 1. Those cells never held them.",
+          "A fourth home for any of the three digits breaks the triple. If row 5, column 1 had kept a 5, this column would not have one. Check the filled cells and the open ones before erasing. A [hidden pair](/techniques/hidden-pair/) is the same count stopped at two. Four digits locked into four cells is a quad, which this site grades as Expert. Stay with three while you are on a Hard.",
+        ],
+      },
+      {
+        h: "Uncommon, and still the same grade",
+        p: [
+          "Hidden triples sit with naked triples and both pairs. That whole band is Hard. Expert starts when the puzzle asks for a quad, an X-wing, an XY-wing, or a swordfish.",
+          "Triples of either kind are the hardest step on 6% of NYT Hard. No puzzle in that archive needs a quad, a fish, or a chain. I learned the triple so a Hard would stop being a wall, and I still run pairs and [pointing](/techniques/pointing/) before I count three digits down a column. Most columns do not have one. This one did.",
+        ],
+      },
     ],
   },
   {
