@@ -351,6 +351,7 @@ ${main}
         <li><a href="/articles/">Articles</a></li>
         <li><a href="/links/">Links</a></li>
         <li><a href="/contact/">Contact</a></li>
+        <li><a href="/terms/">Terms</a></li>
         <li><a href="/privacy-policy/">Privacy Policy</a></li>
 ${privacyChoiceItem}      </ul>
     </nav>
@@ -617,9 +618,7 @@ publish(
   "/"
 );
 
-write(
-  "404.html",
-  layout({
+const notFoundHtml = layout({
     title: "Page not found | SudokuSudoku",
     description: "That page is not on SudokuSudoku.",
     canonical: `${SITE}/404.html`,
@@ -648,8 +647,13 @@ write(
     </article>
   </div>
 </main>`,
-  })
-);
+  });
+// 404.html is what Pages serves, with status 404, for an unknown path.
+// The same body is also a plain file so /404 and old WordPress queries
+// can return it with status 404. Pretty URLs would serve 404.html at
+// /404 with status 200.
+write("404.html", notFoundHtml);
+write("page-not-found.txt", notFoundHtml);
 
 const aboutMarkdown = read("about-page-content.md")
   .replace(/^# .+$/m, "")
@@ -701,6 +705,18 @@ publish(
     { ads: false, analytics: false, privacyChoices: false }
   ),
   "/privacy-policy"
+);
+
+publish(
+  "terms/index.html",
+  standardPage(
+    "Terms of Use",
+    read("terms-of-use-content.html").trim(),
+    "Terms for SudokuSudoku, a free browser Sudoku game with an optional email account, a contact form, and ads.",
+    "/terms/",
+    { ads: false, analytics: false, privacyChoices: false, kicker: "The rules" }
+  ),
+  "/terms"
 );
 
 const cards = visibleArticles
@@ -1088,6 +1104,7 @@ publish(
     description:
       "A technique ladder stored on this device: what you have solved, what to train next, and badges from finished puzzles.",
     canonical: `${SITE}/skills/`,
+    robots: "noindex, follow",
     skills: true,
     main: `<main id="skills" class="skills-page">
   <div class="skills-wrap">
@@ -1104,8 +1121,7 @@ publish(
     ${houseSlot("skills", "/skills/")}
   </div>
 </main>`,
-  }),
-  "/skills"
+  })
 );
 
 techniques.forEach((technique) => {
@@ -1284,6 +1300,9 @@ write(
   Link: </favicon.svg>; rel=preload; as=image
 /api/stats/consent
   Link: </favicon.svg>; rel=preload; as=image
+/page-not-found.txt
+  X-Robots-Tag: noindex
+  Content-Type: text/html; charset=utf-8
 `
 );
 
