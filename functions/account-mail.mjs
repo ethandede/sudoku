@@ -62,7 +62,7 @@ function resendKey(env) {
   const raw = String((env && env.LOGIN_EMAIL_API_KEY) || "");
   let key = raw.trim();
   if (key.slice(0, 7).toLowerCase() === "bearer ") key = key.slice(7).trim();
-  return { key, keyLength: raw.length, sentLength: key.length };
+  return { key, keyLength: raw.length, sentLength: key.length, rePrefix: key.startsWith("re_") };
 }
 
 async function sendResend(env, message) {
@@ -88,15 +88,13 @@ async function sendResend(env, message) {
     payload = null;
   }
   const id = payload && typeof payload.id === "string" ? payload.id : "";
-  if (response.ok) return { ok: true, id };
-  return {
-    ok: false,
-    id,
-    error: providerDetail(payload),
-    status: response.status,
+  const observed = {
     keyLength: credential.keyLength,
     sentLength: credential.sentLength,
+    rePrefix: credential.rePrefix,
   };
+  if (response.ok) return { ok: true, id, ...observed };
+  return { ok: false, id, error: providerDetail(payload), status: response.status, ...observed };
 }
 
 export async function sendLoginEmail(env, message) {
@@ -123,9 +121,17 @@ export async function sendLoginEmail(env, message) {
         status: sent.status,
         keyLength: sent.keyLength,
         sentLength: sent.sentLength,
+        rePrefix: Boolean(sent.rePrefix),
       };
     }
-    return { ok: true, via: "resend", id: sent.id };
+    return {
+      ok: true,
+      via: "resend",
+      id: sent.id,
+      keyLength: sent.keyLength,
+      sentLength: sent.sentLength,
+      rePrefix: Boolean(sent.rePrefix),
+    };
   } catch {
     return { ok: false, reason: "failed" };
   }

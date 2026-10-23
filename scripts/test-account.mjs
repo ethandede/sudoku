@@ -670,6 +670,8 @@ const resendSent = await sendLoginEmail(
 );
 assert.equal(resendSent.ok, true);
 assert.equal(resendSent.id, "re_test_123");
+assert.equal(resendSent.keyLength, "secret-value".length);
+assert.equal(resendSent.rePrefix, false);
 assert.equal(resendCalls.length, 1);
 assert.equal(JSON.stringify(resendCalls[0]).includes("secret-value"), true);
 assert.equal(JSON.stringify(resendSent).includes("secret-value"), false);
@@ -691,6 +693,7 @@ assert.equal(resendDenied.status, 403);
 assert.match(resendDenied.error, /not verified/);
 assert.equal(resendDenied.keyLength, "\nBearer secret-value\n".length);
 assert.equal(resendDenied.sentLength, "secret-value".length);
+assert.equal(resendDenied.rePrefix, false);
 assert.equal(deniedAuth, "Bearer secret-value");
 assert.equal(JSON.stringify(resendDenied).includes("secret-value"), false);
 globalThis.fetch = originalFetch;
