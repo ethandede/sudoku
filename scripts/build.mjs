@@ -21,6 +21,7 @@ import {
 import { captureExamples } from "./capture-examples.mjs";
 import { techniques } from "./technique-copy.mjs";
 import { adsensePushScript, housePair, renderHousePromos } from "./house-promos.mjs";
+import { phosphorArrow } from "./icons.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "dist");
@@ -703,7 +704,7 @@ const cards = visibleArticles
         </div>
         <h2 class="article-title"><a href="${article.href}">${escapeHtml(article.title)}</a></h2>
         <div class="article-excerpt"><p>${escapeHtml(article.summary)}</p></div>
-        <a href="${article.href}" class="read-more">Read Full Article →</a>
+        <a href="${article.href}" class="read-more">Read Full Article ${phosphorArrow("right")}</a>
       </div>
     </article>`;
   })
@@ -842,7 +843,7 @@ visibleArticles.forEach((article, index) => {
       <footer class="article-footer">
         ${tagBlock}
         <div class="article-navigation">${navigation}</div>
-        <div class="back-to-articles"><a href="/articles/" class="cta-button">← Back to All Articles</a></div>
+        <div class="back-to-articles"><a href="/articles/" class="cta-button">${phosphorArrow("left")} Back to All Articles</a></div>
       </footer>
     </div>
   </article>
@@ -981,7 +982,7 @@ publish(
           <button type="button" data-stats-window="all" aria-pressed="false">All time</button>
         </div>
         <div id="stats-root">
-          <p class="stats-empty">Loading community stats…</p>
+          <p class="stats-empty stats-loading">Loading community stats</p>
         </div>
       </div>
       ${houseSlot("stats", "/stats/")}
@@ -1004,7 +1005,7 @@ publish(
   <div class="skills-wrap">
     <header class="skills-header page-header-has-art">
       <div class="page-header-copy">
-        <p class="skills-back"><a href="/">← Play</a></p>
+        <p class="skills-back"><a href="/">${phosphorArrow("left")} Play</a></p>
         ${brandKicker("Your ladder")}
         <h1>Skill ladder</h1>
         <p class="skills-lead">Techniques you have solved, from easiest to hardest. Everything stays on this device.</p>

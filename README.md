@@ -32,6 +32,19 @@ Real AdSense units stay off. `ADSENSE_UNITS_ENABLED` in `scripts/house-promos.mj
 
 Privacy, the 404 page, links, and account screens do not get a unit. The game unit sits below the homepage copy, outside the play column, so the phone keypad stays on the first screen.
 
+## Chrome motion
+
+The site stays plain HTML, CSS, and vanilla JS. No React and no Motion package.
+
+- Dot grid on the page and header. Original `radial-gradient`. The idea is Magic UI's Dot Pattern (MIT). Their component is not in this repo. The game page does not get the page grid.
+- 1px press on article cards, House marks, the stats window switch, article links, and the technique practice link. Original CSS. Rare UI (MIT plus Commons Clause) and Skiper UI (no open-source license) are inspiration only. Their code is not ported and is not credited as a dependency.
+- Hover border trace on House marks. Original `conic-gradient` ring. The idea is Aceternity UI's Border Beam and Magic UI's border beam. Their React components are not included. Aceternity's terms allow use in a project and forbid republishing the components as a library.
+- Stats count-up for integer totals, written with `requestAnimationFrame` in `assets/js/stats-page.js`. The final width is reserved before the count starts. Clocks stay as clocks. Reduced motion shows the final number immediately.
+- Three loading dots on the stats loading line. Original CSS. The idea is a Uiverse loader (MIT). No Uiverse component is copied.
+- Arrow icons are Phosphor `arrow-left` and `arrow-right` (MIT, copyright 2023 Phosphor Icons). The paths and the license notice live in `scripts/icons.mjs`.
+
+Motion is off when `prefers-reduced-motion: reduce` is set. The board, keypad, and play column are not restyled.
+
 After the first deploy, attach the custom domain `sudokusudoku.com` (and `www`) to the Pages project. The zone is already on Cloudflare. Remove the old A records that point at a deleted origin. Pages will publish the hostname on its own.
 
 ## Contact form
