@@ -4,6 +4,7 @@
 //
 // title:       document <title>, og:title, and twitter:title
 // description: meta description
+// term:        search phrase that must appear in the title and description
 // h1:          heading above the board
 // subhead:     line under the heading, hidden on phones
 // The technique count in "See all N techniques" is not stored here.
@@ -13,6 +14,7 @@ export const homeCopy = {
   title: "Free Sudoku, Graded by the Hardest Move | SudokuSudoku",
   description:
     "Free Sudoku online, graded by the hardest move instead of the clue count. Stuck? The hint names the technique rather than handing you a number.",
+  term: "graded by the hardest move",
   h1: "Free Sudoku, graded by the hardest move",
   subhead: "Hints teach the move, not just the number.",
   introHeading: "Why this Sudoku is different",

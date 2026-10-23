@@ -23,6 +23,7 @@ import { nextTechnique, orderedTechniques, techniques } from "./technique-copy.m
 import { adsensePushScript, housePair, renderHousePromos } from "./house-promos.mjs";
 import { phosphorArrow } from "./icons.mjs";
 import { faqJsonLd, homeCopy, renderHomeBelow, renderHomeIntro } from "../home-copy.mjs";
+import { articleMeta, assertSiteMeta, staticMeta, techniqueMeta } from "./seo-meta.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "dist");
@@ -391,14 +392,15 @@ function scriptTag(path) {
   return `<script src="${asset(path)}"></script>`;
 }
 
-function standardPage(title, bodyHtml, description, path, options = {}) {
+function standardPage(title, bodyHtml, path, options = {}) {
+  const meta = staticMeta(path);
   const canonicalPath = withSlash(path);
   const house = options.ads === false ? "" : options.house || "";
   const kicker = options.kicker ? brandKicker(options.kicker) : "";
   const art = headerArt(options.art);
   return layout({
-    title: `${title} | SudokuSudoku`,
-    description,
+    title: meta.title,
+    description: meta.description,
     canonical: path ? `${SITE}${canonicalPath}` : "",
     ads: options.ads !== false,
     analytics: options.analytics !== false,
@@ -607,9 +609,10 @@ publish(
   "/"
 );
 
+const missing = staticMeta("/404.html");
 const notFoundHtml = layout({
-    title: "Page not found | SudokuSudoku",
-    description: "That page is not on SudokuSudoku.",
+    title: missing.title,
+    description: missing.description,
     canonical: `${SITE}/404.html`,
     robots: "noindex",
     ads: false,
@@ -653,7 +656,6 @@ publish(
   standardPage(
     "About",
     marked.parse(aboutMarkdown),
-    "Ethan Ede builds websites and plays Sudoku almost every day. SudokuSudoku grades a puzzle by its hardest move, and the hints teach that move.",
     "/about/",
     { jsonLd: personNode(), house: houseSlot("about", "/about/"), kicker: "Who made this" }
   ),
@@ -665,7 +667,6 @@ publish(
   standardPage(
     "Links",
     read("links-page-content.html").trim(),
-    "Other Sudoku sites, books, and communities, listed separately from the puzzles on SudokuSudoku.",
     "/links/",
     { ads: false, kicker: "Other places" }
   ),
@@ -677,7 +678,6 @@ publish(
   standardPage(
     "Contact",
     read("contact-page-content.html").trim(),
-    "Send a note about a bug, a technique page, or the site. The form uses a spam check and does not show an email address.",
     "/contact/",
     { contact: true, house: houseSlot("contact", "/contact/"), kicker: "Send a note" }
   ),
@@ -689,7 +689,6 @@ publish(
   standardPage(
     "Privacy Policy",
     read("privacy-policy-content.html").trim(),
-    "How SudokuSudoku handles on-device puzzle data, the optional email account, anonymous community stats, Google Analytics, AdSense consent, and the contact form.",
     "/privacy-policy/",
     { ads: false, analytics: false, privacyChoices: false }
   ),
@@ -701,7 +700,6 @@ publish(
   standardPage(
     "Terms of Use",
     read("terms-of-use-content.html").trim(),
-    "Terms for SudokuSudoku, a free browser Sudoku game with an optional email account, a contact form, and ads.",
     "/terms/",
     { ads: false, analytics: false, privacyChoices: false, kicker: "The rules" }
   ),
@@ -739,8 +737,8 @@ const articleIndexPromos = houseSlots("articles", "/articles/", [
 publish(
   "articles/index.html",
   layout({
-    title: "Articles | SudokuSudoku",
-    description: "How to play, what makes a puzzle hard, and notes from building SudokuSudoku.",
+    title: staticMeta("/articles/").title,
+    description: staticMeta("/articles/").description,
     canonical: `${SITE}/articles/`,
     main: `<main id="articles" class="articles-page">
   <div class="container">
@@ -836,11 +834,12 @@ visibleArticles.forEach((article, index) => {
         }
       : null;
 
+  const meta = articleMeta(article);
   publish(
     `articles/${article.slug}/index.html`,
     layout({
-      title: `${article.title} | SudokuSudoku`,
-      description: article.excerpt,
+      title: meta.title,
+      description: meta.description,
       canonical: `${SITE}${article.href}`,
       jsonLd: articleLd,
       main: `<main id="article-single" class="article-single-page">
@@ -1005,9 +1004,8 @@ const techniqueIndexPromo = housePair(
 publish(
   "techniques/index.html",
   layout({
-    title: "Techniques | SudokuSudoku",
-    description:
-      "Sudoku techniques from naked singles to XY-chains, each with a plain explanation and a puzzle state from this site's solver.",
+    title: staticMeta("/techniques/").title,
+    description: staticMeta("/techniques/").description,
     canonical: `${SITE}/techniques/`,
     main: `<main class="standard-page technique-page">
   <div class="container">
@@ -1037,9 +1035,8 @@ publish(
 publish(
   "stats/index.html",
   layout({
-    title: "Stats | SudokuSudoku",
-    description:
-      "Your hint record, plus anonymous SudokuSudoku stats by difficulty: median solve time, average hints, and the techniques players need hints for.",
+    title: staticMeta("/stats/").title,
+    description: staticMeta("/stats/").description,
     canonical: `${SITE}/stats/`,
     stats: true,
     jsonLd: {
@@ -1089,9 +1086,8 @@ publish(
 publish(
   "skills/index.html",
   layout({
-    title: "Skill ladder | SudokuSudoku",
-    description:
-      "A technique ladder stored on this device: what you have solved, what to train next, and badges from finished puzzles.",
+    title: staticMeta("/skills/").title,
+    description: staticMeta("/skills/").description,
     canonical: `${SITE}/skills/`,
     robots: "noindex, follow",
     skills: true,
@@ -1121,6 +1117,7 @@ techniques.forEach((technique) => {
       return `<a href="/techniques/${slug}/">${escapeHtml(other.name)}</a>`;
     })
     .join(" · ");
+  const meta = techniqueMeta(technique);
   const path = `/techniques/${technique.slug}/`;
   const howto = {
     "@context": "https://schema.org",
@@ -1141,8 +1138,8 @@ techniques.forEach((technique) => {
   publish(
     `techniques/${technique.slug}/index.html`,
     layout({
-      title: `${technique.name} | SudokuSudoku`,
-      description: technique.description,
+      title: meta.title,
+      description: meta.description,
       canonical: `${SITE}${path}`,
       jsonLd: howto,
       demo: true,
@@ -1247,8 +1244,8 @@ write(
   <meta name="robots" content="noindex">
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f6f8">
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#121416">
-  <title>Offline | SudokuSudoku</title>
-  <meta name="description" content="SudokuSudoku is offline. The puzzle on this device still opens.">
+  <title>${escapeHtml(staticMeta("/offline.html").title)}</title>
+  <meta name="description" content="${escapeHtml(staticMeta("/offline.html").description)}">
   <meta name="robots" content="noindex">
   <link rel="canonical" href="https://sudokusudoku.com/offline.html">
   <link rel="preload" href="${asset("/assets/fonts/open-sans-latin-400.woff2")}" as="font" type="font/woff2" crossorigin>
@@ -1350,6 +1347,7 @@ write(
 );
 
 assertAssetVersions();
+assertSiteMeta({ dist, home: homeCopy, techniques, articles: parsedArticles });
 console.log(`Built ${dist}`);
 
 function assertAssetVersions() {
