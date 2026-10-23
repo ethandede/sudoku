@@ -9,6 +9,34 @@
 // the provider. No secret is read from source or written to a log.
 
 const DEFAULT_FROM = "SudokuSudoku <login@sudokusudoku.com>";
+const PRODUCTION_ORIGIN = "https://sudokusudoku.com";
+
+function configuredOrigin(env) {
+  const raw = String((env && env.SITE_ORIGIN) || "").replace(/[\r\n]/g, "").trim();
+  if (!raw) return "";
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return "";
+    if (url.username || url.password) return "";
+    return url.origin;
+  } catch {
+    return "";
+  }
+}
+
+// Production mail and verify redirects use the public site. A deployment
+// hostname disappears when that deployment is deleted, so it must not be
+// the link in an email. Preview keeps the host the player actually used.
+export function publicOrigin(request, env) {
+  const configured = configuredOrigin(env);
+  if (configured) return configured;
+  if (env && env.CF_PAGES_BRANCH === "main") return PRODUCTION_ORIGIN;
+  try {
+    return new URL(request.url).origin;
+  } catch {
+    return PRODUCTION_ORIGIN;
+  }
+}
 
 export function mailConfigured(env) {
   return Boolean(env && (env.LOGIN_EMAIL || env.LOGIN_EMAIL_API_KEY));

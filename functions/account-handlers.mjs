@@ -1,7 +1,7 @@
 // Pages Functions for the optional account. Anonymous play does not call these.
 
 import { mergeAccount, sanitizeBundle } from "./account-merge.mjs";
-import { loginMessage, mailConfigured, sendLoginEmail } from "./account-mail.mjs";
+import { loginMessage, mailConfigured, publicOrigin, sendLoginEmail } from "./account-mail.mjs";
 import {
   COOKIE,
   EMAIL_PER_HOUR,
@@ -236,7 +236,7 @@ export async function handleRequest({ request, env, now = Date.now() }) {
       .bind(id, email, tokenHash, codeHash, now + TOKEN_TTL_MS, now, ipHash)
       .run();
 
-    const origin = new URL(request.url).origin;
+    const origin = publicOrigin(request, env);
     const message = loginMessage({ origin, token, code });
     const sent = await sendLoginEmail(env, { to: email, ...message });
     if (!sent.ok) {
@@ -327,19 +327,73 @@ export async function handleVerifyPost({ request, env, now = Date.now() }) {
   }
 }
 
+function redirectTo(location, status = 302) {
+  return new Response(null, {
+    status,
+    headers: {
+      Location: location,
+      "Referrer-Policy": "no-referrer",
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
+function escapePage(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+function expiredPage(origin) {
+  const next = `${origin}/?account=invalid`;
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Sign-in link expired</title>
+<style>
+  body { margin: 0; font-family: system-ui, sans-serif; background: #f4f6f8; color: #1e232b; }
+  main { max-width: 28rem; margin: 0 auto; padding: 2.5rem 1.25rem; }
+  h1 { font-size: 1.4rem; line-height: 1.3; }
+  a { color: #0c4f86; font-weight: 700; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #121416; color: #e6e9ed; }
+    a { color: #9ed2f8; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>That sign-in link has expired</h1>
+  <p>It was already used, or the 15 minutes ran out. No account was changed.</p>
+  <p><a href="${escapePage(next)}">Send a new link</a></p>
+</main>
+</body>
+</html>`;
+  return new Response(html, {
+    status: 200,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "Referrer-Policy": "no-referrer",
+      "Cache-Control": "no-store",
+      "X-Robots-Tag": "noindex",
+    },
+  });
+}
+
 export async function handleVerifyGet({ request, env, now = Date.now() }) {
   const db = database(env);
   const url = new URL(request.url);
-  const origin = url.origin;
-  const fail = () =>
-    new Response(null, {
-      status: 303,
-      headers: {
-        Location: `${origin}/?account=invalid`,
-        "Referrer-Policy": "no-referrer",
-        "Cache-Control": "no-store",
-      },
-    });
+  const origin = publicOrigin(request, env);
+  if (url.origin !== origin) {
+    const dest = new URL(`${url.pathname}${url.search}`, origin);
+    return redirectTo(dest.toString());
+  }
+  const fail = () => expiredPage(origin);
   if (!db) return fail();
   const token = url.searchParams.get("token") || "";
   if (token.length < 20 || token.length > 200) return fail();

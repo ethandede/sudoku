@@ -57,6 +57,8 @@ Use one of these, then redeploy:
 1. Cloudflare Email Sending, once the account is on Workers Paid and `sudokusudoku.com` is onboarded under Compute > Email Service > Email Sending. Add a worker method that calls an unrestricted `send_email` binding, then add a Pages service binding named `LOGIN_EMAIL` to that worker. Do not point `LOGIN_EMAIL` at the contact mailer's destination-locked binding.
 2. Or set a Pages secret `LOGIN_EMAIL_API_KEY` (Resend) on Production and Preview. Verify `sudokusudoku.com` with Resend so the From address is allowed. Optional `LOGIN_FROM` (default `SudokuSudoku <login@sudokusudoku.com>`).
 
+Production sign-in links always use `https://sudokusudoku.com` (`CF_PAGES_BRANCH === "main"`, or `SITE_ORIGIN` when that is set). Preview links use the host the player requested from. A verify link opened on another production host redirects to that canonical URL before the token is used. An expired or used link returns a page with a path to send a new one.
+
 Until one of those exists, the sign-in sheet still shows, and the request responds that sign-in email is not set up. No secret belongs in the repo or in logs.
 
 ## Community stats
