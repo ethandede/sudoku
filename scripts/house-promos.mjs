@@ -7,6 +7,8 @@
 // The box sizes do not change, so the swap does not move the layout.
 // The head script is still controlled by the page `ads` flag.
 
+import { phosphorArrow } from "./icons.mjs";
+
 export const ADSENSE_UNITS_ENABLED = false;
 export const ADSENSE_CLIENT = "ca-pub-9345046210950956";
 
@@ -377,7 +379,7 @@ function promoLink(promo, plan) {
       <span class="house-promo-title">${escapeHtml(promo.title)}</span>
       <span class="house-promo-text">${escapeHtml(promo.text)}</span>
       <span class="house-promo-line">${escapeHtml(promo.line)}</span>
-      <span class="house-promo-cue">${escapeHtml(promo.cue)}</span>
+      <span class="house-promo-cue">${escapeHtml(promo.cue)}${phosphorArrow("right")}</span>
     </span>
   </a>`;
 }

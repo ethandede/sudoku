@@ -21,7 +21,8 @@
     "test:play": "node scripts/test-candidates.mjs",
     "test:promos": "node scripts/test-promos.mjs",
     "test:practice": "node scripts/test-practice.mjs",
-    "test:brand": "node scripts/test-brand.mjs"
+    "test:brand": "node scripts/test-brand.mjs",
+    "test:motion": "node scripts/test-motion.mjs"
   },
   "devDependencies": {
     "marked": "^15.0.12",

@@ -1,12 +1,12 @@
 // Site chrome in the House marks system. The game screen is untouched:
 // these rules never select the board, keypad, notes, or play column.
+// The dot grid is an original radial-gradient. The idea is Magic UI's
+// Dot Pattern (MIT). Their component is not copied.
 
 html:not(:has(.sudoku-page)) body {
   background-color: #f4f6f8;
-  background-image:
-    linear-gradient(rgba(12, 79, 134, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(12, 79, 134, 0.04) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-image: radial-gradient(rgba(12, 79, 134, 0.2) 1px, transparent 1.15px);
+  background-size: 22px 22px;
 }
 
 .brand-kicker {
@@ -115,18 +115,14 @@ html:not(:has(.sudoku-page)) body {
 html[data-theme="dark"] {
   &:not(:has(.sudoku-page)) body {
     background-color: #121416;
-    background-image:
-      linear-gradient(rgba(158, 210, 248, 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(158, 210, 248, 0.05) 1px, transparent 1px);
-    background-size: 24px 24px;
+    background-image: radial-gradient(rgba(158, 210, 248, 0.16) 1px, transparent 1.15px);
+    background-size: 22px 22px;
     color: #e6e9ed;
   }
 
   .site-header {
     background-color: #1a1e24;
-    background-image:
-      linear-gradient(rgba(158, 210, 248, 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(158, 210, 248, 0.05) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(158, 210, 248, 0.18) 1px, transparent 1.15px);
     background-size: 16px 16px;
     border-bottom-color: #9ed2f8;
     box-shadow: none;
