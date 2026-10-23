@@ -66,7 +66,7 @@ follows("unique-rectangle", "bug-plus-one");
 follows("bug-plus-one", "coloring");
 assert.equal(nextTechnique(techniques.find((technique) => technique.slug === "x-wing"), slotted).slug, "skyscraper");
 
-const EXPANDED = SOLVER_ORDER.filter((slug) => !["skyscraper", "two-string-kite", "xyz-wing"].includes(slug));
+const EXPANDED = SOLVER_ORDER;
 const bySlug = new Map(techniques.map((technique) => [technique.slug, technique]));
 
 function proseWords(technique) {
