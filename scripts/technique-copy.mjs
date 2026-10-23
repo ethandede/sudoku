@@ -1071,10 +1071,26 @@ export const techniques = [
       {
         h: "After the swordfish",
         p: [
-          "Unique rectangles are Expert. They come after the [swordfish](/techniques/swordfish/) and before coloring. The 1,483 archived NYT puzzles never need one. Their hardest steps stop at triples. Expert is where this site will hand you the rectangle.",
+          "Unique rectangles are Expert. They come after the [swordfish](/techniques/swordfish/). The next page is [BUG+1](/techniques/bug-plus-one/). The 1,483 archived NYT puzzles never need one. Their hardest steps stop at triples. Expert is where this site will hand you the rectangle.",
           "I look for two rows and two columns whose four crossings use two boxes, then I count candidates. Three corners on the same two digits, and a fourth that still carries them, is Type 1. Then I remember why the digits leave. One solution was promised. That is the whole move.",
         ],
       },
+    ],
+  },
+  {
+    slug: "bug-plus-one",
+    name: "BUG+1",
+    description:
+      "One cell has three candidates and every other empty cell has two. BUG+1 on Expert puzzles.",
+    level: "Expert",
+    play: "expert",
+    order: 94,
+    related: ["unique-rectangle", "coloring"],
+    when: "BUG+1 is Expert. It comes after the unique rectangle and before coloring.",
+    nyt: "The 1,483 archived NYT puzzles never need BUG+1. Their hardest steps stop at triples.",
+    paragraphs: [
+      "BUG+1 shows up when the puzzle is almost a grave. Every empty cell has two candidates, except one cell that has three. In each house, each digit is a candidate twice, except one digit that appears three times.",
+      "That extra digit has to be the one in the busy cell. Otherwise the rest of the grid could be filled two ways. The puzzle has one solution, so the other two candidates come out of that cell.",
     ],
   },
   {
