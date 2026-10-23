@@ -79,40 +79,161 @@
     });
   }
 
+  const Update = window.SudokuUpdate || null;
+  const hasBoard = Boolean(document.getElementById("sudoku-grid"));
+  let gameGate = hasBoard ? "pending" : "idle";
+  let waitingVersion = "";
+  let refreshing = false;
+
+  function storageGet(key) {
+    try {
+      return sessionStorage.getItem(key) || "";
+    } catch {
+      return "";
+    }
+  }
+
+  function storageSet(key, value) {
+    try {
+      if (value) sessionStorage.setItem(key, value);
+      else sessionStorage.removeItem(key);
+    } catch {
+      /* private mode */
+    }
+  }
+
+  function noteGameGate(state) {
+    if (!Update) return;
+    gameGate = Update.gameGate(state, hasBoard);
+    syncUpdateBanner();
+  }
+
+  function syncUpdateBanner() {
+    const update = document.getElementById("app-update");
+    if (!update || !Update) return;
+    const reloadedVersion = storageGet(Update.RELOAD_FLAG);
+    if (Update.clearReloadFlag({ reloadedVersion, waitingVersion })) storageSet(Update.RELOAD_FLAG, "");
+    update.hidden = !Update.bannerVisible({
+      waitingVersion,
+      gate: gameGate,
+      dismissedVersion: storageGet(Update.DISMISS_FLAG),
+      reloadedVersion: storageGet(Update.RELOAD_FLAG),
+    });
+  }
+
+  function workerVersion(worker) {
+    return new Promise((resolve) => {
+      if (!worker) {
+        resolve("");
+        return;
+      }
+      const channel = new MessageChannel();
+      const timer = window.setTimeout(() => resolve(""), 800);
+      channel.port1.onmessage = (event) => {
+        window.clearTimeout(timer);
+        const version = event.data && event.data.version;
+        resolve(typeof version === "string" ? version : "");
+      };
+      try {
+        worker.postMessage({ type: "GET_VERSION" }, [channel.port2]);
+      } catch {
+        window.clearTimeout(timer);
+        resolve("");
+      }
+    });
+  }
+
+  function reloadForUpdate(version) {
+    if (!Update) return;
+    if (!Update.shouldReload({
+      refreshing,
+      reloadedVersion: storageGet(Update.RELOAD_FLAG),
+      waitingVersion: version,
+    })) return;
+    refreshing = true;
+    storageSet(Update.RELOAD_FLAG, version || "1");
+    try {
+      writeSave();
+    } catch {
+      /* the board is not on this page */
+    }
+    if (window.SudokuAccount) window.SudokuAccount.flush();
+    const url = new URL(window.location.href);
+    url.searchParams.set("sudoku-updated", version || "1");
+    window.location.replace(url.toString());
+  }
+
   function initAppShell() {
     const update = document.getElementById("app-update");
     const updateGo = document.getElementById("app-update-go");
-    let acceptRefresh = false;
-    if (!("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
-      if (!acceptRefresh) return;
-      window.location.reload();
-    });
+    const updateDismiss = document.getElementById("app-update-dismiss");
+    if (Update) {
+      const cleaned = Update.stripUpdateParam(window.location.href);
+      if (cleaned) window.history.replaceState(null, "", cleaned);
+    }
+    if (!("serviceWorker" in navigator) || !Update) return;
     navigator.serviceWorker.register("/sw.js").then((registration) => {
-      const waiting = () => {
-        if (!registration.waiting) return;
-        if (!navigator.serviceWorker.controller) {
-          registration.waiting.postMessage({ type: "skip-waiting" });
+      const showWaiting = async (worker) => {
+        if (!worker || worker.state === "redundant") {
+          if (!registration.waiting && !registration.installing) {
+            waitingVersion = "";
+            syncUpdateBanner();
+          }
           return;
         }
-        if (update) update.hidden = false;
+        if (!navigator.serviceWorker.controller) {
+          worker.postMessage({ type: "SKIP_WAITING" });
+          worker.postMessage({ type: "skip-waiting" });
+          return;
+        }
+        if (worker.state !== "installed") return;
+        waitingVersion = (await workerVersion(worker)) || "waiting";
+        syncUpdateBanner();
       };
       const track = (worker) => {
         if (!worker) return;
         worker.addEventListener("statechange", () => {
-          if (worker.state === "installed") waiting();
+          if (worker.state === "installed") showWaiting(worker);
+          if (worker.state === "activated") showWaiting(registration.waiting);
         });
       };
       track(registration.installing);
-      waiting();
+      track(registration.waiting);
+      showWaiting(registration.waiting);
       registration.addEventListener("updatefound", () => track(registration.installing));
+      window.setInterval(() => {
+        if (registration.waiting) showWaiting(registration.waiting);
+      }, 1000);
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") registration.update();
       });
+      if (updateDismiss) {
+        updateDismiss.addEventListener("click", () => {
+          storageSet(Update.DISMISS_FLAG, waitingVersion || "waiting");
+          syncUpdateBanner();
+        });
+      }
       if (updateGo) {
-        updateGo.addEventListener("click", () => {
-          acceptRefresh = true;
-          if (registration.waiting) registration.waiting.postMessage({ type: "skip-waiting" });
+        updateGo.addEventListener("click", async () => {
+          const worker = registration.waiting || registration.installing;
+          const version = waitingVersion || (worker ? await workerVersion(worker) : "") || "waiting";
+          if (!Update.shouldReload({
+            refreshing,
+            reloadedVersion: storageGet(Update.RELOAD_FLAG),
+            waitingVersion: version,
+          })) return;
+          if (worker) {
+            const onChange = () => reloadForUpdate(version);
+            navigator.serviceWorker.addEventListener("controllerchange", onChange, { once: true });
+            worker.addEventListener("statechange", () => {
+              if (worker.state === "activated") reloadForUpdate(version);
+            });
+            worker.postMessage({ type: "SKIP_WAITING" });
+            worker.postMessage({ type: "skip-waiting" });
+            window.setTimeout(() => reloadForUpdate(version), 4000);
+            return;
+          }
+          reloadForUpdate(version);
         });
       }
     }).catch(() => {
@@ -1516,6 +1637,7 @@
   }
 
   function render() {
+    noteGameGate(state);
     const dots = conflictDots();
     const selectedValue = state.board[state.selected] || 0;
     const hint = hintView && hintView.key === hintKey() ? hintView : null;
