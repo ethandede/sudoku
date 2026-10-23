@@ -52,6 +52,12 @@ export function loginMessage({ origin, token, code }) {
   };
 }
 
+function providerDetail(payload) {
+  if (!payload || typeof payload !== "object") return "";
+  if (typeof payload.message === "string") return payload.message.slice(0, 300);
+  return "";
+}
+
 async function sendResend(env, message) {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -67,8 +73,15 @@ async function sendResend(env, message) {
       html: message.html,
     }),
   });
-  await response.text();
-  return response.ok;
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+  const id = payload && typeof payload.id === "string" ? payload.id : "";
+  if (response.ok) return { ok: true, id };
+  return { ok: false, id, error: providerDetail(payload), status: response.status };
 }
 
 export async function sendLoginEmail(env, message) {
@@ -85,8 +98,9 @@ export async function sendLoginEmail(env, message) {
       await env.LOGIN_EMAIL.send(payload);
       return { ok: true, via: "cloudflare" };
     }
-    const ok = await sendResend(env, payload);
-    return ok ? { ok: true, via: "resend" } : { ok: false, reason: "failed" };
+    const sent = await sendResend(env, payload);
+    if (!sent.ok) return { ok: false, reason: "failed", id: sent.id, error: sent.error, status: sent.status };
+    return { ok: true, via: "resend", id: sent.id };
   } catch {
     return { ok: false, reason: "failed" };
   }

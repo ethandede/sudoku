@@ -246,9 +246,13 @@ export async function handleRequest({ request, env, now = Date.now() }) {
         sent.reason === "unconfigured"
           ? "Sign-in email is not set up on the server yet."
           : "The sign-in email could not be sent. Try again later.";
-      return json({ error }, status);
+      return json({
+        error,
+        providerError: sent.error || "",
+        providerStatus: sent.status || 0,
+      }, status);
     }
-    return json({ ok: true });
+    return json({ ok: true, id: sent.id || "" });
   } catch {
     return json({ error: "Sign-in is not available yet." }, 503);
   }

@@ -8,7 +8,7 @@ import {
   migrateStats,
   sanitizeBundle,
 } from "../functions/account-merge.mjs";
-import { mailConfigured } from "../functions/account-mail.mjs";
+import { mailConfigured, sendLoginEmail } from "../functions/account-mail.mjs";
 import {
   clearCookie,
   normalizeCode,
@@ -658,4 +658,35 @@ assert.match(unconfiguredBody.error, /not set up/);
 assert.equal(JSON.stringify(unconfiguredBody).includes("secret"), false);
 
 globalThis.fetch = originalFetch;
+
+const resendCalls = [];
+globalThis.fetch = async (url, init) => {
+  resendCalls.push({ url: String(url), init });
+  return new Response(JSON.stringify({ id: "re_test_123" }), { status: 200, headers: { "content-type": "application/json" } });
+};
+const resendSent = await sendLoginEmail(
+  { LOGIN_EMAIL_API_KEY: "secret-value" },
+  { to: "ada@example.com", subject: "Sign in", text: "hello", html: "<p>hello</p>" }
+);
+assert.equal(resendSent.ok, true);
+assert.equal(resendSent.id, "re_test_123");
+assert.equal(resendCalls.length, 1);
+assert.equal(JSON.stringify(resendCalls[0]).includes("secret-value"), true);
+assert.equal(JSON.stringify(resendSent).includes("secret-value"), false);
+
+globalThis.fetch = async () =>
+  new Response(JSON.stringify({ message: "The domain is not verified." }), {
+    status: 403,
+    headers: { "content-type": "application/json" },
+  });
+const resendDenied = await sendLoginEmail(
+  { LOGIN_EMAIL_API_KEY: "secret-value" },
+  { to: "ada@example.com", subject: "Sign in", text: "hello", html: "<p>hello</p>" }
+);
+assert.equal(resendDenied.ok, false);
+assert.equal(resendDenied.status, 403);
+assert.match(resendDenied.error, /not verified/);
+assert.equal(JSON.stringify(resendDenied).includes("secret-value"), false);
+globalThis.fetch = originalFetch;
+
 console.log("account ok");
