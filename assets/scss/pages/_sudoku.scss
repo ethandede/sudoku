@@ -135,6 +135,37 @@ body:has(.sudoku-page) .site-header {
   padding: 0;
 }
 
+.game-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 0 0.3rem;
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.game-brand-mark {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  display: block;
+  border: 0;
+}
+
+.game-brand-echo {
+  color: var(--accent-color);
+}
+
+html[data-theme="dark"] .game-brand-echo {
+  color: var(--accent-on-dark);
+}
+
 .game-intro {
   position: relative;
   flex: 0 0 auto;
@@ -1892,6 +1923,23 @@ button:disabled {
     margin: 0 auto;
     padding-left: max(16px, env(safe-area-inset-left));
     padding-right: max(16px, env(safe-area-inset-right));
+  }
+
+  // The icon row and status line share the board-plus-panel width.
+  // Board is min(540px, 100dvh - 108px); the panel is 220px; the gap matches .play-surface.
+  .game-intro,
+  .play-chrome {
+    width: min(
+      100%,
+      calc(540px + 220px + clamp(16px, 2vw, 32px)),
+      calc(100dvh - 108px + 220px + clamp(16px, 2vw, 32px))
+    );
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .game-intro {
+    padding-top: 1.25rem;
   }
 
   .play-surface {
