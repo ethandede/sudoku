@@ -3,6 +3,7 @@
 // Playwright chromium build (`npx playwright install chromium`). Builds dist/ first.
 import { spawnSync } from "node:child_process";
 import { createServer } from "node:http";
+import { readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { extname, join, dirname, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -33,6 +34,16 @@ function assertEqual(actual, expected, message) {
 function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
+
+const boardTokens = readFileSync(join(root, "assets/scss/pages/_sudoku.scss"), "utf8")
+  .split("\n")
+  .filter((line) => /--(?:board|cell|given)-bg:/.test(line));
+assertEqual(boardTokens.length, 6, "light and dark board, cell, and given tokens");
+for (const line of boardTokens) {
+  assert(!/#fff\b|#ffffff/i.test(line), `pure white left on ${line.trim()}`);
+}
+assertEqual(boardTokens.filter((line) => line.includes("#fbfaf8")).length, 3, "light board is warm paper");
+assertEqual(boardTokens.filter((line) => line.includes("#1e1d1b")).length, 3, "dark board is warm graphite");
 
 function peerIndexes(index) {
   const row = Math.floor(index / 9);
@@ -965,9 +976,11 @@ await check("selection fills keep givens distinct from entries", async () => {
   });
   assertEqual(fills.selected, fills.selectedFill, "selected cell uses the palette fill");
   assertEqual(fills.selectedOutline, "none", "selection has no border");
-  assertEqual(fills.given, "rgb(255, 255, 255)", "givens sit on the white board");
-  assertEqual(fills.open, "rgb(255, 255, 255)", "empty cells stay white");
-  if (fills.entered) assertEqual(fills.entered, "rgb(255, 255, 255)", "player entries stay white");
+  // Approved color change: the board is warm paper, not pure white.
+  const paper = "rgb(251, 250, 248)";
+  assertEqual(fills.given, paper, "givens sit on the warm board");
+  assertEqual(fills.open, paper, "empty cells use the warm board");
+  if (fills.entered) assertEqual(fills.entered, paper, "player entries use the warm board");
   assert(fills.givenPeer && fills.emptyPeer, "the highlight includes a given and an open cell");
   assert(fills.givenPeer !== fills.given, "a highlighted given is tinted");
   assert(fills.emptyPeer !== fills.open, "a highlighted open cell is tinted");
