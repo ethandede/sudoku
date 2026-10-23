@@ -61,6 +61,12 @@ Production sign-in links always use `https://sudokusudoku.com` (`CF_PAGES_BRANCH
 
 Until one of those exists, the sign-in sheet still shows, and the request responds that sign-in email is not set up. No secret belongs in the repo or in logs.
 
+## Practice
+
+`/?practice=<technique>` deals a puzzle whose solve path needs that technique, fills every easier step, and stops when that technique is the next move. The same jump is on each technique page, the skill ladder, and More → Practice a technique. More → Fill a technique (and the hint sheet) applies every currently available step of one technique as a single undo.
+
+Practice games and any puzzle you fast-forward stay out of times, streaks, badges, no-hint records, and the daily. A finished practice can mark that technique as seen. It is not a clean solve. Neither kind of game is posted to `POST /api/stats/start` or recorded as a solved play. A normal game that already logged a start, then got fast-forwarded, is left unfinished for the 24h sweep instead of being stored as a solve.
+
 ## Community stats
 
 D1 is bound on the Pages project as `STATS_DB`. Production uses `sudokusudoku-stats` (`1d90567c-bc27-48d4-bd35-f9d02f2fd036`). Preview deployments use `sudokusudoku-stats-preview` (`492493ba-3bad-403e-8391-1090489ef024`). Apply the statements in [`migrations/README.md`](migrations/README.md) to both databases with the Cloudflare API. Do not seed sample rows into production.

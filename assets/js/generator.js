@@ -521,25 +521,33 @@ function shuffleIndexes(length) {
   return order;
 }
 
+const gradedPoolCache = new Map();
+
 function gradePool(level) {
+  const cached = gradedPoolCache.get(level);
+  if (cached) return cached;
   const pools = globalThis.SudokuPools;
   const pool = pools && pools[level];
-  if (!pool || !pool.length) return [];
+  if (!pool || !pool.length) {
+    gradedPoolCache.set(level, []);
+    return [];
+  }
   const { grade } = solver();
   const rows = [];
-  const order = shuffleIndexes(pool.length);
-  for (let n = 0; n < order.length; n++) {
-    const entry = pool[order[n]];
+  for (let n = 0; n < pool.length; n++) {
+    const entry = pool[n];
     const quick = grade(entry.puzzle, { solution: entry.solution, metrics: false });
     if (!quick.solved || quick.corrupt) continue;
     rows.push({ entry, path: quick.path || [] });
   }
+  gradedPoolCache.set(level, rows);
   return rows;
 }
 
 function chooseRow(rows, slug, allowed) {
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
+  const order = shuffleIndexes(rows.length);
+  for (let n = 0; n < order.length; n++) {
+    const row = rows[order[n]];
     if (hardestSlug(row.path) !== slug) continue;
     if (allowed && !restAllowed(row.path, slug, allowed)) continue;
     return row;
@@ -671,6 +679,10 @@ globalThis.SudokuGenerator = {
   trainLevel(slug) {
     const spec = TRAIN[slug];
     return spec ? spec.level : null;
+  },
+  techniqueRank(slug) {
+    const rank = TECHNIQUE_RANK[slug];
+    return rank == null ? null : rank;
   },
   difficulties: ["quick", "easy", "not easy", "hard", "expert", "mental"],
   dailyDifficulty: "not easy",

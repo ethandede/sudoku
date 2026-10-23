@@ -366,6 +366,11 @@
       removed: [],
       hintSlugs: [],
       train: null,
+      practice: null,
+      practiceMiss: false,
+      practiceFilled: false,
+      fastForwarded: false,
+      baseRemoved: [],
       anonPlayId: null,
       notesUsed: false,
       gameplayMarked: false,
@@ -571,11 +576,12 @@
         window.SudokuCommunity.paintLine(saved && !state.counted ? saved.kind : state.kind);
       });
     }
-    if (saved) {
+    const practiceStart = Boolean(pendingRequest && pendingRequest.practice);
+    if (saved && !practiceStart) {
       showModal("resume-modal");
       document.getElementById("resume-detail").textContent = resumeText(saved);
     } else {
-      beginNew(pendingRequest || { kind: "easy" }, { count: true });
+      beginNew(pendingRequest || { kind: "easy" }, { count: !practiceStart });
     }
   }
 
@@ -634,6 +640,9 @@
         };
       }
     }
+    const practice = (params.get("practice") || "").trim().toLowerCase();
+    const practiceLevel = window.SudokuGenerator && window.SudokuGenerator.trainLevel(practice);
+    if (practiceLevel) return { kind: practiceLevel, practice };
     const train = (params.get("train") || "").trim().toLowerCase();
     const trainLevel = window.SudokuGenerator && window.SudokuGenerator.trainLevel(train);
     if (trainLevel) return { kind: trainLevel, train };
@@ -656,6 +665,7 @@
     const url = new URL(window.location.href);
     if (kind === "daily") url.search = "?daily";
     else if (state.puzzleId) url.search = `?p=${encodeURIComponent(state.puzzleId)}`;
+    else if (state.practice) url.search = `?practice=${encodeURIComponent(state.practice)}`;
     else if (state.train) url.search = `?train=${encodeURIComponent(state.train)}`;
     else url.search = `?difficulty=${kind.replace(/\s+/g, "-")}`;
     history.replaceState(null, "", url);
@@ -842,11 +852,24 @@
       closeMenu();
       openStats();
     });
+    buildTechniquePickers();
+    document.getElementById("more-fill").addEventListener("click", () => {
+      closeMenu();
+      showModal("fill-modal");
+    });
+    document.getElementById("more-practice").addEventListener("click", () => {
+      closeMenu();
+      showModal("practice-modal");
+    });
     document.getElementById("mode-normal").addEventListener("click", () => setMode("normal"));
     document.getElementById("mode-notes").addEventListener("click", () => setMode("notes"));
     document.getElementById("erase-btn").addEventListener("click", () => erase(state.selected));
     document.getElementById("hint-btn").addEventListener("click", () => advanceHint());
     document.getElementById("hint-next").addEventListener("click", () => advanceHint());
+    document.getElementById("hint-fill").addEventListener("click", () => {
+      const slug = hintView && hintView.step && hintView.step.slug;
+      if (slug) fillTechnique(slug);
+    });
     document.getElementById("hint-dismiss").addEventListener("click", () => dismissHint());
     document.getElementById("share-text").addEventListener("click", () => {
       void onShareText();
@@ -921,7 +944,8 @@
     });
     document.getElementById("solved-new").addEventListener("click", () => {
       hideModal("solved-modal");
-      beginNew({ kind: state.kind }, { count: true });
+      if (state.practice) beginNew({ kind: state.kind, practice: state.practice }, { count: false });
+      else beginNew({ kind: state.kind }, { count: true });
     });
     document.getElementById("solved-next").addEventListener("click", () => {
       hideModal("solved-modal");
@@ -933,7 +957,8 @@
     });
     document.getElementById("over-new").addEventListener("click", () => {
       hideModal("over-modal");
-      beginNew({ kind: state.kind }, { count: true });
+      if (state.practice) beginNew({ kind: state.kind, practice: state.practice }, { count: false });
+      else beginNew({ kind: state.kind }, { count: true });
     });
     document.addEventListener("keydown", onKey);
   }
@@ -968,6 +993,96 @@
     });
   }
 
+  function syncNotesFromStep(step) {
+    (step.eliminate || []).forEach((item) => {
+      if (state.notes[item.index]) state.notes[item.index].delete(item.digit);
+    });
+    if (!step.place) return;
+    const index = step.place.index;
+    const digit = step.place.digit;
+    if (state.notes[index]) state.notes[index].clear();
+    state.slashed.delete(index);
+    peerIndexes(index).forEach((other) => state.notes[other].delete(digit));
+  }
+
+  function lockPlaced() {
+    for (let index = 0; index < 81; index += 1) {
+      if (state.board[index] !== 0) state.puzzle[index] = state.board[index];
+    }
+  }
+
+  function preparePractice() {
+    state.practiceNote = "";
+    const slug = state.practice;
+    if (!slug || !window.SudokuPractice || !window.SudokuSolver || !window.SudokuSolver.explain) return;
+    const name = window.SudokuProgress ? window.SudokuProgress.nameOf(slug) : slug;
+    const path = (state.metadata && state.metadata.path) || [];
+    const approximate = Boolean(state.metadata && state.metadata.trainApproximate);
+    if (approximate || !path.includes(slug)) {
+      state.practiceMiss = true;
+      state.practiceNote = `No puzzle lined up on ${name}. This one stays off your records.`;
+      return;
+    }
+    const originalBoard = state.board.slice();
+    const originalRemoved = state.removed.map((item) => ({ index: item.index, digit: item.digit }));
+    const jumped = window.SudokuPractice.fastForward(
+      state.board,
+      state.removed,
+      slug,
+      (board, removed) => window.SudokuSolver.explain(board, removed),
+      state.solution,
+      syncNotesFromStep
+    );
+    if (!jumped.ready) {
+      state.board = originalBoard;
+      state.removed = originalRemoved;
+      state.notes = emptyNotes();
+      state.practiceMiss = true;
+      state.practiceNote = `No puzzle lined up on ${name}. This one stays off your records.`;
+      return;
+    }
+    lockPlaced();
+    state.fastForwarded = true;
+    if (window.SudokuPractice.wantsCandidates(slug)) state.auto = true;
+    state.practiceNote = window.SudokuPractice.promptFor(name);
+  }
+
+  function buildTechniquePickers() {
+    const techniques = window.SudokuProgress ? window.SudokuProgress.TECHNIQUES : [];
+    const fillList = document.getElementById("fill-list");
+    const practiceList = document.getElementById("practice-list");
+    if (fillList) {
+      fillList.replaceChildren();
+      techniques.forEach((tech) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "secondary-btn";
+        button.textContent = window.SudokuPractice ? window.SudokuPractice.fillLabel(tech.slug) : tech.name;
+        button.addEventListener("click", () => {
+          hideModal("fill-modal");
+          fillTechnique(tech.slug);
+        });
+        fillList.appendChild(button);
+      });
+    }
+    if (practiceList) {
+      practiceList.replaceChildren();
+      techniques.forEach((tech) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "secondary-btn";
+        button.textContent = tech.name;
+        button.addEventListener("click", () => {
+          hideModal("practice-modal");
+          const level = window.SudokuGenerator && window.SudokuGenerator.trainLevel(tech.slug);
+          if (!level) return;
+          beginNew({ kind: level, practice: tech.slug }, { count: false });
+        });
+        practiceList.appendChild(button);
+      });
+    }
+  }
+
   function beginNew(request, { count }) {
     dismissHint();
     const kind = request.kind || "easy";
@@ -975,7 +1090,9 @@
     const token = ++generation;
     busy = true;
     state.running = false;
-    setCover(true, "Shuffling a puzzle…", false);
+    const practiceName =
+      request.practice && window.SudokuProgress ? window.SudokuProgress.nameOf(request.practice) : "";
+    setCover(true, practiceName ? `Finding ${practiceName}…` : "Shuffling a puzzle…", false);
     window.setTimeout(() => {
       void launchNew(request, kind, date, token, count);
     }, 30);
@@ -986,16 +1103,18 @@
     const seeded = kind === "daily";
     const difficulty = seeded ? DAILY : kind;
     const train = request.train || null;
+    const practiceSlug = request.practice || null;
+    const techniqueSlug = practiceSlug || train;
     let puzzleId = null;
     let result = null;
     if (request.givens && window.SudokuShare) {
       result = window.SudokuShare.materialize(request.givens, difficulty);
       puzzleId = request.puzzleId || null;
     }
-    if (!result && train && window.SudokuGenerator.generateForTechnique) {
+    if (!result && techniqueSlug && window.SudokuGenerator.generateForTechnique) {
       const allowed = window.SudokuProgress ? window.SudokuProgress.comfortableSlugs() : [];
       const seed = request.seed || (window.SudokuShare ? window.SudokuShare.mintId(difficulty) : undefined);
-      result = window.SudokuGenerator.generateForTechnique(train, { allowed, seed });
+      result = window.SudokuGenerator.generateForTechnique(techniqueSlug, { allowed, seed });
       if (window.SudokuShare) puzzleId = window.SudokuShare.idFromGivens(difficulty, result.puzzle);
     } else if (!result) {
       const seed = seeded
@@ -1008,7 +1127,8 @@
     const already = seeded && stats.daily.completed[date];
     state = blankState();
     state.kind = kind;
-    state.train = train;
+    state.train = practiceSlug ? null : train;
+    state.practice = practiceSlug;
     state.puzzleId = seeded ? null : puzzleId;
     state.dailyDate = seeded ? date : null;
     state.puzzle = result.puzzle.slice();
@@ -1016,9 +1136,11 @@
     state.board = result.puzzle.slice();
     state.metadata = result.metadata;
     state.auto = settings.autoCandidates;
+    preparePractice();
     if (state.auto) state.notesUsed = true;
     state.selected = firstEmpty();
     autoBox.checked = state.auto;
+    state.baseRemoved = state.removed.map((item) => ({ index: item.index, digit: item.digit }));
     writeUrl(kind);
     if (already) {
       state.board = result.solution.slice();
@@ -1031,10 +1153,12 @@
       showSolved(true);
       return;
     }
-    if (count) recordStart();
+    if (count && !practiceSlug) recordStart();
     state.counted = true;
     const level = (result.metadata && result.metadata.difficulty) || difficulty;
-    if (window.SudokuCommunity) {
+    if (practiceSlug && window.SudokuCommunity && window.SudokuCommunity.abandonOpen) {
+      window.SudokuCommunity.abandonOpen();
+    } else if (window.SudokuCommunity) {
       try {
         state.anonPlayId = await window.SudokuCommunity.onNewGame({
           level,
@@ -1053,12 +1177,14 @@
     render();
     setCover(false);
     resume();
-    const approximate = train && result.metadata && result.metadata.trainApproximate;
+    const approximate = train && !practiceSlug && result.metadata && result.metadata.trainApproximate;
     const trainName = train && window.SudokuProgress ? window.SudokuProgress.nameOf(train) : "";
     announce(
-      approximate
-        ? `No puzzle stopped at ${trainName}. ${labelFor(kind)} is ready.`
-        : `${labelFor(kind)} puzzle ready`
+      state.practiceNote
+        ? state.practiceNote
+        : approximate
+          ? `No puzzle stopped at ${trainName}. ${labelFor(kind)} is ready.`
+          : `${labelFor(kind)} puzzle ready`
     );
     writeSave();
     if (window.SudokuCommunity) window.SudokuCommunity.paintLine(kind);
@@ -1073,6 +1199,10 @@
 
   function recordWin() {
     if (state.revealed) return [];
+    if (state.practice || state.fastForwarded) {
+      state.scored = true;
+      return [];
+    }
     const key = state.kind === "daily" ? "daily" : state.kind;
     const bucket = stats[key];
     if (state.scored) {
@@ -1152,7 +1282,7 @@
   }
 
   function markGameplay() {
-    if (state.gameplayMarked || !window.SudokuCommunity) return;
+    if (state.practice || state.fastForwarded || state.gameplayMarked || !window.SudokuCommunity) return;
     state.gameplayMarked = true;
     const pending = window.SudokuCommunity.noteFirstMove(communitySnapshot("abandoned"));
     state.startPromise = pending;
@@ -1329,6 +1459,8 @@
       const row = Math.floor(index / 9) + 1;
       const col = (index % 9) + 1;
       learn.hidden = true;
+      const fill = document.getElementById("hint-fill");
+      if (fill) fill.hidden = true;
       kicker.textContent = "Check the board";
       if (hintView.stage === 1) {
         text.textContent = "A digit on the board is wrong, so the next technique wouldn't be trustworthy.";
@@ -1345,6 +1477,11 @@
       kicker.textContent = step.name;
       learn.hidden = false;
       learn.href = `/techniques/${step.slug}/`;
+      const fill = document.getElementById("hint-fill");
+      if (fill) {
+        fill.hidden = false;
+        fill.textContent = window.SudokuPractice ? window.SudokuPractice.fillLabel(step.slug) : "Fill all of these";
+      }
       if (hintView.stage === 1) {
         text.textContent = step.look;
         next.textContent = "Show why";
@@ -1412,6 +1549,40 @@
     advanceHint();
   }
 
+  // Every currently available step of one technique, stored as a single undo.
+  function fillTechnique(slug) {
+    if (blocked() || !slug) return;
+    const practiceApi = window.SudokuPractice;
+    const solver = window.SudokuSolver;
+    if (!practiceApi || !solver || !solver.explain) return;
+    const probe = solver.explain(state.board, state.removed);
+    const label = practiceApi.fillLabel(slug);
+    if (!probe || probe.slug !== slug) {
+      dismissHint();
+      announce(probe ? `${label} isn't available yet. Next up is ${probe.name}.` : `${label} isn't available. Nothing legal is left.`);
+      return;
+    }
+    dismissHint();
+    pushUndo();
+    state.fastForwarded = true;
+    if (state.practice && slug === state.practice) state.practiceFilled = true;
+    const result = practiceApi.fillAll(
+      state.board,
+      state.removed,
+      slug,
+      (board, removed) => solver.explain(board, removed),
+      state.solution,
+      syncNotesFromStep
+    );
+    const count = result.applied.length;
+    if (isSolved()) finish(false);
+    else {
+      render();
+      writeSave();
+      announce(`${label}: ${count} ${count === 1 ? "step" : "steps"}.`);
+    }
+  }
+
   function revealCell() {
     if (blocked()) return;
     dismissHint();
@@ -1470,7 +1641,7 @@
     state.board = state.puzzle.slice();
     state.notes = emptyNotes();
     state.slashed.clear();
-    state.removed = [];
+    state.removed = (state.baseRemoved || []).map((item) => ({ index: item.index, digit: item.digit }));
     state.undo = [];
     state.mistakes = 0;
     dismissHint();
@@ -1552,15 +1723,23 @@
     state.userPaused = false;
     state.hidePaused = false;
     pause(false);
+    const assisted = Boolean(state.practice || state.fastForwarded);
     const snapshot = communitySnapshot(revealed ? "revealed" : "solved");
     const started = state.startPromise || Promise.resolve();
     if (window.SudokuCommunity) {
-      started
-        .then(() => window.SudokuCommunity.rememberFinish(snapshot))
-        .then(() => window.SudokuCommunity.completeFinish(snapshot));
+      if (assisted && window.SudokuCommunity.skipFinish) window.SudokuCommunity.skipFinish();
+      else {
+        started
+          .then(() => window.SudokuCommunity.rememberFinish(snapshot))
+          .then(() => window.SudokuCommunity.completeFinish(snapshot));
+      }
     }
     clearSave();
-    const unlocked = revealed ? [] : recordWin();
+    if (!revealed && state.practice && !state.practiceFilled && !state.practiceMiss && window.SudokuProgress && window.SudokuProgress.recordPractice) {
+      window.SudokuProgress.recordPractice(state.practice);
+    }
+    const unlocked = revealed || assisted ? [] : recordWin();
+    if (assisted) state.scored = true;
     render();
     showSolved(false, unlocked);
     if (unlocked.length && window.SudokuProgress) window.SudokuProgress.celebrate(unlocked);
@@ -1799,6 +1978,7 @@
     pauseBtn.dataset.state = state.running ? "running" : "paused";
     pauseBtn.setAttribute("aria-label", state.running ? "Pause timer" : "Resume timer");
     paintGhost();
+    paintPracticePrompt();
   }
 
   function cellLabel(index) {
@@ -1837,8 +2017,31 @@
     return false;
   }
 
+  function paintPracticePrompt() {
+    const el = document.getElementById("practice-prompt");
+    if (!el) return;
+    if (!state.practice || state.won || state.over) {
+      el.hidden = true;
+      return;
+    }
+    if (state.practiceMiss) {
+      el.textContent = state.practiceNote || "Practice puzzle. This one stays off your records.";
+      el.hidden = false;
+      return;
+    }
+    const step = window.SudokuSolver && window.SudokuSolver.explain ? window.SudokuSolver.explain(state.board, state.removed) : null;
+    if (!step || step.slug !== state.practice) {
+      el.hidden = true;
+      return;
+    }
+    const name = window.SudokuProgress ? window.SudokuProgress.nameOf(state.practice) : state.practice;
+    el.textContent = window.SudokuPractice ? window.SudokuPractice.promptFor(name) : `${name} is the next move. Find it.`;
+    el.hidden = false;
+  }
+
   function labelFor(kind) {
     const approximate = state.metadata && state.metadata.trainApproximate;
+    if (state.practice && window.SudokuProgress) return `Practice · ${window.SudokuProgress.nameOf(state.practice)}`;
     if (state.train && window.SudokuProgress && !approximate) return `Train · ${window.SudokuProgress.nameOf(state.train)}`;
     if (kind === "daily" && state.dailyDate) return `Daily · ${formatDay(state.dailyDate)}`;
     return LABELS[kind] || "Easy";
@@ -2096,7 +2299,13 @@
     const title = document.getElementById("solved-title");
     const summary = document.getElementById("solved-summary");
     const extra = document.getElementById("solved-stats");
-    title.textContent = state.revealed ? "Puzzle revealed" : already ? "Completed" : "Solved";
+    title.textContent = state.revealed
+      ? "Puzzle revealed"
+      : state.practice
+        ? "Practiced"
+        : already
+          ? "Completed"
+          : "Solved";
     const bits = [
       labelFor(state.kind),
       formatTime(state.elapsed),
@@ -2105,14 +2314,17 @@
     summary.textContent = bits.join(" · ");
     const bucket = stats[state.kind === "daily" ? "daily" : state.kind];
     const average = bucket.won ? formatTime(bucket.totalTime / bucket.won) : "–";
-    extra.textContent =
-      state.kind === "daily"
-        ? `Streak ${currentStreak()} · best ${bucket.best == null ? "–" : formatTime(bucket.best)} · won ${bucket.won}`
-        : `Won ${bucket.won} of ${bucket.played} · best ${bucket.best == null ? "–" : formatTime(bucket.best)} · average ${average}`;
+    if (state.practice) extra.textContent = "Practice doesn't count toward times, streaks, or badges.";
+    else if (state.fastForwarded) extra.textContent = "Filled steps don't count toward times or badges.";
+    else
+      extra.textContent =
+        state.kind === "daily"
+          ? `Streak ${currentStreak()} · best ${bucket.best == null ? "–" : formatTime(bucket.best)} · won ${bucket.won}`
+          : `Won ${bucket.won} of ${bucket.played} · best ${bucket.best == null ? "–" : formatTime(bucket.best)} · average ${average}`;
     paintPractice();
     paintConfetti();
     const shareRow = document.getElementById("share-actions");
-    const shareable = !state.revealed && window.SudokuShare;
+    const shareable = !state.revealed && !state.practice && !state.fastForwarded && window.SudokuShare;
     if (shareRow) shareRow.hidden = !shareable;
     if (shareable) window.SudokuShare.remember(shareInfo(badgeNames(badgeIds)));
     if (already && window.SudokuCommunity) {
@@ -2130,6 +2342,14 @@
     const line = document.getElementById("solved-practice");
     if (!line) return;
     const api = window.SudokuProgress;
+    if (state.practice && api) {
+      const name = api.nameOf(state.practice);
+      line.innerHTML = state.practiceMiss
+        ? `This one never reached ${api.escapeHtml(name)}. <a href="/skills/">Skill ladder</a>`
+        : `${api.escapeHtml(name)} practice stays off your records. <a href="/?practice=${encodeURIComponent(state.practice)}">Practice it again</a>`;
+      line.hidden = false;
+      return;
+    }
     const hints = state.revealed ? [] : [...new Set(state.hintSlugs || [])];
     if (api && hints.length) {
       const slug = api.hardest(hints);
@@ -2296,12 +2516,17 @@
       metadata: state.metadata,
       hintSlugs: state.hintSlugs || [],
       train: state.train || null,
+      practice: state.practice || null,
+      practiceMiss: Boolean(state.practiceMiss),
+      practiceFilled: Boolean(state.practiceFilled),
+      fastForwarded: Boolean(state.fastForwarded),
+      baseRemoved: (state.baseRemoved || []).map((item) => ({ index: item.index, digit: item.digit })),
       puzzleId: state.puzzleId || null,
       anonPlayId: state.anonPlayId || null,
       notesUsed: Boolean(state.notesUsed),
       over: Boolean(state.over),
     };
-    if (window.SudokuCommunity && (state.anonPlayId || state.gameplayMarked)) {
+    if (!state.practice && window.SudokuCommunity && (state.anonPlayId || state.gameplayMarked)) {
       window.SudokuCommunity.noteProgress(communitySnapshot(state.over ? "failed" : "abandoned"));
     }
     try {
@@ -2384,6 +2609,13 @@
     state.metadata = saved.metadata;
     state.hintSlugs = Array.isArray(saved.hintSlugs) ? saved.hintSlugs.filter((slug) => typeof slug === "string") : [];
     state.train = typeof saved.train === "string" ? saved.train : null;
+    state.practice = typeof saved.practice === "string" ? saved.practice : null;
+    state.practiceMiss = Boolean(saved.practiceMiss);
+    state.practiceFilled = Boolean(saved.practiceFilled);
+    state.fastForwarded = Boolean(saved.fastForwarded);
+    state.baseRemoved = Array.isArray(saved.baseRemoved)
+      ? saved.baseRemoved.map((item) => ({ index: item.index, digit: item.digit }))
+      : [];
     state.puzzleId = typeof saved.puzzleId === "string" ? saved.puzzleId : null;
     state.anonPlayId = typeof saved.anonPlayId === "string" ? saved.anonPlayId : null;
     state.notesUsed = Boolean(saved.notesUsed || saved.auto);
@@ -2396,6 +2628,9 @@
   }
 
   function resumeText(saved) {
+    if (saved.practice && window.SudokuProgress) {
+      return `Practice · ${window.SudokuProgress.nameOf(saved.practice)} is in progress at ${formatTime(saved.elapsed || 0)}.`;
+    }
     const name = saved.kind === "daily" ? `Daily · ${formatDay(saved.dailyDate)}` : LABELS[saved.kind] || "Saved";
     return `${name} is in progress at ${formatTime(saved.elapsed || 0)}.`;
   }

@@ -133,6 +133,23 @@ const streaked = solve({
 check("seven-day streak awarded", streaked.unlocked.includes("streak-7"));
 check("three-day streak comes with it", streaked.unlocked.includes("streak-3"));
 
+const beforePractice = progress.load();
+const seenBefore = (beforePractice.techniques["x-wing"] && beforePractice.techniques["x-wing"].seen) || 0;
+const cleanBefore = (beforePractice.techniques["x-wing"] && beforePractice.techniques["x-wing"].clean) || 0;
+const historyBefore = beforePractice.history.length;
+const badgesBefore = beforePractice.badges.slice();
+const bestBefore = beforePractice.bestLevel;
+progress.recordPractice("x-wing");
+const practiced = progress.load();
+check("practice bumps seen only", practiced.techniques["x-wing"].seen === seenBefore + 1);
+check("practice does not bump clean", (practiced.techniques["x-wing"].clean | 0) === cleanBefore);
+check("practice does not write history", practiced.history.length === historyBefore);
+check("practice does not award badges", practiced.badges.length === badgesBefore.length);
+check("practice does not move best level", practiced.bestLevel === bestBefore);
+check("unknown practice slug is ignored", !progress.load().techniques["not-a-technique"]);
+progress.recordPractice("not-a-technique");
+check("unknown practice slug stays ignored", !progress.load().techniques["not-a-technique"]);
+
 const code = progress.encode(progress.exportBundle());
 check("code prefix", code.startsWith("sudoku1."));
 const decoded = progress.decode(code);

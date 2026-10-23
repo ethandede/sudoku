@@ -153,8 +153,8 @@ html[data-theme="dark"] .skills-page {
 
 .ladder-row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas: "status name count";
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "status name practice count";
   gap: 0.15rem 0.6rem;
   align-items: center;
   min-height: 44px;
@@ -175,8 +175,18 @@ html[data-theme="dark"] .skills-page {
   border-radius: 0.6rem;
   border-bottom-color: transparent;
   grid-template-areas:
-    "status name count"
-    "status flag count";
+    "status name practice count"
+    "status flag practice count";
+}
+
+.ladder-row a.ladder-practice {
+  grid-area: practice;
+  font-size: 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .next-flag {

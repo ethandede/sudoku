@@ -323,6 +323,16 @@ export function sanitizeProgress(input) {
       ? input.hintSlugs.filter((slug) => TECHNIQUE_SET.has(slug)).slice(0, 30)
       : [],
     train: typeof input.train === "string" ? input.train.slice(0, 40) : null,
+    practice: typeof input.practice === "string" && TECHNIQUE_SET.has(input.practice) ? input.practice : null,
+    practiceMiss: Boolean(input.practiceMiss),
+    practiceFilled: Boolean(input.practiceFilled),
+    fastForwarded: Boolean(input.fastForwarded),
+    baseRemoved: Array.isArray(input.baseRemoved)
+      ? input.baseRemoved
+          .slice(0, 81)
+          .filter((item) => item && Number.isInteger(item.index) && item.index >= 0 && item.index < 81 && Number.isInteger(item.digit) && item.digit >= 1 && item.digit <= 9)
+          .map((item) => ({ index: item.index, digit: item.digit }))
+      : [],
     puzzleId: typeof input.puzzleId === "string" ? input.puzzleId.slice(0, 80) : null,
     anonPlayId: typeof input.anonPlayId === "string" ? input.anonPlayId.slice(0, 80) : null,
     notesUsed: Boolean(input.notesUsed),

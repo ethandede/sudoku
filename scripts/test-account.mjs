@@ -7,6 +7,7 @@ import {
   migrateSettings,
   migrateStats,
   sanitizeBundle,
+  sanitizeProgress,
 } from "../functions/account-merge.mjs";
 import { mailConfigured, publicOrigin, sendLoginEmail } from "../functions/account-mail.mjs";
 import {
@@ -127,6 +128,25 @@ const mergedProgress = mergeAccount(
 );
 assert.equal(mergedProgress.progress.updatedAt, 25);
 assert.equal(mergedProgress.progress.elapsed, 12);
+assert.equal(mergedProgress.progress.practice, null);
+assert.equal(mergedProgress.progress.fastForwarded, false);
+const keptPractice = sanitizeProgress({
+  ...puzzle,
+  practice: "x-wing",
+  fastForwarded: true,
+  practiceFilled: true,
+  practiceMiss: false,
+  baseRemoved: [
+    { index: 4, digit: 2 },
+    { index: 90, digit: 3 },
+  ],
+});
+assert.equal(keptPractice.practice, "x-wing");
+assert.equal(keptPractice.fastForwarded, true);
+assert.equal(keptPractice.practiceFilled, true);
+assert.equal(keptPractice.baseRemoved.length, 1);
+assert.equal(keptPractice.baseRemoved[0].digit, 2);
+assert.equal(sanitizeProgress({ ...puzzle, practice: "nope" }).practice, null);
 assert.equal(mergedProgress.stats.daily.longestStreak, 5);
 
 const kept = mergeAccount(
