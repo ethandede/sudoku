@@ -30,7 +30,8 @@
     "test:not-found": "node scripts/test-not-found.mjs",
     "test:meta": "node scripts/test-meta.mjs",
     "test:sitemap": "node scripts/test-sitemap.mjs",
-    "test:schema": "node scripts/test-schema.mjs"
+    "test:schema": "node scripts/test-schema.mjs",
+    "test:og": "node scripts/test-og.mjs"
   },
   "devDependencies": {
     "marked": "^15.0.12",
