@@ -32,7 +32,7 @@ function check(name, ok) {
   }
 }
 
-check("badge count is 35", progress.BADGES.length === 35);
+check("badge count is 36", progress.BADGES.length === 36);
 const libraryOrder = orderedTechniques().map((tech) => `${tech.order}:${tech.slug}`).join(",");
 check(
   "ladder follows technique order",
