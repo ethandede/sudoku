@@ -22,7 +22,9 @@
     "test:promos": "node scripts/test-promos.mjs",
     "test:practice": "node scripts/test-practice.mjs",
     "test:brand": "node scripts/test-brand.mjs",
-    "test:motion": "node scripts/test-motion.mjs"
+    "test:motion": "node scripts/test-motion.mjs",
+    "test:home": "node scripts/test-home-copy.mjs",
+    "test:techniques": "node scripts/test-techniques.mjs"
   },
   "devDependencies": {
     "marked": "^15.0.12",

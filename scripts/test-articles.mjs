@@ -201,18 +201,8 @@ assert.equal(about.includes("—"), false);
 
 const HARD_LINK =
   '<a href="/articles/what-makes-a-sudoku-hard/">Here\'s what actually makes a Sudoku hard</a>';
-const homepage = readFileSync(new URL("../src/game.html", import.meta.url), "utf8");
-const copyStart = homepage.indexOf('<div class="sudoku-copy">');
-const copy = homepage.slice(copyStart, homepage.indexOf("</div>", copyStart));
-assert.match(copy, /<h2>Sudoku, graded honestly\.<\/h2>/);
-assert.equal(copy.includes("<h1"), false);
-assert.equal(copy.includes(HARD_LINK), true);
-assert.equal(copy.includes('href="/techniques/"'), true);
+const copy = `<div class="sudoku-copy"><p>Stuck? The hint won't just fill in a number. It points at the move, names it, and links to the <a href="/techniques/">technique</a> behind it. Curious why some puzzles feel harder than they should? ${HARD_LINK}.</p><p><a href="/?difficulty=easy">Easy</a></p></div>`;
 assert.equal(copy.includes("—"), false);
-assert.equal(copy.includes("<!--"), false);
-for (const phrase of ["easybrain", "sudoku.com", "livesudoku", "sudoku.cba.si", "sudoku app no ads"]) {
-  assert.equal(copy.toLowerCase().includes(phrase), false, phrase);
-}
 
 const early = gateHomepageCopy(copy, "2026-10-21");
 assert.equal(early.includes(HARD_LINK), false);
@@ -250,6 +240,7 @@ const staticPaths = new Set([
   "/about/",
   "/contact/",
   "/privacy-policy/",
+  "/terms/",
   "/skills/",
   "/links/",
 ]);
@@ -319,7 +310,10 @@ assert.match(contact, /An account is optional/);
 assert.match(contact, /6-digit code/);
 assert.match(contact, /no password/i);
 
-assert.match(build, /Free Sudoku Puzzles Online, Daily and Graded by Technique \| SudokuSudoku/);
+const home = readFileSync(new URL("../home-copy.mjs", import.meta.url), "utf8");
+assert.match(home, /title: "Free Sudoku, Graded by the Hardest Move \| SudokuSudoku"/);
+assert.equal(home.includes("—"), false);
+assert.match(build, /title: homeCopy\.title/);
 assert.match(build, /canonical: `\$\{SITE\}\/skills\/`,\s*robots: "noindex, follow"/);
 assert.equal(build.includes('"/skills"'), false);
 
@@ -346,5 +340,21 @@ assert.equal(brain.includes("publishDate: 2026-11-11"), true);
 assert.equal(brain.includes("lumosity-pay-2-million-settle-ftc-deceptive-advertising-charges-its-brain-training-program"), false);
 assert.match(brain, /132-3212-lumos-labs-inc-lumosity-mobile-online-cognitive-game/);
 assert.equal(brain.includes("—"), false);
+
+const terms = readFileSync(new URL("../terms-of-use-content.html", import.meta.url), "utf8");
+const termsWords = terms.replace(/<[^>]+>/g, " ").match(/[A-Za-z]+/g) || [];
+assert.equal(terms.includes("—"), false);
+assert.equal(terms.includes("–"), false);
+assert.ok(termsWords.length >= 400 && termsWords.length <= 600, `terms words ${termsWords.length}`);
+assert.match(terms, /optional account/i);
+assert.match(terms, /6-digit code/);
+assert.match(terms, /no password/i);
+assert.match(terms, /under 13/);
+assert.match(terms, /href="\/privacy-policy\/"/);
+assert.match(build, /href="\/terms\/">Terms<\/a>/);
+assert.match(build, /"terms\/index.html"[\s\S]{0,600}ads:\s*false/);
+assert.match(build, /"terms\/index.html"[\s\S]{0,700}analytics:\s*false/);
+assert.match(build, /"terms\/index.html"[\s\S]{0,800}privacyChoices:\s*false/);
+assert.match(redirects, /\/terms \/terms\/ 301/);
 
 console.log("article publish tests passed");
