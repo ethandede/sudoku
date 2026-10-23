@@ -1016,7 +1016,7 @@ export const techniques = [
         h: "One digit, tied in pairs",
         p: [
           "Pick a digit. Wherever it has exactly two homes in a house, those two cells are tied. One of them is the digit and the other is not. Follow the ties and alternate a color. Two colors cover the chain. Simple coloring is that chain, plus one of two bad endings.",
-          "If two cells of the same color can see each other, that color is impossible, and every cell of that color loses the digit. The other ending does not break the chain at all. A cell outside it that sees both colors loses the digit, because one of the colors is real. The board below is that second ending. The chain is consistent. Row 3, column 9 is the problem.",
+          "If two cells of the same color can see each other, that color is impossible, and every cell of that color loses the digit. The other ending does not break the chain at all. A cell outside it that sees both colors loses the digit, because one of the colors is real. The board below is that second ending. The chain is consistent. Row 3, column 4 is the problem.",
         ],
       },
       {
@@ -1034,24 +1034,24 @@ export const techniques = [
       },
       {
         demo: true,
-        h: "The 8s, first color then second",
+        h: "The 7s, first color then second",
         intro:
-          "The highlighted cells are the chain. The board does not paint the two colors, so the alternation is written out under it. Step through. One 8 outside the chain leaves, and row 3, column 9 becomes 1.",
+          "The highlighted cells are the chain. The board does not paint the two colors, so the alternation is written out under it. Step through. One 7 outside the chain leaves row 3, column 4. That cell keeps its other digits.",
       },
       {
-        h: "Twelve cells, and one outsider",
+        h: "Four cells, and one outsider",
         p: [
-          "Call row 1, column 3 the first color. It can be 4 or 8. Row 1 has two 8s, column 3 has two 8s, and box 1 has two 8s, so three partners take the second color: row 1, column 7 (2 or 8) along the row, row 9, column 3 (1 or 8) down the column, and row 3, column 2 (5 or 8) in the box.",
-          "The rest of the first color is row 9, column 4 (1 or 8), row 8, column 2 (3 or 8), row 4, column 5 (2, 3, or 8), row 7, column 9 (1, 2, 5, or 8), and row 5, column 8 (1 or 8). The rest of the second color is row 4, column 4 (2 or 8), row 7, column 5 (1 or 8), and row 8, column 8 (1 or 8).",
-          "Row 9, column 4 shares row 9 with row 9, column 3, so it flips off that second-color cell. Row 8, column 2 shares box 7 with row 9, column 3 and column 2 with row 3, column 2. Both ties give it the first color. Row 4, column 4 shares column 4 with row 9, column 4. Row 4, column 5 shares row 4 and box 5 with row 4, column 4. Row 7, column 5 shares column 5 with row 4, column 5, and box 8 with row 9, column 4. Row 7, column 9 shares row 7 with row 7, column 5. Row 8, column 8 shares box 9 with row 7, column 9 and row 8 with row 8, column 2. Row 5, column 8 shares column 8 with row 8, column 8. Where a cell is reached twice, the color agrees.",
-          "Row 3, column 9 can be 1 or 8. It sees row 1, column 7 in box 3 and row 3, column 2 along the row, both the second color. It sees row 7, column 9 down column 9, the first color. The 8 leaves, and the step places 1 in row 3, column 9.",
+          "Call row 1, column 7 the first color. It can be 7 or 9. Column 7 has exactly two 7s, so row 9, column 7 (7 or 9) takes the second color. Box 3 also has exactly two 7s, row 1, column 7 and row 3, column 8 (4, 6, or 7), so row 3, column 8 takes the second color too. Row 9 has exactly two 7s. Row 9, column 7 is already the second color, so row 9, column 4 (7, 8, or 9) flips back to the first color.",
+          "That is the whole chain. Four cells, three strong links: column 7, box 3, and row 9. Row 1 is not a link. It still has three homes for 7, in row 1, column 1, row 1, column 6, and row 1, column 7. Both ends of a link have to be forced.",
+          "The two first-color cells do not see each other. Row 1, column 7 and row 9, column 4 share no row, column, or box. The two second-color cells do not either. Row 9, column 7 and row 3, column 8 are in different houses. There is no same-color crash on this board. The chain is fine. The trouble is a cell outside it.",
+          "Row 3, column 4 can be 3, 5, 7, or 8. It sees row 3, column 8 along the row, the second color. It sees row 9, column 4 down column 4, the first color. One of those colors is the real 7, so row 3, column 4 cannot be 7. The 7 leaves. Three digits remain, so the step does not place a number.",
         ],
       },
       {
         h: "I flip a color and the rest is fiction",
         p: [
-          "Twelve cells is past what I hold without writing the colors down. One flipped link and every deletion after it is junk. If you cannot name a cell's color, mark it before you delete anything.",
-          "This board does not have the same-color crash. Row 3, column 7 still lists 1, 2, and 8. It sees the second color, in row 1, column 7 and in row 3, column 2, and it sees none of the first color. The 8 stays. The cell that sees both colors is the one that loses the digit. The chain stays. Coloring follows a single digit the whole way. An [XY-chain](/techniques/xy-chain/) changes digit at every step. If your link suddenly involves a 6, you have left coloring.",
+          "Four cells is short, and it is still easy to flip one link and delete the wrong color. If you cannot name a cell's color, mark it before you delete anything.",
+          "Row 1, column 1 still lists 5 and 7. It sees the first color, in row 1, column 7, and it sees none of the second color. The 7 stays. Seeing one color proves nothing. The cell that sees both colors is the one that loses the digit. The chain stays. Coloring follows a single digit the whole way. An [XY-chain](/techniques/xy-chain/) changes digit at every step. If your link suddenly involves a 6, you have left coloring.",
         ],
       },
       {
@@ -1079,34 +1079,35 @@ export const techniques = [
         h: "The wing, with another cell on the end",
         p: [
           "An XY-chain is a path of cells that each have two candidates. A cell shares one candidate with the next cell, and the two see each other, so they cannot both be that digit. The path starts on a digit and ends on the same digit. One of the two ends is that digit. Any other cell that sees both ends loses it.",
-          "An [XY-wing](/techniques/xy-wing/) is the short path, a pivot and two wings. This board uses four cells, and both ends carry a 4. I still drop a link at this length. Teddy is usually on the other end of the couch for it, a black Australian labradoodle with a white patch on his chest. He has never spotted a chain. On the first pass, neither have I.",
+          "An [XY-wing](/techniques/xy-wing/) is the short path, a pivot and two wings. This board uses seven cells, and both ends carry a 7. I still drop a link at this length. Teddy is usually on the other end of the couch for it, a black Australian labradoodle with a white patch on his chest. He has never spotted a chain. On the first pass, neither have I.",
         ],
       },
       {
         demo: true,
-        h: "Four cells, both ends on 4",
+        h: "Seven cells, both ends on 7",
         intro:
-          "Read the highlighted cells from row 2, column 2 down to row 6, column 9. Step through. The 4 that leaves can see both ends, and that cell becomes 2.",
+          "Read the highlighted cells from row 1, column 1 across to row 3, column 8. Step through. The 7 that leaves can see both ends. That cell keeps its other digits.",
       },
       {
         h: "Each link flips the digit",
         p: [
-          "Row 2, column 2 can be 4 or 5. Row 5, column 2 can be 5 or 7, and it sees the first cell down column 2. They share 5. Row 5, column 9 can be 5 or 7, and it sees row 5, column 2 along the row. They share 7. Row 6, column 9 can be 4 or 5, and it sees row 5, column 9 down column 9. They share 5.",
-          "Suppose row 2, column 2 is not 4. Then it is 5, so row 5, column 2 is 7, so row 5, column 9 is 5, so row 6, column 9 is 4. If the start is not 4, the end is. If the start is 4, we never needed the end. One of the two ends is 4.",
-          "Row 2, column 9 can be 2 or 4. It sees row 2, column 2 along the row, and row 6, column 9 down the column. Both ends. It loses 4 and keeps 2. The step places 2 in row 2, column 9.",
+          "Row 1, column 1 can be 5 or 7. Row 6, column 1 can be 5 or 9, and it sees the first cell down column 1. They share 5. Row 5, column 2 can be 1 or 9, and it sees row 6, column 1 in box 4. They share 9. Row 5, column 6 can be 1 or 2, and it sees row 5, column 2 along the row. They share 1. Row 5, column 7 can be 2 or 8, and it sees row 5, column 6 along the row. They share 2.",
+          "Row 6, column 8 can be 2 or 8, and it sees row 5, column 7 in box 6. The chain arrives on 8, so they share 8, and the other digit in row 6, column 8 is 2. Row 3, column 8 can be 2 or 7, and it sees row 6, column 8 down column 8. They share 2. Both ends, row 1, column 1 and row 3, column 8, carry a 7.",
+          "Suppose row 1, column 1 is not 7. Then it is 5, so row 6, column 1 is 9, so row 5, column 2 is 1, so row 5, column 6 is 2, so row 5, column 7 is 8, so row 6, column 8 is 2, so row 3, column 8 is 7. If the start is not 7, the end is. If the start is 7, we never needed the end. One of the two ends is 7.",
+          "Row 3, column 1 can be 6, 7, or 9. It sees row 1, column 1 down column 1, and row 3, column 8 along the row. Both ends. It loses 7 and keeps 6 and 9. The step does not place a digit.",
         ],
       },
       {
-        h: "The middle is a pair that deletes nothing",
+        h: "A pair that deletes nothing",
         p: [
-          "Row 5, column 2 and row 5, column 9 are both 5 and 7. That is a naked pair, and as a pair it is idle. The rest of row 5 is already filled, so there is no cell to strip 5 or 7 from. The chain uses the two cells anyway, as the middle links. A pattern with nothing to delete can still be a hinge.",
-          "The ends do not see each other. Row 2, column 2 and row 6, column 9 share no row, column, or box. That is allowed. The cell you clear is the one that sees both ends. Require the ends to see each other and you will only find wings.",
+          "Row 5, column 7 and row 6, column 8 are both 2 and 8. That is a naked pair in box 6, and as a pair it is idle. Nothing else in that box still holds 2 or 8, so there is no cell to strip. The chain uses the two cells anyway. A pattern with nothing to delete can still be a hinge.",
+          "The ends do not see each other. Row 1, column 1 and row 3, column 8 share no row, column, or box. That is allowed. The cell you clear is the one that sees both ends. Require the ends to see each other and you will only find wings.",
         ],
       },
       {
         h: "Last move the solver has",
         p: [
-          "XY-chains are Mental, with coloring. They are the hardest step this solver uses. The NYT archive never needs one. Medium stops at pointing. Hard stops at triples. If a shorter wing is sitting there, take the wing. Four cells is the same logic with more places to slip.",
+          "XY-chains are Mental, with coloring. They are the hardest step this solver uses. The NYT archive never needs one. Medium stops at pointing. Hard stops at triples. If a shorter wing is sitting there, take the wing. Seven cells is the same logic with more places to slip.",
           "I look for a chain when the two-digit cells are scattered and nothing inside one house will move. Start on a cell that holds the digit you care about, walk the shared candidate to a cell that sees it, and flip to that cell's other digit. When you arrive back on the first digit, find a cell that sees both ends. Then go play one before the path gets longer than this.",
         ],
       },
