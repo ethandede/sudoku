@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { createServer } from "node:http";
 import fs from "node:fs";
+import { readFile } from "node:fs/promises";
+import { extname, normalize } from "node:path";
 import path from "node:path";
 import vm from "node:vm";
+import { chromium } from "playwright";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const context = vm.createContext({ console, globalThis: {} });
@@ -219,3 +224,264 @@ assert.match(community, /function abandonOpen/);
 console.log(
   `practice ok (hidden pair ${hidden.jumped.applied.length} steps, x-wing ${wing.jumped.applied.length} steps, naked singles ${filled.applied.length})`
 );
+
+vm.runInContext(fs.readFileSync(path.join(root, "assets/js/share.js"), "utf8"), context);
+const share = context.SudokuShare;
+const chipPuzzle = generator.generate("not easy", "chip-not easy");
+const chipProbe = chipPuzzle.puzzle.slice();
+const chipFill = practice.fillAll(chipProbe, [], "naked-single", solver.explain, chipPuzzle.solution);
+const chipPlaced = chipPuzzle.puzzle.reduce(
+  (count, value, index) => count + (value === 0 && chipProbe[index] !== 0 ? 1 : 0),
+  0
+);
+assert.ok(chipFill.applied.length > 1, "browser fixture has several naked singles");
+assert.equal(chipPlaced, chipFill.touches.length);
+assert.ok(chipFill.next && chipFill.next.slug !== "naked-single", "the fixture stays unfinished");
+const fillPath = `/?p=${encodeURIComponent(share.idFromGivens("not easy", chipPuzzle.puzzle))}`;
+
+await runFillReviewUi(fillPath);
+
+async function runFillReviewUi(fillUrl) {
+  const built = spawnSync("npm", ["run", "build"], { cwd: root, stdio: "inherit" });
+  if (built.status !== 0) process.exit(built.status ?? 1);
+  const dist = path.join(root, "dist");
+  const types = {
+    ".html": "text/html",
+    ".js": "text/javascript",
+    ".css": "text/css",
+    ".svg": "image/svg+xml",
+    ".ico": "image/x-icon",
+    ".woff2": "font/woff2",
+    ".png": "image/png",
+    ".webmanifest": "application/manifest+json",
+    ".txt": "text/plain",
+  };
+  const server = createServer(async (req, res) => {
+    const url = new URL(req.url, "http://127.0.0.1");
+    let pathname = decodeURIComponent(url.pathname);
+    if (pathname.endsWith("/")) pathname += "index.html";
+    const file = normalize(path.join(dist, pathname));
+    if (!file.startsWith(dist)) {
+      res.writeHead(403);
+      res.end();
+      return;
+    }
+    try {
+      const body = await readFile(file);
+      res.writeHead(200, { "content-type": types[extname(file)] || "application/octet-stream" });
+      res.end(body);
+    } catch {
+      res.writeHead(404);
+      res.end("missing");
+    }
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const origin = `http://127.0.0.1:${server.address().port}`;
+  const browser = await chromium.launch();
+  const failures = [];
+  const shots = "/opt/cursor/artifacts";
+  fs.mkdirSync(shots, { recursive: true });
+
+  function checkAssert(condition, message) {
+    if (!condition) throw new Error(message);
+  }
+
+  async function check(name, fn) {
+    try {
+      await fn();
+      console.log("ok", name);
+    } catch (error) {
+      failures.push(`${name}: ${error.message}`);
+      console.error("FAIL", name, error.message);
+    }
+  }
+
+  async function openGame(url, viewport) {
+    const context = await browser.newContext({ viewport, deviceScaleFactor: 1 });
+    await context.addInitScript(() => {
+      localStorage.clear();
+      localStorage.setItem("sudoku-settings", JSON.stringify({ theme: "light" }));
+    });
+    const page = await context.newPage();
+    const posts = [];
+    page.on("request", (request) => {
+      if (/\/api\/stats\/(start|finish)/.test(request.url()) && request.method() === "POST") posts.push(request.url());
+    });
+    await page.route("**/*", (route) => {
+      const target = route.request().url();
+      if (/google|gstatic|doubleclick|googlesyndication/.test(target)) return route.abort();
+      return route.continue();
+    });
+    await page.goto(`${origin}${url}`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(
+      () => {
+        const cover = document.querySelector("#board-cover");
+        return document.querySelectorAll(".cell.given").length > 0 && cover && cover.hidden;
+      },
+      null,
+      { timeout: 45000 }
+    );
+    return { context, page, posts };
+  }
+
+  async function boardOf(page) {
+    return page.$$eval(".cell", (cells) => cells.map((cell) => Number(cell.dataset.value)));
+  }
+
+  async function markedCells(page) {
+    return page.$$eval(".cell.fill-placed, .cell.fill-cleared", (cells) =>
+      cells.map((cell) => Number(cell.dataset.index)).sort((a, b) => a - b)
+    );
+  }
+
+  async function chipText(page) {
+    return page.locator("#fill-chip-text").evaluate((el) => el.textContent.replace(/\s+/g, " ").trim());
+  }
+
+  function sameList(actual, expected, message) {
+    checkAssert(
+      JSON.stringify(actual) === JSON.stringify(expected),
+      `${message}\n  actual: ${JSON.stringify(actual)}\n  expected: ${JSON.stringify(expected)}`
+    );
+  }
+
+  async function fillNaked(page) {
+    const before = await boardOf(page);
+    await page.click("#more-btn");
+    await page.click("#more-fill");
+    await page.locator("#fill-list button", { hasText: "Fill all naked singles" }).click();
+    await page.waitForSelector("#fill-chip:not([hidden])");
+    const after = await boardOf(page);
+    const filled = before
+      .map((value, index) => (value === 0 && after[index] !== 0 ? index : -1))
+      .filter((index) => index >= 0)
+      .sort((a, b) => a - b);
+    const text = await chipText(page);
+    const noun = filled.length === 1 ? "cell" : "cells";
+    const label = filled.length === 1 ? "Naked single" : "Naked singles";
+    checkAssert(filled.length > 1, "the fill wrote more than one cell");
+    sameList(await markedCells(page), filled, "the highlight is the filled cells");
+    checkAssert(text === `${label}: ${filled.length} ${noun} filled`, `chip is ${text}`);
+    return { before, after, filled, text };
+  }
+
+  async function waitUntilClear(page) {
+    await page.waitForFunction(
+      () =>
+        document.querySelector("#fill-chip").hidden &&
+        document.querySelectorAll(".cell.fill-placed, .cell.fill-cleared").length === 0,
+      null,
+      { timeout: 3000 }
+    );
+  }
+
+  await check("fill highlight stays until Done, and both Undo controls revert the batch", async () => {
+    const { context, page, posts } = await openGame(fillUrl, { width: 390, height: 844 });
+    const statsBefore = await page.evaluate(() => localStorage.getItem("sudoku-stats"));
+    const { before, after, filled, text } = await fillNaked(page);
+    await page.waitForTimeout(1200);
+    checkAssert((await chipText(page)) === text, "the chip does not clear on its own");
+    sameList(await markedCells(page), filled, "the highlight stays without a timer");
+    await page.screenshot({ path: path.join(shots, "shipped-fill-phone-light.png") });
+    await page.evaluate(() => {
+      document.documentElement.dataset.theme = "dark";
+    });
+    await page.screenshot({ path: path.join(shots, "shipped-fill-phone-dark.png") });
+    await page.evaluate(() => {
+      document.documentElement.dataset.theme = "light";
+    });
+    await page.click("#undo-btn");
+    await waitUntilClear(page);
+    sameList(await boardOf(page), before, "toolbar undo restores every filled cell in one step");
+    await fillNaked(page);
+    await page.click("#fill-undo");
+    await waitUntilClear(page);
+    sameList(await boardOf(page), before, "chip undo restores every filled cell in one step");
+    await fillNaked(page);
+    await page.click("#fill-done");
+    await waitUntilClear(page);
+    sameList(await boardOf(page), after, "Done clears the highlight and leaves the digits");
+    await page.click("#undo-btn");
+    sameList(await boardOf(page), before, "toolbar undo still reverts the batch after Done");
+    const statsAfter = await page.evaluate(() => localStorage.getItem("sudoku-stats"));
+    checkAssert(statsAfter === statsBefore, "filling does not change stored stats");
+    checkAssert(posts.length === 0, `fill posted ${posts.join(" ")}`);
+    await context.close();
+  });
+
+  await check("a practice jump summarizes the cells it changed and stays off the stats", async () => {
+    const { context, page, posts } = await openGame("/?practice=x-wing", { width: 1280, height: 800 });
+    await page.waitForSelector("#fill-chip:not([hidden])", { timeout: 30000 });
+    const text = await chipText(page);
+    checkAssert(/\. Next up: X-wing\.$/.test(text), `chip is ${text}`);
+    const groups = text.slice(0, text.indexOf(". Next up:")).split(", ");
+    checkAssert(groups.length > 0, "the jump names the techniques it applied");
+    groups.forEach((group) => checkAssert(/^.+ \d+$/.test(group), `group is ${group}`));
+    const highlighted = await markedCells(page);
+    const total = groups.reduce((sum, group) => sum + Number(group.match(/(\d+)$/)[1]), 0);
+    // The chip adds every cell the jump changed. The highlight is only the last batch.
+    checkAssert(highlighted.length > 0 && highlighted.length <= total, `highlight ${highlighted.length} of ${total}`);
+    const givens = await page.locator(".cell.given").count();
+    await page.waitForTimeout(1200);
+    checkAssert((await chipText(page)) === text, "the jump chip stays until the next action");
+    sameList(await markedCells(page), highlighted, "the jump highlight stays without a timer");
+    const box = await page.evaluate(() => {
+      const chip = document.querySelector("#fill-chip").getBoundingClientRect();
+      return {
+        top: chip.top,
+        bottom: chip.bottom,
+        width: chip.width,
+        vh: window.innerHeight,
+        scrollWidth: document.documentElement.scrollWidth,
+        clientWidth: document.documentElement.clientWidth,
+      };
+    });
+    checkAssert(box.top >= 0 && box.bottom <= box.vh + 1, "desktop chip is on screen");
+    checkAssert(box.scrollWidth <= box.clientWidth + 1, "desktop has no horizontal scroll");
+    await page.screenshot({ path: path.join(shots, "shipped-practice-desktop-light.png") });
+    await page.evaluate(() => {
+      document.documentElement.dataset.theme = "dark";
+    });
+    await page.screenshot({ path: path.join(shots, "shipped-practice-desktop-dark.png") });
+    await page.evaluate(() => {
+      document.documentElement.dataset.theme = "light";
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    const phone = await page.evaluate(() => {
+      const chip = document.querySelector("#fill-chip").getBoundingClientRect();
+      return {
+        top: chip.top,
+        bottom: chip.bottom,
+        vh: window.innerHeight,
+        scrollWidth: document.documentElement.scrollWidth,
+        clientWidth: document.documentElement.clientWidth,
+      };
+    });
+    checkAssert(phone.top >= 0 && phone.bottom <= phone.vh + 1, "phone chip is on screen");
+    checkAssert(phone.scrollWidth <= phone.clientWidth + 1, "phone has no horizontal scroll");
+    await page.screenshot({ path: path.join(shots, "shipped-practice-phone-light.png") });
+    await page.evaluate(() => {
+      document.documentElement.dataset.theme = "dark";
+    });
+    await page.screenshot({ path: path.join(shots, "shipped-practice-phone-dark.png") });
+    await page.click("#undo-btn");
+    await waitUntilClear(page);
+    const givensAfter = await page.locator(".cell.given").count();
+    checkAssert(givensAfter < givens, "one undo restores the cells the jump locked");
+    const stats = await page.evaluate(() => JSON.parse(localStorage.getItem("sudoku-stats") || "{}"));
+    for (const key of ["quick", "easy", "not easy", "hard", "expert", "mental", "daily"]) {
+      const bucket = stats[key] || {};
+      checkAssert(!bucket.played && !bucket.won, `${key} was counted`);
+    }
+    checkAssert(posts.length === 0, `practice posted ${posts.join(" ")}`);
+    await context.close();
+  });
+
+  await browser.close();
+  server.close();
+  if (failures.length) {
+    console.error(failures.join("\n"));
+    process.exit(1);
+  }
+  console.log("fill review ui ok");
+}
