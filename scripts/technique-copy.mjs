@@ -556,11 +556,50 @@ export const techniques = [
     play: "expert",
     order: 60,
     related: ["naked-triple", "hidden-triple"],
-    when: "Quads are an Expert technique, with X-wings, swordfish, and XY-wings. A puzzle whose hardest step is a quad is Expert, not Hard.",
+    when: "Quads are an Expert technique, with X-wings, XY-wings, and swordfish. A puzzle whose hardest step is a quad is Expert, not Hard.",
     nyt: "Across all 1,483 NYT puzzles in the archive, the solver never needs a quad. Hard stops at triples.",
-    paragraphs: [
-      "A quad is the subset pattern at four. A naked quad is four cells in one house whose combined candidates are exactly four digits. Those digits leave the rest of the house. A hidden quad is four digits that fit in only four cells of a house, so every other candidate on those cells is removed.",
-      "Quads are easy to miss because four cells is a lot of the house, and the elimination is often small. They are also rare in newspaper puzzles. This site keeps them for Expert, where the puzzle is allowed to ask for one.",
+    sections: [
+      {
+        h: "Four cells is most of a house",
+        p: [
+          "A quad is the subset idea at four, and four cells is a lot of a row. That is why I miss them. A naked quad is four cells in one house whose candidates, taken together, are exactly four digits. Those digits leave every other cell in the house. A hidden quad is four digits that fit in only four cells, so every other candidate on those four cells is removed.",
+          "The board below is the naked kind, in box 1. The whole elimination is a single digit. Quads often pay that little. I have talked myself out of them for exactly that reason, and then stayed stuck.",
+        ],
+      },
+      {
+        h: "They do not each hold all four digits",
+        p: [
+          "You are not looking for four cells that each list 1, 2, 4, and 5. You are looking at the union. One cell can hold two of the digits. Another can hold all four. A fifth digit on any of them, and it is not a quad.",
+          "A hidden quad is the same shape read from the digits. Four digits, four cells, and those digits appear nowhere else in the house. You then strip the extras off the four cells. This example does not need that reading. The four cells are already down to the four digits.",
+        ],
+      },
+      {
+        demo: true,
+        h: "Box 1 loses its extra 1s",
+        intro:
+          "Box 1 is the top left. Four cells hold 1, 2, 4, and 5 between them. Step through. The only digit that leaves the rest of the box is 1.",
+      },
+      {
+        h: "The four cells, and the four that give up a 1",
+        p: [
+          "Row 3, column 2 is filled with 9. Four open cells make the quad. Row 1, column 3 can be 1, 2, or 5. Row 2, column 2 can be 1 or 4. Row 2, column 3 can be 1, 2, 4, or 5. Row 3, column 3 can be 1, 2, or 4. Together that is 1, 2, 4, and 5. Four cells, four digits.",
+          "The other open cells still list a 1. Row 1, column 1 can be 1, 3, 7, or 8. Row 1, column 2 can be 1, 3, or 7. Row 2, column 1 can be 1, 6, or 8. Row 3, column 1 can be 1, 6, or 7. Each loses the 1. None of them held a 2, a 4, or a 5, so nothing else moves, and nothing is placed. Four notes get cleaner. The box does not get a new digit.",
+        ],
+      },
+      {
+        h: "Waiting for a bigger result",
+        p: [
+          "I want the quad to solve a cell. This one will not. Leave the 1s in place and the next single stays hidden, and then it is tempting to go hunt an X-wing that is not the obstacle. Delete the small thing.",
+          "The other miss is insisting every pattern cell show all four digits. Row 2, column 2 only has 1 and 4, and it still belongs. A [naked triple](/techniques/naked-triple/) is this union with three cells. If that page makes sense, a quad is the same sentence with one more cell. It is easier to overlook because the group is so much of the house.",
+        ],
+      },
+      {
+        h: "Expert, and newspapers skip it",
+        p: [
+          "A puzzle whose hardest step is a quad is Expert here, not Hard. Hard stops at triples. Across all 1,483 NYT puzzles in the archive, the solver never needs a quad. The site will still hand you one. It is the last subset before the fish.",
+          "I reach for it after pairs and triples have come up empty, in a house full of notes and short on placements. Four cells using four digits is the tell. A house that is almost full is singles, not a quad.",
+        ],
+      },
     ],
   },
   {
@@ -574,9 +613,50 @@ export const techniques = [
     related: ["swordfish", "claiming"],
     when: "X-wings are Expert. Not Easy and Hard never require one.",
     nyt: "The 1,483 archived NYT puzzles never need an X-wing. Their hardest steps stop at triples.",
-    paragraphs: [
-      "An X-wing is one digit that forms a rectangle. In two rows, the digit has only two possible columns, and they are the same two columns in both rows. The digit has to occupy opposite corners of that rectangle, so it is eliminated from the rest of those two columns.",
-      "Drawn the other way, two columns each hold the digit in the same two rows, and the rest of those rows loses it. Pointing and claiming are the one-house version of this lock. The X-wing is the same lock across two houses.",
+    sections: [
+      {
+        h: "One digit, four corners",
+        p: [
+          "An X-wing is one digit locked into a rectangle. In the usual drawing, two rows have that digit in only two columns, the same two columns. The digit sits on one diagonal or the other. Either way both columns are spent, so the digit comes off every other cell in those columns.",
+          "Turn the picture the other way and you get the board below. Two columns each hold the digit in the same two rows, and the rest of those rows loses it. [Pointing](/techniques/pointing/) and [claiming](/techniques/claiming/) are this lock inside a single box. An X-wing is the lock spread across two lines that do not share a box.",
+        ],
+      },
+      {
+        demo: true,
+        h: "Columns 1 and 9, the digit 8",
+        intro:
+          "Each of those columns has an 8 in row 6 and row 9, and nowhere else. Step through. The 8s that leave are in those rows, off the four corners.",
+      },
+      {
+        h: "The corners are allowed to be messy",
+        p: [
+          "Column 1 can still be 8 in row 6, column 1 and in row 9, column 1. Nowhere else in the column. Column 9 can still be 8 in row 6, column 9 and in row 9, column 9. Same two rows. That is the rectangle.",
+          "The corners are not bare pairs. Row 6, column 1 can be 6, 7, or 8. Row 9, column 1 can be 3, 6, 7, or 8. Row 6, column 9 can be 3, 7, or 8. Row 9, column 9 can be 3, 8, or 9. Follow the 8 and ignore the other candidates. An X-wing does not need the cells to be naked.",
+          "Try one diagonal. Put the 8 in row 6, column 1. Row 6 is then done with 8s, so row 6, column 9 is not 8, and column 9's 8 has to be row 9, column 9. The other diagonal is row 6, column 9 with row 9, column 1. Either diagonal covers both columns inside those two rows. That is why an 8 in row 6, column 7 is impossible on both stories, and the same for the extra 8s along row 9.",
+          "So 8 leaves the rest of row 6 and row 9. Row 6, column 7 loses 8. Row 9, column 2 loses 8. Row 9, column 7 loses 8. Row 9, column 8 loses 8. Nothing is placed. Four notes, cleaned. That is a finished X-wing.",
+        ],
+      },
+      {
+        h: "A short scan",
+        ol: [
+          "Pick a digit that is already scarce.",
+          "Find a row or a column where that digit has exactly two homes.",
+          "Find a parallel line whose two homes hit the same two crossing lines.",
+          "Delete the digit from those crossing lines, outside the two base lines.",
+        ],
+      },
+      {
+        p: [
+          "Start from columns and you clear rows. Start from rows and you clear columns. I still clear the wrong side sometimes. Here the base is column 1 and column 9, so the deletions sit in row 6 and row 9. Taking an 8 off some other cell of column 1 would be deleting the rectangle you just found.",
+        ],
+      },
+      {
+        h: "Smaller locks come first",
+        p: [
+          "Two 8s in one box, clearing the rest of a line, are pointing or claiming. Take that before you build a rectangle. An X-wing is what you have when each line still has two homes and no single box owns both of them.",
+          "A swordfish is the same fish on three lines. The solver ranks an [XY-wing](/techniques/xy-wing/) between this and the swordfish, so the rectangle does not lead straight to three rows. All 1,483 archived NYT puzzles stop at triples. They never need an X-wing. On this site it is Expert. Not Easy and Hard are not allowed to require one.",
+        ],
+      },
     ],
   },
   {
@@ -588,11 +668,50 @@ export const techniques = [
     play: "expert",
     order: 90,
     related: ["x-wing"],
-    when: "Swordfish is Expert, one step past the X-wing. Mental is reserved for coloring and XY-chains.",
+    when: "Swordfish is Expert. The solver ranks it after the XY-wing. Mental is coloring and XY-chains.",
     nyt: "No puzzle in the NYT archive needs a swordfish. Expert is where this site asks for fish at all.",
-    paragraphs: [
-      "A swordfish is an X-wing with three rows instead of two. A digit is limited to the same three columns across three rows. It may not appear in every column of every row. Each of those rows uses two or three of the columns, and together the rows cover exactly three columns.",
-      "The digit is then removed from those three columns everywhere outside the three rows. The column version clears three rows instead.",
+    sections: [
+      {
+        h: "The rectangle has holes",
+        p: [
+          "A swordfish is an X-wing on three lines. A digit is limited to the same three columns across three rows, or the same three rows across three columns. On this board it is rows. Rows 1, 6, and 7 keep every 7 they have inside columns 4, 7, and 9.",
+          "The grid is not full. Row 6 has no 7 in column 4. Row 7 has no 7 in column 7. Each of those rows uses two or three of the columns, and together they use exactly three. That still locks the digit. I used to wait for a neat block of 7s, and I missed every swordfish that showed up.",
+        ],
+      },
+      {
+        h: "Why a missing corner still counts",
+        p: [
+          "The 7 in row 1 has to be in column 4, 7, or 9. The 7 in row 6 has to be in column 7 or 9. The 7 in row 7 has to be in column 4 or 9. None of those rows can put a 7 anywhere else. Place them however you like and columns 4, 7, and 9 are the only seats those rows have. A 7 in one of those columns, outside the three rows, would steal a seat the rows still need.",
+          "Run it from columns and you clear three rows instead. Same picture on its side. I learned the row version here, then went looking for the column version on purpose so I would not only see the one I had memorized.",
+        ],
+      },
+      {
+        demo: true,
+        h: "Rows 1, 6, and 7",
+        intro:
+          "Two of the rows are missing a column, and the pattern still holds. Step through. One 7 leaves column 7 and one 7 leaves column 9, both outside the three rows.",
+      },
+      {
+        h: "The 7s that are actually there",
+        p: [
+          "Row 1 can be 7 in row 1, column 4 (candidates 2, 3, and 7), row 1, column 7 (3 and 7), and row 1, column 9 (2, 3, 7, and 8). Row 6 can be 7 in row 6, column 7 (1 and 7) and row 6, column 9 (1 and 7). Row 7 can be 7 in row 7, column 4 (3 and 7) and row 7, column 9 (3 and 7).",
+          "The columns in play are 4, 7, and 9. Outside the three rows, row 8, column 7 still lists 1, 3, and 7, and the 7 leaves. Row 3, column 9 lists 2, 3, and 7, and the 7 leaves. Column 4 had no stray 7, so it deletes nothing. Nothing is placed. Two candidates, on a pattern that looked unfinished. That is a normal swordfish.",
+        ],
+      },
+      {
+        h: "A fourth column breaks it",
+        p: [
+          "Requiring every base row to hold the digit in every cover column will make you reject this board. Row 6, column 4 is not a 7. Row 7, column 7 is not a 7. It is still a swordfish. What you cannot allow is a fourth column. One extra 7 in row 6, somewhere else, and the three rows no longer cover exactly three columns.",
+          "An [X-wing](/techniques/x-wing/) is the two-line version, and it is easier to see. I look for rectangles before I look for three rows. A lot of near-swordfish are an X-wing I did not finish, or a pointing pair in one box. Those delete the same kind of candidate with less to track.",
+        ],
+      },
+      {
+        h: "The wing comes first, on this site",
+        p: [
+          "Swordfish is Expert. The solver ranks it after the XY-wing and before coloring. Calling it the step right after an X-wing skips the wing, and on the puzzles this site generates the wing shows up more often. I still think of swordfish as the bigger fish. I do not reach for it first.",
+          "No puzzle in the NYT archive needs one. Expert is where this site asks for fish at all. If three rows of one digit are in the way and there is no X-wing, count the columns. Two or three per row, three columns in total, and you have it.",
+        ],
+      },
     ],
   },
   {
@@ -606,9 +725,49 @@ export const techniques = [
     related: ["xy-chain", "naked-pair"],
     when: "XY-wings are Expert. A puzzle that needs one is past pairs, triples, and quads.",
     nyt: "XY-wings do not appear in the 1,483 NYT puzzles. That set never goes beyond triples.",
-    paragraphs: [
-      "An XY-wing is three cells, each with exactly two candidates. One cell, the pivot, sees the other two, the wings. The pivot's two digits are split across the wings: one wing shares the first digit, the other wing shares the second, and the wings share a third digit with each other.",
-      "Whatever the pivot is, one of the wings is that third digit. A cell that can see both wings therefore can't be the third digit, and it loses it. The wings do not have to see each other.",
+    sections: [
+      {
+        h: "Three cells, two digits each",
+        p: [
+          "An XY-wing is three cells with exactly two candidates each. One of them, the pivot, can see the other two. Those are the wings. The wings do not have to see each other. On this board, they don't.",
+          "The pivot is row 7, column 5, and it can be 6 or 9. One wing is row 4, column 5, up the same column, and it can be 8 or 9. The other wing is row 8, column 6, in the same box as the pivot, and it can be 6 or 8. The pivot shares 9 with the upper wing and 6 with the lower one. The two wings share 8.",
+        ],
+      },
+      {
+        h: "Whichever way the pivot goes, a wing is 8",
+        p: [
+          "If the pivot is 9, row 4, column 5 cannot be 9, so that wing is 8. If the pivot is 6, row 8, column 6 cannot be 6, so that wing is 8. The pivot has no third candidate. One wing or the other is 8. A cell that sees both wings cannot be 8, because it would see whichever wing the pivot forced.",
+          "You never learn which wing it was. The 8 is simply banned from the overlap. The pivot stays 6 or 9.",
+        ],
+      },
+      {
+        demo: true,
+        h: "The cell that sees the other two",
+        intro:
+          "Row 7, column 5 is the pivot. It sees both highlighted wings, and the wings do not see each other. Step through. Every cell that sees both wings loses 8, and one of those cells becomes 9.",
+      },
+      {
+        h: "Two different cells pay the price",
+        p: [
+          "Row 4, column 6 can be 8 or 9. It sees row 4, column 5 along the row, and it sees row 8, column 6 down column 6. It loses 8 and keeps 9. The step places 9 in row 4, column 6.",
+          "Row 8, column 5 can be 4, 6, or 8. It sees row 4, column 5 up the column, and it sees row 8, column 6 along the row. It loses 8 and keeps 4 and 6. Same wing, and this cell does not get solved.",
+          "The pivot and the lower wing share box 8. The upper wing is in box 5. No single house holds all three, so this is not a pair and not a triple. Searching one row for it will miss the pattern.",
+        ],
+      },
+      {
+        h: "I used to require the wings to touch",
+        p: [
+          "Row 4, column 5 and row 8, column 6 are different rows, different columns, and different boxes. They do not see each other. I used to throw the pattern out over that. The pivot is the cell that has to see both wings. The wings only have to share the third digit, here an 8.",
+          "A cell with three candidates is not a pivot either. Row 8, column 5 holds 4, 6, and 8, and it sees both wings, and it is the cell that gets cleaned. It is not in the wing. Every member has two candidates, exactly. If two cells in one house are a [naked pair](/techniques/naked-pair/), take the pair. Linking cells across boxes is what you do after that.",
+        ],
+      },
+      {
+        h: "Shorter than the chain",
+        p: [
+          "XY-wings are Expert. A puzzle that needs one is past pairs, triples, and quads. None of the 1,483 NYT puzzles has one. That set stops at triples. On this site the wing sits between the X-wing and the swordfish. People who learned fish as one ladder find that order odd. It is the order the solver uses.",
+          "An [XY-chain](/techniques/xy-chain/) is the same argument with more cells. When the three bivalue cells are already there, do the wing. I start looking once singles, locked candidates, and pairs are done, and a two-digit cell is touching two other two-digit cells.",
+        ],
+      },
     ],
   },
   {
@@ -622,9 +781,56 @@ export const techniques = [
     related: ["xy-chain"],
     when: "Simple coloring is a Mental technique. Mental puzzles are the ones whose hardest step is coloring or an XY-chain.",
     nyt: "Coloring is beyond the NYT archive. None of the 1,483 puzzles needs a chain.",
-    paragraphs: [
-      "Pick a digit. Wherever that digit has exactly two homes in a house, those two cells are linked: one of them is the digit, the other isn't. Color the links alternately. Two colors cover the chain.",
-      "If two cells of the same color can see each other, that color is impossible, and every cell of that color loses the digit. A cell outside the chain that can see both colors loses the digit too, because one of the colors is real.",
+    sections: [
+      {
+        h: "One digit, tied in pairs",
+        p: [
+          "Pick a digit. Wherever it has exactly two homes in a house, those two cells are tied. One of them is the digit and the other is not. Follow the ties and alternate a color. Two colors cover the chain. Simple coloring is that chain, plus one of two bad endings.",
+          "If two cells of the same color can see each other, that color is impossible, and every cell of that color loses the digit. The other ending does not break the chain at all. A cell outside it that sees both colors loses the digit, because one of the colors is real. The board below is that second ending. The chain is consistent. Row 2, column 9 is the problem.",
+        ],
+      },
+      {
+        ol: [
+          "Choose one digit. Find a house where it has exactly two cells.",
+          "Give one cell the first color and its partner the second.",
+          "Every new link flips the color. A cell keeps its color if you reach it again.",
+          "Stop if a color sees itself, or if some cell outside the chain sees both colors.",
+        ],
+      },
+      {
+        p: [
+          "Three homes in a house is not a link. Both ends are not forced. I have built a chain off a box that still had three 5s, and the contradiction was me.",
+        ],
+      },
+      {
+        demo: true,
+        h: "The 5s, first color then second",
+        intro:
+          "The highlighted cells are the chain. The board does not paint the two colors, so the alternation is written out under it. Step through. One 5 outside the chain leaves, and box 3 places a 5.",
+      },
+      {
+        h: "Four cells, and one outsider",
+        p: [
+          "Column 1 has 5 in exactly two cells. Row 2, column 1 can be 2, 5, or 6. Row 7, column 1 can be 4, 5, 6, or 8. Call row 2, column 1 the first color. Row 7, column 1 is the second.",
+          "Box 7 also has 5 in exactly two cells: row 7, column 1 and row 8, column 3. The first of those is already the second color, so row 8, column 3 (2, 5, or 7) takes the first color. Row 8 has 5 in row 8, column 3 and row 8, column 9 (2, 5, or 7). Row 8, column 9 takes the second color.",
+          "First color: row 2, column 1 and row 8, column 3. They do not see each other. Second color: row 7, column 1 and row 8, column 9. They do not see each other either. The chain is not fighting itself.",
+          "Row 2, column 9 can be 1, 3, or 5. It sees row 2, column 1, the first color, and row 8, column 9, the second color. It loses 5. Box 3 had two homes left for 5, this cell and row 3, column 7. Row 3, column 7 can be 1 or 5. The other home is gone, so the step places 5 in row 3, column 7.",
+        ],
+      },
+      {
+        h: "I flip a color and the rest is fiction",
+        p: [
+          "Four cells is about as far as I can hold without writing the colors down. One flipped link and every deletion after it is junk. If you cannot name a cell's color, mark it before you delete anything.",
+          "This board does not have the same-color crash. Do not delete 5 from row 2, column 1 because an outside cell got involved. The outside cell is the one that loses the digit. The chain stays. Coloring also follows a single digit the whole way. An [XY-chain](/techniques/xy-chain/) changes digit at every step. If your link suddenly involves a 6, you have left coloring.",
+        ],
+      },
+      {
+        h: "This is the Mental grade",
+        p: [
+          "Simple coloring is Mental, along with the XY-chain. A Mental puzzle's hardest step is one of those two. The NYT archive never needs either. None of the 1,483 puzzles gets past triples.",
+          "I reach for colors when one digit is full of two-cell links and the fish are not on the board. A pair or an X-wing, if it is there, is less work. I still have a ceiling on these. Some Mentals I see, and some I have to step through one link at a time.",
+        ],
+      },
     ],
   },
   {
@@ -638,9 +844,42 @@ export const techniques = [
     related: ["xy-wing", "coloring"],
     when: "XY-chains are Mental, with simple coloring. They are the hardest step this solver uses.",
     nyt: "The NYT archive never needs an XY-chain. Medium stops at pointing, and Hard stops at triples.",
-    paragraphs: [
-      "An XY-chain is a path of cells that each have two candidates. Each cell shares one candidate with the next cell, and the two cells see each other, so they can't both be that shared digit. The chain starts and ends on the same digit.",
-      "One of the ends is that digit. Any other cell that sees both ends loses it. An XY-wing is the short chain: a pivot and two wings. A longer path is the same argument.",
+    sections: [
+      {
+        h: "The wing, with another cell on the end",
+        p: [
+          "An XY-chain is a path of cells that each have two candidates. A cell shares one candidate with the next cell, and the two see each other, so they cannot both be that digit. The path starts on a digit and ends on the same digit. One of the two ends is that digit. Any other cell that sees both ends loses it.",
+          "An [XY-wing](/techniques/xy-wing/) is the short path, a pivot and two wings. This board uses four cells, and both ends carry a 4. I still drop a link at this length. Teddy is usually on the other end of the couch for it, a black Australian labradoodle with a white patch on his chest. He has never spotted a chain. On the first pass, neither have I.",
+        ],
+      },
+      {
+        demo: true,
+        h: "Four cells, both ends on 4",
+        intro:
+          "Read the highlighted cells from row 2, column 2 down to row 6, column 9. Step through. The 4 that leaves can see both ends, and that cell becomes 2.",
+      },
+      {
+        h: "Each link flips the digit",
+        p: [
+          "Row 2, column 2 can be 4 or 5. Row 5, column 2 can be 5 or 7, and it sees the first cell down column 2. They share 5. Row 5, column 9 can be 5 or 7, and it sees row 5, column 2 along the row. They share 7. Row 6, column 9 can be 4 or 5, and it sees row 5, column 9 down column 9. They share 5.",
+          "Suppose row 2, column 2 is not 4. Then it is 5, so row 5, column 2 is 7, so row 5, column 9 is 5, so row 6, column 9 is 4. If the start is not 4, the end is. If the start is 4, we never needed the end. One of the two ends is 4.",
+          "Row 2, column 9 can be 2 or 4. It sees row 2, column 2 along the row, and row 6, column 9 down the column. Both ends. It loses 4 and keeps 2. The step places 2 in row 2, column 9.",
+        ],
+      },
+      {
+        h: "The middle is a pair that deletes nothing",
+        p: [
+          "Row 5, column 2 and row 5, column 9 are both 5 and 7. That is a naked pair, and as a pair it is idle. The rest of row 5 is already filled, so there is no cell to strip 5 or 7 from. The chain uses the two cells anyway, as the middle links. A pattern with nothing to delete can still be a hinge.",
+          "The ends do not see each other. Row 2, column 2 and row 6, column 9 share no row, column, or box. That is allowed. The cell you clear is the one that sees both ends. Require the ends to see each other and you will only find wings.",
+        ],
+      },
+      {
+        h: "Last move the solver has",
+        p: [
+          "XY-chains are Mental, with coloring. They are the hardest step this solver uses. The NYT archive never needs one. Medium stops at pointing. Hard stops at triples. If a shorter wing is sitting there, take the wing. Four cells is the same logic with more places to slip.",
+          "I look for a chain when the two-digit cells are scattered and nothing inside one house will move. Start on a cell that holds the digit you care about, walk the shared candidate to a cell that sees it, and flip to that cell's other digit. When you arrive back on the first digit, find a cell that sees both ends. Then go play one before the path gets longer than this.",
+        ],
+      },
     ],
   },
 ];
