@@ -42,6 +42,23 @@ After the first deploy, attach the custom domain `sudokusudoku.com` (and `www`) 
 
 There is no `wrangler.toml`. The build command and output directory stay as they are in the Pages project.
 
+## Optional account
+
+Sign-in is optional. The game keeps using `localStorage` first. A signed-in player also gets a copy of stats, streaks, settings, skill progress, and the unfinished puzzle in D1, so it can survive a cleared browser or a new device. Anonymous play does not call these endpoints.
+
+`functions/api/account/` is the Pages Function. Apply [`migrations/0002_accounts.sql`](migrations/0002_accounts.sql) to both D1 databases the same way as the stats tables. One statement per request.
+
+The sign-in form reuses the contact form's Turnstile keys (`TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`). Add the preview hostname to the Turnstile widget if sign-in should work on preview deployments.
+
+Email has to reach whatever address the player types. The contact binding `EMAIL` cannot do that: `sudokusudoku-mailer` is locked to the verified destination in `CONTACT_TO`. Cloudflare Email Routing's `send_email` binding, with or without a destination lock, only delivers to verified destination addresses unless Email Sending is enabled for arbitrary recipients (Workers Paid, domain onboarded, `cf-bounce` DNS). This account has Email Routing and does not have Email Sending onboarded.
+
+Use one of these, then redeploy:
+
+1. Cloudflare Email Sending, once the account is on Workers Paid and `sudokusudoku.com` is onboarded under Compute > Email Service > Email Sending. Add a worker method that calls an unrestricted `send_email` binding, then add a Pages service binding named `LOGIN_EMAIL` to that worker. Do not point `LOGIN_EMAIL` at the contact mailer's destination-locked binding.
+2. Or set a Pages secret `LOGIN_EMAIL_API_KEY` (Resend) on Production and Preview. Verify `sudokusudoku.com` with Resend so the From address is allowed. Optional `LOGIN_FROM` (default `SudokuSudoku <login@sudokusudoku.com>`).
+
+Until one of those exists, the sign-in sheet still shows, and the request responds that sign-in email is not set up. No secret belongs in the repo or in logs.
+
 ## Community stats
 
 D1 is bound on the Pages project as `STATS_DB`. Production uses `sudokusudoku-stats` (`1d90567c-bc27-48d4-bd35-f9d02f2fd036`). Preview deployments use `sudokusudoku-stats-preview` (`492493ba-3bad-403e-8391-1090489ef024`). Apply the statements in [`migrations/README.md`](migrations/README.md) to both databases with the Cloudflare API. Do not seed sample rows into production.

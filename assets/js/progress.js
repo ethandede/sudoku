@@ -315,10 +315,10 @@
     };
   }
 
-  function load() {
-    const stored = readJson(SKILLS_KEY);
+  let skillsBlocked = false;
+
+  function normalizeSkills(stored) {
     const data = fresh();
-    if (!stored || stored.version !== 1) return data;
     const techniques = stored.techniques || {};
     TECHNIQUES.forEach((tech) => {
       const row = techniques[tech.slug];
@@ -338,8 +338,51 @@
     return data;
   }
 
+  function load() {
+    let raw = null;
+    try {
+      const store = root.localStorage;
+      if (!store) return fresh();
+      raw = store.getItem(SKILLS_KEY);
+    } catch {
+      skillsBlocked = true;
+      return fresh();
+    }
+    if (raw == null) return fresh();
+    let stored;
+    try {
+      stored = JSON.parse(raw);
+    } catch {
+      skillsBlocked = true;
+      return fresh();
+    }
+    if (!stored || typeof stored !== "object" || Array.isArray(stored)) {
+      skillsBlocked = true;
+      return fresh();
+    }
+    const version = stored.version == null ? 0 : stored.version | 0;
+    if (!Number.isFinite(version) || version > 1) {
+      skillsBlocked = true;
+      return fresh();
+    }
+    const data = normalizeSkills(stored);
+    if (version < 1) save(data);
+    return data;
+  }
+
   function save(data) {
+    if (skillsBlocked) return;
     writeJson(SKILLS_KEY, data);
+    if (root.SudokuAccount && typeof root.SudokuAccount.noteChange === "function") {
+      root.SudokuAccount.noteChange();
+    }
+  }
+
+  function replace(incoming) {
+    if (skillsBlocked) return load();
+    const data = normalizeSkills(incoming || {});
+    writeJson(SKILLS_KEY, data);
+    return data;
   }
 
   function shiftDate(iso, days) {
@@ -648,8 +691,10 @@
   function importAll(text) {
     const bundle = decode(text);
     if (!bundle || bundle.v !== 1) throw new Error("That code is not a Sudoku progress file.");
-    const before = new Set(load().badges);
-    save(mergeSkills(load(), bundle.skills || {}));
+    const current = skillsBlocked ? fresh() : load();
+    skillsBlocked = false;
+    const before = new Set(current.badges);
+    save(mergeSkills(current, bundle.skills || {}));
     if (bundle.stats && typeof bundle.stats === "object") {
       writeJson(STATS_KEY, mergeStats(readJson(STATS_KEY), bundle.stats));
     }
@@ -741,6 +786,10 @@
     MASTERED_AT,
     STATUS_LABEL,
     load,
+    replace,
+    canSync() {
+      return !skillsBlocked;
+    },
     prepare,
     recordSolve,
     statusOf,

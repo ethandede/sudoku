@@ -324,7 +324,7 @@ ${privacyChoiceItem}      </ul>
 ${privacyChoiceNote}    <p class="copyright">&copy; ${year} SudokuSudoku. All rights reserved.</p>
   </div>
 </footer>
-${game ? ["solver", "pools", "generator", "progress", "community", "share"].map((name) => scriptTag(`/assets/js/${name}.js`)).join("\n") : ""}
+${game ? ["solver", "pools", "generator", "progress", "community", "share", "account-merge", "account"].map((name) => scriptTag(`/assets/js/${name}.js`)).join("\n") : ""}
 ${skills ? scriptTag("/assets/js/progress.js") : ""}
 ${scriptTag("/assets/js/sudoku.js")}
 ${skills ? scriptTag("/assets/js/skills.js") : ""}
@@ -334,6 +334,11 @@ ${stats ? scriptTag("/assets/js/stats-page.js") : ""}
 ${privacyChoiceScript}</body>
 </html>
 `;
+}
+
+function accountMergeForBrowser(source) {
+  const body = source.replace(/^export /gm, "");
+  return `(function (root) {\n${body}\n  root.SudokuAccountMerge = {\n    mergeAccount: mergeAccount,\n    migrateStats: migrateStats,\n    migrateSettings: migrateSettings,\n    migrateProgress: migrateProgress,\n    BUNDLE_VERSION: BUNDLE_VERSION\n  };\n})(typeof globalThis !== "undefined" ? globalThis : this);\n`;
 }
 
 function scriptTag(path) {
@@ -460,6 +465,8 @@ write("assets/js/skills.js", read("assets/js/skills.js"));
 write("assets/js/contact.js", read("assets/js/contact.js"));
 write("assets/js/community.js", read("assets/js/community.js"));
 write("assets/js/share.js", read("assets/js/share.js"));
+write("assets/js/account-merge.js", accountMergeForBrowser(read("functions/account-merge.mjs")));
+write("assets/js/account.js", read("assets/js/account.js"));
 write("assets/js/stats-page.js", read("assets/js/stats-page.js"));
 write("ads.txt", read("ads.txt").trim() + "\n");
 cpSync(join(root, "assets/fonts"), join(dist, "assets/fonts"), { recursive: true });
@@ -585,7 +592,7 @@ publish(
   standardPage(
     "Privacy Policy",
     read("privacy-policy-content.html").trim(),
-    "How SudokuSudoku handles on-device puzzle data, anonymous community stats, Google Analytics, AdSense consent, and the contact form.",
+    "How SudokuSudoku handles on-device puzzle data, the optional email account, anonymous community stats, Google Analytics, AdSense consent, and the contact form.",
     "/privacy-policy/",
     { ads: false, analytics: false, privacyChoices: false }
   ),
@@ -1075,6 +1082,8 @@ const shellPaths = [
   "assets/js/sudoku.js",
   "assets/js/community.js",
   "assets/js/share.js",
+  "assets/js/account-merge.js",
+  "assets/js/account.js",
   ...iconSizes.map((size) => `icons/icon-${size}.png`),
   "icons/maskable-192.png",
   "icons/maskable-512.png",

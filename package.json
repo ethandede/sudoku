@@ -9,6 +9,7 @@
     "test:grader": "node scripts/test-grader.mjs",
     "test:progress": "node scripts/test-progress.mjs",
     "test:contact": "node scripts/test-contact.mjs",
+    "test:account": "node scripts/test-account.mjs",
     "test:mini": "node scripts/test-mini.mjs",
     "test:stats": "node scripts/test-stats.mjs",
     "test:articles": "node scripts/test-articles.mjs",

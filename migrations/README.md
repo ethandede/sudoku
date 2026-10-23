@@ -72,4 +72,64 @@ Outcomes are `solved`, `revealed` (Reveal Puzzle), `failed` (the four-mistake li
 
 Solved and revealed times below 8 seconds on Quick, or below 20 seconds on every other level, are rejected. Failed and abandoned plays can be shorter. Each client can start 40 plays per rolling day, and at most one new play every 10 seconds. That is a rate limit, not a random sample.
 
+## Optional account
+
+Run these after the stats statements, once per database, one statement per request. They create the optional sign-in tables. They do not change `plays`.
+
+```sql
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  created_at INTEGER NOT NULL
+);
+```
+
+```sql
+CREATE TABLE IF NOT EXISTS sessions (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  token_hash TEXT NOT NULL UNIQUE,
+  expires_at INTEGER NOT NULL,
+  created_at INTEGER NOT NULL,
+  last_seen_at INTEGER NOT NULL
+);
+```
+
+```sql
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions (user_id);
+```
+
+```sql
+CREATE TABLE IF NOT EXISTS login_tokens (
+  id TEXT PRIMARY KEY,
+  email TEXT NOT NULL,
+  token_hash TEXT NOT NULL UNIQUE,
+  code_hash TEXT NOT NULL,
+  expires_at INTEGER NOT NULL,
+  used_at INTEGER,
+  failures INTEGER NOT NULL DEFAULT 0,
+  created_at INTEGER NOT NULL,
+  ip_hash TEXT NOT NULL
+);
+```
+
+```sql
+CREATE INDEX IF NOT EXISTS idx_login_tokens_email_created ON login_tokens (email, created_at);
+```
+
+```sql
+CREATE INDEX IF NOT EXISTS idx_login_tokens_ip_created ON login_tokens (ip_hash, created_at);
+```
+
+```sql
+CREATE TABLE IF NOT EXISTS player_data (
+  user_id TEXT PRIMARY KEY,
+  blob TEXT NOT NULL,
+  version INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+```
+
+`users.email` is the only identity. `player_data.blob` is JSON for stats, skills, settings, and one in-progress puzzle. `login_tokens` stores SHA-256 hashes of the magic link and the 6-digit code, plus `ip_hash` (SHA-256 of the connecting IP) for rate limits. The raw link, the raw code, and the IP address are not stored. Sessions store a hash of the cookie value. Deleting the account removes the user, sessions, login tokens, and player data for that email.
+
 `GET /api/stats/summary` is cached at the edge for about 10 minutes. A group with fewer than 20 finishes is suppressed. Daily plays are reported on their own and are not mixed into the Not Easy free-play numbers.
