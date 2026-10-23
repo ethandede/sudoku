@@ -15,7 +15,6 @@
 @use 'layout/theme';
 
 // Components
-@use "components/buttons" as *;
 @use 'components/color-controls';
 @use 'components/contact-form';
 @use 'components/house-promos';
@@ -30,3 +29,4 @@
 @use 'pages/skills';
 @use 'pages/stats';
 @use 'components/uiverse';
+@use 'components/buttons';

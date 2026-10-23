@@ -35,13 +35,13 @@
 @media (prefers-reduced-motion: no-preference) {
   .articles-page .article-card,
   .house-slot a.house-promo,
-  .stats-switch button,
-  .articles-page .read-more,
-  .cta-button,
-  .contact-form button[type="submit"],
-  .skills-page .primary-btn,
-  .skills-page .secondary-btn {
-    transition: transform 120ms ease;
+  .stats-switch button {
+    transition:
+      background-color var(--btn-duration) var(--btn-ease),
+      border-color var(--btn-duration) var(--btn-ease),
+      color var(--btn-duration) var(--btn-ease),
+      box-shadow var(--btn-duration) var(--btn-ease),
+      transform var(--btn-duration) var(--btn-ease);
   }
 
   .articles-page .article-card:active,

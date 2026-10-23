@@ -12,7 +12,7 @@
     align-items: center;
     gap: 0.5rem;
     font-size: 1rem;
-    color: var(--primary-color); // Uses your defined primary color
+    color: var(--ink);
 
     input[type="color"] {
       border: none;
@@ -22,7 +22,7 @@
       padding: 0;
       cursor: pointer;
       -webkit-appearance: none;
-      border: 1px solid #ccc;
+      border: 1px solid #cfc8be;
       border-radius: 4px;
 
       &::-webkit-color-swatch-wrapper {
