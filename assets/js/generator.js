@@ -3,7 +3,7 @@
 // level's technique window. No symmetry.
 //
 // Not Easy / Hard bottleneck gates come from the archived NYT window
-// (Jan 2023–Mar 2024), measured with this solver:
+// (August 30, 2021 through March 2, 2024), measured with this solver:
 //   Medium, pointing only, ≤3 steps, ≤2 stalls (n=387):
 //     bottlenecks p10 3, median 5, p90 8, max 11, mean 5.0
 //   Hard, pair or triple, ≥4 steps (n=314):

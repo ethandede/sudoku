@@ -357,4 +357,21 @@ assert.match(build, /"terms\/index.html"[\s\S]{0,700}analytics:\s*false/);
 assert.match(build, /"terms\/index.html"[\s\S]{0,800}privacyChoices:\s*false/);
 assert.match(redirects, /\/terms \/terms\/ 301/);
 
+const nytRange = "August 30, 2021 through March 2, 2024";
+const nytSources = {
+  comparison: readFileSync(new URL("../articles/04-nyt-medium-vs-hard.md", import.meta.url), "utf8"),
+  "what-makes": readArticle("what-makes-a-sudoku-hard"),
+  ai: readArticle("why-ai-is-bad-at-sudoku"),
+  generator: readFileSync(new URL("../assets/js/generator.js", import.meta.url), "utf8"),
+  techniques: readFileSync(new URL("./technique-copy.mjs", import.meta.url), "utf8"),
+};
+for (const [label, text] of Object.entries(nytSources)) {
+  assert.equal(text.includes(nytRange), true, label);
+  assert.equal(text.includes("January 2023"), false, label);
+  assert.equal(text.includes("Jan 2023"), false, label);
+  assert.equal(text.includes("—"), false, `${label} em dash`);
+}
+assert.equal(nytSources["what-makes"].includes("publishDate: 2026-10-28"), true);
+assert.equal(nytSources.ai.includes("publishDate: 2026-11-04"), true);
+
 console.log("article publish tests passed");
