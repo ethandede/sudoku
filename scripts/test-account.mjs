@@ -186,6 +186,76 @@ assert.equal(skills.techniques.pointing.seen, 2);
 assert.ok(skills.badges.includes("spotless"));
 assert.ok(skills.badges.includes("streak-3"));
 assert.equal(skills.bestLevel, "hard");
+assert.equal(skills.hintTotals.checks, 0);
+
+const hintedSkills = mergeAccount(
+  {
+    skills: {
+      version: 1,
+      techniques: { pointing: { seen: 2, clean: 1, hinted: 1 } },
+      history: [
+        {
+          at: "2026-05-01T00:00:00.000Z",
+          level: "hard",
+          seconds: 100,
+          mistakes: 0,
+          hints: 1,
+          checks: 2,
+          hinted: ["pointing"],
+          path: ["pointing"],
+        },
+      ],
+      hintTotals: { checks: 2, levels: { hard: { solves: 3, hints: 4, clean: 1, checks: 2 } } },
+      seeded: true,
+    },
+  },
+  {
+    skills: {
+      version: 1,
+      techniques: {},
+      history: [
+        {
+          at: "2026-05-01T00:00:00.000Z",
+          level: "hard",
+          seconds: 100,
+          mistakes: 0,
+          hints: 1,
+          hinted: ["pointing"],
+          path: ["pointing"],
+        },
+      ],
+      seeded: true,
+    },
+  }
+).skills;
+assert.equal(hintedSkills.history.length, 1);
+assert.equal(hintedSkills.history[0].checks, 2);
+assert.equal(hintedSkills.hintTotals.levels.hard.solves, 3);
+assert.equal(hintedSkills.hintTotals.levels.hard.hints, 4);
+assert.equal(hintedSkills.hintTotals.checks, 2);
+
+const fromHistory = mergeAccount(
+  {
+    skills: {
+      version: 1,
+      history: [
+        { at: "2026-04-01T00:00:00.000Z", level: "easy", seconds: 30, mistakes: 0, hints: 0, checks: 1, hinted: [], path: ["naked-single"] },
+        { at: "2026-04-02T00:00:00.000Z", level: "easy", seconds: 40, mistakes: 0, hints: 2, checks: 0, hinted: ["pointing"], path: ["pointing"] },
+      ],
+      seeded: true,
+    },
+  },
+  { skills: { version: 1, history: [], seeded: true } }
+).skills;
+assert.equal(fromHistory.hintTotals.levels.easy.solves, 2);
+assert.equal(fromHistory.hintTotals.levels.easy.hints, 2);
+assert.equal(fromHistory.hintTotals.levels.easy.clean, 1);
+assert.equal(fromHistory.hintTotals.checks, 1);
+
+const keptChecks = sanitizeProgress({ ...puzzle, checks: 4, hintSlugs: ["pointing", "pointing", "nope"] });
+assert.equal(keptChecks.checks, 4);
+assert.deepEqual(keptChecks.hintSlugs, ["pointing"]);
+assert.equal(sanitizeProgress({ ...puzzle, checks: -3 }).checks, 0);
 
 const migrated = migrateStats({
   daily: { played: 2, won: 1, longestStreak: 4, completed: { "2026-01-01": day(10) } },

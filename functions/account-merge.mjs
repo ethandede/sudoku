@@ -156,8 +156,81 @@ export function migrateStats(stored) {
   return { ok: true, stats: mergeStats(stored, null), changed: version < STATS_VERSION };
 }
 
+const LEDGER_LEVELS = ["daily", ...LEVELS];
+
+function emptyLevel() {
+  return { solves: 0, hints: 0, clean: 0, checks: 0 };
+}
+
+function sanitizeLevel(row) {
+  const base = emptyLevel();
+  if (!row || typeof row !== "object") return base;
+  base.solves = clampCount(row.solves);
+  base.hints = clampCount(row.hints);
+  base.clean = Math.min(base.solves, clampCount(row.clean));
+  base.checks = clampCount(row.checks);
+  return base;
+}
+
+function levelChecks(totals) {
+  return Object.keys(totals.levels || {}).reduce((sum, level) => sum + (totals.levels[level].checks | 0), 0);
+}
+
+function sanitizeTotals(raw) {
+  const totals = { checks: 0, levels: {} };
+  if (!raw || typeof raw !== "object") return totals;
+  LEDGER_LEVELS.forEach((level) => {
+    if (!raw.levels || !raw.levels[level]) return;
+    const row = sanitizeLevel(raw.levels[level]);
+    if (row.solves || row.hints || row.checks) totals.levels[level] = row;
+  });
+  totals.checks = Math.max(clampCount(raw.checks), levelChecks(totals));
+  return totals;
+}
+
+function totalsFromHistory(history) {
+  const totals = { checks: 0, levels: {} };
+  (history || []).forEach((item) => {
+    if (!item) return;
+    const level = LEDGER_LEVELS.includes(item.level) ? item.level : "easy";
+    if (!totals.levels[level]) totals.levels[level] = emptyLevel();
+    const row = totals.levels[level];
+    const hints = clampCount(item.hints);
+    const checks = clampCount(item.checks);
+    row.solves += 1;
+    row.hints += hints;
+    if (!hints) row.clean += 1;
+    row.checks += checks;
+    totals.checks += checks;
+  });
+  return totals;
+}
+
+function mergeLevel(left, right) {
+  const solves = Math.max(left.solves | 0, right.solves | 0);
+  return {
+    solves,
+    hints: Math.max(left.hints | 0, right.hints | 0),
+    clean: Math.min(solves, Math.max(left.clean | 0, right.clean | 0)),
+    checks: Math.max(left.checks | 0, right.checks | 0),
+  };
+}
+
+function mergeTotals(left, right) {
+  const levels = {};
+  LEDGER_LEVELS.forEach((level) => {
+    const a = left && left.levels && left.levels[level];
+    const b = right && right.levels && right.levels[level];
+    if (!a && !b) return;
+    levels[level] = mergeLevel(a || emptyLevel(), b || emptyLevel());
+  });
+  const merged = { checks: Math.max(clampCount(left && left.checks), clampCount(right && right.checks)), levels };
+  merged.checks = Math.max(merged.checks, levelChecks(merged));
+  return merged;
+}
+
 function freshSkills() {
-  return { version: SKILLS_VERSION, techniques: {}, badges: [], history: [], bestLevel: null, seeded: false };
+  return { version: SKILLS_VERSION, techniques: {}, badges: [], history: [], bestLevel: null, seeded: false, hintTotals: null };
 }
 
 function sanitizeHistory(item) {
@@ -170,6 +243,7 @@ function sanitizeHistory(item) {
     seconds: clampCount(item.seconds),
     mistakes: clampCount(item.mistakes),
     hints: clampCount(item.hints),
+    checks: clampCount(item.checks),
     hinted,
     path,
   };
@@ -179,10 +253,24 @@ function historyKey(item) {
   return `${item.at}|${item.level}|${item.seconds}|${item.mistakes}`;
 }
 
+function uniqueSlugs(list) {
+  const out = [];
+  (Array.isArray(list) ? list : []).forEach((slug) => {
+    if (TECHNIQUE_SET.has(slug) && !out.includes(slug)) out.push(slug);
+  });
+  return out.slice(0, 30);
+}
+
 export function mergeSkills(local, incoming) {
   const next = freshSkills();
   const left = local && typeof local === "object" ? local : {};
   const right = incoming && typeof incoming === "object" ? incoming : {};
+  const leftHad = Boolean(left.hintTotals && typeof left.hintTotals === "object");
+  const rightHad = Boolean(right.hintTotals && typeof right.hintTotals === "object");
+  const leftLedger = leftHad ? sanitizeTotals(left.hintTotals) : null;
+  const rightLedger = rightHad ? sanitizeTotals(right.hintTotals) : null;
+  const leftHistory = Array.isArray(left.history) ? left.history : [];
+  const rightHistory = Array.isArray(right.history) ? right.history : [];
   TECHNIQUES.forEach((slug) => {
     const a = left.techniques && left.techniques[slug];
     const b = right.techniques && right.techniques[slug];
@@ -201,21 +289,31 @@ export function mergeSkills(local, incoming) {
     });
   });
   next.badges = [...badges].slice(0, 64);
-  const seen = new Set();
+  const seen = new Map();
   next.history = [];
-  [left.history, right.history].forEach((list) => {
-    if (!Array.isArray(list)) return;
+  [leftHistory, rightHistory].forEach((list) => {
     list.forEach((item) => {
       const clean = sanitizeHistory(item);
       if (!clean) return;
       const key = historyKey(clean);
-      if (seen.has(key)) return;
-      seen.add(key);
+      const prev = seen.get(key);
+      if (prev) {
+        if ((clean.checks | 0) > (prev.checks | 0)) prev.checks = clean.checks;
+        return;
+      }
+      seen.set(key, clean);
       next.history.push(clean);
     });
   });
   next.history.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
   if (next.history.length > HISTORY_LIMIT) next.history.length = HISTORY_LIMIT;
+  if (!leftHad && !rightHad) next.hintTotals = totalsFromHistory(next.history);
+  else {
+    next.hintTotals = mergeTotals(
+      leftLedger || totalsFromHistory(leftHistory),
+      rightLedger || totalsFromHistory(rightHistory)
+    );
+  }
   const leftLevel = LEVELS.includes(left.bestLevel) ? left.bestLevel : null;
   const rightLevel = LEVELS.includes(right.bestLevel) ? right.bestLevel : null;
   if (!leftLevel) next.bestLevel = rightLevel;
@@ -319,9 +417,8 @@ export function sanitizeProgress(input) {
     auto: Boolean(input.auto),
     counted: Boolean(input.counted),
     scored: Boolean(input.scored),
-    hintSlugs: Array.isArray(input.hintSlugs)
-      ? input.hintSlugs.filter((slug) => TECHNIQUE_SET.has(slug)).slice(0, 30)
-      : [],
+    hintSlugs: uniqueSlugs(input.hintSlugs),
+    checks: clampCount(input.checks),
     train: typeof input.train === "string" ? input.train.slice(0, 40) : null,
     practice: typeof input.practice === "string" && TECHNIQUE_SET.has(input.practice) ? input.practice : null,
     practiceMiss: Boolean(input.practiceMiss),

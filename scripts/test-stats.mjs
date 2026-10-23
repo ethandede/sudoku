@@ -4,6 +4,7 @@ import { DatabaseSync } from "node:sqlite";
 import {
   aggregate,
   beatPercent,
+  summarizeBucket,
   consentRequired,
   finishAction,
   puzzleKeyFrom,
@@ -205,6 +206,39 @@ assert.equal(summary.windows["30d"].daily.suppressed, true);
 assert.equal(summary.today.daily.suppressed, true);
 assert.equal(summary.windows.all.levels.easy.suppressed, true);
 assert.equal(summary.windows["30d"].levels.hard.topHint.slug, "x-wing");
+assert.equal(summary.windows["30d"].levels.hard.avgHints, 0.7);
+assert.equal("avgHints" in summary.windows["30d"].levels["not easy"], false);
+assert.equal(JSON.stringify(summary).includes("client"), false);
+
+const thin = Array.from({ length: 19 }, () => ({
+  outcome: "solved",
+  elapsed_seconds: 90,
+  mistakes: 0,
+  hints_used: 2,
+  hardest_hint: "pointing",
+}));
+const thinBucket = summarizeBucket(thin, thin);
+assert.equal(thinBucket.suppressed, true);
+assert.equal("avgHints" in thinBucket, false);
+const enough = summarizeBucket(
+  Array.from({ length: 20 }, (_, index) => ({
+    outcome: "solved",
+    elapsed_seconds: 90 + index,
+    mistakes: 0,
+    hints_used: index < 10 ? 0 : 2,
+    hardest_hint: index < 10 ? null : "naked-pair",
+  })),
+  Array.from({ length: 20 }, (_, index) => ({
+    outcome: "solved",
+    elapsed_seconds: 90 + index,
+    mistakes: 0,
+    hints_used: index < 10 ? 0 : 2,
+    hardest_hint: index < 10 ? null : "naked-pair",
+  }))
+);
+assert.equal(enough.suppressed, false);
+assert.equal(enough.avgHints, 1);
+assert.equal(enough.noHintPct, 50);
 
 {
   const { env, sqlite } = openDb();

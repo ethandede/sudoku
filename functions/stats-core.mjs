@@ -271,6 +271,8 @@ export function summarizeBucket(starts, finishes) {
     .sort((a, b) => a - b);
   const noHints = solved.filter((play) => !play.hints_used).length;
   const topHints = hintMode(finishes);
+  const hintTotal = solved.reduce((sum, play) => sum + Math.max(0, play.hints_used | 0), 0);
+  const avgHints = solved.length ? Math.round((hintTotal / solved.length) * 10) / 10 : null;
   return {
     suppressed: false,
     starts: startCount,
@@ -288,6 +290,7 @@ export function summarizeBucket(starts, finishes) {
     p75Seconds: quantile(solvedTimes, 0.75),
     medianMistakes: quantile(mistakeTimes, 0.5),
     noHintPct: solved.length ? percent(noHints, solved.length) : null,
+    avgHints,
     topHint: topHints[0] || null,
     timeBuckets: timeBuckets(solvedTimes),
     topHints,

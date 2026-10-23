@@ -201,6 +201,96 @@
   color: #555;
 }
 
+.hint-block {
+  margin: 0 0 1.75rem;
+}
+
+.hint-block h2,
+.hint-block h3.hint-sub,
+.hint-block > h3 {
+  margin: 1rem 0 0.5rem;
+}
+
+.hint-block > h2,
+.hint-block > h3:first-child {
+  margin-top: 0;
+}
+
+.hint-levels {
+  list-style: none;
+  margin: 0.35rem 0 0.75rem;
+  padding: 0;
+}
+
+.hint-level {
+  display: grid;
+  grid-template-columns: minmax(4.5rem, 6.5rem) minmax(0, 1fr) auto;
+  gap: 0.45rem;
+  align-items: center;
+  margin: 0 0 0.4rem;
+  min-height: 44px;
+}
+
+.hint-level-track {
+  display: block;
+  height: 0.55rem;
+  background: #e7ebf0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.hint-level-track span {
+  display: block;
+  height: 100%;
+  background: var(--accent-color);
+  border-radius: 999px;
+}
+
+.hint-level-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  min-width: 2rem;
+  text-align: right;
+}
+
+.hint-table-wrap {
+  overflow-x: auto;
+}
+
+.hint-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+
+  th,
+  td {
+    text-align: left;
+    padding: 0.15rem 0.4rem;
+    border-bottom: 1px solid #e0e0e0;
+    vertical-align: middle;
+  }
+
+  th:not(:first-child),
+  td {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  th[scope="row"] {
+    text-align: left;
+    font-weight: 650;
+    white-space: normal;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-right: 0.75rem;
+  }
+}
+
 html[data-theme="dark"] {
   .stats-switch button {
     border-color: #4c545e;
@@ -219,8 +309,14 @@ html[data-theme="dark"] {
 
   .stats-bar,
   .stats-col-plot,
-  .stats-tech-track {
+  .stats-tech-track,
+  .hint-level-track {
     background: #2a3036;
+  }
+
+  .hint-table th,
+  .hint-table td {
+    border-bottom-color: #3e4650;
   }
 }
 

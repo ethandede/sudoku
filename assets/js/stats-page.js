@@ -100,6 +100,12 @@
       .join("")}</ul>`;
   }
 
+  function hintsLabel(value) {
+    if (value == null || Number.isNaN(Number(value))) return "n/a";
+    const rounded = Math.round(Number(value) * 10) / 10;
+    return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+  }
+
   function facts(bucket) {
     return `<dl class="stats-facts">
       <div><dt>Starts</dt><dd>${bucket.starts}</dd></div>
@@ -107,8 +113,29 @@
       <div><dt>Median solve</dt><dd>${clock(bucket.medianSeconds)}</dd></div>
       <div><dt>25th–75th</dt><dd>${clock(bucket.p25Seconds)} – ${clock(bucket.p75Seconds)}</dd></div>
       <div><dt>Median mistakes</dt><dd>${bucket.medianMistakes == null ? "—" : bucket.medianMistakes}</dd></div>
+      <div><dt>Average hints</dt><dd>${hintsLabel(bucket.avgHints)}</dd></div>
       <div><dt>Solved with no hints</dt><dd>${bucket.noHintPct == null ? "—" : `${bucket.noHintPct}%`}</dd></div>
     </dl>`;
+  }
+
+  function hintCompare() {
+    const rows = [];
+    ORDER.forEach(([kind, label]) => {
+      const bucket = bucketFor(kind);
+      if (!bucket || bucket.suppressed || bucket.avgHints == null || !bucket.solved) return;
+      rows.push({ label, avg: bucket.avgHints });
+    });
+    if (!rows.length) {
+      return `<section class="stats-card" id="stats-hint-average"><h2>Average hints</h2><p class="stats-empty">Not enough data yet.</p></section>`;
+    }
+    const peak = Math.max(1, ...rows.map((row) => row.avg));
+    const bars = rows
+      .map((row) => {
+        const width = row.avg ? Math.max(6, Math.round((row.avg / peak) * 100)) : 0;
+        return `<li class="hint-level"><span class="hint-level-name">${escapeHtml(row.label)}</span><span class="hint-level-track"><span style="width:${width}%"></span></span><span class="hint-level-value">${hintsLabel(row.avg)}</span></li>`;
+      })
+      .join("");
+    return `<section class="stats-card" id="stats-hint-average"><h2>Average hints</h2><p class="stats-note">Technique hints per solved game. Practice, headless browsers, and groups under ${summary.minFinishes || 20} finishes stay out.</p><ul class="hint-levels" role="img" aria-label="Average technique hints per solved game by level">${bars}</ul></section>`;
   }
 
   function card(kind, label) {
@@ -119,9 +146,6 @@
         <p class="stats-empty">Not enough data yet.</p>
       </section>`;
     }
-    const hint = bucket.topHint
-      ? `<p class="stats-note">Most-hinted technique: ${escapeHtml(bucket.topHint.name)}.</p>`
-      : "";
     return `<section class="stats-card" id="stats-${kind.replace(/\s+/g, "-")}">
       <h2>${escapeHtml(label)}</h2>
       <p class="stats-lead">${bucket.solvePct}% solved · median ${clock(bucket.medianSeconds)}</p>
@@ -130,9 +154,9 @@
       ${outcomeBar(bucket)}
       <h3>Solve times</h3>
       ${histogram(bucket)}
-      <h3>Hardest hint used</h3>
+      <h3>Techniques that needed a hint</h3>
       ${techniques(bucket)}
-      ${hint}
+      <p class="stats-note">Each play counts once, as its hardest hint. Solves with no hints are the percentage above.</p>
     </section>`;
   }
 
@@ -147,9 +171,19 @@
     host.textContent = `Today's daily: ${today.solvePct}% solved · median ${clock(today.medianSeconds)}.`;
   }
 
+  function renderYours() {
+    const host = document.getElementById("your-hints");
+    if (!host) return;
+    if (!window.SudokuProgress || typeof window.SudokuProgress.hintMarkup !== "function") {
+      host.innerHTML = `<section class="hint-block"><h2>Your hints</h2><p class="stats-empty">Your hint record is not available in this browser.</p></section>`;
+      return;
+    }
+    host.innerHTML = window.SudokuProgress.hintMarkup(window.SudokuProgress.load());
+  }
+
   function render() {
     todayLine();
-    root.innerHTML = ORDER.map(([kind, label]) => card(kind, label)).join("");
+    root.innerHTML = hintCompare() + ORDER.map(([kind, label]) => card(kind, label)).join("");
   }
 
   function bindWindow() {
@@ -165,6 +199,7 @@
     });
   }
 
+  renderYours();
   bindWindow();
   fetch("/api/stats/summary")
     .then((response) => {

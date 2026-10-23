@@ -169,6 +169,79 @@ const merged = progress.load();
 check("import keeps the higher clean count", merged.techniques.pointing.clean >= 8);
 check("import keeps badges from both sides", merged.badges.includes("spotless") && merged.badges.includes("first-pointing"));
 
+const beforeDup = progress.load();
+const pointingHinted = (beforeDup.techniques.pointing && beforeDup.techniques.pointing.hinted) || 0;
+progress.recordSolve(
+  {
+    level: "hard",
+    seconds: 800,
+    mistakes: 0,
+    hintSlugs: ["pointing", "pointing", "x-wing"],
+    path: ["naked-single", "pointing", "x-wing"],
+    checks: 3,
+    at: "2026-05-01T00:00:00.000Z",
+  },
+  { daily: { completed: {}, longestStreak: 0 } }
+);
+const dupData = progress.load();
+check("duplicate hint slug counts once", dupData.techniques.pointing.hinted === pointingHinted + 1);
+check("x-wing hint counted once", dupData.techniques["x-wing"].hinted >= 1);
+check("history stores the unique hint count", dupData.history[0].hints === 2);
+check("history stores checks apart from hints", dupData.history[0].checks === 3);
+check("checks do not add a technique row", !dupData.techniques.checks);
+const report = progress.hintReport(dupData);
+check("report counts lifetime technique hints", report.totalHints === Object.values(dupData.techniques).reduce((sum, row) => sum + (row.hinted | 0), 0));
+const hardRow = report.levels.find((row) => row.level === "hard");
+check("hard finishes are in the hint report", hardRow && hardRow.solves >= 1 && hardRow.checks >= 3);
+check("hinted techniques sort first", report.techniques.every((row, index) => index === 0 || row.hinted <= report.techniques[index - 1].hinted));
+const markup = progress.hintMarkup(dupData);
+check("markup links the technique page", markup.includes("/techniques/pointing/"));
+check("markup links practice", markup.includes("/?practice=pointing"));
+check("markup has no em dash", !markup.includes("—"));
+check("markup names checks", markup.includes("Checks"));
+progress.recordSolve(
+  {
+    level: "easy",
+    seconds: 120,
+    mistakes: 0,
+    hintSlugs: [],
+    path: ["naked-single"],
+    checks: 0,
+    at: "2026-05-02T00:00:00.000Z",
+  },
+  { daily: { completed: {}, longestStreak: 0 } }
+);
+const afterClean = progress.load();
+check("a clean solve does not add a hint", afterClean.history[0].hints === 0);
+check("ledger keeps the earlier checks", afterClean.hintTotals.checks >= 3);
+const incoming = {
+  v: 1,
+  skills: {
+    version: 1,
+    techniques: { pointing: { seen: 40, clean: 0, hinted: 40 } },
+    badges: [],
+    history: [
+      {
+        at: "2026-05-03T00:00:00.000Z",
+        level: "expert",
+        seconds: 400,
+        mistakes: 1,
+        hints: 1,
+        checks: 4,
+        hinted: ["xy-wing"],
+        path: ["xy-wing"],
+      },
+    ],
+    hintTotals: { checks: 4, levels: { expert: { solves: 2, hints: 2, clean: 0, checks: 4 } } },
+    seeded: true,
+  },
+};
+progress.importAll(progress.encode(incoming));
+const mergedHints = progress.load();
+check("merge keeps the higher hinted count", mergedHints.techniques.pointing.hinted === 40);
+check("merge keeps the higher expert ledger", mergedHints.hintTotals.levels.expert.solves === 2);
+check("merge keeps check history", mergedHints.history.some((item) => item.checks === 4));
+
 store.set("sudoku-skills", "{");
 progress.recordSolve(
   {
