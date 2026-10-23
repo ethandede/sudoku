@@ -31,9 +31,11 @@
 }
 
 .stats-card {
-  margin: 0 0 1.75rem;
-  padding-top: 0.25rem;
-  border-top: 1px solid #e0e0e0;
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem 1rem;
+  border: 1px solid #d5dbe2;
+  border-radius: 10px;
+  background: #f4f6f8;
 }
 
 .stats-card h2 {
@@ -189,7 +191,7 @@
 .stats-tech-track span {
   display: block;
   height: 100%;
-  background: vars.$highlight-color;
+  background: vars.$accent-color;
 }
 
 .stats-tech-count {
@@ -207,7 +209,8 @@ html[data-theme="dark"] {
   }
 
   .stats-card {
-    border-top-color: #3e4650;
+    border-color: #3e4650;
+    background: #1a1e24;
   }
 
   .stats-facts dt,

@@ -93,9 +93,7 @@
     font-family: vars.$body-font;
 
     &:hover {
-      background: vars.$highlight-color;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgb(var(--accent-color-rgb) / 0.3);
+      background: #083a64;
     }
 
     &:active {

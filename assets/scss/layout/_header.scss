@@ -64,8 +64,13 @@ html[data-theme="dark"] .app-update {
 }
 
 .site-header {
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  background-image:
+    linear-gradient(rgba(12, 79, 134, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(12, 79, 134, 0.045) 1px, transparent 1px);
+  background-size: 16px 16px;
+  border-bottom: 2px solid #0c4f86;
+  box-shadow: none;
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -85,14 +90,34 @@ html[data-theme="dark"] .app-update {
 
   .nav-brand {
     .site-logo {
-      font-size: 1.5rem;
-      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
       color: vars.$secondary-color;
       text-decoration: none;
       font-family: vars.$heading-font;
+      line-height: 1;
+
+      .logo-mark {
+        width: 22px;
+        height: 22px;
+        color: vars.$accent-color;
+      }
+
+      .logo-echo {
+        color: vars.$accent-color;
+      }
 
       &:hover {
         color: vars.$accent-color;
+      }
+
+      &:focus-visible {
+        outline: 3px solid vars.$accent-color;
+        outline-offset: 4px;
       }
     }
   }
@@ -138,16 +163,22 @@ html[data-theme="dark"] .app-update {
       .menu-item {
         position: relative;
 
-        > a {
+          > a {
           color: vars.$text-color;
           text-decoration: none;
-          font-weight: 500;
+          font-weight: 600;
+          font-size: 0.95rem;
           padding: 0.5rem 0;
           display: block;
-          transition: color 0.3s ease;
+          transition: color 0.2s ease;
 
           &:hover {
             color: vars.$accent-color;
+          }
+
+          &:focus-visible {
+            outline: 3px solid vars.$accent-color;
+            outline-offset: 3px;
           }
         }
 
@@ -159,8 +190,16 @@ html[data-theme="dark"] .app-update {
             cursor: pointer;
 
             .arrow {
-              font-size: 0.75rem;
-              transition: transform 0.3s ease;
+              width: 0;
+              height: 0;
+              overflow: hidden;
+              border-left: 4px solid transparent;
+              border-right: 4px solid transparent;
+              border-top: 5px solid currentColor;
+              font-size: 0;
+              line-height: 0;
+              color: transparent;
+              transition: transform 0.2s ease;
             }
           }
 
@@ -182,8 +221,9 @@ html[data-theme="dark"] .app-update {
           top: 100%;
           left: 0;
           background: white;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          border-radius: 4px;
+          border: 1px solid #d5dbe2;
+          box-shadow: none;
+          border-radius: 8px;
           min-width: 180px;
           padding: 0.5rem 0;
           list-style: none;
@@ -219,6 +259,11 @@ html[data-theme="dark"] .app-update {
 
     .nav-brand .site-logo {
       font-size: 1.15rem;
+
+      .logo-mark {
+        width: 18px;
+        height: 18px;
+      }
     }
 
     .mobile-menu-toggle {
@@ -297,4 +342,8 @@ html[data-theme="dark"] .app-update {
     color: vars.$text-color;
     font-family: vars.$body-font;
   }
+}
+
+html[data-theme="dark"] .site-header .nav-menu .nav-primary .menu-item.has-dropdown .dropdown-menu {
+  background: #1a1e24;
 }
