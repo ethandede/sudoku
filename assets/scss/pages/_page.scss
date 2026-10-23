@@ -153,14 +153,14 @@
       }
 
       .teddy-icon {
-        display: inline-block;
+        display: block;
+        flex: none;
         width: 32px;
         min-width: 22px;
         height: 32px;
         aspect-ratio: 1;
         margin: 0 0.45rem 0 0;
         border-radius: 0.45rem;
-        vertical-align: middle;
         background: transparent;
       }
 
