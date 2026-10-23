@@ -8,7 +8,7 @@ import {
   migrateStats,
   sanitizeBundle,
 } from "../functions/account-merge.mjs";
-import { mailConfigured, sendLoginEmail } from "../functions/account-mail.mjs";
+import { mailConfigured, publicOrigin, sendLoginEmail } from "../functions/account-mail.mjs";
 import {
   clearCookie,
   normalizeCode,
@@ -36,6 +36,9 @@ assert.equal(normalizeEmail("a@b\n.co"), "");
 assert.equal(normalizeCode("123 456"), "123456");
 assert.equal(normalizeCode("12345"), "");
 assert.match(randomCode(), /^\d{6}$/);
+assert.equal(publicOrigin({ url: "https://e3eebf1e.sudokusudoku.pages.dev/api/account/request" }, { CF_PAGES_BRANCH: "main" }), "https://sudokusudoku.com");
+assert.equal(publicOrigin({ url: "https://cursor-optional-account-sync.sudokusudoku.pages.dev/x" }, { CF_PAGES_BRANCH: "cursor/canonical-signin-link-12b3" }), "https://cursor-optional-account-sync.sudokusudoku.pages.dev");
+assert.equal(publicOrigin({ url: "https://preview.example/x" }, { CF_PAGES_BRANCH: "main", SITE_ORIGIN: "https://sudokusudoku.com/ignored" }), "https://sudokusudoku.com");
 assert.equal(mailConfigured({}), false);
 assert.equal(mailConfigured({ LOGIN_EMAIL_API_KEY: "secret" }), true);
 assert.equal(mailConfigured({ LOGIN_EMAIL: {} }), true);
@@ -382,7 +385,7 @@ globalThis.fetch = async (url) => {
   throw new Error(`unexpected fetch ${url}`);
 };
 
-function call(handler, { method = "POST", url = "https://sudokusudoku.com/api/account/request", cookie = "", body = null, ip = "203.0.113.8", now = 1_700_000_000_000 } = {}) {
+function call(handler, { method = "POST", url = "https://sudokusudoku.com/api/account/request", cookie = "", body = null, ip = "203.0.113.8", now = 1_700_000_000_000, env: envOverride = null } = {}) {
   const headers = new Headers();
   if (cookie) headers.set("cookie", cookie);
   if (ip) headers.set("CF-Connecting-IP", ip);
@@ -392,7 +395,7 @@ function call(handler, { method = "POST", url = "https://sudokusudoku.com/api/ac
       headers,
       body: body ? JSON.stringify(body) : undefined,
     }),
-    env,
+    env: envOverride || env,
     now,
   });
 }
@@ -514,8 +517,12 @@ const again = await call(handleVerifyGet, {
   url: `https://sudokusudoku.com/api/account/verify?token=${link[1]}`,
   now: now + 40_000,
 });
-assert.equal(again.status, 303);
-assert.match(again.headers.get("Location"), /account=invalid/);
+assert.equal(again.status, 200);
+assert.match(again.headers.get("content-type"), /text\/html/);
+const againHtml = await again.text();
+assert.match(againHtml, /Send a new link/);
+assert.match(againHtml, /https:\/\/sudokusudoku\.com\/\?account=invalid/);
+assert.equal(againHtml.includes(link[1]), false);
 
 for (let n = 0; n < 3; n += 1) {
   now += 61_000;
@@ -656,6 +663,100 @@ assert.equal(unconfigured.status, 503);
 const unconfiguredBody = await unconfigured.json();
 assert.match(unconfiguredBody.error, /not set up/);
 assert.equal(JSON.stringify(unconfiguredBody).includes("secret"), false);
+
+const hostNow = otherNow + 400_000;
+const hostMessages = [];
+const hostEnv = {
+  ...env,
+  CF_PAGES_BRANCH: "main",
+  LOGIN_EMAIL: {
+    async send(message) {
+      hostMessages.push(message);
+      sent.push(message);
+    },
+  },
+};
+const hostRequest = await call(handleRequest, {
+  url: "https://e3eebf1e.sudokusudoku.pages.dev/api/account/request",
+  body: { email: "host@example.com", turnstileToken: "token" },
+  ip: "203.0.113.40",
+  now: hostNow,
+  env: hostEnv,
+});
+assert.equal(hostRequest.status, 200);
+assert.equal(hostMessages[0].text.includes("e3eebf1e"), false);
+const hostToken = hostMessages[0].text.match(/https:\/\/sudokusudoku\.com\/api\/account\/verify\?token=([^\s]+)/)[1];
+const hop = await call(handleVerifyGet, {
+  method: "GET",
+  url: `https://e3eebf1e.sudokusudoku.pages.dev/api/account/verify?token=${hostToken}`,
+  now: hostNow + 1000,
+  env: hostEnv,
+});
+assert.equal(hop.status, 302);
+const hopUrl = new URL(hop.headers.get("Location"));
+assert.equal(hopUrl.origin, "https://sudokusudoku.com");
+assert.equal(hopUrl.pathname, "/api/account/verify");
+assert.equal(hopUrl.searchParams.get("token"), hostToken);
+assert.equal(hop.headers.get("set-cookie"), null);
+assert.equal(db.tokens.find((row) => row.email === "host@example.com").used_at, null);
+const landed = await call(handleVerifyGet, {
+  method: "GET",
+  url: hopUrl.toString(),
+  now: hostNow + 1000,
+  env: hostEnv,
+});
+assert.equal(landed.status, 303);
+assert.equal(landed.headers.get("Location"), "https://sudokusudoku.com/?account=in");
+assert.match(landed.headers.get("set-cookie"), /sudoku_session=/);
+const reused = await call(handleVerifyGet, {
+  method: "GET",
+  url: hopUrl.toString(),
+  now: hostNow + 2000,
+  env: hostEnv,
+});
+assert.equal(reused.status, 200);
+const reusedHtml = await reused.text();
+assert.match(reusedHtml, /That sign-in link has expired/);
+assert.match(reusedHtml, /Send a new link/);
+assert.match(reusedHtml, /https:\/\/sudokusudoku\.com\/\?account=invalid/);
+assert.equal(reusedHtml.includes(hostToken), false);
+
+const previewMessages = [];
+const previewEnv = {
+  ...env,
+  CF_PAGES_BRANCH: "cursor/canonical-signin-link-12b3",
+  LOGIN_EMAIL: {
+    async send(message) {
+      previewMessages.push(message);
+    },
+  },
+};
+const previewRequest = await call(handleRequest, {
+  url: "https://cursor-optional-account-sync.sudokusudoku.pages.dev/api/account/request",
+  body: { email: "preview-host@example.com", turnstileToken: "token" },
+  ip: "203.0.113.41",
+  now: hostNow,
+  env: previewEnv,
+});
+assert.equal(previewRequest.status, 200);
+assert.match(previewMessages[0].text, /https:\/\/cursor-optional-account-sync\.sudokusudoku\.pages\.dev\/api\/account\/verify\?token=/);
+const previewBad = await call(handleVerifyGet, {
+  method: "GET",
+  url: "https://cursor-optional-account-sync.sudokusudoku.pages.dev/api/account/verify?token=this-token-is-long-enough-but-unknown",
+  env: previewEnv,
+});
+assert.equal(previewBad.status, 200);
+const previewHtml = await previewBad.text();
+assert.match(previewHtml, /https:\/\/cursor-optional-account-sync\.sudokusudoku\.pages\.dev\/\?account=invalid/);
+assert.equal(previewHtml.includes("sudokusudoku.com"), false);
+
+const wwwHop = await call(handleVerifyGet, {
+  method: "GET",
+  url: "https://www.sudokusudoku.com/api/account/verify?token=short",
+  env: hostEnv,
+});
+assert.equal(wwwHop.status, 302);
+assert.equal(wwwHop.headers.get("Location"), "https://sudokusudoku.com/api/account/verify?token=short");
 
 globalThis.fetch = originalFetch;
 
