@@ -21,7 +21,7 @@ assert.equal(
 );
 assert.equal(
   techniqueMeta({ slug: "xy-wing", name: "XY-wing", description: "XY-wings on Expert." }).title,
-  "XY-Wing Sudoku Technique, Explained on Real Boards | SudokuSudoku"
+  "XY-Wing (Y-Wing) Sudoku Technique, Explained on Real Boards | SudokuSudoku"
 );
 assert.equal(hasEmDash("Plain title"), false);
 assert.equal(hasEmDash("Bad — title"), true);
