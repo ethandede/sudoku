@@ -45,6 +45,17 @@ for (const line of boardTokens) {
 assertEqual(boardTokens.filter((line) => line.includes("#fbfaf8")).length, 3, "light board is warm paper");
 assertEqual(boardTokens.filter((line) => line.includes("#1e1d1b")).length, 3, "dark board is warm graphite");
 
+const sudokuScss = readFileSync(join(root, "assets/scss/pages/_sudoku.scss"), "utf8");
+assert(sudokuScss.includes("font-size: clamp(11px, 3.5cqi, 16px)"), "candidate size uses the phone clamp");
+assert(!sudokuScss.includes("3.2cqi"), "the old candidate clamp is gone");
+assert(!sudokuScss.includes("2.8cqi"), "hints no longer shrink candidates");
+assert(sudokuScss.includes("font-variant-numeric: tabular-nums"), "candidates use tabular numerals");
+assert(sudokuScss.includes('font-feature-settings: "tnum"'), "candidates enable tnum");
+assert(sudokuScss.includes("--auto-ink: #4f4b46"), "light auto candidates use the warm ink");
+assert(sudokuScss.includes("--auto-ink: #c4bfb8"), "dark auto candidates stay off the muted chrome");
+assert(sudokuScss.includes("--auto-on-selected: #ecebe8"), "selected auto candidates lighten in dark mode");
+assert(!sudokuScss.includes("#24303a") && !sudokuScss.includes("#2c4256") && !sudokuScss.includes("#355068"), "dark cell tints are no longer cool slate");
+
 function peerIndexes(index) {
   const row = Math.floor(index / 9);
   const col = index % 9;
