@@ -8,7 +8,7 @@
 
 Medium and Hard, in the New York Times sudoku, are not far apart in the way a label suggests. Count the givens and they nearly match. Count the hardest idea each puzzle actually needs, and a slice of Hard never leaves the technique that every Medium uses. What changes is the shape of the path: how many cells you fill before you stall, and how often only one move is available when you do.
 
-The figures below are from 1,483 New York Times sudoku puzzles published January 2023 through March 2024, archived by [vivrao9/nyt-sudoku](https://github.com/vivrao9/nyt-sudoku). Easy, Medium, and Hard are 495, 494, and 494 puzzles. This site isn't affiliated with The New York Times.
+The figures below are from 1,483 New York Times sudoku puzzles published August 30, 2021 through March 2, 2024, archived by [vivrao9/nyt-sudoku](https://github.com/vivrao9/nyt-sudoku). Easy, Medium, and Hard are 495, 494, and 494 puzzles. This site isn't affiliated with The New York Times.
 
 ## The clues barely move
 
