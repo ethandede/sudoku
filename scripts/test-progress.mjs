@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
+import { migrateStats } from "../functions/account-merge.mjs";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const store = new Map();
@@ -270,6 +271,61 @@ progress.recordSolve(
   { daily: { completed: {}, longestStreak: 0 } }
 );
 check("a future skills file is left untouched", JSON.parse(store.get("sudoku-skills")).version === 99);
+
+context.SudokuAccountMerge = { migrateStats };
+
+function shiftIso(iso, days) {
+  const [y, m, d] = iso.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+const recordDay = "2026-10-23";
+store.set(
+  "sudoku-stats",
+  JSON.stringify({
+    version: 1,
+    daily: {
+      played: 3,
+      won: 2,
+      best: 80,
+      totalTime: 200,
+      longestStreak: 9,
+      completed: {
+        [shiftIso(recordDay, -1)]: { time: 100, mistakes: 0 },
+        [recordDay]: { time: 90, mistakes: 1 },
+      },
+    },
+    easy: { played: 4, won: 2, best: 90, totalTime: 250 },
+  })
+);
+const record = progress.playerRecord(recordDay);
+const easyRow = record.levels.find((row) => row.id === "easy");
+const dailyRow = record.levels.find((row) => row.id === "daily");
+check("player record lists every level", record.levels.length === 7);
+check("streak matches the solved screen", record.streak === 2);
+check("longest streak is the stored record", record.longest === 9);
+check("badge streak keeps the longer figure", progress.streakNow(JSON.parse(store.get("sudoku-stats"))) === 9);
+check("played matches the solved screen", easyRow.played === 4 && dailyRow.played === 3);
+check("best matches the solved screen", easyRow.best === 90 && dailyRow.best === 80);
+check("average is total time over wins", easyRow.average === 125 && dailyRow.average === 100);
+check("a level with no wins has no average", record.levels.find((row) => row.id === "hard").average == null);
+check("a missed day keeps the run through yesterday", progress.playerRecord(shiftIso(recordDay, 1)).streak === 2);
+const gapped = JSON.parse(store.get("sudoku-stats"));
+delete gapped.daily.completed[recordDay];
+delete gapped.daily.completed[shiftIso(recordDay, -1)];
+store.set("sudoku-stats", JSON.stringify(gapped));
+check("a gap ends the run", progress.playerRecord(recordDay).streak === 0);
+store.set("sudoku-stats", JSON.stringify({ version: 99 }));
+const blockedRecord = progress.playerRecord(recordDay);
+check(
+  "a future stats file shows the empty record",
+  blockedRecord.streak === 0 && blockedRecord.levels.every((row) => row.played === 0 && row.best == null)
+);
+store.delete("sudoku-stats");
+const freshRecord = progress.playerRecord(recordDay);
+check("missing stats show zeros", freshRecord.streak === 0 && freshRecord.longest === 0 && freshRecord.levels.length === 7);
 
 if (failed) {
   console.error(`${failed} failed`);

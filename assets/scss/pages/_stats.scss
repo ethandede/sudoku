@@ -203,6 +203,15 @@
   color: #555;
 }
 
+.your-games-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.your-games {
+  font-size: 0.95rem;
+}
+
 .hint-block {
   margin: 0 0 1.75rem;
 }

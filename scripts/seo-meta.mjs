@@ -71,6 +71,12 @@ const STATIC_PAGES = {
       "Sudoku techniques from naked singles to XY-chains, each explained on a real board from this site's solver.",
     term: "sudoku techniques",
   },
+  "/how-difficulty-works/": {
+    title: "How Difficulty Works | SudokuSudoku",
+    description:
+      "How difficulty works on SudokuSudoku. Quick through Mental are graded by the hardest technique, and those levels are compared with 1,483 New York Times puzzles.",
+    term: "how difficulty works",
+  },
   "/stats/": {
     title: "Sudoku Stats by Difficulty | SudokuSudoku",
     description:

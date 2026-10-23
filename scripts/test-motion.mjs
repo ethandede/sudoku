@@ -54,8 +54,14 @@ assert.match(promos, /phosphorArrow\("right"\)/);
 assert.equal(promoCss.includes('content: " \\2192"'), false);
 
 assert.match(stats, /data-count/);
+assert.match(stats, /data-format="time"/);
+assert.match(stats, /playerRecord/);
 assert.match(stats, /prefers-reduced-motion:\s*reduce/);
 assert.match(stats, /minWidth/);
+assert.match(build, /id="your-games"/);
+const statsScript = build.indexOf('scriptTag("/assets/js/stats-page.js")');
+const mergeScript = build.lastIndexOf('scriptTag("/assets/js/account-merge.js")', statsScript);
+assert.ok(mergeScript > 0 && mergeScript < statsScript, "stats page loads account merge before the stats script");
 assert.equal(stats.includes("from \"motion\""), false);
 assert.equal(stats.includes("framer-motion"), false);
 assert.match(stats, /function clock/);

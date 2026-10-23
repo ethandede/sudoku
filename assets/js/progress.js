@@ -508,6 +508,59 @@
     return Math.max(longest, current);
   }
 
+  // The run the solved screen shows. streakNow() is the badge figure, which
+  // keeps the longer of the current run and the stored record.
+  function currentStreak(stats, today) {
+    if (!stats || !stats.daily) return 0;
+    const completed = stats.daily.completed || {};
+    const day = today || new Date().toISOString().slice(0, 10);
+    if (completed[day]) return streakEnding(completed, day);
+    return streakEnding(completed, shiftDate(day, -1));
+  }
+
+  function emptyPlayerStats() {
+    const bucket = () => ({ played: 0, won: 0, best: null, totalTime: 0 });
+    const stats = { version: 1, daily: { ...bucket(), completed: {}, longestStreak: 0 } };
+    LEVELS.forEach((id) => {
+      stats[id] = bucket();
+    });
+    return stats;
+  }
+
+  function storedPlayerStats() {
+    const raw = readJson(STATS_KEY);
+    const merge = root.SudokuAccountMerge;
+    if (raw == null) return emptyPlayerStats();
+    if (merge && typeof merge.migrateStats === "function") {
+      const migrated = merge.migrateStats(raw);
+      if (!migrated.ok) return emptyPlayerStats();
+      return migrated.stats;
+    }
+    return raw;
+  }
+
+  function playerRecord(today) {
+    const stats = storedPlayerStats();
+    const rows = [["daily", LEVEL_LABEL.daily], ...LEVELS.map((id) => [id, LEVEL_LABEL[id]])];
+    return {
+      streak: currentStreak(stats, today),
+      longest: (stats.daily && stats.daily.longestStreak) || 0,
+      levels: rows.map(([id, label]) => {
+        const bucket = stats[id] || { played: 0, won: 0, best: null, totalTime: 0 };
+        const won = bucket.won | 0;
+        const best = bucket.best == null || bucket.best === "" ? null : Number(bucket.best);
+        return {
+          id,
+          label,
+          played: bucket.played | 0,
+          won,
+          best: best == null || Number.isNaN(best) ? null : best,
+          average: won ? Number(bucket.totalTime) / won : null,
+        };
+      }),
+    };
+  }
+
   function bestFromStats(stats) {
     if (!stats) return null;
     let best = null;
@@ -1060,5 +1113,7 @@
     celebrate,
     escapeHtml,
     streakNow,
+    currentStreak,
+    playerRecord,
   };
 })(typeof globalThis !== "undefined" ? globalThis : window);
