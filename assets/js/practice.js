@@ -44,8 +44,94 @@
     return Object.prototype.hasOwnProperty.call(RANK, slug) ? RANK[slug] : 100;
   }
 
+  const CHIP_NAME = {
+    "naked-single": "Naked single",
+    "hidden-single": "Hidden single",
+    pointing: "Pointing",
+    claiming: "Claiming",
+    "naked-pair": "Naked pair",
+    "hidden-pair": "Hidden pair",
+    "naked-triple": "Naked triple",
+    "hidden-triple": "Hidden triple",
+    quads: "Quads",
+    "x-wing": "X-wing",
+    swordfish: "Swordfish",
+    "xy-wing": "XY-wing",
+    coloring: "Simple coloring",
+    "xy-chain": "XY-chain",
+  };
+
+  const NOUN = {
+    "naked-single": "naked single",
+    "hidden-single": "hidden single",
+    pointing: "pointing",
+    claiming: "claiming",
+    "naked-pair": "naked pair",
+    "hidden-pair": "hidden pair",
+    "naked-triple": "naked triple",
+    "hidden-triple": "hidden triple",
+    quads: "quad",
+    "x-wing": "X-wing",
+    swordfish: "swordfish",
+    "xy-wing": "XY-wing",
+    coloring: "simple coloring",
+    "xy-chain": "XY-chain",
+  };
+
   function fillLabel(slug) {
     return FILL_LABEL[slug] || "Apply this technique";
+  }
+
+  function noneLeft(slug, next) {
+    const line = `No more ${NOUN[slug] || "matching"} steps.`;
+    if (!next || !next.name) return line;
+    return `${line} Next up: ${next.name}.`;
+  }
+
+  function resultChip(slug, steps) {
+    const name = CHIP_NAME[slug] || "Technique";
+    const placed = new Set();
+    const byDigit = new Map();
+    (steps || []).forEach((step) => {
+      if (step.place && (step.slug === "naked-single" || step.slug === "hidden-single")) placed.add(step.place.index);
+      (step.eliminate || []).forEach((item) => {
+        if (!item) return;
+        if (!byDigit.has(item.digit)) byDigit.set(item.digit, new Set());
+        byDigit.get(item.digit).add(item.index);
+      });
+    });
+    if (slug === "naked-single" || slug === "hidden-single") {
+      const count = placed.size;
+      return `${name}: filled ${count} ${count === 1 ? "cell" : "cells"}.`;
+    }
+    const parts = [...byDigit.entries()].map(
+      ([digit, cells]) => `${digit} from ${cells.size} ${cells.size === 1 ? "cell" : "cells"}`
+    );
+    if (!parts.length) return `${name}: no candidates changed.`;
+    return `${name}: ruled out ${parts.join(", ")}.`;
+  }
+
+  function affectedCells(steps) {
+    const cells = new Set();
+    (steps || []).forEach((step) => {
+      (step.eliminate || []).forEach((item) => {
+        if (item) cells.add(item.index);
+      });
+      if (step.place && (step.slug === "naked-single" || step.slug === "hidden-single")) cells.add(step.place.index);
+    });
+    return [...cells];
+  }
+
+  // Singles stay in solver order. Every other technique is searched on its own,
+  // so a pointing step still applies when a pair or a single is also on the board.
+  function stepFinder(explain, explainSlug, slug) {
+    return (board, removed) => {
+      if (slug === "naked-single" || slug === "hidden-single" || typeof explainSlug !== "function") {
+        const step = explain(board, removed);
+        return step && step.slug === slug ? step : null;
+      }
+      return explainSlug(board, removed, slug);
+    };
   }
 
   function promptFor(name) {
@@ -130,6 +216,10 @@
     FILL_LABEL,
     rankOf,
     fillLabel,
+    noneLeft,
+    resultChip,
+    affectedCells,
+    stepFinder,
     promptFor,
     wantsCandidates,
     applyStep,

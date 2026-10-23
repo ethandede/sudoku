@@ -1237,12 +1237,28 @@ function stepWidth(state, singleCount, rankCap) {
     return step;
   }
 
+  // The next step of one technique, even when an easier technique is also available.
+  function explainSlug(puzzle, removed, slug) {
+    const state = load(puzzle);
+    applyRemoved(state, removed);
+    for (let t = 0; t < TECHNIQUES.length; t++) {
+      const hits = TECHNIQUES[t].find(state);
+      for (let h = 0; h < hits.length; h++) {
+        const hit = hits[h];
+        if ((STEP_SLUG[hit.type] || hit.type) !== slug) continue;
+        return describeHit(state, hit);
+      }
+    }
+    return null;
+  }
+
   root.SudokuSolver = {
     grade,
     countSolutions,
     nextStep,
     fillGrid,
     explain,
+    explainSlug,
     RANK_NAME,
   };
 })(typeof globalThis !== "undefined" ? globalThis : window);

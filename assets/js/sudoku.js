@@ -226,6 +226,7 @@
   let generation = 0;
   let busy = false;
   let hintView = null;
+  let actionMark = null;
   const GHOST_DELAY = 320;
   let hoverSpot = null;
   let ghostTimer = 0;
@@ -809,6 +810,7 @@
     });
     document.getElementById("resume-btn").addEventListener("click", resume);
     autoBox.addEventListener("change", () => {
+      clearActionMark();
       state.auto = autoBox.checked;
       if (state.auto) state.notesUsed = true;
       render();
@@ -1001,6 +1003,7 @@
 
   function beginNew(request, { count }) {
     dismissHint();
+    clearActionMark();
     const kind = request.kind || "easy";
     const date = todayString();
     const token = ++generation;
@@ -1179,14 +1182,20 @@
     return result.unlocked || [];
   }
 
+  function clearActionMark() {
+    actionMark = null;
+  }
+
   function select(index, focus) {
     if (index < 0 || index > 80) return;
+    clearActionMark();
     state.selected = index;
     render();
     if (focus) cells[index].focus();
   }
 
   function setMode(mode) {
+    clearActionMark();
     state.mode = mode;
     render();
     announce(mode === "notes" ? "Notes mode" : "Normal mode");
@@ -1214,6 +1223,7 @@
 
   function place(index, number) {
     if (state.puzzle[index] !== 0 || state.board[index] === number) return;
+    clearActionMark();
     dismissHint();
     pushUndo();
     if (number !== state.solution[index]) state.removed = [];
@@ -1247,6 +1257,7 @@
 
   function toggleNote(index, number) {
     if (state.puzzle[index] !== 0 || state.board[index] !== 0) return;
+    clearActionMark();
     pushUndo();
     if (state.notes[index].has(number)) state.notes[index].delete(number);
     else {
@@ -1261,6 +1272,7 @@
   function erase(index) {
     if (blocked() || state.puzzle[index] !== 0) return;
     if (state.board[index] === 0 && state.notes[index].size === 0) return;
+    clearActionMark();
     dismissHint();
     pushUndo();
     state.removed = [];
@@ -1381,6 +1393,7 @@
   }
 
   function openHint() {
+    clearActionMark();
     const wrong = firstWrong();
     if (wrong >= 0) {
       hintView = { kind: "wrong", stage: 1, index: wrong, key: hintKey() };
@@ -1556,31 +1569,26 @@
     const practiceApi = window.SudokuPractice;
     const solver = window.SudokuSolver;
     if (!practiceApi || !solver || !solver.explain) return;
-    const probe = solver.explain(state.board, state.removed);
-    const label = practiceApi.fillLabel(slug);
-    if (!probe || probe.slug !== slug) {
-      dismissHint();
-      announce(probe ? `${label} isn't available yet. Next up is ${probe.name}.` : `${label} isn't available. Nothing legal is left.`);
-      return;
-    }
+    const find = practiceApi.stepFinder(solver.explain.bind(solver), solver.explainSlug, slug);
     dismissHint();
     pushUndo();
+    const result = practiceApi.fillAll(state.board, state.removed, slug, find, state.solution, syncNotesFromStep);
+    const next = solver.explain(state.board, state.removed);
+    if (!result.applied.length) {
+      state.undo.pop();
+      announce(practiceApi.noneLeft(slug, next));
+      render();
+      return;
+    }
     state.fastForwarded = true;
     if (state.practice && slug === state.practice) state.practiceFilled = true;
-    const result = practiceApi.fillAll(
-      state.board,
-      state.removed,
-      slug,
-      (board, removed) => solver.explain(board, removed),
-      state.solution,
-      syncNotesFromStep
-    );
-    const count = result.applied.length;
+    const text = practiceApi.resultChip(slug, result.applied);
+    actionMark = { cells: practiceApi.affectedCells(result.applied), text };
     if (isSolved()) finish(false);
     else {
       render();
       writeSave();
-      announce(`${label}: ${count} ${count === 1 ? "step" : "steps"}.`);
+      announce(text);
     }
   }
 
@@ -1667,6 +1675,7 @@
   function undo() {
     const snap = state.undo.pop();
     if (!snap) return;
+    clearActionMark();
     dismissHint();
     state.board = snap.board;
     state.notes = snap.notes.map((list) => new Set(list));
@@ -1718,6 +1727,7 @@
 
   function finish(revealed) {
     hintView = null;
+    clearActionMark();
     const hintSheet = document.getElementById("hint-sheet");
     if (hintSheet) hintSheet.hidden = true;
     state.revealed = revealed;
@@ -1858,6 +1868,15 @@
         if (hint.step.place) hintPlace = hint.step.place.index;
       }
     }
+    const removedMarks = new Map();
+    if (!state.auto && state.mode !== "notes") {
+      state.removed.forEach((item) => {
+        if (!item || state.board[item.index]) return;
+        if (!removedMarks.has(item.index)) removedMarks.set(item.index, new Set());
+        removedMarks.get(item.index).add(item.digit);
+      });
+    }
+    const marked = new Set(actionMark && actionMark.cells ? actionMark.cells : []);
     cells.forEach((cell, index) => {
       const value = state.board[index];
       const given = state.puzzle[index] !== 0;
@@ -1881,6 +1900,7 @@
       cell.classList.toggle("hint-pattern", hintPattern.has(index));
       cell.classList.toggle("hint-eliminate", hint && hint.stage >= 2 && !value && hintEliminate.has(index));
       cell.classList.toggle("hint-place", hint && hint.stage >= 2 && index === hintPlace);
+      cell.classList.toggle("action-mark", !hinted && marked.has(index));
       cell.setAttribute("aria-selected", selected ? "true" : "false");
       cell.dataset.value = String(value);
       cell.replaceChildren();
@@ -1893,6 +1913,7 @@
         const computed = state.auto ? candidatesFor(index) : null;
         const ghost = hint && hint.stage === 2 ? hintCandidates.get(index) : null;
         const struck = hint && hint.stage >= 2 ? hintStruck.get(index) : null;
+        const eliminated = removedMarks.get(index);
         for (let number = 1; number <= 9; number += 1) {
           const mark = document.createElement("span");
           mark.dataset.digit = String(number);
@@ -1900,6 +1921,7 @@
           if (struck && struck.has(number)) mark.classList.add("on", "struck");
           else if (ghost && ghost.has(number)) mark.classList.add("on", "hint-note");
           else if (state.notes[index].has(number)) mark.classList.add("on", "user-note");
+          else if (eliminated && eliminated.has(number)) mark.classList.add("on", "struck", "eliminated");
           else if (computed && computed.has(number)) mark.classList.add("on", "auto");
           marks.appendChild(mark);
         }
@@ -1971,6 +1993,18 @@
     pauseBtn.setAttribute("aria-label", state.running ? "Pause timer" : "Resume timer");
     paintGhost();
     paintPracticePrompt();
+    paintActionChip();
+  }
+
+  function paintActionChip() {
+    const el = document.getElementById("action-chip");
+    if (!el) return;
+    if (!actionMark || !actionMark.text) {
+      el.hidden = true;
+      return;
+    }
+    el.hidden = false;
+    el.textContent = actionMark.text;
   }
 
   function cellLabel(index) {
