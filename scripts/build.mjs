@@ -24,6 +24,7 @@ import { adsensePushScript, housePair, renderHousePromos } from "./house-promos.
 import { phosphorArrow } from "./icons.mjs";
 import { faqJsonLd, homeCopy, renderHomeBelow, renderHomeIntro } from "../home-copy.mjs";
 import { articleMeta, assertSiteMeta, staticMeta, techniqueMeta } from "./seo-meta.mjs";
+import { lastmod } from "./lastmod.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "dist");
@@ -57,9 +58,9 @@ function write(relativePath, contents) {
   writeFileSync(target, contents);
 }
 
-function publish(relativePath, contents, path) {
+function publish(relativePath, contents, path, sources = []) {
   write(relativePath, contents);
-  if (path) sitemap.push(withSlash(path));
+  if (path) sitemap.push({ path: withSlash(path), sources });
 }
 
 function escapeHtml(value) {
@@ -608,7 +609,8 @@ publish(
       return homeGame.replace(homeMarker, `<div class="house-home">\n${homePromo}\n</div>`);
     })(),
   }),
-  "/"
+  "/",
+  ["src/game.html", "home-copy.mjs"]
 );
 
 const missing = staticMeta("/404.html");
@@ -661,7 +663,8 @@ publish(
     "/about/",
     { jsonLd: personNode(), house: houseSlot("about", "/about/"), kicker: "Who made this" }
   ),
-  "/about"
+  "/about",
+  ["about-page-content.md"]
 );
 
 publish(
@@ -672,7 +675,8 @@ publish(
     "/links/",
     { ads: false, kicker: "Other places" }
   ),
-  "/links"
+  "/links",
+  ["links-page-content.html"]
 );
 
 publish(
@@ -683,7 +687,8 @@ publish(
     "/contact/",
     { contact: true, house: houseSlot("contact", "/contact/"), kicker: "Send a note" }
   ),
-  "/contact"
+  "/contact",
+  ["contact-page-content.html"]
 );
 
 publish(
@@ -694,7 +699,8 @@ publish(
     "/privacy-policy/",
     { ads: false, analytics: false, privacyChoices: false }
   ),
-  "/privacy-policy"
+  "/privacy-policy",
+  ["privacy-policy-content.html"]
 );
 
 publish(
@@ -705,7 +711,8 @@ publish(
     "/terms/",
     { ads: false, analytics: false, privacyChoices: false, kicker: "The rules" }
   ),
-  "/terms"
+  "/terms",
+  ["terms-of-use-content.html"]
 );
 
 const cards = visibleArticles
@@ -766,7 +773,8 @@ publish(
   </div>
 </main>`,
   }),
-  "/articles"
+  "/articles",
+  visibleArticles.map((article) => article.file)
 );
 
 function relatedArticlesHtml(article) {
@@ -871,7 +879,8 @@ visibleArticles.forEach((article, index) => {
   </article>
 </main>`,
     }),
-    article.href
+    article.href,
+    [article.file]
   );
 });
 
@@ -1034,7 +1043,8 @@ publish(
   </div>
 </main>`,
   }),
-  "/techniques"
+  "/techniques",
+  ["scripts/technique-copy.mjs"]
 );
 
 publish(
@@ -1045,7 +1055,8 @@ publish(
     "/how-difficulty-works/",
     { kicker: "The grader", house: houseSlot("grading", "/how-difficulty-works/") }
   ),
-  "/how-difficulty-works"
+  "/how-difficulty-works",
+  ["how-difficulty-works-content.html"]
 );
 
 publish(
@@ -1102,7 +1113,8 @@ publish(
   </div>
 </main>`,
   }),
-  "/stats"
+  "/stats",
+  ["stats-page-content.html", "assets/js/stats-page.js"]
 );
 
 publish(
@@ -1197,19 +1209,21 @@ ${
           : ""
       }`,
     }),
-    path
+    path,
+    ["scripts/technique-copy.mjs"]
   );
 });
 
-const today = new Date().toISOString().slice(0, 10);
 write(
   "sitemap.xml",
   `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${sitemap
-  .map(
-    (path) => `  <url><loc>${SITE}${path === "/" ? "/" : path}</loc><lastmod>${today}</lastmod></url>`
-  )
+  .map((entry) => {
+    const loc = entry.path === "/" ? "/" : entry.path;
+    const day = lastmod(root, entry.sources);
+    return `  <url><loc>${SITE}${loc}</loc><lastmod>${day}</lastmod></url>`;
+  })
   .join("\n")}
 </urlset>
 `
