@@ -608,9 +608,7 @@ publish(
   "/"
 );
 
-write(
-  "404.html",
-  layout({
+const notFoundHtml = layout({
     title: "Page not found | SudokuSudoku",
     description: "That page is not on SudokuSudoku.",
     canonical: `${SITE}/404.html`,
@@ -639,8 +637,13 @@ write(
     </article>
   </div>
 </main>`,
-  })
-);
+  });
+// 404.html is what Pages serves, with status 404, for an unknown path.
+// The same body is also a plain file so /404 and old WordPress queries
+// can return it with status 404. Pretty URLs would serve 404.html at
+// /404 with status 200.
+write("404.html", notFoundHtml);
+write("page-not-found.txt", notFoundHtml);
 
 const aboutMarkdown = read("about-page-content.md")
   .replace(/^# .+$/m, "")
@@ -1103,6 +1106,7 @@ publish(
     description:
       "A technique ladder stored on this device: what you have solved, what to train next, and badges from finished puzzles.",
     canonical: `${SITE}/skills/`,
+    robots: "noindex, follow",
     skills: true,
     main: `<main id="skills" class="skills-page">
   <div class="skills-wrap">
@@ -1119,8 +1123,7 @@ publish(
     ${houseSlot("skills", "/skills/")}
   </div>
 </main>`,
-  }),
-  "/skills"
+  })
 );
 
 techniques.forEach((technique) => {
@@ -1299,6 +1302,9 @@ write(
   Link: </favicon.svg>; rel=preload; as=image
 /api/stats/consent
   Link: </favicon.svg>; rel=preload; as=image
+/page-not-found.txt
+  X-Robots-Tag: noindex
+  Content-Type: text/html; charset=utf-8
 `
 );
 
