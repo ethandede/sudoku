@@ -367,8 +367,8 @@ await check("hovering an auto-candidate ghosts only that digit and a tap turns i
     const style = getComputedStyle(el);
     return { weight: style.fontWeight, decoration: style.textDecorationLine, style: style.fontStyle };
   });
-  assert(Number(note.weight) > Number(look.autoWeight), "the player note is heavier than auto-candidates");
-  assert(note.decoration.includes("underline") && !note.decoration.includes("dotted"), "the player note is a solid underline");
+  assert(Number(note.weight) <= 500, "the player note is not bold");
+  assert(!note.decoration.includes("underline"), "the player note has no underline");
   assertEqual(note.style, "normal", "the player note is not italic");
   await context.close();
 });
@@ -525,8 +525,8 @@ async function markStyle(page, index, kind) {
 }
 
 function assertDistinct(note, auto, label) {
-  assert(note.weight !== auto.weight && Number(note.weight) > Number(auto.weight), `${label} notes are heavier`);
-  assert(note.decoration.includes("underline"), `${label} notes are underlined`);
+  assert(Number(note.weight) <= 500, `${label} notes are not bold`);
+  assert(!note.decoration.includes("underline"), `${label} notes have no underline`);
   assert(!auto.decoration.includes("underline"), `${label} auto-candidates are not underlined`);
   assert(note.color !== auto.color, `${label} notes and auto-candidates use different colors`);
   assert(note.opacity >= 0.95 && auto.opacity >= 0.95, `${label} both layers stay opaque`);
@@ -1234,6 +1234,66 @@ await check("side-by-side keypad uses the pre-redesign 3x3 key size", async () =
   assertEqual(await markDigits(page, index, "preview"), [], "hover beside the keypad shows no preview");
   assertEqual(await markDigits(page, index, "auto"), [], "hover beside the keypad shows no auto marks");
   await context.close();
+});
+
+await check("the mode toggle segments are equal and the shortcut badge does not crowd", async () => {
+  async function measure(page) {
+    return page.evaluate(() => {
+      return [...document.querySelectorAll(".mode-toggle button")].map((el) => {
+        const box = el.getBoundingClientRect();
+        const label = el.querySelector(".mode-label").getBoundingClientRect();
+        const kbd = el.querySelector("kbd");
+        const kbdBox = kbd && getComputedStyle(kbd).display !== "none" ? kbd.getBoundingClientRect() : null;
+        return {
+          width: box.width,
+          left: box.left,
+          right: box.right,
+          labelLeft: label.left,
+          labelRight: label.right,
+          kbdLeft: kbdBox ? kbdBox.left : null,
+          kbdRight: kbdBox ? kbdBox.right : null,
+          overflow: el.scrollWidth - el.clientWidth,
+          kbdDisplay: kbd ? getComputedStyle(kbd).display : "none",
+        };
+      });
+    });
+  }
+
+  const phone = await openPage({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 1,
+    hasTouch: true,
+  });
+  for (const [width, height] of [
+    [360, 740],
+    [390, 844],
+    [430, 932],
+  ]) {
+    await phone.page.setViewportSize({ width, height });
+    const buttons = await measure(phone.page);
+    assert(buttons.length === 2, `${width} has two mode segments`);
+    assert(Math.abs(buttons[0].width - buttons[1].width) <= 1.5, `${width} segments are ${buttons[0].width.toFixed(1)} and ${buttons[1].width.toFixed(1)}`);
+    assert(buttons.every((button) => button.kbdDisplay === "none"), `${width} hides the shortcut badge`);
+    assert(buttons.every((button) => button.overflow <= 1), `${width} label is clipped`);
+    for (const button of buttons) {
+      assert(button.labelLeft - button.left >= 8, `${width} label starts ${ (button.labelLeft - button.left).toFixed(1) }px in`);
+      assert(button.right - button.labelRight >= 8, `${width} label ends ${(button.right - button.labelRight).toFixed(1)}px in`);
+    }
+  }
+  await phone.context.close();
+
+  const desktop = await openPage({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 });
+  const buttons = await measure(desktop.page);
+  assert(Math.abs(buttons[0].width - buttons[1].width) <= 1.5, `desktop segments are ${buttons[0].width.toFixed(1)} and ${buttons[1].width.toFixed(1)}`);
+  assert(buttons.every((button) => button.overflow <= 1), "desktop label is clipped");
+  const candidate = buttons[1];
+  if (candidate.kbdDisplay !== "none") {
+    assert(candidate.kbdLeft - candidate.labelRight >= 4, `desktop badge gap is ${(candidate.kbdLeft - candidate.labelRight).toFixed(1)}px`);
+    assert(candidate.right - candidate.kbdRight >= 6, `desktop badge inset is ${(candidate.right - candidate.kbdRight).toFixed(1)}px`);
+  } else {
+    assert(candidate.right - candidate.labelRight >= 8, "desktop label stays inset when the badge is hidden");
+  }
+  await desktop.context.close();
 });
 
 server.close();
