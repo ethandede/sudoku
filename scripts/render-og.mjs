@@ -25,6 +25,7 @@ const PATTERNS = {
   swordfish: { focus: [2, 6, 29, 33, 56, 60] },
   "xy-wing": { focus: [20, 24, 56] },
   "w-wing": { focus: [10, 19, 55, 64] },
+  "unique-rectangle": { focus: [0, 3, 27], accent: [30] },
   skyscraper: { focus: [1, 19, 14, 68] },
   "two-string-kite": { focus: [2, 20, 23, 47] },
   "xyz-wing": { focus: [30, 34, 66] },
@@ -156,11 +157,7 @@ const cards = [
   })),
 ];
 
-<<<<<<< HEAD
-const only = process.argv[2];
-=======
 const only = process.argv[2] || "";
->>>>>>> origin/main
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
 for (const card of cards) {

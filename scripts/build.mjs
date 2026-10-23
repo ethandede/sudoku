@@ -391,7 +391,7 @@ ${main}
 ${privacyChoiceItem}      </ul>
     </nav>
 ${privacyChoiceNote}    <p class="copyright">&copy; ${year} SudokuSudoku. All rights reserved.</p>
-    <p class="footer-credit">The puzzle gauge is adapted from <a href="https://magicui.design/docs/components/animated-circular-progress-bar">Magic UI</a>.</p>
+    <p class="footer-credit">The dealing animation is adapted from <a href="https://magicui.design/docs/components/number-ticker">Magic UI</a>.</p>
   </div>
 </footer>
 ${game ? ["solver", "pools", "generator", "progress", "community", "share", "account-merge", "account", "practice"].map((name) => scriptTag(`/assets/js/${name}.js`)).join("\n") : ""}

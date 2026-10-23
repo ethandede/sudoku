@@ -1,8 +1,7 @@
 // Builds a puzzle off the main thread.
 // The generator reports cells removed, uniqueness checks, and grades.
-// Copyright (c) Magic UI. The gauge this progress drives is adapted from
-// https://magicui.design/docs/components/animated-circular-progress-bar
-// MIT License. Permission notice is in assets/scss/components/_gen-progress.scss.
+// The board scan uses that progress. Its ticker treatment is adapted from
+// Magic UI's number ticker. MIT notice: assets/scss/components/_deal-scan.scss.
 
 const version = new URL(self.location.href).search;
 importScripts(`solver.js${version}`, `pools.js${version}`, `generator.js${version}`);

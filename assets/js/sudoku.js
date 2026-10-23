@@ -184,21 +184,19 @@
   const boardWrap = document.getElementById("board-wrap");
   const cover = document.getElementById("board-cover");
   const coverText = document.getElementById("board-cover-text");
-  const genProgress = document.getElementById("gen-progress");
-  const genGauge = document.getElementById("gen-gauge");
-  const genTrack = document.getElementById("gen-track");
-  const genValue = document.getElementById("gen-value");
-  const genPercent = document.getElementById("gen-percent");
-  const genStatus = document.getElementById("gen-status");
+  const dealStatus = document.getElementById("deal-status");
   const GEN_SHOW_AFTER = 250;
-  const GEN_MIN_VISIBLE = 400;
+  const DEAL_ROW_MS = 48;
+  const DEAL_STIFFNESS = 900;
+  const DEAL_DAMPING = 42;
   const GEN_STAGE = {
     layout: "Laying out givens",
     unique: "Checking there's exactly one answer",
     grade: "Grading difficulty",
   };
   let genRevealTimer = 0;
-  let genWatch = { token: 0, shownAt: 0, visible: false, info: { stage: "layout", value: 0 } };
+  let genWatch = { token: 0, value: 0, stage: "layout" };
+  let deal = null;
   const live = document.getElementById("live-region");
   const undoBtn = document.getElementById("undo-btn");
   const autoBox = document.getElementById("auto-candidates");
@@ -1046,60 +1044,230 @@
     const token = ++generation;
     busy = true;
     state.running = false;
-    window.clearTimeout(genRevealTimer);
-    genWatch = { token, shownAt: 0, visible: false, info: { stage: "layout", value: 0 } };
-    hideGeneration();
+    stopDeal();
     cover.hidden = true;
     boardWrap.classList.remove("is-paused");
+    genWatch = { token, value: 0, stage: "layout" };
     genRevealTimer = window.setTimeout(() => {
-      if (genWatch.token !== token) return;
-      genWatch.visible = true;
-      genWatch.shownAt = performance.now();
-      showGeneration(genWatch.info);
+      if (genWatch.token !== token || generation !== token) return;
+      startDealSearch(token);
     }, GEN_SHOW_AFTER);
     void launchNew(request, kind, date, token, count);
   }
 
   function onGenProgress(info) {
     if (!info || genWatch.token !== generation) return;
-    genWatch.info = info;
-    if (genWatch.visible) showGeneration(info);
+    genWatch.value = Number(info.value) || 0;
+    genWatch.stage = info.stage || genWatch.stage;
+    if (!deal || deal.mode !== "search" || deal.token !== generation) return;
+    deal.row = scanRow(genWatch.value);
+    const line = GEN_STAGE[genWatch.stage] || GEN_STAGE.layout;
+    if (dealStatus && dealStatus.textContent !== line) dealStatus.textContent = line;
   }
 
-  function showGeneration(info) {
-    const value = Math.max(0, Math.min(100, Math.round(Number(info && info.value) || 0)));
-    boardWrap.classList.add("is-paused");
-    cover.hidden = false;
-    coverText.hidden = true;
-    document.getElementById("resume-btn").hidden = true;
-    genProgress.hidden = false;
-    genValue.style.setProperty("--stroke-percent", String(value));
-    genGauge.setAttribute("aria-valuenow", String(value));
-    genPercent.textContent = String(value);
-    const line = GEN_STAGE[info && info.stage] || GEN_STAGE.layout;
-    if (genStatus.textContent !== line) genStatus.textContent = line;
-    const track = Math.max(0, 90 - value);
-    genTrack.style.setProperty("--stroke-percent", String(track));
-    genTrack.hidden = value > 90;
+  function scanRow(value) {
+    const v = Math.max(0, Math.min(96, Number(value) || 0));
+    return Math.min(8, Math.floor((v / 96) * 8));
   }
 
-  function hideGeneration() {
-    if (genProgress) genProgress.hidden = true;
-    if (coverText) coverText.hidden = false;
-  }
-
-  async function settleGeneration(token, apply) {
-    if (token !== generation) return;
-    window.clearTimeout(genRevealTimer);
-    const hold = genWatch.visible ? Math.max(0, GEN_MIN_VISIBLE - (performance.now() - genWatch.shownAt)) : 0;
-    if (hold && genWatch.visible) {
-      showGeneration({ ...genWatch.info, value: 100, stage: genWatch.info.stage });
-      await new Promise((resolve) => window.setTimeout(resolve, hold));
+  function ensureDealLayer() {
+    let layer = document.getElementById("deal-scan");
+    if (layer) return layer;
+    layer = document.createElement("div");
+    layer.id = "deal-scan";
+    layer.className = "deal-scan";
+    layer.hidden = true;
+    layer.setAttribute("aria-hidden", "true");
+    const rows = document.createElement("div");
+    rows.className = "deal-rows";
+    for (let row = 0; row < 9; row += 1) {
+      const rowEl = document.createElement("div");
+      rowEl.className = "deal-row";
+      for (let col = 0; col < 9; col += 1) {
+        const cell = document.createElement("span");
+        cell.className = "deal-cell";
+        if (col === 2 || col === 5) cell.classList.add("border-right");
+        if (row === 2 || row === 5) cell.classList.add("border-bottom");
+        rowEl.appendChild(cell);
+      }
+      rows.appendChild(rowEl);
     }
-    if (token !== generation) return;
-    genWatch.visible = false;
-    hideGeneration();
-    apply();
+    layer.appendChild(rows);
+    boardWrap.appendChild(layer);
+    return layer;
+  }
+
+  function dealCells() {
+    const layer = document.getElementById("deal-scan");
+    return layer ? [...layer.querySelectorAll(".deal-cell")] : [];
+  }
+
+  function heldDigit(index) {
+    return 1 + ((index * 7) % 9);
+  }
+
+  function stopDeal() {
+    window.clearTimeout(genRevealTimer);
+    genRevealTimer = 0;
+    if (deal) {
+      if (deal.raf) window.cancelAnimationFrame(deal.raf);
+      if (deal.timer) window.clearTimeout(deal.timer);
+      deal = null;
+    }
+    const layer = document.getElementById("deal-scan");
+    if (layer) {
+      layer.hidden = true;
+      layer.classList.remove("is-search", "is-veil", "is-fade");
+    }
+    grid.classList.remove("deal-reveal");
+    grid.removeAttribute("aria-busy");
+    if (dealStatus) dealStatus.textContent = "";
+  }
+
+  function noteDealInput() {
+    if (!deal || deal.mode === "search" || deal.mode === "veil") return;
+    stopDeal();
+  }
+
+  function startDealSearch(token) {
+    if (generation !== token) return;
+    if (motionReduced()) {
+      const layer = ensureDealLayer();
+      layer.hidden = false;
+      layer.classList.add("is-veil");
+      layer.classList.remove("is-search", "is-fade");
+      deal = { token, mode: "veil" };
+      grid.setAttribute("aria-busy", "true");
+      if (dealStatus) dealStatus.textContent = GEN_STAGE[genWatch.stage] || GEN_STAGE.layout;
+      return;
+    }
+    const layer = ensureDealLayer();
+    layer.hidden = false;
+    layer.classList.add("is-search");
+    layer.classList.remove("is-veil", "is-fade");
+    deal = { token, mode: "search", row: scanRow(genWatch.value), last: performance.now(), raf: 0 };
+    grid.setAttribute("aria-busy", "true");
+    if (dealStatus) dealStatus.textContent = GEN_STAGE[genWatch.stage] || GEN_STAGE.layout;
+    deal.raf = window.requestAnimationFrame(tickDeal);
+  }
+
+  function beginDealSettle(token, puzzle, fromSearch) {
+    if (generation !== token || !puzzle) return;
+    if (motionReduced()) {
+      const layer = document.getElementById("deal-scan");
+      if (layer) {
+        layer.hidden = true;
+        layer.classList.remove("is-search", "is-veil", "is-fade");
+      }
+      if (deal && deal.raf) window.cancelAnimationFrame(deal.raf);
+      grid.removeAttribute("aria-busy");
+      if (dealStatus) dealStatus.textContent = "";
+      grid.classList.remove("deal-reveal");
+      void grid.offsetWidth;
+      grid.classList.add("deal-reveal");
+      deal = {
+        token,
+        mode: "fade",
+        timer: window.setTimeout(() => {
+          if (generation !== token) return;
+          grid.classList.remove("deal-reveal");
+          deal = null;
+        }, 420),
+      };
+      return;
+    }
+    const layer = ensureDealLayer();
+    layer.hidden = false;
+    layer.classList.remove("is-search", "is-veil", "is-fade");
+    const nodes = dealCells();
+    const now = performance.now();
+    deal = {
+      token,
+      mode: "settle",
+      started: now,
+      last: now,
+      raf: 0,
+      cells: nodes.map((el, index) => {
+        const target = puzzle[index] || 0;
+        let shown = fromSearch ? heldDigit(index) : 1 + (index % 9);
+        if (shown === target) shown = target === 9 ? 1 : target + 1;
+        if (target === 0 && shown === 0) shown = 5;
+        return {
+          el,
+          shown,
+          vel: 0,
+          target,
+          delay: Math.floor(index / 9) * DEAL_ROW_MS,
+          done: false,
+        };
+      }),
+    };
+    grid.removeAttribute("aria-busy");
+    if (dealStatus) dealStatus.textContent = "";
+    tickDeal(now);
+  }
+
+  function paintDealCell(el, digit, kind) {
+    el.classList.toggle("is-hot", kind === "hot");
+    el.classList.toggle("is-past", kind === "past");
+    el.classList.toggle("is-ahead", kind === "ahead");
+    el.classList.toggle("is-given", kind === "given");
+    el.classList.toggle("is-blank", kind === "blank");
+    el.textContent = digit ? String(digit) : "";
+  }
+
+  function tickDeal(now) {
+    if (!deal || deal.token !== generation) {
+      stopDeal();
+      return;
+    }
+    if (deal.mode === "search") {
+      const frame = Math.floor(now / 50);
+      const row = deal.row || 0;
+      dealCells().forEach((el, index) => {
+        const r = Math.floor(index / 9);
+        if (r > row) paintDealCell(el, 0, "ahead");
+        else if (r === row) paintDealCell(el, 1 + ((frame + index) % 9), "hot");
+        else paintDealCell(el, heldDigit(index), "past");
+      });
+      deal.raf = window.requestAnimationFrame(tickDeal);
+      return;
+    }
+    if (deal.mode !== "settle") return;
+    const dt = Math.min(0.032, (now - deal.last) / 1000);
+    deal.last = now;
+    const elapsed = now - deal.started;
+    let pending = 0;
+    const frame = Math.floor(now / 50);
+    deal.cells.forEach((cell, index) => {
+      if (elapsed < cell.delay) {
+        pending += 1;
+        paintDealCell(cell.el, 1 + ((frame + index) % 9), "hot");
+        return;
+      }
+      if (!cell.done) {
+        const acc = -DEAL_STIFFNESS * (cell.shown - cell.target) - DEAL_DAMPING * cell.vel;
+        cell.vel += acc * dt;
+        cell.shown += cell.vel * dt;
+        if (Math.abs(cell.shown - cell.target) < 0.15 && Math.abs(cell.vel) < 0.5) {
+          cell.shown = cell.target;
+          cell.vel = 0;
+          cell.done = true;
+        } else pending += 1;
+      }
+      if (cell.done && cell.target === 0) {
+        paintDealCell(cell.el, 0, "blank");
+        return;
+      }
+      if (cell.done) {
+        paintDealCell(cell.el, cell.target, "given");
+        return;
+      }
+      const digit = Math.max(0, Math.min(9, Math.round(cell.shown)));
+      paintDealCell(cell.el, digit, "hot");
+    });
+    if (pending === 0 || elapsed > 700) stopDeal();
+    else deal.raf = window.requestAnimationFrame(tickDeal);
   }
 
   async function launchNew(request, kind, date, token, count) {
@@ -1147,15 +1315,9 @@
       }
     }
     if (token !== generation || !result) return;
-    if (performance.now() - genStarted < GEN_SHOW_AFTER) {
-      window.clearTimeout(genRevealTimer);
-      genWatch.visible = false;
-    } else if (!genWatch.visible) {
-      genWatch.visible = true;
-      genWatch.shownAt = performance.now();
-      showGeneration(genWatch.info);
-    }
-    if (token !== generation) return;
+    window.clearTimeout(genRevealTimer);
+    genRevealTimer = 0;
+    const fromSearch = Boolean(deal && (deal.mode === "search" || deal.mode === "veil"));
     const already = seeded && stats.daily.completed[date];
     state = blankState();
     state.kind = kind;
@@ -1181,20 +1343,24 @@
       state.counted = true;
       busy = false;
       render();
-      await settleGeneration(token, () => {
-        setCover(false);
-        showSolved(true);
-      });
+      stopDeal();
+      setCover(false);
+      showSolved(true);
       return;
     }
     if (count && !practiceSlug) recordStart();
     state.counted = true;
     const level = (result.metadata && result.metadata.difficulty) || difficulty;
+    busy = false;
+    render();
+    setCover(false);
+    resume();
+    beginDealSettle(token, result.puzzle, fromSearch);
     if (practiceSlug && window.SudokuCommunity && window.SudokuCommunity.abandonOpen) {
       window.SudokuCommunity.abandonOpen();
     } else if (window.SudokuCommunity) {
       try {
-        state.anonPlayId = await window.SudokuCommunity.onNewGame({
+        const playId = await window.SudokuCommunity.onNewGame({
           level,
           isDaily: seeded,
           date: seeded ? date : null,
@@ -1202,17 +1368,11 @@
           givens: result.puzzle,
           notesUsed: state.notesUsed,
         });
+        if (token === generation) state.anonPlayId = playId;
       } catch {
-        state.anonPlayId = null;
+        if (token === generation) state.anonPlayId = null;
       }
     }
-    if (token !== generation) return;
-    busy = false;
-    render();
-    await settleGeneration(token, () => {
-      setCover(false);
-      resume();
-    });
     if (token !== generation) return;
     const approximate = train && !practiceSlug && result.metadata && result.metadata.trainApproximate;
     const trainName = train && window.SudokuProgress ? window.SudokuProgress.nameOf(train) : "";
@@ -1304,6 +1464,7 @@
 
   function select(index, focus) {
     if (index < 0 || index > 80) return;
+    noteDealInput();
     if (fillReview) {
       if (fillReview.cells.length && !fillReview.fading && describeFillCell(index)) {
         /* the first press names the technique and fades the marks */
@@ -1321,6 +1482,7 @@
   }
 
   function onNumber(number) {
+    noteDealInput();
     if (blocked()) return;
     const hadReview = Boolean(fillReview);
     dismissFillReview();
@@ -1391,6 +1553,7 @@
   }
 
   function erase(index) {
+    noteDealInput();
     if (blocked() || state.puzzle[index] !== 0) return;
     dismissFillReview();
     if (state.board[index] === 0 && state.notes[index].size === 0) {
@@ -2391,9 +2554,9 @@
 
   function showBoardCover(text) {
     const show = Boolean(text);
+    stopDeal();
     boardWrap.classList.toggle("is-paused", show);
     cover.hidden = !show;
-    hideGeneration();
     coverText.hidden = false;
     if (show) coverText.textContent = text;
     hidePracticeUnavailable();
@@ -2401,9 +2564,9 @@
   }
 
   function setCover(show, text, withButton) {
+    stopDeal();
     boardWrap.classList.toggle("is-paused", show);
     cover.hidden = !show;
-    hideGeneration();
     coverText.hidden = false;
     if (show) coverText.textContent = text;
     hidePracticeUnavailable();
