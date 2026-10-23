@@ -29,6 +29,7 @@ const PATTERNS = {
   skyscraper: { focus: [1, 19, 14, 68] },
   "two-string-kite": { focus: [2, 20, 23, 47] },
   "xyz-wing": { focus: [30, 34, 66] },
+  "bug-plus-one": { focus: [66] },
   coloring: { focus: [10, 28, 46], accent: [16, 34, 52] },
   "xy-chain": { focus: [0, 4, 22, 40, 44, 62, 80] },
 };
