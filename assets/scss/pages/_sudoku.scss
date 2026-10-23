@@ -40,6 +40,9 @@
   --hint-place: #0b6e5f;
   --hint-place-bg: #d7f3ec;
   --hint-region: #e7f6f2;
+  --fill-placed: #8fbee0;
+  --fill-cleared: #d7ebf8;
+  --fill-ring: #0c4f86;
 
   background: var(--page);
   color: var(--ink);
@@ -94,6 +97,9 @@ html[data-theme="dark"] .technique-page {
   --hint-place: #7ddec8;
   --hint-place-bg: #1a3c34;
   --hint-region: #1e3330;
+  --fill-placed: #3f6d90;
+  --fill-cleared: #2c4d66;
+  --fill-ring: #9ed2f8;
 }
 
 .sudoku-shell {
@@ -350,6 +356,47 @@ body:has(.sudoku-page) .site-header {
   display: none;
 }
 
+.fill-chip {
+  position: absolute;
+  top: 44px;
+  left: 0;
+  right: 0;
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  height: 44px;
+  margin: 0;
+  padding: 0 0.15rem 0 0.55rem;
+  background: var(--card);
+  border-bottom: 1px solid var(--thin);
+  box-sizing: border-box;
+
+  &[hidden] {
+    display: none;
+  }
+
+  .text-btn {
+    flex: 0 0 auto;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 0.55rem;
+  }
+}
+
+.fill-chip-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
 .text-btn,
 .pad-wide,
 .mode-toggle button,
@@ -527,11 +574,11 @@ body:has(.sudoku-page) .site-header {
   }
 
   @media (hover: hover) and (pointer: fine) {
-    &:hover:not(.selected):not(.same):not(.given) {
+    &:hover:not(.selected):not(.same):not(.given):not(.fill-placed):not(.fill-cleared) {
       background: color-mix(in srgb, var(--selected) 36%, var(--cell-bg));
     }
 
-    &.given:hover:not(.selected):not(.same) {
+    &.given:hover:not(.selected):not(.same):not(.fill-placed):not(.fill-cleared) {
       background: color-mix(in srgb, var(--selected) 36%, var(--given-bg));
     }
   }
@@ -588,6 +635,63 @@ body:has(.sudoku-page) .site-header {
       transparent calc(50% + 1.5px)
     );
     pointer-events: none;
+  }
+
+  &.fill-placed,
+  &.fill-cleared {
+    --fill-bg: var(--fill-cleared);
+    background: var(--fill-bg);
+    box-shadow: inset 0 0 0 2px var(--fill-ring);
+    animation: fill-reveal 120ms linear both;
+    animation-delay: var(--fill-delay, 0ms);
+    z-index: 1;
+  }
+
+  &.fill-placed {
+    --fill-bg: var(--fill-placed);
+    color: var(--ink);
+  }
+
+  &.fill-placed.wrong,
+  &.selected.fill-placed.wrong,
+  &.given.selected.fill-placed.wrong {
+    color: var(--slash);
+  }
+
+  &.fill-placed.fill-fading,
+  &.fill-cleared.fill-fading {
+    animation: none;
+    background: var(--cell-bg);
+    box-shadow: inset 0 0 0 0 transparent;
+    transition: background-color 300ms ease, box-shadow 300ms ease;
+  }
+
+  &.given.fill-placed.fill-fading,
+  &.given.fill-cleared.fill-fading {
+    background: var(--given-bg);
+  }
+
+  &.selected.fill-placed,
+  &.selected.fill-cleared,
+  &.given.selected.fill-placed,
+  &.given.selected.fill-cleared,
+  &.selected.fill-placed.fill-fading,
+  &.selected.fill-cleared.fill-fading,
+  &.given.selected.fill-placed.fill-fading,
+  &.given.selected.fill-cleared.fill-fading {
+    background: var(--selected);
+  }
+}
+
+@keyframes fill-reveal {
+  from {
+    background-color: var(--cell-bg);
+    box-shadow: inset 0 0 0 0 transparent;
+  }
+
+  to {
+    background-color: var(--fill-bg);
+    box-shadow: inset 0 0 0 2px var(--fill-ring);
   }
 }
 
@@ -1838,5 +1942,15 @@ html.is-standalone:has(.sudoku-page) body {
   .celebrate .confetti span {
     animation: none;
     display: none;
+  }
+
+  .cell.fill-placed,
+  .cell.fill-cleared {
+    animation: none;
+  }
+
+  .cell.fill-placed.fill-fading,
+  .cell.fill-cleared.fill-fading {
+    transition: none;
   }
 }
