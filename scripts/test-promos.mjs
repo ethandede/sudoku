@@ -168,6 +168,15 @@ assert.match(build, /house-slot:home-below/);
 assert.match(build, /"404.html"[\s\S]*?ads: false/);
 assert.match(build, /"links\/index.html"[\s\S]*?ads: false/);
 assert.match(build, /"privacy-policy\/index.html"[\s\S]*?ads: false/);
+assert.match(build, /"terms\/index.html"[\s\S]*?ads: false/);
+assert.equal(
+  renderHousePromos([{ slot: "x", size: "rectangle" }], {
+    ...base,
+    section: "page",
+    path: "/terms/",
+  }).x,
+  ""
+);
 
 const sudokuScss = read("assets/scss/pages/_sudoku.scss");
 assert.match(sudokuScss, /\.play-column[\s\S]*?height:\s*100dvh/);

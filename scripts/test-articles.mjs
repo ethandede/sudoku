@@ -250,6 +250,7 @@ const staticPaths = new Set([
   "/about/",
   "/contact/",
   "/privacy-policy/",
+  "/terms/",
   "/skills/",
   "/links/",
 ]);
@@ -308,5 +309,21 @@ for (const slug of Object.keys(schedule)) {
   }
 }
 assert.deepEqual(broken, []);
+
+const terms = readFileSync(new URL("../terms-of-use-content.html", import.meta.url), "utf8");
+const termsWords = terms.replace(/<[^>]+>/g, " ").match(/[A-Za-z]+/g) || [];
+assert.equal(terms.includes("—"), false);
+assert.equal(terms.includes("–"), false);
+assert.ok(termsWords.length >= 400 && termsWords.length <= 600, `terms words ${termsWords.length}`);
+assert.match(terms, /optional account/i);
+assert.match(terms, /6-digit code/);
+assert.match(terms, /no password/i);
+assert.match(terms, /under 13/);
+assert.match(terms, /href="\/privacy-policy\/"/);
+assert.match(build, /href="\/terms\/">Terms<\/a>/);
+assert.match(build, /"terms\/index.html"[\s\S]{0,600}ads:\s*false/);
+assert.match(build, /"terms\/index.html"[\s\S]{0,700}analytics:\s*false/);
+assert.match(build, /"terms\/index.html"[\s\S]{0,800}privacyChoices:\s*false/);
+assert.match(redirects, /\/terms \/terms\/ 301/);
 
 console.log("article publish tests passed");

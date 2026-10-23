@@ -349,6 +349,7 @@ ${main}
         <li><a href="/articles/">Articles</a></li>
         <li><a href="/links/">Links</a></li>
         <li><a href="/contact/">Contact</a></li>
+        <li><a href="/terms/">Terms</a></li>
         <li><a href="/privacy-policy/">Privacy Policy</a></li>
 ${privacyChoiceItem}      </ul>
     </nav>
@@ -679,6 +680,18 @@ publish(
     { ads: false, analytics: false, privacyChoices: false }
   ),
   "/privacy-policy"
+);
+
+publish(
+  "terms/index.html",
+  standardPage(
+    "Terms of Use",
+    read("terms-of-use-content.html").trim(),
+    "Terms for SudokuSudoku, a free browser Sudoku game with an optional email account, a contact form, and ads.",
+    "/terms/",
+    { ads: false, analytics: false, privacyChoices: false, kicker: "The rules" }
+  ),
+  "/terms"
 );
 
 const cards = visibleArticles
