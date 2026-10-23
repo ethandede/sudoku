@@ -722,7 +722,7 @@ export const techniques = [
     level: "Expert",
     play: "expert",
     order: 80,
-    related: ["xy-chain", "naked-pair"],
+    related: ["xyz-wing", "xy-chain", "naked-pair"],
     when: "XY-wings are Expert. A puzzle that needs one is past pairs, triples, and quads.",
     nyt: "XY-wings do not appear in the 1,483 NYT puzzles. That set never goes beyond triples.",
     sections: [
@@ -768,6 +768,54 @@ export const techniques = [
           "An [XY-chain](/techniques/xy-chain/) is the same argument with more cells. When the three bivalue cells are already there, do the wing. I start looking once singles, locked candidates, and pairs are done, and a two-digit cell is touching two other two-digit cells.",
         ],
       },
+    ],
+  },
+  {
+    slug: "skyscraper",
+    name: "Skyscraper",
+    description:
+      "Two rows or columns of one digit, joined at one end. Skyscrapers on Expert puzzles.",
+    level: "Expert",
+    play: "expert",
+    order: 72,
+    related: ["x-wing", "two-string-kite"],
+    when: "Skyscrapers are Expert. They sit with the fish and the wings, and a puzzle that needs one is not Mental.",
+    nyt: "The 1,483 archived NYT puzzles never need a skyscraper. Their hardest steps stop at triples.",
+    paragraphs: [
+      "A skyscraper is two rows that each hold a digit in exactly two cells. One column is shared. The other two cells, the roof, sit in different columns. The shared column cannot be the digit twice, so at least one roof cell is the digit.",
+      "Any other cell that sees both roof cells loses the digit. Drawn the other way, two columns share a row and the roof runs across. It is the X-wing with one corner slid out of line.",
+    ],
+  },
+  {
+    slug: "two-string-kite",
+    name: "Two-string kite",
+    description:
+      "A row and a column each hold one digit twice, tied together in a box. Two-string kites on Expert.",
+    level: "Expert",
+    play: "expert",
+    order: 74,
+    related: ["skyscraper", "x-wing"],
+    when: "Two-string kites are Expert, with skyscrapers and wings. Mental is still reserved for coloring and XY-chains.",
+    nyt: "No puzzle in the NYT archive needs a two-string kite. That set never goes beyond triples.",
+    paragraphs: [
+      "A two-string kite is one digit with two strong links. A row has the digit in exactly two cells, and a column has it in exactly two other cells. One cell from the row and one from the column sit in the same box, so the links are tied.",
+      "The other two cells are the ends. One of those ends is the digit. A cell that sees both ends loses it.",
+    ],
+  },
+  {
+    slug: "xyz-wing",
+    name: "XYZ-wing",
+    description:
+      "An XY-wing whose pivot carries one extra digit. XYZ-wings on Expert puzzles.",
+    level: "Expert",
+    play: "expert",
+    order: 82,
+    related: ["xy-wing", "naked-triple"],
+    when: "XYZ-wings are Expert. They are the next step after an XY-wing, and they stay short of coloring and XY-chains.",
+    nyt: "XYZ-wings do not appear in the 1,483 NYT puzzles. Hard stops at triples.",
+    paragraphs: [
+      "An XYZ-wing is an XY-wing with a busier pivot. The pivot has three candidates. Each wing has two, and each wing uses a different pair from the pivot. Both wings see the pivot. They do not have to see each other.",
+      "The digit the wings share has to sit in the pivot or in one of the wings. A cell that can see all three loses that digit.",
     ],
   },
   {

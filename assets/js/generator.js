@@ -356,31 +356,56 @@ const ATTEMPTS = {
   mental: 16,
 };
 
+// A stored pool row can stop matching its level once a new technique solves it
+// earlier. Skip those rows. The first random index is unchanged when it still
+// fits, so levels whose puzzles did not move keep the same fallback.
+function levelStillFits(kind, graded, meta) {
+  if (!graded || !graded.solved || graded.corrupt) return false;
+  // Stored rows keep their published grade. A row whose fresh solve moved
+  // is left in the file and reported, and it is not dealt as that level.
+  if (meta && (graded.steps !== meta.steps || graded.bottlenecks !== meta.bottlenecks || graded.rank !== meta.hardestTechnique)) {
+    return false;
+  }
+  if (kind === "quick") return graded.rank <= 1 && graded.steps === 0;
+  if (kind === "easy") return graded.rank <= 2 && graded.steps === 0;
+  if (kind === "not easy") return graded.rank === 3;
+  if (kind === "hard") return graded.rank === 4 || graded.rank === 5;
+  if (kind === "expert") return graded.rank >= 6 && graded.rank <= 9;
+  if (kind === "mental") return graded.rank === 10;
+  return true;
+}
+
 function takePool(kind, seed) {
   const pools = globalThis.SudokuPools;
   const pool = pools && pools[kind];
   if (!pool || !pool.length) return null;
-  const index = Math.floor(random() * pool.length) % pool.length;
-  const entry = pool[index];
-  const meta = entry.metadata || {};
-  const found = {
-    puzzle: entry.puzzle.slice(),
-    solution: entry.solution.slice(),
-    clues: meta.clues,
-    grade: {
-      techniques: (meta.techniques || []).slice(),
-      rank: meta.hardestTechnique,
-      hardestName: meta.hardestName,
-      steps: meta.steps,
-      stalls: meta.stalls,
-      bottlenecks: meta.bottlenecks,
-      placedBeforeStall: meta.placedBeforeStall,
-      filledAtFirstStall: meta.filledAtFirstStall,
-    },
-  };
-  const packed = pack(found, kind, seed, false);
-  packed.metadata.fromPool = true;
-  return packed;
+  const { grade } = solver();
+  const start = Math.floor(random() * pool.length) % pool.length;
+  for (let n = 0; n < pool.length; n++) {
+    const entry = pool[(start + n) % pool.length];
+    const quick = grade(entry.puzzle, { solution: entry.solution });
+    if (!levelStillFits(kind, quick, entry.metadata || {})) continue;
+    const meta = entry.metadata || {};
+    const found = {
+      puzzle: entry.puzzle.slice(),
+      solution: entry.solution.slice(),
+      clues: meta.clues,
+      grade: {
+        techniques: (meta.techniques || []).slice(),
+        rank: meta.hardestTechnique,
+        hardestName: meta.hardestName,
+        steps: meta.steps,
+        stalls: meta.stalls,
+        bottlenecks: meta.bottlenecks,
+        placedBeforeStall: meta.placedBeforeStall,
+        filledAtFirstStall: meta.filledAtFirstStall,
+      },
+    };
+    const packed = pack(found, kind, seed, false);
+    packed.metadata.fromPool = true;
+    return packed;
+  }
+  return null;
 }
 
 function attemptLevel(kind, relax) {
@@ -468,6 +493,11 @@ const TECHNIQUE_RANK = {
   "x-wing": 7,
   "xy-wing": 8,
   swordfish: 9,
+  // After swordfish, before coloring. Same solver rank as swordfish, so an
+  // X-wing, XY-wing, or swordfish that is also available still runs first.
+  skyscraper: 9.1,
+  "two-string-kite": 9.2,
+  "xyz-wing": 9.3,
   coloring: 10,
   "xy-chain": 10.1,
 };
@@ -485,6 +515,30 @@ const TRAIN = {
   "x-wing": { level: "expert", live: 2, budget: 80 },
   swordfish: { level: "expert", live: 4, budget: 200 },
   "xy-wing": { level: "expert", live: 2, budget: 80 },
+  skyscraper: {
+    level: "expert",
+    name: "Skyscraper",
+    live: 2,
+    budget: 80,
+    puzzle: [0,0,0,0,0,0,2,0,0,0,0,0,8,9,0,4,7,0,3,9,0,0,0,0,0,0,0,0,0,8,6,0,4,0,0,0,0,5,0,0,0,8,0,0,9,0,4,1,3,0,0,0,5,0,0,0,0,9,7,2,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,6,3,0],
+    solution: [8,1,4,5,6,7,2,9,3,5,2,6,8,9,3,4,7,1,3,9,7,2,4,1,5,6,8,9,3,8,6,5,4,7,1,2,6,5,2,7,1,8,3,4,9,7,4,1,3,2,9,8,5,6,4,6,3,9,7,2,1,8,5,1,8,5,4,3,6,9,2,7,2,7,9,1,8,5,6,3,4],
+  },
+  "two-string-kite": {
+    level: "expert",
+    name: "Two-string kite",
+    live: 2,
+    budget: 80,
+    puzzle: [0,0,0,0,0,2,1,0,0,0,0,0,9,5,0,0,3,0,7,0,0,4,0,0,6,5,0,0,5,0,0,3,0,0,0,0,0,0,1,0,0,0,4,0,0,0,0,8,0,0,0,0,0,0,8,0,0,0,7,3,0,0,0,0,3,0,0,1,0,2,0,0,9,0,0,0,2,0,0,8,1],
+    solution: [5,8,9,3,6,2,1,4,7,1,4,6,9,5,7,8,3,2,7,2,3,4,8,1,6,5,9,2,5,4,7,3,6,9,1,8,3,7,1,2,9,8,4,6,5,6,9,8,1,4,5,7,2,3,8,1,2,6,7,3,5,9,4,4,3,5,8,1,9,2,7,6,9,6,7,5,2,4,3,8,1],
+  },
+  "xyz-wing": {
+    level: "expert",
+    name: "XYZ-wing",
+    live: 2,
+    budget: 80,
+    puzzle: [0,5,3,0,1,0,0,0,0,2,0,0,0,0,4,0,0,0,4,0,8,2,6,0,0,9,0,0,2,0,0,0,7,6,0,0,0,0,0,5,4,0,8,0,0,1,0,0,0,9,0,0,0,0,7,0,0,3,2,0,0,0,0,0,0,0,0,0,0,0,0,0,8,0,9,0,0,0,4,3,2],
+    solution: [6,5,3,9,1,8,2,7,4,2,9,1,7,5,4,3,6,8,4,7,8,2,6,3,1,9,5,5,2,4,8,3,7,6,1,9,9,3,6,5,4,1,8,2,7,1,8,7,6,9,2,5,4,3,7,4,5,3,2,6,9,8,1,3,1,2,4,8,9,7,5,6,8,6,9,1,7,5,4,3,2],
+  },
   coloring: { level: "mental", live: 2, budget: 120 },
   "xy-chain": { level: "mental", live: 2, budget: 120 },
 };
@@ -553,6 +607,18 @@ function chooseRow(rows, slug, allowed) {
     return row;
   }
   return null;
+}
+
+function exemplarTrain(slug, allowed) {
+  const spec = TRAIN[slug];
+  if (!spec || !spec.puzzle || !spec.solution) return null;
+  const { grade } = solver();
+  const quick = grade(spec.puzzle, { solution: spec.solution, metrics: false });
+  if (!quick.solved || quick.corrupt) return null;
+  const path = quick.path || [];
+  if (hardestSlug(path) !== slug) return null;
+  if (allowed && !restAllowed(path, slug, allowed)) return null;
+  return packTrain({ puzzle: spec.puzzle, solution: spec.solution }, slug, false);
 }
 
 function packTrain(entry, slug, relaxed) {
@@ -638,6 +704,8 @@ function generateForTechnique(slug, options) {
     if (strict) return packTrain(strict.entry, slug, false);
     const loose = strictAllowed ? chooseRow(rows, slug, null) : null;
     if (loose) return packTrain(loose.entry, slug, true);
+    const example = exemplarTrain(slug, strictAllowed);
+    if (example) return example;
     const carved = liveTrain(slug, strictAllowed);
     if (carved) return carved;
     return approximateTrain(slug);
@@ -669,7 +737,7 @@ const TARGETS = {
     minSteps: 4,
     maxSteps: HARD_MAX_STEPS,
   },
-  expert: { minClues: 22, maxClues: 26, hardest: "quad, x-wing, xy-wing, or swordfish" },
+  expert: { minClues: 22, maxClues: 26, hardest: "quad, fish, wing, skyscraper, or two-string kite" },
   mental: { minClues: 17, maxClues: 24, hardest: "chain or coloring" },
 };
 
@@ -679,6 +747,10 @@ globalThis.SudokuGenerator = {
   trainLevel(slug) {
     const spec = TRAIN[slug];
     return spec ? spec.level : null;
+  },
+  trainName(slug) {
+    const spec = TRAIN[slug];
+    return spec && spec.name ? spec.name : null;
   },
   techniqueRank(slug) {
     const rank = TECHNIQUE_RANK[slug];

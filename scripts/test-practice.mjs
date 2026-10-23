@@ -44,6 +44,9 @@ function jump(slug) {
 
 const hidden = jump("hidden-pair");
 const wing = jump("x-wing");
+const skyscraper = jump("skyscraper");
+const kite = jump("two-string-kite");
+const xyz = jump("xyz-wing");
 assert.ok(hidden.jumped.applied.length > 0, "hidden pair jumps past easier steps");
 assert.ok(wing.jumped.applied.length > 0, "x-wing jumps past easier steps");
 assert.equal(practice.wantsCandidates("naked-single"), false);
@@ -222,7 +225,7 @@ assert.match(community, /function skipFinish/);
 assert.match(community, /function abandonOpen/);
 
 console.log(
-  `practice ok (hidden pair ${hidden.jumped.applied.length} steps, x-wing ${wing.jumped.applied.length} steps, naked singles ${filled.applied.length})`
+  `practice ok (hidden pair ${hidden.jumped.applied.length} steps, x-wing ${wing.jumped.applied.length} steps, skyscraper ${skyscraper.jumped.applied.length}, kite ${kite.jumped.applied.length}, xyz ${xyz.jumped.applied.length}, naked singles ${filled.applied.length})`
 );
 
 vm.runInContext(fs.readFileSync(path.join(root, "assets/js/share.js"), "utf8"), context);

@@ -18,6 +18,9 @@ export const TECHNIQUES = [
   { slug: "x-wing", name: "X-wing" },
   { slug: "swordfish", name: "Swordfish" },
   { slug: "xy-wing", name: "XY-wing" },
+  { slug: "skyscraper", name: "Skyscraper" },
+  { slug: "two-string-kite", name: "Two-string kite" },
+  { slug: "xyz-wing", name: "XYZ-wing" },
   { slug: "coloring", name: "Simple coloring" },
   { slug: "xy-chain", name: "XY-chain" },
 ];

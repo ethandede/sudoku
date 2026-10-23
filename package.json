@@ -21,6 +21,7 @@
     "test:play": "node scripts/test-candidates.mjs",
     "test:promos": "node scripts/test-promos.mjs",
     "test:practice": "node scripts/test-practice.mjs",
+    "test:techniques": "node scripts/test-techniques.mjs",
     "test:brand": "node scripts/test-brand.mjs",
     "test:motion": "node scripts/test-motion.mjs",
     "test:home": "node scripts/test-home-copy.mjs",
