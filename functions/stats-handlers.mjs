@@ -5,6 +5,8 @@ import {
   communityFromTimes,
   consentRequired,
   finishAction,
+  PUBLIC_STATS_SINCE,
+  publicPlays,
   rateDecision,
   summarizeBucket,
   utcDate,
@@ -164,17 +166,19 @@ async function solvedSeconds(db, row, since) {
         .prepare(
           `SELECT elapsed_seconds AS seconds FROM plays
            WHERE outcome = 'solved' AND is_daily = 1
-             AND elapsed_seconds IS NOT NULL AND finished_at >= ?`
+             AND elapsed_seconds IS NOT NULL AND finished_at >= ?
+             AND started_at >= ?`
         )
-        .bind(since)
+        .bind(since, PUBLIC_STATS_SINCE)
         .all()
     : await db
         .prepare(
           `SELECT elapsed_seconds AS seconds FROM plays
            WHERE outcome = 'solved' AND is_daily = 0 AND level = ?
-             AND elapsed_seconds IS NOT NULL AND finished_at >= ?`
+             AND elapsed_seconds IS NOT NULL AND finished_at >= ?
+             AND started_at >= ?`
         )
-        .bind(row.level, since)
+        .bind(row.level, since, PUBLIC_STATS_SINCE)
         .all();
   return (query.results || []).map((item) => item.seconds);
 }
@@ -183,9 +187,9 @@ async function todayPayload(db, date) {
   const listed = await db
     .prepare(
       `SELECT outcome, elapsed_seconds, mistakes, hints_used, hardest_hint
-       FROM plays WHERE is_daily = 1 AND puzzle_date = ?`
+       FROM plays WHERE is_daily = 1 AND puzzle_date = ? AND started_at >= ?`
     )
-    .bind(date)
+    .bind(date, PUBLIC_STATS_SINCE)
     .all();
   const rows = listed.results || [];
   const finishes = rows.filter((play) => play.outcome);
@@ -290,7 +294,7 @@ export async function handleSummary({ request, env, now = Date.now(), cache }) {
          FROM plays`
       )
       .all();
-    const body = aggregate(listed.results || [], now);
+    const body = aggregate(publicPlays(listed.results || []), now);
     const response = new Response(JSON.stringify(body), {
       status: 200,
       headers: withHint({

@@ -4,6 +4,8 @@ import { DatabaseSync } from "node:sqlite";
 import {
   aggregate,
   beatPercent,
+  PUBLIC_STATS_SINCE,
+  publicPlays,
   summarizeBucket,
   consentRequired,
   finishAction,
@@ -170,7 +172,7 @@ assert.equal(dailyKey, await puzzleKeyFrom("daily:2026-10-21", [9, 9, 9]));
 assert.notEqual(dailyKey, givenKey);
 assert.equal(givenKey.length, 64);
 
-const now = Date.parse("2026-10-21T12:00:00.000Z");
+const now = Date.parse("2026-10-27T12:00:00.000Z");
 const plays = [];
 for (let index = 0; index < 20; index += 1) {
   plays.push({
@@ -239,6 +241,22 @@ const enough = summarizeBucket(
 assert.equal(enough.suppressed, false);
 assert.equal(enough.avgHints, 1);
 assert.equal(enough.noHintPct, 50);
+
+const buried = publicPlays(
+  Array.from({ length: 25 }, () => ({
+    level: "hard",
+    is_daily: 0,
+    outcome: "solved",
+    elapsed_seconds: 100,
+    mistakes: 0,
+    hints_used: 4,
+    hardest_hint: "x-wing",
+    started_at: PUBLIC_STATS_SINCE - 1_000,
+    finished_at: PUBLIC_STATS_SINCE,
+  }))
+);
+assert.equal(buried.length, 0);
+assert.equal(aggregate(buried, PUBLIC_STATS_SINCE + 86_400_000).windows.all.levels.hard.suppressed, true);
 
 {
   const { env, sqlite } = openDb();
@@ -354,7 +372,7 @@ assert.equal(enough.noHintPct, 50);
           puzzleKey,
           level: "not easy",
           isDaily: true,
-          date: "2026-10-21",
+          date: "2026-10-27",
         })
       ),
       env,
