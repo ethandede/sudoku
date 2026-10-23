@@ -1,26 +1,21 @@
 // Fails if a stylesheet or SVG uses pure white: #fff, #ffffff, white, or rgb(255, 255, 255).
 // white-space and near-whites such as #fff3cd or #fffdf8 are not pure white.
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { dirname, extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (path) => readFileSync(join(root, path), "utf8");
 
-const skip = new Set(["node_modules", "dist", ".git"]);
 const exts = new Set([".scss", ".css", ".svg"]);
-
-function filesIn(dir, out = []) {
-  for (const name of readdirSync(dir)) {
-    if (skip.has(name)) continue;
-    const path = join(dir, name);
-    const stat = statSync(path);
-    if (stat.isDirectory()) filesIn(path, out);
-    else if (exts.has(extname(name))) out.push(path);
-  }
-  return out;
-}
+const filesIn = () =>
+  execFileSync("git", ["ls-files", "-z"], { cwd: root })
+    .toString("utf8")
+    .split("\0")
+    .filter((path) => exts.has(extname(path)))
+    .map((path) => join(root, path));
 
 function stripComments(source) {
   return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
@@ -34,7 +29,7 @@ const patterns = [
 ];
 
 const hits = [];
-for (const file of filesIn(root)) {
+for (const file of filesIn()) {
   const text = stripComments(readFileSync(file, "utf8"));
   const lines = text.split("\n");
   lines.forEach((line, index) => {
@@ -123,5 +118,18 @@ assert.match(sudoku, /--board-bg:\s*#fbfaf8/);
 assert.match(sudoku, /--board-bg:\s*#1e1d1b/);
 assert.match(sudoku, /\.undo-btn[\s\S]*?border:\s*0/);
 assert.match(sudoku, /\.icon-btn,\s*\n\.play-home\s*\{[\s\S]*?width:\s*44px/);
+
+const siteNav = read("assets/scss/layout/_siteNav.scss");
+const articles = read("assets/scss/pages/_articles.scss");
+const cards = read("assets/scss/components/_uiverse.scss");
+const promos = read("scripts/house-promos.mjs");
+const stats = read("assets/js/stats-page.js");
+assert.equal(siteNav.includes("Roboto"), false);
+assert.equal(articles.includes("Courier"), false);
+assert.equal(cards.includes("10px 22px"), false);
+assert.match(cards, /box-shadow:\s*0 1px 1px rgba\(30, 35, 43, 0\.08\)/);
+assert.equal(promos.includes("Pairs, X-wings, chains."), false);
+assert.equal(promos.includes("Median times, give-ups"), false);
+assert.equal(stats.includes("—"), false);
 
 console.log(`no pure white; ${pairs.length} contrast pairs pass AA`);

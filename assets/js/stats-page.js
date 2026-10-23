@@ -25,7 +25,7 @@
   let windowKey = "30d";
 
   function clock(seconds) {
-    if (seconds == null) return "—";
+    if (seconds == null) return "n/a";
     const total = Math.max(0, Math.floor(seconds));
     const mins = Math.floor(total / 60);
     const secs = total % 60;
@@ -113,8 +113,8 @@
   }
 
   function facts(bucket) {
-    const mistakes = bucket.medianMistakes == null ? "—" : countSpan(bucket.medianMistakes);
-    const noHints = bucket.noHintPct == null ? "—" : `${countSpan(bucket.noHintPct)}%`;
+    const mistakes = bucket.medianMistakes == null ? "n/a" : countSpan(bucket.medianMistakes);
+    const noHints = bucket.noHintPct == null ? "n/a" : `${countSpan(bucket.noHintPct)}%`;
     return `<dl class="stats-facts">
       <div><dt>Starts</dt><dd>${countSpan(bucket.starts)}</dd></div>
       <div><dt>Finishes</dt><dd>${countSpan(bucket.finishes)}</dd></div>

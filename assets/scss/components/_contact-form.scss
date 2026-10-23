@@ -132,9 +132,9 @@
     border-left: 4px solid;
 
     &.wpcf7-validation-errors {
-      background: #fff3cd;
-      border-color: #ffc107;
-      color: #856404;
+      background: color-mix(in srgb, var(--accent-color) 10%, var(--card));
+      border-color: var(--accent-color);
+      color: var(--ink);
     }
 
     &.wpcf7-mail-sent-ok {
