@@ -149,7 +149,7 @@
     0 0.5px 1px rgba(30, 35, 43, 0.05),
     0 1px 3px rgba(30, 35, 43, 0.08),
     inset 0 0.5px 0 rgba(255, 255, 255, 0.9);
-  transition: width 0.62s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: width 180ms ease-out;
 }
 
 .rare-delete[data-state="open"] {
@@ -172,7 +172,7 @@
 }
 
 .rare-delete-trigger:active {
-  transform: scale(0.94);
+  transform: translateY(1px);
 }
 
 .rare-bin,
@@ -184,7 +184,7 @@
 .rare-lid {
   transform-box: view-box;
   transform-origin: 3px 6px;
-  transition: transform 0.6s cubic-bezier(0.34, 1.1, 0.64, 1);
+  transition: transform 180ms ease-out;
 }
 
 .rare-delete[data-state="open"] .rare-lid {
@@ -202,7 +202,7 @@
 
 .rare-delete[data-status="deleted"] .rare-done path {
   stroke-dashoffset: 0;
-  transition: stroke-dashoffset 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: stroke-dashoffset 180ms ease-out;
 }
 
 .rare-delete-panel {
@@ -219,8 +219,8 @@
   transform: translateX(-6px);
   pointer-events: none;
   transition:
-    opacity 0.3s cubic-bezier(0.32, 0.72, 0, 1),
-    transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    opacity 180ms ease-out,
+    transform 180ms ease-out;
 }
 
 .rare-delete[data-state="open"] .rare-delete-panel {
@@ -228,8 +228,8 @@
   transform: none;
   pointer-events: auto;
   transition:
-    opacity 0.44s cubic-bezier(0.32, 0.72, 0, 1) 0.14s,
-    transform 0.44s cubic-bezier(0.32, 0.72, 0, 1) 0.14s;
+    opacity 180ms ease-out,
+    transform 180ms ease-out;
 }
 
 .rare-delete-notch {
@@ -262,22 +262,18 @@
   opacity: 0;
   transform: scale(0.9);
   transition:
-    opacity 0.3s cubic-bezier(0.32, 0.72, 0, 1),
-    transform 0.2s cubic-bezier(0.32, 0.72, 0, 1),
-    background-color 0.2s linear;
+    opacity 180ms ease-out,
+    transform 180ms ease-out,
+    background-color 180ms ease-out;
 }
 
 .rare-delete[data-state="open"] .rare-circle {
   opacity: 1;
   transform: none;
   transition:
-    opacity 0.44s cubic-bezier(0.32, 0.72, 0, 1) 0.14s,
-    transform 0.2s cubic-bezier(0.32, 0.72, 0, 1),
-    background-color 0.2s linear;
-}
-
-.rare-delete[data-state="open"] .rare-circle-cancel {
-  transition-delay: 0.21s, 0s, 0s;
+    opacity 180ms ease-out,
+    transform 180ms ease-out,
+    background-color 180ms ease-out;
 }
 
 .rare-circle:hover {
@@ -286,7 +282,7 @@
 }
 
 .rare-circle:active {
-  transform: scale(0.84);
+  transform: translateY(1px);
 }
 
 .rare-circle-confirm {
@@ -295,8 +291,8 @@
 
 .rare-delete-trigger:focus-visible,
 .rare-circle:focus-visible {
-  outline: 2px solid var(--rare-glyph);
-  outline-offset: 2px;
+  outline: 1px solid var(--rare-accent);
+  outline-offset: 3px;
 }
 
 html[data-theme="dark"] .rare-action-note {
@@ -330,26 +326,26 @@ html[data-theme="dark"] .rare-circle {
 #hint-btn .hint-bulb {
   transform-box: fill-box;
   transform-origin: center bottom;
-  transition: transform 0.6s cubic-bezier(0.34, 1.1, 0.64, 1);
+  transition: transform 180ms ease-out;
 }
 
 #hint-btn svg {
-  transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: transform 180ms ease-out;
 }
 
 #hint-btn .hint-filament {
   opacity: 0;
   transition:
-    opacity 0.2s cubic-bezier(0.32, 0.72, 0, 1),
-    stroke 0.2s linear;
+    opacity 180ms ease-out,
+    stroke 180ms ease-out;
 }
 
 #hint-btn .hint-glass {
-  transition: filter 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: filter 180ms ease-out;
 }
 
 #hint-btn:active svg {
-  transform: scale(0.94);
+  transform: scale(0.98);
 }
 
 #hint-btn:active .hint-bulb {
@@ -416,9 +412,14 @@ html[data-theme="dark"] #hint-btn:active .hint-glass {
 
   #hint-btn .hint-bulb,
   #hint-btn svg,
-  #hint-btn .hint-filament,
   #hint-btn .hint-glass {
     transition: none;
+  }
+
+  #hint-btn .hint-filament {
+    transition:
+      opacity 180ms ease-out,
+      stroke 180ms ease-out;
   }
 
   #hint-btn:hover .hint-bulb,
