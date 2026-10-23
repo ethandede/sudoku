@@ -40,6 +40,7 @@ const articles = [
   { file: "articles/04-nyt-medium-vs-hard.md", slug: "nyt-medium-vs-hard" },
   { file: "articles/what-makes-a-sudoku-hard.md", slug: "what-makes-a-sudoku-hard" },
   { file: "articles/history-of-sudoku.md", slug: "history-of-sudoku" },
+  { file: "articles/world-sudoku-championship-2026.md", slug: "world-sudoku-championship-2026" },
   { file: "articles/sudoku-variants.md", slug: "sudoku-variants" },
   { file: "articles/why-ai-is-bad-at-sudoku.md", slug: "why-ai-is-bad-at-sudoku" },
   { file: "articles/does-sudoku-keep-your-brain-sharp.md", slug: "does-sudoku-keep-your-brain-sharp" },
