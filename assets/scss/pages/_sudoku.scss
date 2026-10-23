@@ -3,10 +3,10 @@
   --board-bg: #fbfaf8;
   --cell-bg: #fbfaf8;
   --given-bg: #fbfaf8;
-  --ink: #1e232b;
+  --ink: #1f1c19;
   --user-ink: var(--accent-color);
-  --line: #1c232c;
-  --thin: #d5dbe2;
+  --line: #1f1c19;
+  --thin: #ddd8d2;
   --selected: #c0dcf1;
   --selected-ink: var(--ink);
   --same: #d4e8f7;
@@ -16,23 +16,23 @@
   --slash: #b00016;
   --slash-on-selected: #b00016;
   --dot: #b00016;
-  --pad: #eef1f4;
-  --pad-ink: #1e232b;
-  --pad-border: #d5dbe2;
-  --map-empty: #d5dbe2;
+  --pad: #efece7;
+  --pad-ink: #1f1c19;
+  --pad-border: #ddd8d2;
+  --map-empty: #ddd8d2;
   --map-fill: var(--same);
-  --muted: #5c6670;
-  --count-ink: #4a5560;
-  --auto-ink: #4a5560;
+  --muted: #5e5954;
+  --count-ink: #5a534c;
+  --auto-ink: #5a534c;
   --note-ink: var(--accent-color);
   --ghost-ink: #2c4558;
-  --auto-on-selected: #4a5560;
+  --auto-on-selected: #5a534c;
   --note-on-selected: var(--accent-color);
   --ghost-on-selected: #2c4558;
-  --card: #ffffff;
-  --page: #f4f6f8;
+  --card: #faf9f7;
+  --page: #f5f4f1;
   --accent-btn: var(--accent-color);
-  --accent-on: #ffffff;
+  --accent-on: #f7f6f3;
   --focus: var(--accent-color);
   --danger: #b00016;
   --hint-pattern: #0b6e5f;
@@ -60,10 +60,10 @@ html[data-theme="dark"] .technique-page {
   --board-bg: #1e1d1b;
   --cell-bg: #1e1d1b;
   --given-bg: #1e1d1b;
-  --ink: #e6e9ed;
+  --ink: #f3f0eb;
   --user-ink: var(--accent-on-dark);
-  --line: #e6e9ed;
-  --thin: #3e4650;
+  --line: #efece7;
+  --thin: #3d3a36;
   --selected: #355068;
   --selected-ink: var(--ink);
   --same: #2c4256;
@@ -73,23 +73,23 @@ html[data-theme="dark"] .technique-page {
   --slash: #ffb4b4;
   --slash-on-selected: #ffb4b4;
   --dot: #ffb4b4;
-  --pad: #2a3036;
-  --pad-ink: #e6e9ed;
-  --pad-border: #3e4650;
-  --map-empty: #3c444e;
+  --pad: #2c2a27;
+  --pad-ink: #f3f0eb;
+  --pad-border: #3d3a36;
+  --map-empty: #3d3a36;
   --map-fill: var(--same);
-  --muted: #b7c0c8;
-  --count-ink: #c5ced6;
-  --auto-ink: #c5ced6;
+  --muted: #c4beb6;
+  --count-ink: #c9c3bb;
+  --auto-ink: #c9c3bb;
   --note-ink: var(--accent-on-dark);
   --ghost-ink: #d4ebfa;
-  --auto-on-selected: #c5ced6;
+  --auto-on-selected: #c9c3bb;
   --note-on-selected: var(--accent-on-dark);
   --ghost-on-selected: #d4ebfa;
-  --card: #22262c;
-  --page: #121416;
+  --card: #242220;
+  --page: #141311;
   --accent-btn: var(--accent-on-dark);
-  --accent-on: #121416;
+  --accent-on: #141311;
   --focus: var(--accent-on-dark);
   --danger: #ffb4b4;
   --hint-pattern: #7ddec8;
@@ -122,11 +122,11 @@ html[data-theme="dark"] .technique-page {
 }
 
 body:has(.sudoku-page) {
-  background: #f4f6f8;
+  background: #f5f4f1;
 }
 
 html[data-theme="dark"] body:has(.sudoku-page) {
-  background: #121416;
+  background: #141311;
 }
 
 body:has(.sudoku-page) .site-header {
@@ -1322,9 +1322,9 @@ kbd {
     font-size: 1.05rem;
     font-weight: 800;
     border-radius: 0.6rem;
-    border: 1px solid var(--pad-border, #d3d9e0);
-    background: var(--pad, #eef1f5);
-    color: var(--pad-ink, #1e232b);
+    border: 1px solid var(--pad-border, #ddd8d2);
+    background: var(--pad, #efece7);
+    color: var(--pad-ink, #1f1c19);
     touch-action: manipulation;
     cursor: pointer;
   }
@@ -1354,7 +1354,7 @@ kbd {
   padding: 0 1rem;
   border-radius: 0.6rem;
   background: var(--accent-btn, var(--accent-color));
-  color: var(--accent-on, #fff);
+  color: var(--accent-on, #f7f6f3);
   text-decoration: none;
 }
 
@@ -1983,11 +1983,11 @@ button:disabled {
 }
 
 @mixin standalone-app {
-  background: #f4f6f8;
+  background: #f5f4f1;
   overscroll-behavior: none;
 
   body {
-    background: #f4f6f8;
+    background: #f5f4f1;
     overscroll-behavior: none;
     padding-top: env(safe-area-inset-top);
     padding-right: env(safe-area-inset-right);
@@ -1996,10 +1996,10 @@ button:disabled {
   }
 
   &[data-theme="dark"] {
-    background: #121416;
+    background: #141311;
 
     body {
-      background: #121416;
+      background: #141311;
     }
   }
 

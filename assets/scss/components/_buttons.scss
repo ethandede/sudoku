@@ -1,39 +1,205 @@
 @use "../abstracts/variables" as vars;
-@use "sass:color";
 
+// Site chrome buttons. Tonal fill, 1px inner highlight, hairline edge,
+// soft shadow, 1px press. Calm on purpose: no circle-grow, no glow.
+// The game keypad, mode toggle, undo, and hint icon keep their own boxes.
 
-@mixin cta-button-styles {
-  display: inline-block;
-  font-size: 1rem;
-  padding: 10px 20px;
-  background-color: var(--accent-color);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  color: #fff;
-  border-radius: 7px;
-  text-decoration: none;
+@mixin control-face {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.28rem;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 0.5rem 1.05rem;
+  border-radius: var(--btn-radius);
+  border: 1px solid transparent;
   font-family: vars.$header-font;
-  transition: background-color 0.3s ease;
+  font-size: 0.95rem;
+  font-weight: var(--btn-weight);
+  letter-spacing: var(--btn-tracking);
+  line-height: 1.15;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 var(--btn-highlight), var(--btn-shadow);
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease, box-shadow 140ms ease, transform 120ms ease;
 
-  &.sm {
-    font-size: 0.83rem;
-    padding: 7px 15px;
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--btn-focus);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
   }
 
   i {
-    margin-left: 0.5rem;
-    transition: transform 0.3s ease-in-out;
-  }
-
-  &:hover {
-    background-color: var(--accent-color-light);
-    border: 1px solid rgba(255, 255, 255, 0.95);
-
-    i {
-      transform: translateX(5px);
-    }
+    margin-left: 0.15rem;
   }
 }
 
-.cta-button {
-  @include cta-button-styles;
+@mixin control-press {
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: inset 0 1px 2px rgba(31, 28, 25, 0.22);
+  }
+}
+
+.cta-button,
+.contact-form button[type="submit"],
+.wpcf7 input[type="submit"],
+.wpcf7 button[type="submit"],
+.skills-page .primary-btn,
+.primary-btn,
+#resume-btn,
+.btn-danger,
+.skills-page .secondary-btn,
+.skills-page .file-btn,
+.secondary-btn,
+.btn-quiet,
+.articles-page .read-more,
+.skills-back a,
+.btn-icon {
+  @include control-face;
+}
+
+.cta-button,
+.contact-form button[type="submit"],
+.wpcf7 input[type="submit"],
+.wpcf7 button[type="submit"],
+.skills-page .primary-btn,
+.primary-btn,
+#resume-btn {
+  background: var(--btn-primary);
+  color: var(--btn-primary-ink);
+  border-color: var(--btn-primary-edge);
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--btn-primary) 86%, var(--paper));
+  }
+}
+
+.cta-button.sm {
+  min-height: 36px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.83rem;
+}
+
+.skills-page .secondary-btn,
+.skills-page .file-btn,
+.secondary-btn {
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-ink);
+  border-color: var(--btn-secondary-edge);
+  box-shadow: inset 0 1px 0 var(--btn-highlight), 0 1px 1px rgba(31, 28, 25, 0.04);
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--btn-secondary-bg) 78%, var(--recess));
+    border-color: color-mix(in srgb, var(--btn-secondary-edge) 55%, var(--ink));
+  }
+}
+
+.btn-quiet,
+.articles-page .read-more,
+.skills-back a {
+  background: transparent;
+  color: var(--btn-ghost-ink);
+  border-color: transparent;
+  box-shadow: none;
+
+  &:hover {
+    background: color-mix(in srgb, var(--paper) 72%, transparent);
+    border-color: var(--btn-secondary-edge);
+    box-shadow: inset 0 1px 0 var(--btn-highlight);
+    color: var(--btn-focus);
+  }
+}
+
+.articles-page .read-more {
+  color: var(--accent-color);
+}
+
+html[data-theme="dark"] .articles-page .read-more {
+  color: var(--accent-on-dark);
+}
+
+.btn-danger {
+  background: var(--btn-danger);
+  color: var(--btn-danger-ink);
+  border-color: var(--btn-danger-edge);
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--btn-danger) 88%, var(--paper));
+  }
+}
+
+.account-delete,
+.account-card #account-delete {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--btn-danger);
+}
+
+.btn-icon {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-ink);
+  border-color: var(--btn-secondary-edge);
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--btn-secondary-bg) 78%, var(--recess));
+  }
+}
+
+.articles-page .pagination a,
+.articles-page .pagination span {
+  @include control-face;
+  min-height: 40px;
+  padding: 0.35rem 0.8rem;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-ink);
+  border-color: var(--btn-secondary-edge);
+  box-shadow: inset 0 1px 0 var(--btn-highlight);
+
+  &.current {
+    background: var(--btn-primary);
+    color: var(--btn-primary-ink);
+    border-color: var(--btn-primary-edge);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cta-button,
+  .contact-form button[type="submit"],
+  .wpcf7 input[type="submit"],
+  .wpcf7 button[type="submit"],
+  .skills-page .primary-btn,
+  .primary-btn,
+  #resume-btn,
+  .btn-danger,
+  .skills-page .secondary-btn,
+  .skills-page .file-btn,
+  .secondary-btn,
+  .btn-quiet,
+  .articles-page .read-more,
+  .skills-back a,
+  .btn-icon,
+  .articles-page .pagination a {
+    @include control-press;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta-button i {
+    transition: none;
+  }
 }

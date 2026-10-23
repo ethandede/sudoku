@@ -69,7 +69,7 @@ function shareCard(kind, slug, alt) {
   if (png[0] !== 0x89 || width !== 1200 || height !== 630) {
     throw new Error(`OG image ${relative} must be a 1200x630 PNG`);
   }
-  if (alt.includes("—")) throw new Error(`OG alt for ${slug} has an em dash`);
+  if (alt.includes("\u2014")) throw new Error(`OG alt for ${slug} has an em dash`);
   return {
     shareImage: `${SITE}/og/${kind}/${slug}.png`,
     shareImageAlt: alt,
@@ -271,8 +271,8 @@ function layout({
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f6f8">
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#121416">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f4f1">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141311">
   <meta name="color-scheme" content="light dark">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1314,8 +1314,8 @@ write(
       scope: "/",
       display: "standalone",
       orientation: "portrait",
-      background_color: "#f4f6f8",
-      theme_color: "#f4f6f8",
+      background_color: "#f5f4f1",
+      theme_color: "#f5f4f1",
       categories: ["games"],
       icons: manifestIcons,
     },
@@ -1331,8 +1331,8 @@ write(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="robots" content="noindex">
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f6f8">
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#121416">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f4f1">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141311">
   <title>${escapeHtml(staticMeta("/offline.html").title)}</title>
   <meta name="description" content="${escapeHtml(staticMeta("/offline.html").description)}">
   <meta name="robots" content="noindex">
