@@ -21,6 +21,7 @@
     "test:play": "node scripts/test-candidates.mjs",
     "test:promos": "node scripts/test-promos.mjs",
     "test:practice": "node scripts/test-practice.mjs",
+    "test:apply": "node scripts/test-apply-all.mjs",
     "test:brand": "node scripts/test-brand.mjs"
   },
   "devDependencies": {
