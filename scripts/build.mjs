@@ -370,6 +370,7 @@ ${scriptTag("/assets/js/sudoku.js")}
 ${skills ? scriptTag("/assets/js/skills.js") : ""}
 ${demo ? scriptTag("/assets/js/technique-demo.js") : ""}
 ${contact ? scriptTag("/assets/js/contact.js") : ""}
+${stats ? scriptTag("/assets/js/progress.js") : ""}
 ${stats ? scriptTag("/assets/js/stats-page.js") : ""}
 ${houseClicks}${adPushes}${privacyChoiceScript}${webAnalyticsTag}</body>
 </html>
@@ -953,7 +954,7 @@ publish(
   layout({
     title: "Stats | SudokuSudoku",
     description:
-      "Anonymous SudokuSudoku stats by difficulty: median solve time, how often puzzles are solved or given up, and the hints players use most.",
+      "Your hint record, plus anonymous SudokuSudoku stats by difficulty: median solve time, average hints, and the techniques players need hints for.",
     canonical: `${SITE}/stats/`,
     stats: true,
     jsonLd: {
@@ -970,11 +971,18 @@ publish(
       <header class="page-header page-header-has-art">
         <div class="page-header-copy">
           ${brandKicker("How long it takes")}
-          <h1 class="page-title">Community stats</h1>
+          <h1 class="page-title">Stats</h1>
         </div>
         ${headerArt("stats")}
       </header>
       <div class="page-body">
+        <div id="your-hints">
+          <section class="hint-block">
+            <h2>Your hints</h2>
+            <p class="stats-empty">Loading your hint record.</p>
+          </section>
+        </div>
+        <h2>Community</h2>
         ${read("stats-page-content.html").trim()}
         <p id="stats-today" class="stats-today">Today's daily: not enough data yet.</p>
         <div class="stats-switch" role="group" aria-label="Time window">

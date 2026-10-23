@@ -8,8 +8,9 @@
 // A clean solve for a technique means that technique was on the solution path
 // and the player did not take a hint for it. A hint is recorded once, when
 // that technique is first shown. Other techniques on the same path still
-// count as clean. "Your next technique" is the first one that is not yet
-// Comfortable.
+// count as clean. A check is a wrong digit you asked about. Checks are not
+// technique hints, and they do not change clean, hinted, or the no-hint badges.
+// "Your next technique" is the first one that is not yet Comfortable.
 //
 // The badge set is 30. Deviations, so it stays a short list:
 //   Technique firsts are four leaps (Pointing, a pair, X-wing, a chain),
@@ -278,8 +279,98 @@
     ["puzzle", "Puzzles"],
   ];
 
+  const LEDGER_LEVELS = ["daily", ...LEVELS];
+
   function fresh() {
-    return { version: 1, techniques: {}, badges: [], history: [], bestLevel: null, seeded: false };
+    return { version: 1, techniques: {}, badges: [], history: [], bestLevel: null, seeded: false, hintTotals: null };
+  }
+
+  function emptyLevel() {
+    return { solves: 0, hints: 0, clean: 0, checks: 0 };
+  }
+
+  function clampCount(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number < 0) return 0;
+    return Math.min(1_000_000, Math.round(number));
+  }
+
+  function sanitizeLevel(row) {
+    const base = emptyLevel();
+    if (!row || typeof row !== "object") return base;
+    base.solves = clampCount(row.solves);
+    base.hints = clampCount(row.hints);
+    base.clean = Math.min(base.solves, clampCount(row.clean));
+    base.checks = clampCount(row.checks);
+    return base;
+  }
+
+  function sanitizeTotals(raw) {
+    const totals = { checks: 0, levels: {} };
+    if (!raw || typeof raw !== "object") return totals;
+    LEDGER_LEVELS.forEach((level) => {
+      if (!raw.levels || !raw.levels[level]) return;
+      const row = sanitizeLevel(raw.levels[level]);
+      if (row.solves || row.hints || row.checks) totals.levels[level] = row;
+    });
+    totals.checks = Math.max(clampCount(raw.checks), levelChecks(totals));
+    return totals;
+  }
+
+  function levelChecks(totals) {
+    return Object.keys(totals.levels || {}).reduce((sum, level) => sum + (totals.levels[level].checks | 0), 0);
+  }
+
+  function ledgerSolves(totals) {
+    if (!totals || !totals.levels) return 0;
+    return Object.keys(totals.levels).reduce((sum, level) => sum + (totals.levels[level].solves | 0), 0);
+  }
+
+  function totalsFromHistory(history) {
+    const totals = { checks: 0, levels: {} };
+    (history || []).forEach((item) => {
+      if (!item) return;
+      const level = LEDGER_LEVELS.includes(item.level) ? item.level : "easy";
+      if (!totals.levels[level]) totals.levels[level] = emptyLevel();
+      const row = totals.levels[level];
+      const hints = clampCount(item.hints);
+      const checks = clampCount(item.checks);
+      row.solves += 1;
+      row.hints += hints;
+      if (!hints) row.clean += 1;
+      row.checks += checks;
+      totals.checks += checks;
+    });
+    return totals;
+  }
+
+  function mergeLevel(left, right) {
+    const solves = Math.max(left.solves | 0, right.solves | 0);
+    return {
+      solves,
+      hints: Math.max(left.hints | 0, right.hints | 0),
+      clean: Math.min(solves, Math.max(left.clean | 0, right.clean | 0)),
+      checks: Math.max(left.checks | 0, right.checks | 0),
+    };
+  }
+
+  function mergeTotals(left, right) {
+    const levels = {};
+    LEDGER_LEVELS.forEach((level) => {
+      const a = left && left.levels && left.levels[level];
+      const b = right && right.levels && right.levels[level];
+      if (!a && !b) return;
+      levels[level] = mergeLevel(a || emptyLevel(), b || emptyLevel());
+    });
+    const merged = { checks: Math.max(clampCount(left && left.checks), clampCount(right && right.checks)), levels };
+    merged.checks = Math.max(merged.checks, levelChecks(merged));
+    return merged;
+  }
+
+  function formatRate(value) {
+    const rounded = Math.round(Number(value) * 10) / 10;
+    if (!Number.isFinite(rounded)) return "0";
+    return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
   }
 
   function readJson(key) {
@@ -310,6 +401,7 @@
       seconds: Math.max(0, item.seconds | 0),
       mistakes: Math.max(0, item.mistakes | 0),
       hints: Math.max(0, item.hints | 0),
+      checks: Math.max(0, item.checks | 0),
       hinted: Array.isArray(item.hinted) ? item.hinted.filter((slug) => KNOWN.has(slug)) : [],
       path: Array.isArray(item.path) ? item.path.filter((slug) => KNOWN.has(slug)) : [],
     };
@@ -335,6 +427,8 @@
       : [];
     data.bestLevel = LEVELS.includes(stored.bestLevel) ? stored.bestLevel : null;
     data.seeded = Boolean(stored.seeded);
+    data.hintTotals =
+      stored.hintTotals && typeof stored.hintTotals === "object" ? sanitizeTotals(stored.hintTotals) : null;
     return data;
   }
 
@@ -476,6 +570,7 @@
     const path = (source.path || []).filter((slug) => KNOWN.has(slug));
     const hintList = (source.hintSlugs || []).filter((slug) => KNOWN.has(slug));
     const hints = new Set(hintList);
+    const checkCount = Math.min(80, clampCount(source.checks));
     const counted = new Set();
     path.forEach((slug) => {
       if (counted.has(slug)) return;
@@ -491,22 +586,35 @@
       row.seen += 1;
       row.hinted += 1;
     });
+    const levelName = source.level || "easy";
+    if (!data.hintTotals || !ledgerSolves(data.hintTotals)) {
+      data.hintTotals = data.history.length ? totalsFromHistory(data.history) : { checks: 0, levels: {} };
+    }
     data.history.unshift(
       sanitizeHistory({
         at: source.at || new Date().toISOString(),
-        level: source.level || "easy",
+        level: levelName,
         seconds: Math.round(source.seconds || 0),
         mistakes: source.mistakes | 0,
-        hints: hintList.length,
+        hints: hints.size,
+        checks: checkCount,
         hinted: [...hints],
         path,
       })
     );
     if (data.history.length > HISTORY_LIMIT) data.history.length = HISTORY_LIMIT;
+    const ledgerKey = LEDGER_LEVELS.includes(levelName) ? levelName : "easy";
+    if (!data.hintTotals.levels[ledgerKey]) data.hintTotals.levels[ledgerKey] = emptyLevel();
+    const ledgerRow = data.hintTotals.levels[ledgerKey];
+    ledgerRow.solves += 1;
+    ledgerRow.hints += hints.size;
+    if (!hints.size) ledgerRow.clean += 1;
+    ledgerRow.checks += checkCount;
+    data.hintTotals.checks += checkCount;
     const ctx = {
       path,
       hints,
-      hintCount: hintList.length,
+      hintCount: hints.size,
       level: source.level || "",
       levelKey: levelKey(source.level),
       seconds: Number(source.seconds) || 0,
@@ -643,6 +751,12 @@
 
   function mergeSkills(local, incoming) {
     const next = local || fresh();
+    const leftHad = Boolean(local && local.hintTotals && typeof local.hintTotals === "object");
+    const rightHad = Boolean(incoming && incoming.hintTotals && typeof incoming.hintTotals === "object");
+    const leftLedger = leftHad ? sanitizeTotals(local.hintTotals) : null;
+    const rightLedger = rightHad ? sanitizeTotals(incoming.hintTotals) : null;
+    const leftHistory = local && Array.isArray(local.history) ? local.history.slice() : [];
+    const rightHistory = incoming && Array.isArray(incoming.history) ? incoming.history.slice() : [];
     const source = incoming && incoming.techniques ? incoming.techniques : {};
     Object.keys(source).forEach((slug) => {
       if (!KNOWN.has(slug)) return;
@@ -657,19 +771,137 @@
       if (BADGE_BY_ID[id]) badges.add(id);
     });
     next.badges = [...badges];
-    const seen = new Set(next.history.map(historyKey));
-    (incoming && incoming.history ? incoming.history : []).forEach((item) => {
+    const seen = new Map(next.history.map((item) => [historyKey(item), item]));
+    rightHistory.forEach((item) => {
       const clean = sanitizeHistory(item);
-      if (!clean || seen.has(historyKey(clean))) return;
+      if (!clean) return;
+      const key = historyKey(clean);
+      const prev = seen.get(key);
+      if (prev) {
+        if ((clean.checks | 0) > (prev.checks | 0)) prev.checks = clean.checks;
+        return;
+      }
       next.history.push(clean);
-      seen.add(historyKey(clean));
+      seen.set(key, clean);
     });
     next.history.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
     if (next.history.length > HISTORY_LIMIT) next.history.length = HISTORY_LIMIT;
+    if (!leftHad && !rightHad) next.hintTotals = totalsFromHistory(next.history);
+    else {
+      next.hintTotals = mergeTotals(
+        leftLedger || totalsFromHistory(leftHistory),
+        rightLedger || totalsFromHistory(rightHistory)
+      );
+    }
     next.bestLevel = higherLevel(next.bestLevel, LEVELS.includes(incoming && incoming.bestLevel) ? incoming.bestLevel : null);
     next.seeded = true;
     next.version = 1;
     return next;
+  }
+
+  function ledgerFor(skills) {
+    const totals = skills && skills.hintTotals ? sanitizeTotals(skills.hintTotals) : null;
+    const history = skills && skills.history ? skills.history : [];
+    if (!totals || (!ledgerSolves(totals) && history.length)) return totalsFromHistory(history);
+    return totals || { checks: 0, levels: {} };
+  }
+
+  function hintReport(data) {
+    const skills = data || fresh();
+    const techniques = TECHNIQUES.map((tech, index) => {
+      const row = (skills.techniques && skills.techniques[tech.slug]) || { seen: 0, clean: 0, hinted: 0 };
+      return {
+        slug: tech.slug,
+        name: tech.name,
+        seen: row.seen | 0,
+        clean: row.clean | 0,
+        hinted: row.hinted | 0,
+        index,
+      };
+    }).filter((row) => row.seen > 0 || row.clean > 0 || row.hinted > 0);
+    techniques.sort((a, b) => b.hinted - a.hinted || b.seen - a.seen || a.index - b.index);
+    const totals = ledgerFor(skills);
+    const levels = LEDGER_LEVELS.filter((level) => totals.levels[level] && totals.levels[level].solves > 0).map((level) => {
+      const row = totals.levels[level];
+      return {
+        level,
+        label: LEVEL_LABEL[level] || level,
+        solves: row.solves,
+        hints: row.hints,
+        perGame: row.solves ? Math.round((row.hints / row.solves) * 10) / 10 : 0,
+        clean: row.clean,
+        zeroPct: row.solves ? Math.round((100 * row.clean) / row.solves) : 0,
+        checks: row.checks,
+      };
+    });
+    const solves = levels.reduce((sum, row) => sum + row.solves, 0);
+    const clean = levels.reduce((sum, row) => sum + row.clean, 0);
+    return {
+      totalHints: techniques.reduce((sum, row) => sum + row.hinted, 0),
+      checks: totals.checks | 0,
+      solves,
+      zeroPct: solves ? Math.round((100 * clean) / solves) : null,
+      levels,
+      techniques,
+    };
+  }
+
+  function hintMarkup(data, options) {
+    const report = hintReport(data);
+    const compact = Boolean(options && options.compact);
+    const live = options && options.live && !options.live.practice ? options.live : null;
+    const heading = compact ? "h3" : "h2";
+    const title = compact ? "Hints" : "Your hints";
+    const parts = [`<section class="hint-block"><${heading}>${title}</${heading}>`];
+    if (!compact) {
+      parts.push(
+        `<p class="stats-note">Technique hints, counted once the first time you open that technique in a puzzle. A check is a wrong digit you asked about. It is not a hint. These stay on this device, and on your account if you are signed in.</p>`
+      );
+    }
+    if (!report.techniques.length && !report.solves && !(live && (live.hints || live.checks))) {
+      parts.push(`<p class="stats-empty">No finished puzzles stored here yet.</p>`);
+    } else if (report.techniques.length || report.solves) {
+      const zero = report.zeroPct == null ? "n/a" : `${report.zeroPct}%`;
+      parts.push(`<dl class="stats-facts hint-facts">
+        <div><dt>Technique hints</dt><dd>${report.totalHints}</dd></div>
+        <div><dt>Checks</dt><dd>${report.checks}</dd></div>
+        <div><dt>Finishes stored</dt><dd>${report.solves}</dd></div>
+        <div><dt>No technique hints</dt><dd>${zero}</dd></div>
+      </dl>`);
+      if (report.levels.length) {
+        const peak = Math.max(1, ...report.levels.map((row) => row.perGame));
+        const bars = report.levels
+          .map((row) => {
+            const width = row.perGame ? Math.max(6, Math.round((row.perGame / peak) * 100)) : 0;
+            return `<li class="hint-level"><span class="hint-level-name">${escapeHtml(row.label)}</span><span class="hint-level-track"><span style="width:${width}%"></span></span><span class="hint-level-value">${formatRate(row.perGame)}</span></li>`;
+          })
+          .join("");
+        parts.push(
+          `<h3 class="hint-sub">Hints per game</h3><ul class="hint-levels" role="img" aria-label="Average technique hints per finished game by level">${bars}</ul>`
+        );
+      }
+      if (report.techniques.length) {
+        const rows = report.techniques
+          .map((row) => {
+            const slug = encodeURIComponent(row.slug);
+            return `<tr><th scope="row"><a href="/techniques/${slug}/">${escapeHtml(row.name)}</a> <a class="hint-practice" href="/?practice=${slug}">Practice</a></th><td>${row.seen}</td><td>${row.clean}</td><td>${row.hinted}</td></tr>`;
+          })
+          .join("");
+        parts.push(
+          `<h3 class="hint-sub">By technique</h3><div class="hint-table-wrap"><table class="hint-table"><thead><tr><th>Technique</th><th>Seen</th><th>Clean</th><th>Hinted</th></tr></thead><tbody>${rows}</tbody></table></div><p class="stats-note">Clean means that technique was on the path and you did not take a hint for it. The rows you hint most are first.</p>`
+        );
+      }
+    }
+    if (live && ((live.hints | 0) || (live.checks | 0))) {
+      const hints = live.hints | 0;
+      const checks = live.checks | 0;
+      parts.push(
+        `<p class="stats-note">This puzzle so far: ${hints} technique ${hints === 1 ? "hint" : "hints"}, ${checks} ${checks === 1 ? "check" : "checks"}.</p>`
+      );
+    }
+    if (compact) parts.push(`<p class="streak-line"><a class="account-link" href="/stats/">All stats</a></p>`);
+    parts.push(`</section>`);
+    return parts.join("");
   }
 
   function exportBundle() {
@@ -808,6 +1040,8 @@
     prepare,
     recordSolve,
     recordPractice,
+    hintReport,
+    hintMarkup,
     statusOf,
     nextTechnique,
     trainTarget,
