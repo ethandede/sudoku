@@ -333,7 +333,7 @@ ${privacyChoiceItem}      </ul>
 ${privacyChoiceNote}    <p class="copyright">&copy; ${year} SudokuSudoku. All rights reserved.</p>
   </div>
 </footer>
-${game ? ["solver", "pools", "generator", "progress", "community", "share", "account-merge", "account"].map((name) => scriptTag(`/assets/js/${name}.js`)).join("\n") : ""}
+${game ? ["solver", "pools", "generator", "progress", "community", "share", "account-merge", "account", "practice"].map((name) => scriptTag(`/assets/js/${name}.js`)).join("\n") : ""}
 ${skills ? scriptTag("/assets/js/progress.js") : ""}
 ${scriptTag("/assets/js/update-banner.js")}
 ${scriptTag("/assets/js/hint-apply.js")}
@@ -484,6 +484,7 @@ write("assets/js/generator.js", read("assets/js/generator.js"));
 write("assets/js/sudoku.js", read("assets/js/sudoku.js"));
 write("assets/js/technique-demo.js", read("assets/js/technique-demo.js"));
 write("assets/js/progress.js", read("assets/js/progress.js"));
+write("assets/js/practice.js", read("assets/js/practice.js"));
 write("assets/js/skills.js", read("assets/js/skills.js"));
 write("assets/js/contact.js", read("assets/js/contact.js"));
 write("assets/js/community.js", read("assets/js/community.js"));
@@ -1012,7 +1013,8 @@ techniques.forEach((technique) => {
           <button type="button" id="technique-prev" disabled>Previous</button>
           <button type="button" id="technique-next">Next</button>
         </div>
-        <p><a class="play-technique" href="/?difficulty=${technique.play}">Play a puzzle that needs this</a></p>
+        <p><a class="play-technique" href="/?practice=${technique.slug}">Practice this technique</a></p>
+        <p>That jumps a puzzle forward until ${escapeHtml(technique.name)} is the next move. <a href="/?difficulty=${technique.play}">Or start a full ${escapeHtml(technique.level)} puzzle</a>.</p>
         <h2>Related</h2>
         <p class="related-techniques">${related}</p>
       </div>
@@ -1159,6 +1161,7 @@ const shellPaths = [
   "assets/js/pools.js",
   "assets/js/generator.js",
   "assets/js/progress.js",
+  "assets/js/practice.js",
   "assets/js/skills.js",
   "assets/js/sudoku.js",
   "assets/js/community.js",

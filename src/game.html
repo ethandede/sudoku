@@ -23,6 +23,8 @@
             <div id="more-menu" class="more-menu" role="menu" hidden>
               <button type="button" role="menuitem" id="more-stats">Stats</button>
               <button type="button" role="menuitem" data-action="hint">Hint</button>
+              <button type="button" role="menuitem" id="more-fill">Fill a technique</button>
+              <button type="button" role="menuitem" id="more-practice">Practice a technique</button>
               <button type="button" role="menuitem" data-action="check-cell">Check Cell</button>
               <button type="button" role="menuitem" data-action="check-puzzle">Check Puzzle</button>
               <button type="button" role="menuitem" data-action="reveal-cell">Reveal Cell</button>
@@ -59,6 +61,7 @@
 
       <div class="play-surface">
         <div class="board-column">
+          <p id="practice-prompt" class="practice-prompt" hidden></p>
           <div class="board-wrap" id="board-wrap">
             <div id="sudoku-grid" class="sudoku-grid" role="grid" aria-label="Sudoku board"></div>
             <div id="board-cover" class="board-cover" hidden>
@@ -75,6 +78,7 @@
             <p id="hint-text" class="hint-text"></p>
             <div class="hint-actions">
               <button type="button" id="hint-next" class="primary-btn">Show why</button>
+              <button type="button" id="hint-fill" class="secondary-btn hint-fill" hidden>Fill all</button>
               <a id="hint-learn" class="hint-learn" href="/techniques/">Learn this technique →</a>
             </div>
           </section>
@@ -217,6 +221,28 @@
       </div>
       <div id="stats-body"></div>
       <div id="account-stats" class="account-slot"></div>
+    </div>
+  </div>
+
+  <div id="fill-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="fill-title" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="fill-title">Fill a technique</h2>
+        <button type="button" class="icon-close" data-close="fill-modal" aria-label="Close fill technique">×</button>
+      </div>
+      <p>Fills every available step of one technique. One undo puts the whole batch back. It will not count toward times, badges, or the daily.</p>
+      <div id="fill-list" class="technique-picker"></div>
+    </div>
+  </div>
+
+  <div id="practice-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="practice-title" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="practice-title">Practice a technique</h2>
+        <button type="button" class="icon-close" data-close="practice-modal" aria-label="Close practice">×</button>
+      </div>
+      <p>Loads a puzzle and fills the easier steps, then stops on the one you picked. Practice stays off your records. Hints still work if you get stuck.</p>
+      <div id="practice-list" class="technique-picker"></div>
     </div>
   </div>
 

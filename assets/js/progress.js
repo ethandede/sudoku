@@ -521,6 +521,21 @@
     return { unlocked, data };
   }
 
+  // A practice finish marks the technique as seen. It is not a clean solve,
+  // so it cannot unlock comfortable, mastered, speed, or no-hint badges.
+  function recordPractice(slug) {
+    if (!KNOWN.has(slug)) return { data: load() };
+    const data = load();
+    if (!data.seeded) {
+      data.seeded = true;
+      data.bestLevel = null;
+    }
+    const row = rowOf(data, slug);
+    row.seen += 1;
+    save(data);
+    return { data };
+  }
+
   function nextTechnique(data) {
     const source = data || load();
     for (let i = 0; i < TECHNIQUES.length; i++) {
@@ -792,6 +807,7 @@
     },
     prepare,
     recordSolve,
+    recordPractice,
     statusOf,
     nextTechnique,
     trainTarget,

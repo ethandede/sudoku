@@ -1078,8 +1078,47 @@ kbd {
   touch-action: manipulation;
 }
 
-.hint-next {
+.hint-next,
+.hint-fill {
   width: 100%;
+}
+
+.hint-fill {
+  min-height: 44px;
+  margin-top: 0.15rem;
+}
+
+.practice-prompt {
+  margin: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--user-ink);
+  padding: 0 0.4rem 0.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.technique-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  button {
+    width: 100%;
+    min-height: 44px;
+    text-align: left;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
 }
 
 .hint-learn {

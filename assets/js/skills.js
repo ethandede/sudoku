@@ -62,7 +62,8 @@
       <p class="next-status"><span class="status status-${status}">${progress.STATUS_LABEL[status]}</span> ${row.clean} of ${progress.MASTERED_AT} clean</p>
       <p>${blurb}</p>
       <div class="next-actions">
-        <a class="primary-btn" href="/?train=${encodeURIComponent(slug)}">Train</a>
+        <a class="primary-btn" href="/?practice=${encodeURIComponent(slug)}">Practice</a>
+        <a class="secondary-btn" href="/?train=${encodeURIComponent(slug)}">Train</a>
         <a class="secondary-btn" href="/techniques/${slug}/">Technique page</a>
       </div>
     </section>`;
@@ -78,6 +79,7 @@
       return `<li class="ladder-row${mark}">
         <span class="status status-${status}">${progress.STATUS_LABEL[status]}</span>
         <a href="/techniques/${tech.slug}/">${progress.escapeHtml(tech.name)}</a>
+        <a class="ladder-practice" href="/?practice=${encodeURIComponent(tech.slug)}">Practice</a>
         ${note}
         <span class="ladder-count">${row.clean} clean</span>
       </li>`;

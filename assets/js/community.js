@@ -296,6 +296,17 @@
     void flush();
   }
 
+  // Practice and fast-forward finishes must not become solved plays.
+  // Drop the local open row without a finish post. A start that already
+  // landed stays unfinished until the 24h sweep, and is not a solve.
+  function skipFinish() {
+    clearOpen();
+  }
+
+  function abandonOpen() {
+    closePrevious();
+  }
+
   async function flush() {
     if (flushing) return flushing;
     flushing = flushNow().finally(() => {
@@ -656,6 +667,8 @@
     boot,
     reconcile,
     onNewGame,
+    abandonOpen,
+    skipFinish,
     noteFirstMove,
     leave,
     noteProgress,

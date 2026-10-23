@@ -18,7 +18,8 @@
     "test:update": "node scripts/test-update-banner.mjs",
     "test:hint": "node scripts/test-hint-apply.mjs",
     "test:play": "node scripts/test-candidates.mjs",
-    "test:promos": "node scripts/test-promos.mjs"
+    "test:promos": "node scripts/test-promos.mjs",
+    "test:practice": "node scripts/test-practice.mjs"
   },
   "devDependencies": {
     "marked": "^15.0.12",
