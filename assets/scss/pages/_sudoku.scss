@@ -36,7 +36,6 @@
   --focus: var(--accent-color);
   --danger: #b00016;
   --hint-pattern: #0b6e5f;
-  --hint-eliminate: #b42318;
   --hint-place: #0b6e5f;
   --hint-place-bg: #d7f3ec;
   --hint-region: #e7f6f2;
@@ -93,7 +92,6 @@ html[data-theme="dark"] .technique-page {
   --focus: var(--accent-on-dark);
   --danger: #ffb4b4;
   --hint-pattern: #7ddec8;
-  --hint-eliminate: #ff8b80;
   --hint-place: #7ddec8;
   --hint-place-bg: #1a3c34;
   --hint-region: #1e3330;
@@ -643,7 +641,8 @@ body:has(.sudoku-page) .site-header {
   }
 
   &.hint-eliminate {
-    box-shadow: inset 0 0 0 3px var(--hint-eliminate);
+    background: color-mix(in srgb, var(--danger) 8%, var(--cell-bg));
+    box-shadow: inset 0 0 0 2px var(--danger);
     z-index: 2;
   }
 
@@ -728,6 +727,16 @@ body:has(.sudoku-page) .site-header {
   }
 }
 
+@keyframes struck-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
 @keyframes fill-reveal {
   from {
     background-color: var(--cell-bg);
@@ -785,10 +794,14 @@ body:has(.sudoku-page) .site-header {
 
   span.struck {
     visibility: visible;
-    color: var(--slash);
-    font-weight: 800;
+    color: var(--danger);
+    font-weight: 700;
     text-decoration: line-through;
-    text-decoration-thickness: 1px;
+    text-decoration-thickness: 2px;
+  }
+
+  span.struck.fading {
+    animation: struck-out 600ms ease-out forwards;
   }
 
   span.auto {
@@ -869,11 +882,16 @@ body:has(.sudoku-page) .site-header {
 
   span.struck {
     visibility: visible;
-    color: var(--slash-on-selected);
-    font-weight: 800;
+    color: var(--danger);
+    font-weight: 700;
     opacity: 1;
     text-decoration: line-through;
+    text-decoration-thickness: 2px;
   }
+}
+
+html[data-theme="dark"] .cell.hint-eliminate {
+  background: color-mix(in srgb, var(--danger) 14%, var(--cell-bg));
 }
 
 .cell.hint-pattern .marks,
@@ -2064,6 +2082,10 @@ html.is-standalone:has(.sudoku-page) body {
 
   .cell.fill-placed,
   .cell.fill-cleared {
+    animation: none;
+  }
+
+  .marks span.struck.fading {
     animation: none;
   }
 

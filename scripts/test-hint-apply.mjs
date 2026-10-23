@@ -9,6 +9,7 @@ import {
   noteClears,
   peerIndexes,
   placesOnApply,
+  previewSentence,
 } from "../functions/hint-apply.mjs";
 
 const root = new URL("..", import.meta.url);
@@ -130,6 +131,13 @@ function assertElimination(found, label) {
     if (applied.board[item.index] === 0) assert.ok(hasRemoval(applied.removed, item), `${label} records ${item.index}:${item.digit}`);
   }
   assert.match(applied.copy, /Ruled out/, `${label} names the elimination when notes are empty`);
+  for (const item of found.step.eliminate) {
+    if (found.board[item.index] !== 0) continue;
+    assert.ok(
+      applied.fades.some((fade) => fade.index === item.index && fade.digit === item.digit),
+      `${label} fades a digit that was not in the notes`
+    );
+  }
   if (label === "pointing") assert.match(applied.copy, /row 2, columns/, "pointing names the row once");
   assert.equal(applied.copy.includes("your notes"), false, `${label} does not claim notes changed`);
   assert.equal(applied.copy.includes("—"), false, `${label} copy has no em dash`);
@@ -157,6 +165,13 @@ function assertElimination(found, label) {
     if (seeded[item.index].includes(9)) assert.ok(withNotes.notes[item.index].includes(9), `${label} keeps unrelated notes`);
   }
   assert.match(withNotes.copy, /your notes/, `${label} says the notes changed`);
+  for (const item of found.step.eliminate) {
+    assert.equal(
+      withNotes.fades.some((fade) => fade.index === item.index && fade.digit === item.digit),
+      false,
+      `${label} does not fade a digit that was in the notes`
+    );
+  }
   for (const item of found.step.eliminate) {
     if (withNotes.board[item.index] === 0) assert.ok(hasRemoval(withNotes.removed, item), `${label} still records removals when notes exist`);
   }
@@ -305,7 +320,22 @@ const applyFn = page.slice(page.indexOf("function applyHint()"), page.indexOf("f
 const stepPart = applyFn.split("const step = hintView.step;")[1];
 assert.equal(stepPart.match(/pushUndo\(/g).length, 1, "an elimination apply is one undo step");
 assert.ok(stepPart.indexOf("pushUndo()") < stepPart.indexOf("applyHintStep"), "undo is recorded before the step is applied");
-assert.ok(page.includes("hint.stage >= 2 ? hintStruck"), "stage 3 keeps eliminated digits struck");
+assert.equal(previewSentence([{ index: 54, digit: 2 }]), "Rules out 2 in row 7, column 1.");
+assert.equal(previewSentence([]), "");
+assert.equal(previewSentence([{ index: 54, digit: 2 }]).includes("—"), false);
+assert.equal(page.includes("hint.stage >= 2 ? hintStruck"), false, "stage 3 does not keep eliminated digits struck");
+assert.ok(page.includes('mark.classList.add("on", "struck", "fading")'), "a digit that was not noted fades out");
+assert.ok(page.includes("hint.stage === 2 ? hintStruck"), "stage 2 strikes the eliminated digit");
+assert.ok(page.includes("SudokuHintApply.previewSentence"), "stage 2 says what the step rules out");
+assert.ok(page.includes("fadeUntil"), "the strike fade has a deadline");
+const built = fs.readFileSync(new URL("../scripts/build.mjs", import.meta.url), "utf8");
+assert.ok(built.includes("previewSentence: previewSentence"), "the page can call previewSentence");
+const sheet = fs.readFileSync(new URL("../assets/scss/pages/_sudoku.scss", import.meta.url), "utf8");
+assert.equal(sheet.includes("--hint-eliminate"), false, "the old eliminate color is gone");
+assert.ok(sheet.includes("color-mix(in srgb, var(--danger) 8%, var(--cell-bg))"), "light eliminate mix");
+assert.ok(sheet.includes("color-mix(in srgb, var(--danger) 14%, var(--cell-bg))"), "dark eliminate mix");
+assert.ok(sheet.includes("animation: struck-out 600ms ease-out forwards"), "the strike fades over 600ms");
+assert.ok(sheet.includes(".marks span.struck.fading"), "reduced motion drops the strike animation");
 assert.ok(page.includes("hintView.follow"), "a chained single is offered from the elimination hint");
 assert.ok(page.includes('next.textContent = "Place it"'), "the chained action places");
 assert.ok(page.includes("aria-keyshortcuts"), "the place button advertises Enter");
