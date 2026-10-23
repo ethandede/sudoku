@@ -70,7 +70,7 @@ function shareCard(kind, slug, alt) {
   if (png[0] !== 0x89 || width !== 1200 || height !== 630) {
     throw new Error(`OG image ${relative} must be a 1200x630 PNG`);
   }
-  if (alt.includes("—")) throw new Error(`OG alt for ${slug} has an em dash`);
+  if (alt.includes("\u2014")) throw new Error(`OG alt for ${slug} has an em dash`);
   return {
     shareImage: `${SITE}/og/${kind}/${slug}.png`,
     shareImageAlt: alt,
