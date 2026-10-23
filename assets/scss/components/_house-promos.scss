@@ -2,14 +2,14 @@
 // Billboard 100% x 280, rectangle 300 x 250, leaderboard 728 x 90, skyscraper 160 x 600.
 
 .house-slot {
-  --hm-ink: #1e232b;
-  --hm-muted: #5c6670;
-  --hm-line: #8aa4bb;
+  --hm-ink: #1f1c19;
+  --hm-muted: #5e5954;
+  --hm-line: #948f88;
   --hm-accent: #0c4f86;
   --hm-accent-soft: #d4e8f7;
-  --hm-paper: #f4f6f8;
-  --hm-card: #fbfaf8;
-  --hm-border: #d5dbe2;
+  --hm-paper: #f5f4f1;
+  --hm-card: #faf9f7;
+  --hm-border: #ddd8d2;
   --hm-pattern: #0b6e5f;
 
   box-sizing: border-box;
@@ -18,14 +18,14 @@
 }
 
 html[data-theme="dark"] .house-slot {
-  --hm-ink: #e6e9ed;
-  --hm-muted: #b7c0c8;
-  --hm-line: #7f95a8;
+  --hm-ink: #f3f0eb;
+  --hm-muted: #c4beb6;
+  --hm-line: #8a847c;
   --hm-accent: #9ed2f8;
   --hm-accent-soft: #2a4560;
-  --hm-paper: #1a1e24;
-  --hm-card: #22262c;
-  --hm-border: #3e4650;
+  --hm-paper: #1c1b19;
+  --hm-card: #242220;
+  --hm-border: #3d3a36;
   --hm-pattern: #7ddec8;
 }
 

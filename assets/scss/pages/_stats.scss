@@ -11,7 +11,7 @@
   min-height: 44px;
   padding: 0 1rem;
   border-radius: 999px;
-  border: 1px solid #c5ced6;
+  border: 1px solid #cfc8be;
   background: transparent;
   color: inherit;
   font: inherit;
@@ -22,7 +22,7 @@
 .stats-switch button[aria-pressed="true"] {
   background: vars.$accent-color;
   border-color: vars.$accent-color;
-  color: #fbfaf8;
+  color: var(--btn-primary-ink);
 }
 
 .stats-today {
@@ -33,9 +33,9 @@
 .stats-card {
   margin: 0 0 1rem;
   padding: 0.85rem 1rem 1rem;
-  border: 1px solid #d5dbe2;
+  border: 1px solid #ddd8d2;
   border-radius: 10px;
-  background: #f4f6f8;
+  background: #faf9f7;
 }
 
 .stats-card h2 {
@@ -59,7 +59,7 @@
 }
 
 .stats-facts dt {
-  color: #666;
+  color: #5e5954;
   font-size: 0.9rem;
 }
 
@@ -159,7 +159,7 @@
 
 .stats-col-label {
   font-size: 0.8rem;
-  color: #555;
+  color: #5a534c;
 }
 
 .stats-tech {
@@ -200,7 +200,7 @@
 
 .stats-empty,
 .stats-note {
-  color: #555;
+  color: #5a534c;
 }
 
 .your-games-wrap {
@@ -277,7 +277,7 @@
   td {
     text-align: left;
     padding: 0.15rem 0.4rem;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e4e0da;
     vertical-align: middle;
   }
 
@@ -304,31 +304,31 @@
 
 html[data-theme="dark"] {
   .stats-switch button {
-    border-color: #4c545e;
+    border-color: #4a463f;
   }
 
   .stats-card {
-    border-color: #3e4650;
-    background: #1a1e24;
+    border-color: #3d3a36;
+    background: #1c1b19;
   }
 
   .stats-facts dt,
   .stats-col-label,
   .stats-empty,
   .stats-note {
-    color: #b7c3ce;
+    color: #c4beb6;
   }
 
   .stats-bar,
   .stats-col-plot,
   .stats-tech-track,
   .hint-level-track {
-    background: #2a3036;
+    background: #2c2a27;
   }
 
   .hint-table th,
   .hint-table td {
-    border-bottom-color: #3e4650;
+    border-bottom-color: #3d3a36;
   }
 }
 

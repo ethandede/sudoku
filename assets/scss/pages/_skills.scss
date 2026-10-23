@@ -1,22 +1,22 @@
 .skills-page {
-  --ink: #1e232b;
-  --muted: #5c6670;
-  --card: #fbfaf8;
-  --page: #f4f6f8;
-  --line: #d5dbe2;
+  --ink: #1f1c19;
+  --muted: #5e5954;
+  --card: #faf9f7;
+  --page: #f5f4f1;
+  --line: #ddd8d2;
   --accent: var(--accent-color);
-  --accent-ink: #fbfaf8;
-  --pad: #eef1f4;
-  --pad-ink: #1e232b;
-  --learning: #1e232b;
-  --learning-bg: #e7ebf0;
+  --accent-ink: #f7f6f3;
+  --pad: #efece7;
+  --pad-ink: #1f1c19;
+  --learning: #1f1c19;
+  --learning-bg: #ebe8e3;
   --comfort: #0b6e5f;
   --comfort-bg: #d7f3ec;
   --master: var(--accent-color);
-  --master-bg: color-mix(in srgb, var(--accent-color) 16%, #fbfaf8);
-  --locked: #5c6670;
-  --locked-bg: #e7ebf0;
-  --next: color-mix(in srgb, var(--accent-color) 8%, #fbfaf8);
+  --master-bg: color-mix(in srgb, var(--accent-color) 16%, #faf9f7);
+  --locked: #5e5954;
+  --locked-bg: #ebe8e3;
+  --next: color-mix(in srgb, var(--accent-color) 8%, #faf9f7);
 
   background: transparent;
   color: var(--ink);
@@ -44,24 +44,24 @@
 }
 
 html[data-theme="dark"] .skills-page {
-  --ink: #e6e9ed;
-  --muted: #b7c0c8;
-  --card: #22262c;
-  --page: #121416;
-  --line: #3e4650;
+  --ink: #f3f0eb;
+  --muted: #c4beb6;
+  --card: #242220;
+  --page: #141311;
+  --line: #3d3a36;
   --accent: var(--accent-on-dark);
-  --accent-ink: #121416;
-  --pad: #2a3036;
-  --pad-ink: #e6e9ed;
-  --learning: #e6e9ed;
-  --learning-bg: #2a3036;
+  --accent-ink: #141311;
+  --pad: #2c2a27;
+  --pad-ink: #f3f0eb;
+  --learning: #f3f0eb;
+  --learning-bg: #2c2a27;
   --comfort: #7ddec8;
   --comfort-bg: #1a3c34;
   --master: var(--accent-on-dark);
-  --master-bg: color-mix(in srgb, var(--accent-on-dark) 16%, #1c2026);
-  --locked: #b7c0c8;
-  --locked-bg: #2a3036;
-  --next: color-mix(in srgb, var(--accent-on-dark) 10%, #1c2026);
+  --master-bg: color-mix(in srgb, var(--accent-on-dark) 16%, #1c1b19);
+  --locked: #c4beb6;
+  --locked-bg: #2c2a27;
+  --next: color-mix(in srgb, var(--accent-on-dark) 10%, #1c1b19);
 }
 
 .skills-wrap {
@@ -368,9 +368,9 @@ html[data-theme="dark"] .skills-page {
   gap: 0.65rem;
   padding: 0.7rem 0.55rem 0.7rem 0.75rem;
   border-radius: 0.85rem;
-  background: #fbfaf8;
-  color: #2a313c;
-  border: 1px solid #d3d9e0;
+  background: #faf9f7;
+  color: #1f1c19;
+  border: 1px solid #ddd8d2;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
 
   &[hidden] {
@@ -384,9 +384,9 @@ html[data-theme="dark"] .skills-page {
 }
 
 html[data-theme="dark"] .badge-toast {
-  background: #22262c;
-  color: #e6e9ed;
-  border-color: #3e4650;
+  background: #242220;
+  color: #f3f0eb;
+  border-color: #3d3a36;
 
   a {
     color: var(--accent-on-dark);

@@ -59,7 +59,7 @@
     }
   }
 
-  const THEME_COLORS = { light: "#f4f6f8", dark: "#121416" };
+  const THEME_COLORS = { light: "#f5f4f1", dark: "#141311" };
 
   function applyDocumentTheme(theme) {
     const dark =
