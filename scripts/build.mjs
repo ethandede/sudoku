@@ -256,7 +256,10 @@ ${analyticsTags}${adsTag}</head>
 <body>
 <div id="app-update" class="app-update" hidden>
   <p>A new version is ready.</p>
-  <button type="button" id="app-update-go">Refresh</button>
+  <div class="app-update-actions">
+    <button type="button" id="app-update-dismiss">Not now</button>
+    <button type="button" id="app-update-go">Refresh</button>
+  </div>
 </div>
 <header class="site-header">
   <div class="container">
@@ -326,6 +329,7 @@ ${privacyChoiceNote}    <p class="copyright">&copy; ${year} SudokuSudoku. All ri
 </footer>
 ${game ? ["solver", "pools", "generator", "progress", "community", "share", "account-merge", "account"].map((name) => scriptTag(`/assets/js/${name}.js`)).join("\n") : ""}
 ${skills ? scriptTag("/assets/js/progress.js") : ""}
+${scriptTag("/assets/js/update-banner.js")}
 ${scriptTag("/assets/js/sudoku.js")}
 ${skills ? scriptTag("/assets/js/skills.js") : ""}
 ${demo ? scriptTag("/assets/js/technique-demo.js") : ""}
@@ -339,6 +343,11 @@ ${privacyChoiceScript}</body>
 function accountMergeForBrowser(source) {
   const body = source.replace(/^export /gm, "");
   return `(function (root) {\n${body}\n  root.SudokuAccountMerge = {\n    mergeAccount: mergeAccount,\n    migrateStats: migrateStats,\n    migrateSettings: migrateSettings,\n    migrateProgress: migrateProgress,\n    BUNDLE_VERSION: BUNDLE_VERSION\n  };\n})(typeof globalThis !== "undefined" ? globalThis : this);\n`;
+}
+
+function updateBannerForBrowser(source) {
+  const body = source.replace(/^export /gm, "");
+  return `(function (root) {\n${body}\n  root.SudokuUpdate = {\n    RELOAD_FLAG: RELOAD_FLAG,\n    DISMISS_FLAG: DISMISS_FLAG,\n    gameGate: gameGate,\n    bannerVisible: bannerVisible,\n    shouldReload: shouldReload,\n    clearReloadFlag: clearReloadFlag,\n    stripUpdateParam: stripUpdateParam\n  };\n})(typeof globalThis !== "undefined" ? globalThis : this);\n`;
 }
 
 function scriptTag(path) {
@@ -466,6 +475,7 @@ write("assets/js/contact.js", read("assets/js/contact.js"));
 write("assets/js/community.js", read("assets/js/community.js"));
 write("assets/js/share.js", read("assets/js/share.js"));
 write("assets/js/account-merge.js", accountMergeForBrowser(read("functions/account-merge.mjs")));
+write("assets/js/update-banner.js", updateBannerForBrowser(read("functions/update-banner.mjs")));
 write("assets/js/account.js", read("assets/js/account.js"));
 write("assets/js/stats-page.js", read("assets/js/stats-page.js"));
 write("ads.txt", read("ads.txt").trim() + "\n");
@@ -1084,6 +1094,7 @@ const shellPaths = [
   "assets/js/share.js",
   "assets/js/account-merge.js",
   "assets/js/account.js",
+  "assets/js/update-banner.js",
   ...iconSizes.map((size) => `icons/icon-${size}.png`),
   "icons/maskable-192.png",
   "icons/maskable-512.png",

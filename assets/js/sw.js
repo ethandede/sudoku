@@ -7,23 +7,46 @@ self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(SHELL_CACHE).then((cache) => cache.addAll(SHELL)));
 });
 
+async function refreshShell() {
+  const cache = await caches.open(SHELL_CACHE);
+  await Promise.all(
+    SHELL.map(async (entry) => {
+      try {
+        const response = await fetch(entry, { cache: "reload" });
+        if (response && response.ok) await cache.put(entry, response);
+      } catch {
+        /* keep the copy stored at install */
+      }
+    })
+  );
+}
+
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(
-          keys
-            .filter((key) => key !== SHELL_CACHE && key !== CONTENT_CACHE)
-            .map((key) => caches.delete(key))
-        )
-      )
-      .then(() => self.clients.claim())
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(
+        keys
+          .filter((key) => key !== SHELL_CACHE && key !== CONTENT_CACHE)
+          .map((key) => caches.delete(key))
+      );
+      // Install can store the previous page when the old worker answers
+      // cache-first. Replace the shell from the network before claiming clients.
+      await refreshShell();
+      await self.clients.claim();
+    })()
   );
 });
 
 self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "skip-waiting") self.skipWaiting();
+  const data = event.data || {};
+  if (data.type === "SKIP_WAITING" || data.type === "skip-waiting") {
+    event.waitUntil(self.skipWaiting());
+    return;
+  }
+  if (data.type === "GET_VERSION" && event.ports && event.ports[0]) {
+    event.ports[0].postMessage({ type: "VERSION", version: VERSION });
+  }
 });
 
 function sameOrigin(url) {
@@ -43,6 +66,27 @@ function inShell(url) {
     return true;
   }
   return SHELL.some((entry) => entry.split("?")[0] === path || entry.split("?")[0] === url.pathname);
+}
+
+async function networkFirstNavigation(request) {
+  const cache = await caches.open(SHELL_CACHE);
+  const url = new URL(request.url);
+  const path = shellPath(url.pathname);
+  try {
+    const response = await fetch(request);
+    if (response && response.ok) {
+      cache.put(path, response.clone());
+      return response;
+    }
+  } catch {
+    /* offline: fall through to the shell */
+  }
+  return (
+    (await cache.match(path)) ||
+    (await cache.match(request)) ||
+    (await cache.match("/offline.html")) ||
+    Response.error()
+  );
 }
 
 async function shellFirst(request) {
@@ -91,17 +135,16 @@ self.addEventListener("fetch", (event) => {
   if (!sameOrigin(url)) return;
   if (url.pathname.startsWith("/api/")) return;
 
-  const path = shellPath(url.pathname);
   const precached = inShell(url);
-  if (request.mode === "navigate" && (path === "/" || url.pathname === "/index.html")) {
-    event.respondWith(shellFirst(request));
+  if (request.mode === "navigate") {
+    event.respondWith(networkFirstNavigation(request));
     return;
   }
   if (precached) {
     event.respondWith(shellFirst(request));
     return;
   }
-  if (request.mode === "navigate" || url.pathname.startsWith("/assets/") || url.pathname.startsWith("/articles/") || url.pathname.startsWith("/techniques/")) {
+  if (url.pathname.startsWith("/assets/") || url.pathname.startsWith("/articles/") || url.pathname.startsWith("/techniques/")) {
     event.respondWith(staleWhileRevalidate(request));
   }
 });
