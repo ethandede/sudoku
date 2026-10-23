@@ -76,7 +76,7 @@
         const shortLabel = SHORT_TIME[bar.id] || bar.label;
         return `<div class="stats-col">
           <div class="stats-col-plot"><span style="height:${height}%"></span></div>
-          <p class="stats-col-count">${bar.count}</p>
+          <p class="stats-col-count">${countSpan(bar.count)}</p>
           <p class="stats-col-label" title="${escapeHtml(bar.label)}">${escapeHtml(shortLabel)}</p>
         </div>`;
       })
@@ -94,10 +94,16 @@
         return `<li>
           <span class="stats-tech-name">${escapeHtml(row.name)}</span>
           <span class="stats-tech-track"><span style="width:${width}%"></span></span>
-          <span class="stats-tech-count">${row.count}</span>
+          <span class="stats-tech-count">${countSpan(row.count)}</span>
         </li>`;
       })
       .join("")}</ul>`;
+  }
+
+  function countSpan(value) {
+    const n = Number(value);
+    if (!Number.isInteger(n) || n <= 0) return escapeHtml(value);
+    return `<span class="count-up" data-count="${n}">${n}</span>`;
   }
 
   function hintsLabel(value) {
@@ -107,14 +113,16 @@
   }
 
   function facts(bucket) {
+    const mistakes = bucket.medianMistakes == null ? "—" : countSpan(bucket.medianMistakes);
+    const noHints = bucket.noHintPct == null ? "—" : `${countSpan(bucket.noHintPct)}%`;
     return `<dl class="stats-facts">
-      <div><dt>Starts</dt><dd>${bucket.starts}</dd></div>
-      <div><dt>Finishes</dt><dd>${bucket.finishes}</dd></div>
+      <div><dt>Starts</dt><dd>${countSpan(bucket.starts)}</dd></div>
+      <div><dt>Finishes</dt><dd>${countSpan(bucket.finishes)}</dd></div>
       <div><dt>Median solve</dt><dd>${clock(bucket.medianSeconds)}</dd></div>
       <div><dt>25th–75th</dt><dd>${clock(bucket.p25Seconds)} – ${clock(bucket.p75Seconds)}</dd></div>
-      <div><dt>Median mistakes</dt><dd>${bucket.medianMistakes == null ? "—" : bucket.medianMistakes}</dd></div>
+      <div><dt>Median mistakes</dt><dd>${mistakes}</dd></div>
       <div><dt>Average hints</dt><dd>${hintsLabel(bucket.avgHints)}</dd></div>
-      <div><dt>Solved with no hints</dt><dd>${bucket.noHintPct == null ? "—" : `${bucket.noHintPct}%`}</dd></div>
+      <div><dt>Solved with no hints</dt><dd>${noHints}</dd></div>
     </dl>`;
   }
 
@@ -148,7 +156,7 @@
     }
     return `<section class="stats-card" id="stats-${kind.replace(/\s+/g, "-")}">
       <h2>${escapeHtml(label)}</h2>
-      <p class="stats-lead">${bucket.solvePct}% solved · median ${clock(bucket.medianSeconds)}</p>
+      <p class="stats-lead">${countSpan(bucket.solvePct)}% solved · median ${clock(bucket.medianSeconds)}</p>
       ${facts(bucket)}
       <h3>How puzzles ended</h3>
       ${outcomeBar(bucket)}
@@ -171,6 +179,32 @@
     host.textContent = `Today's daily: ${today.solvePct}% solved · median ${clock(today.medianSeconds)}.`;
   }
 
+  function animateCounts(scope) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    scope.querySelectorAll("[data-count]").forEach((node) => {
+      const target = Number(node.dataset.count);
+      if (!Number.isInteger(target) || target <= 0) return;
+      const finalText = node.textContent;
+      const width = Math.ceil(node.getBoundingClientRect().width);
+      if (width > 0) node.style.minWidth = `${width}px`;
+      const start = performance.now();
+      const duration = 650;
+      node.textContent = "0";
+      function frame(now) {
+        if (!node.isConnected) return;
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - (1 - t) ** 3;
+        node.textContent = String(Math.round(target * eased));
+        if (t < 1) {
+          requestAnimationFrame(frame);
+          return;
+        }
+        node.textContent = finalText;
+      }
+      requestAnimationFrame(frame);
+    });
+  }
+
   function renderYours() {
     const host = document.getElementById("your-hints");
     if (!host) return;
@@ -184,6 +218,7 @@
   function render() {
     todayLine();
     root.innerHTML = hintCompare() + ORDER.map(([kind, label]) => card(kind, label)).join("");
+    animateCounts(root);
   }
 
   function bindWindow() {
