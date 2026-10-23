@@ -1,0 +1,56 @@
+<p>I used to think a Sudoku was hard when it had fewer numbers on the board. I was wrong often enough that I stopped trusting the clue count. On this site the level is the hardest move the solver actually has to make.</p>
+
+<h2>How a puzzle gets a level</h2>
+
+<p>A full grid is filled in at random. Givens are then removed, one cell at a time, and a removal stays only when the puzzle still has exactly one solution. There is no symmetry. The solver then plays it the way a person would, easiest move first.</p>
+
+<p>Singles come first. A naked single, then a hidden single in a box, then a hidden single in a row or column. Once the singles run out, it looks for pointing and claiming, then pairs, triples, quads, an X-wing, an XY-wing, a swordfish, and finally coloring or an XY-chain. The hardest move that was required sets the rank. The generator puts clues back, or takes more out, until the puzzle sits in that level's window. If a fresh grid will not land there, the game serves one from a checked pool of the same level.</p>
+
+<p>Two other counts matter on Not Easy and Hard. A stall is a stretch where the singles have run out and a harder step has to open the puzzle again. A bottleneck is a step where only one move is available. Not Easy is allowed to feel narrow. That part is on purpose.</p>
+
+<h2>The six levels</h2>
+
+<div class="table-scroll">
+<table>
+  <thead>
+    <tr><th>Level</th><th>What the solver had to use</th><th>Clues</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Quick</td><td>Naked singles, and hidden singles in a box. Nothing harder.</td><td>40 to 45</td></tr>
+    <tr><td>Easy</td><td>Singles only, including a hidden single in a row or column.</td><td>36 to 38</td></tr>
+    <tr><td>Not Easy</td><td>Pointing or claiming, required. 1 to 3 harder steps, 1 or 2 stalls, 3 to 11 bottlenecks.</td><td>22 to 27</td></tr>
+    <tr><td>Hard</td><td>A pair or a triple, required. 4 to 16 harder steps, 5 to 21 bottlenecks.</td><td>22 to 27</td></tr>
+    <tr><td>Expert</td><td>A quad, an X-wing, an XY-wing, or a swordfish.</td><td>22 to 26</td></tr>
+    <tr><td>Mental</td><td>Coloring or an XY-chain.</td><td>17 to 24</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Quick's solver may only place naked singles and hidden singles it can see inside a box. Easy also allows a hidden single in a row or column, and it still stops at singles. The generator aims at 38 clues most of the time, the same count as every NYT Easy, and it will keep 36 or 37. Inside the Not Easy and Hard clue ranges, the aim is 23 to 25.</p>
+
+<p>The <a href="/?daily">daily</a> is a Not Easy. The seed is the UTC date, so everyone gets the same grid that day. A pointing-only puzzle is not called Hard here, even when the path feels tight. Expert and Mental do not also cap the stall count. The name is the technique, not a clock.</p>
+
+<h2>Next to the New York Times</h2>
+
+<p>The comparison is 1,483 New York Times puzzles from January 2023 through March 2024, archived by <a href="https://github.com/vivrao9/nyt-sudoku" target="_blank" rel="noopener">vivrao9/nyt-sudoku</a>. Easy, Medium, and Hard are 495, 494, and 494 puzzles. This site is not affiliated with The New York Times. The full tables are in <a href="/articles/nyt-medium-vs-hard/">why Medium sometimes feels harder than Hard</a>.</p>
+
+<p>NYT Easy is always 38 clues, and singles are enough. Easy here is that same idea, with a small range around 38.</p>
+
+<p>Every NYT Medium needs pointing or claiming. Not Easy is modeled on the Mediums that stay in a tight window: 387 puzzles with at most 3 steps that are not singles, and at most 2 stalls. In that window the bottleneck count has a 10th percentile of 3, a median of 5, a 90th percentile of 8, a max of 11, and a mean of 5.0. The Not Easy gate is 3 to 11, which is that spread.</p>
+
+<p>NYT Hard is less tidy. The hardest step is a naked pair on 51 percent of them, a hidden pair on 18 percent, a triple on 6 percent, and 24 percent never go past pointing. Hard here leaves that pointing-only slice out. It is modeled on the 314 archived Hard puzzles that need a pair or a triple and at least 4 such steps. In that window the bottlenecks have a 10th percentile of 5, a median of 8, a 90th percentile of 13, a max of 21, and a mean of 8.9. The Hard gate is 5 to 21.</p>
+
+<p>Nothing in those 1,483 puzzles needs a technique past triples. Expert and Mental have no NYT equivalent. If you are coming from the NYT app, Not Easy is the Medium, and Hard is the Hard that actually asks for a pair.</p>
+
+<h2>One Hard, from this generator</h2>
+
+<p>This board was generated here and graded by the same solver. It has one solution and 25 clues. The hardest move is a <a href="/techniques/naked-pair/">naked pair</a>. Along the way the solver also uses singles and <a href="/techniques/pointing/">pointing</a>. It takes 11 steps that are not singles, it stalls once, and it has 8 bottlenecks. Eight is the median bottleneck count in the NYT Hard window this level is built from. The clue count alone would not have told you it was a pair puzzle.</p>
+
+<figure class="example-board">
+  <div class="puzzle-grid" role="img" aria-label="A Hard Sudoku with 25 clues. The hardest move is a naked pair." data-puzzle="802000009150000040004000120590006000030040507000102000000700093005030000003080000"><span class="puzzle-cell">8</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell">2</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell">9</span><span class="puzzle-cell">1</span><span class="puzzle-cell">5</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell">4</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell">4</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell">1</span><span class="puzzle-cell">2</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell">5</span><span class="puzzle-cell">9</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell">6</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell">3</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell">4</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell">5</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell">7</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell">1</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell">2</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell">7</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell">9</span><span class="puzzle-cell">3</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell">5</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell">3</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell">3</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell">8</span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span><span class="puzzle-cell is-empty"></span></div>
+  <figcaption>A Hard from this generator. 25 clues. Hardest move: a naked pair. 11 steps that are not singles, 1 stall, 8 bottlenecks.</figcaption>
+</figure>
+
+<p>The steps, each with a board you can click through, are in the <a href="/techniques/">technique library</a>. <a href="/techniques/pointing/">Pointing</a> is the move every NYT Medium needs. The <a href="/techniques/naked-pair/">naked pair</a> is the one on about half of NYT Hard.</p>
+
+<p>The longer argument for grading by the move, instead of the clue count, is <a href="/articles/what-makes-a-sudoku-hard/">what actually makes a Sudoku hard</a>. If you want to feel the window, start a <a href="/?difficulty=not-easy">Not Easy</a> or a <a href="/?difficulty=hard">Hard</a>.</p>

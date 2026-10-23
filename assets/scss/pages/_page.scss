@@ -81,6 +81,31 @@
       color: vars.$secondary-color;
     }
 
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+      margin: 0 0 1.5rem;
+
+      th,
+      td {
+        text-align: left;
+        padding: 0.45rem 0.55rem;
+        border-bottom: 1px solid #ddd;
+        vertical-align: top;
+      }
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+      max-width: 100%;
+      margin: 0 0 1.5rem;
+
+      table {
+        margin: 0;
+      }
+    }
+
     em {
       font-style: italic;
     }

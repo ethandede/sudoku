@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import vm from "node:vm";
 import { marked } from "marked";
 import { techniques } from "./technique-copy.mjs";
 import {
@@ -252,6 +253,7 @@ const staticPaths = new Set([
   "/privacy-policy/",
   "/skills/",
   "/links/",
+  "/how-difficulty-works/",
 ]);
 const difficulties = new Set(["quick", "easy", "not-easy", "hard", "expert", "mental"]);
 
@@ -308,5 +310,38 @@ for (const slug of Object.keys(schedule)) {
   }
 }
 assert.deepEqual(broken, []);
+
+const grading = readFileSync(new URL("../how-difficulty-works-content.html", import.meta.url), "utf8");
+assert.equal(grading.includes("—"), false);
+assert.equal(grading.includes("–"), false);
+const gradingWords = grading.replace(/<[^>]+>/g, " ").match(/[A-Za-z]+/g) || [];
+assert.ok(gradingWords.length >= 600 && gradingWords.length <= 900, `grading words ${gradingWords.length}`);
+const puzzleMatch = grading.match(/data-puzzle="(\d{81})"/);
+assert.ok(puzzleMatch, "example board");
+const cells = [...puzzleMatch[1]].map((digit) => Number(digit));
+const context = { console, Math, performance };
+context.globalThis = context;
+vm.createContext(context);
+vm.runInContext(readFileSync(new URL("../assets/js/solver.js", import.meta.url), "utf8"), context);
+const { grade, countSolutions } = context.SudokuSolver;
+assert.equal(countSolutions(cells, 2), 1);
+const graded = grade(cells);
+assert.equal(graded.solved, true);
+assert.equal(graded.corrupt, false);
+assert.equal(graded.hardestName, "naked_pair");
+assert.equal(graded.steps, 11);
+assert.equal(graded.stalls, 1);
+assert.equal(graded.bottlenecks, 8);
+assert.equal(graded.clues, 25);
+for (const figure of ["1,483", "495", "387", "314", "5.0", "8.9", "51 percent", "18 percent", "24 percent"]) {
+  assert.equal(grading.includes(figure), true, figure);
+}
+assert.match(build, /href="\/how-difficulty-works\/">How difficulty works<\/a>/);
+assert.match(homepage, /href="\/how-difficulty-works\/"/);
+assert.match(homepage, /class="difficulty-help"/);
+const hiddenGrade = stripUnpublishedLinks(grading, new Set(["what-makes-a-sudoku-hard"]));
+assert.equal(hiddenGrade.includes('href="/articles/what-makes-a-sudoku-hard/"'), false);
+assert.match(stripUnpublishedLinks(grading, new Set()), /what-makes-a-sudoku-hard/);
+assert.match(readFileSync(new URL("../src/_redirects", import.meta.url), "utf8"), /\/how-difficulty-works \/how-difficulty-works\/ 301/);
 
 console.log("article publish tests passed");

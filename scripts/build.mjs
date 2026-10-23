@@ -344,6 +344,7 @@ ${main}
       <ul class="footer-links">
         <li><a href="/about/">About</a></li>
         <li><a href="/techniques/">Techniques</a></li>
+        <li><a href="/how-difficulty-works/">How difficulty works</a></li>
         <li><a href="/skills/">Skills</a></li>
         <li><a href="/stats/">Stats</a></li>
         <li><a href="/articles/">Articles</a></li>
@@ -929,7 +930,7 @@ publish(
       </header>
       <div class="page-body">
         <p>These are the steps the solver on this site actually uses, easiest first. Each one has a board taken from a real solve, not a diagram drawn by hand. The level named on the row is where that step first becomes necessary.</p>
-        <p>The New York Times labels overlap in a way these levels don't. That measurement is written up in <a href="/articles/nyt-medium-vs-hard/">why Medium sometimes feels harder than Hard</a>.</p>
+        <p>The New York Times labels overlap in a way these levels don't. That measurement is written up in <a href="/articles/nyt-medium-vs-hard/">why Medium sometimes feels harder than Hard</a>. How the six levels are actually graded is on <a href="/how-difficulty-works/">how difficulty works</a>.</p>
         <ol class="technique-index">
           ${indexItems}
         </ol>
@@ -940,6 +941,18 @@ publish(
 </main>`,
   }),
   "/techniques"
+);
+
+publish(
+  "how-difficulty-works/index.html",
+  standardPage(
+    "How difficulty works",
+    stripUnpublishedLinks(read("how-difficulty-works-content.html").trim(), unpublishedSlugs),
+    "How SudokuSudoku grades Quick through Mental by the hardest technique, and how those levels compare with 1,483 New York Times puzzles.",
+    "/how-difficulty-works/",
+    { kicker: "The grader", house: houseSlot("grading", "/how-difficulty-works/") }
+  ),
+  "/how-difficulty-works"
 );
 
 publish(

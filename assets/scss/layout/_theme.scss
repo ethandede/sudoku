@@ -65,5 +65,10 @@ html[data-theme="dark"] {
     figcaption {
       color: #c5ced6;
     }
+
+    .page-body table th,
+    .page-body table td {
+      border-bottom-color: #3e4650;
+    }
   }
 }
