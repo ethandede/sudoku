@@ -1287,8 +1287,11 @@ await check("the phone keypad keys and mini-grid cells are square", async () => 
         const rect = document.querySelector(selector).getBoundingClientRect();
         return { left: rect.left, right: rect.right, top: rect.top, width: rect.width, height: rect.height };
       };
+      const mark = document.querySelector(".game-brand .logo-mark");
       return {
-        mark: box(".game-brand-mark"),
+        mark: box(".game-brand .logo-mark"),
+        markTag: mark?.tagName || "",
+        teddy: Boolean(document.querySelector(".game-brand img, .game-brand [src*='teddy']")),
         icons: box(".icon-row"),
         status: box(".status-bar"),
         board: box(".sudoku-grid"),
@@ -1298,6 +1301,8 @@ await check("the phone keypad keys and mini-grid cells are square", async () => 
         subhead: getComputedStyle(document.querySelector(".game-intro .supporting-text")).display,
       };
     });
+    assert(edges.markTag === "svg", `${width} header mark is the footer logo`);
+    assert(edges.teddy === false, `${width} header does not use the Teddy icon`);
     assert(edges.mark.width >= 22 && edges.mark.height >= 22, `${width} logo is ${edges.mark.width}px`);
     assert(edges.name === "SudokuSudoku", `${width} wordmark`);
     assert(edges.subhead !== "none", `${width} keeps the subhead`);
