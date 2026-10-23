@@ -88,6 +88,15 @@ assert.equal(stats.daily.completed["2026-05-03"].time, 20);
 assert.equal(stats.daily.completed["2026-05-05"].time, 15);
 assert.equal(stats.daily.longestStreak, 5);
 assert.equal(longestRun(stats.daily.completed), 5);
+assert.equal(stats.quick.best, null);
+
+const missingBest = mergeStats(
+  { daily: { played: 1, won: 0, best: null, totalTime: 0, completed: {} } },
+  { quick: { played: 0, won: 0, best: null, totalTime: 0 } }
+);
+assert.equal(missingBest.daily.best, null);
+assert.equal(missingBest.quick.best, null);
+assert.equal(missingBest.easy.best, null);
 
 const historical = mergeStats(
   { daily: { played: 40, won: 40, longestStreak: 40, completed: { "2020-01-01": day(10) } } },
