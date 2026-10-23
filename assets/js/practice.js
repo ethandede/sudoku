@@ -52,6 +52,10 @@
     return `${name} is the next move. Find it.`;
   }
 
+  function promptShort(name) {
+    return `Find the ${name}.`;
+  }
+
   function wantsCandidates(slug) {
     return slug !== "naked-single";
   }
@@ -277,6 +281,21 @@
     return `${techniqueLabel(batch.name, count)}: ${count} ${noun} ${placed ? "filled" : "changed"}`;
   }
 
+  function reviewCopyShort(batches, nextName) {
+    if (!batches || !batches.length) return "";
+    if (nextName) {
+      const indexes = [];
+      batches.forEach((batch) => {
+        batch.cells.forEach((cell) => {
+          if (!indexes.includes(cell.index)) indexes.push(cell.index);
+        });
+      });
+      return `${indexes.length} to ${nextName}`;
+    }
+    const batch = batches[batches.length - 1];
+    return `${techniqueLabel(batch.name, batch.cells.length)} · ${batch.cells.length}`;
+  }
+
   function cellDetail(cell) {
     const digits = (cell && cell.digits ? cell.digits : []).slice().sort((a, b) => a - b);
     const list = digits.join(", ");
@@ -291,6 +310,7 @@
     rankOf,
     fillLabel,
     promptFor,
+    promptShort,
     wantsCandidates,
     techniqueLabel,
     applyStep,
@@ -299,6 +319,7 @@
     batchesOf,
     highlightOf,
     reviewCopy,
+    reviewCopyShort,
     cellDetail,
   };
 })(typeof globalThis !== "undefined" ? globalThis : window);

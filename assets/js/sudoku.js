@@ -1614,6 +1614,7 @@
     fillReview = {
       cells: marked,
       summary: api.reviewCopy(batches, nextName || ""),
+      short: api.reviewCopyShort ? api.reviewCopyShort(batches, nextName || "") : "",
       detail: "",
       fading: false,
       keep: false,
@@ -2082,7 +2083,10 @@
         button.textContent = "Daily";
       }
     });
-    labelEl.textContent = labelFor(state.kind);
+    const fullLabel = labelFor(state.kind);
+    const shortLabel = state.practice && window.SudokuProgress ? window.SudokuProgress.nameOf(state.practice) : "";
+    if (shortLabel && shortLabel !== fullLabel) pairText(labelEl, fullLabel, shortLabel);
+    else labelEl.textContent = fullLabel;
     timerEl.textContent = formatTime(state.elapsed);
     timerEl.parentElement.classList.toggle("is-hidden", !settings.showTimer);
     mistakeEl.classList.toggle("is-hidden", !settings.showMistakes);
@@ -2172,6 +2176,17 @@
     return false;
   }
 
+  function pairText(el, full, short) {
+    el.replaceChildren();
+    const wide = document.createElement("span");
+    wide.className = "copy-full";
+    wide.textContent = full;
+    const narrow = document.createElement("span");
+    narrow.className = "copy-short";
+    narrow.textContent = short || full;
+    el.append(wide, narrow);
+  }
+
   function paintPracticePrompt() {
     const el = document.getElementById("practice-prompt");
     if (!el) return;
@@ -2179,8 +2194,10 @@
       el.hidden = true;
       return;
     }
+    const api = window.SudokuPractice;
     if (state.practiceMiss) {
-      el.textContent = state.practiceNote || "Practice puzzle. This one stays off your records.";
+      const full = state.practiceNote || "Practice puzzle. This one stays off your records.";
+      pairText(el, full, "Practice stays off your records.");
       el.hidden = false;
       return;
     }
@@ -2190,7 +2207,9 @@
       return;
     }
     const name = window.SudokuProgress ? window.SudokuProgress.nameOf(state.practice) : state.practice;
-    el.textContent = window.SudokuPractice ? window.SudokuPractice.promptFor(name) : `${name} is the next move. Find it.`;
+    const full = api ? api.promptFor(name) : `${name} is the next move. Find it.`;
+    const short = api && api.promptShort ? api.promptShort(name) : `Find the ${name}.`;
+    pairText(el, full, short);
     el.hidden = false;
   }
 
@@ -2204,8 +2223,9 @@
       return;
     }
     const message = fillReview.detail || fillReview.summary || "";
+    const narrow = fillReview.detail ? message : fillReview.short || message;
     if (text) {
-      text.textContent = message;
+      pairText(text, message, narrow);
       text.title = message;
     }
     chip.hidden = false;
