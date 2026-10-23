@@ -1,5 +1,5 @@
 // Original explanations for the technique pages. Frequencies are the measured
-// NYT profile already used by the grader (vivrao9/nyt-sudoku, Jan 2023-Mar 2024,
+// NYT profile already used by the grader (vivrao9/nyt-sudoku, August 30, 2021 through March 2, 2024,
 // 1,483 puzzles). Nothing here invents a rate the archive didn't show.
 //
 // `order` is the solver's difficulty, lowest first. The techniques index and

@@ -8,7 +8,7 @@
 
 Medium and Hard, in the New York Times sudoku, are not far apart in the way a label suggests. Count the givens and they nearly match. Count the hardest idea each puzzle actually needs, and a slice of Hard never leaves the technique that every Medium uses. What changes is the shape of the path: how many cells you fill before you stall, and how often only one move is available when you do.
 
-The figures below are from 1,483 New York Times sudoku puzzles published January 2023 through March 2024, archived by [vivrao9/nyt-sudoku](https://github.com/vivrao9/nyt-sudoku). Easy, Medium, and Hard are 495, 494, and 494 puzzles. This site isn't affiliated with The New York Times.
+The figures below are from 1,483 New York Times sudoku puzzles published August 30, 2021 through March 2, 2024, archived by [vivrao9/nyt-sudoku](https://github.com/vivrao9/nyt-sudoku). Easy, Medium, and Hard are 495, 494, and 494 puzzles. This site isn't affiliated with The New York Times.
 
 ## The clues barely move
 
@@ -50,6 +50,6 @@ This site doesn't reuse the NYT labels, because those two overlap. The split fol
 - **Hard** requires a pair or a triple, and at least four non-single steps, so it does not include the pointing-only puzzles that NYT calls Hard. Of the archived Hard puzzles, 314 need a pair or a triple and at least four such steps. That window's mean bottleneck count is 8.9, and it fills 7.2 cells before the first stall.
 - **Expert** is where a quad, an X-wing, a swordfish, or an XY-wing is required. **Mental** is coloring or an XY-chain. Neither shows up in this NYT set.
 
-A Not Easy puzzle can still feel tight. That is the Medium problem, kept on purpose: few hard steps, and a path that keeps narrowing. A Hard puzzle here will actually ask for a pair or a triple. The names describe the technique, which is the part the NYT labels sometimes don't.
+A Not Easy puzzle can still feel tight. That is the Medium problem, kept on purpose: few hard steps, and a path that keeps narrowing. A Hard puzzle here will actually ask for a pair or a triple. The names describe the technique, which is the part the NYT labels sometimes don't. The windows, and one Hard board that passed them, are on [how difficulty works](/how-difficulty-works/).
 
 The steps themselves are written up, with a board from this solver, in the [technique library](/techniques/). Pointing is the one [every Medium needs](/techniques/pointing/). The pair that shows up on about half of NYT Hard is the [naked pair](/techniques/naked-pair/).

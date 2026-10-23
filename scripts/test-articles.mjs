@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import vm from "node:vm";
 import { marked } from "marked";
 import { techniques } from "./technique-copy.mjs";
 import {
@@ -243,6 +244,7 @@ const staticPaths = new Set([
   "/terms/",
   "/skills/",
   "/links/",
+  "/how-difficulty-works/",
 ]);
 const difficulties = new Set(["quick", "easy", "not-easy", "hard", "expert", "mental"]);
 
@@ -300,6 +302,43 @@ for (const slug of Object.keys(schedule)) {
 }
 assert.deepEqual(broken, []);
 
+const grading = readFileSync(new URL("../how-difficulty-works-content.html", import.meta.url), "utf8");
+assert.equal(grading.includes("—"), false);
+assert.equal(grading.includes("–"), false);
+const gradingWords = grading.replace(/<[^>]+>/g, " ").match(/[A-Za-z]+/g) || [];
+assert.ok(gradingWords.length >= 600 && gradingWords.length <= 900, `grading words ${gradingWords.length}`);
+const puzzleMatch = grading.match(/data-puzzle="(\d{81})"/);
+assert.ok(puzzleMatch, "example board");
+const cells = [...puzzleMatch[1]].map((digit) => Number(digit));
+const context = { console, Math, performance };
+context.globalThis = context;
+vm.createContext(context);
+vm.runInContext(readFileSync(new URL("../assets/js/solver.js", import.meta.url), "utf8"), context);
+const { grade, countSolutions } = context.SudokuSolver;
+assert.equal(countSolutions(cells, 2), 1);
+const graded = grade(cells);
+assert.equal(graded.solved, true);
+assert.equal(graded.corrupt, false);
+assert.equal(graded.hardestName, "naked_pair");
+assert.equal(graded.steps, 11);
+assert.equal(graded.stalls, 1);
+assert.equal(graded.bottlenecks, 8);
+assert.equal(graded.clues, 25);
+for (const figure of ["1,483", "495", "387", "314", "5.0", "8.9", "51 percent", "18 percent", "24 percent"]) {
+  assert.equal(grading.includes(figure), true, figure);
+}
+assert.match(grading, /August 30, 2021 through March 2, 2024/);
+assert.equal(grading.includes("January 2023"), false);
+assert.match(build, /href="\/how-difficulty-works\/">How difficulty works<\/a>/);
+assert.match(build, /href="\/terms\/">Terms<\/a>/);
+const game = readFileSync(new URL("../src/game.html", import.meta.url), "utf8");
+assert.match(game, /class="difficulty-help" href="\/how-difficulty-works\/"/);
+assert.match(readFileSync(new URL("../home-copy.mjs", import.meta.url), "utf8"), /href: "\/how-difficulty-works\/"/);
+const hiddenGrade = stripUnpublishedLinks(grading, new Set(["what-makes-a-sudoku-hard"]));
+assert.equal(hiddenGrade.includes('href="/articles/what-makes-a-sudoku-hard/"'), false);
+assert.match(stripUnpublishedLinks(grading, new Set()), /what-makes-a-sudoku-hard/);
+assert.match(readFileSync(new URL("../src/_redirects", import.meta.url), "utf8"), /\/how-difficulty-works \/how-difficulty-works\/ 301/);
+
 const mistakes = readFileSync(new URL("../articles/02-common-mistakes.md", import.meta.url), "utf8");
 assert.equal(mistakes.includes("—"), false);
 assert.equal(mistakes.includes("Print this checklist"), false);
@@ -356,5 +395,22 @@ assert.match(build, /"terms\/index.html"[\s\S]{0,600}ads:\s*false/);
 assert.match(build, /"terms\/index.html"[\s\S]{0,700}analytics:\s*false/);
 assert.match(build, /"terms\/index.html"[\s\S]{0,800}privacyChoices:\s*false/);
 assert.match(redirects, /\/terms \/terms\/ 301/);
+
+const nytRange = "August 30, 2021 through March 2, 2024";
+const nytSources = {
+  comparison: readFileSync(new URL("../articles/04-nyt-medium-vs-hard.md", import.meta.url), "utf8"),
+  "what-makes": readArticle("what-makes-a-sudoku-hard"),
+  ai: readArticle("why-ai-is-bad-at-sudoku"),
+  generator: readFileSync(new URL("../assets/js/generator.js", import.meta.url), "utf8"),
+  techniques: readFileSync(new URL("./technique-copy.mjs", import.meta.url), "utf8"),
+};
+for (const [label, text] of Object.entries(nytSources)) {
+  assert.equal(text.includes(nytRange), true, label);
+  assert.equal(text.includes("January 2023"), false, label);
+  assert.equal(text.includes("Jan 2023"), false, label);
+  assert.equal(text.includes("—"), false, `${label} em dash`);
+}
+assert.equal(nytSources["what-makes"].includes("publishDate: 2026-10-28"), true);
+assert.equal(nytSources.ai.includes("publishDate: 2026-11-04"), true);
 
 console.log("article publish tests passed");
