@@ -19,6 +19,7 @@ import {
 const schedule = {
   "what-makes-a-sudoku-hard": "2026-10-28",
   "history-of-sudoku": "2026-10-28",
+  "sudoku-techniques-in-order": "2026-10-29",
   "sudoku-variants": "2026-11-04",
   "why-ai-is-bad-at-sudoku": "2026-11-04",
   "does-sudoku-keep-your-brain-sharp": "2026-11-11",
@@ -46,16 +47,22 @@ function live(today) {
 assert.deepEqual(live("2026-10-21"), []);
 assert.deepEqual(live("2026-10-27"), []);
 assert.deepEqual(live("2026-10-28"), ["what-makes-a-sudoku-hard", "history-of-sudoku"]);
-assert.deepEqual(live("2026-11-03"), ["what-makes-a-sudoku-hard", "history-of-sudoku"]);
+assert.deepEqual(live("2026-11-03"), [
+  "what-makes-a-sudoku-hard",
+  "history-of-sudoku",
+  "sudoku-techniques-in-order",
+]);
 assert.deepEqual(live("2026-11-04"), [
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
+  "sudoku-techniques-in-order",
   "sudoku-variants",
   "why-ai-is-bad-at-sudoku",
 ]);
 const beforeFewest = [
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
+  "sudoku-techniques-in-order",
   "sudoku-variants",
   "why-ai-is-bad-at-sudoku",
   "does-sudoku-keep-your-brain-sharp",
@@ -414,5 +421,27 @@ for (const [label, text] of Object.entries(nytSources)) {
 }
 assert.equal(nytSources["what-makes"].includes("publishDate: 2026-10-28"), true);
 assert.equal(nytSources.ai.includes("publishDate: 2026-11-04"), true);
+
+const order = readArticle("sudoku-techniques-in-order");
+assert.equal(order.includes("\u2014"), false);
+assert.equal(order.includes("\u2013"), false);
+const orderBody = order.split("---").slice(2).join("---").replace(/<!--[\s\S]*?-->/g, "");
+const orderWords = orderBody.trim().split(/\s+/).filter(Boolean);
+assert.ok(orderWords.length >= 1000 && orderWords.length <= 1400, `technique order words ${orderWords.length}`);
+const orderSummary = JSON.parse(
+  readFileSync(new URL("../articles/data/technique-order/summary.json", import.meta.url), "utf8")
+);
+assert.equal(orderSummary.nyt.levels.hard.steps.pointing, 1795);
+assert.equal(orderSummary.nyt.levels.medium.steps.pointing, 1211);
+assert.equal(orderSummary.nyt.levels.hard.techniqueSteps, 2917);
+assert.equal(orderSummary.nyt.levels.easy.singlePlacements, 21285);
+assert.equal(orderSummary.generated.levels.expert.puzzles.xwing, 53);
+assert.equal(orderSummary.generated.perLevel, 300);
+for (const figure of ["1,795", "1,211", "2,917", "21,285", "played one on 53 of them"]) {
+  assert.equal(order.includes(figure), true, figure);
+}
+assert.match(order, /articles\/data\/technique-order\/analyze\.mjs/);
+assert.match(order, /href="\/articles\/nyt-medium-vs-hard\/"|\]\(\/articles\/nyt-medium-vs-hard\/\)/);
+assert.match(build, /articles\/sudoku-techniques-in-order\.md/);
 
 console.log("article publish tests passed");
