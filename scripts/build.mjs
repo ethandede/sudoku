@@ -282,13 +282,6 @@ ${startupLinks}
   <link rel="icon" href="${asset("/icons/icon-512.png")}" type="image/png" sizes="512x512">
 ${analyticsTags}${adsTag}</head>
 <body>
-<div id="app-update" class="app-update" hidden>
-  <p>A new version is ready.</p>
-  <div class="app-update-actions">
-    <button type="button" id="app-update-dismiss">Not now</button>
-    <button type="button" id="app-update-go">Refresh</button>
-  </div>
-</div>
 <header class="site-header">
   <div class="container">
     <nav class="main-navigation" role="navigation">
@@ -364,7 +357,7 @@ ${privacyChoiceNote}    <p class="copyright">&copy; ${year} SudokuSudoku. All ri
 </footer>
 ${game ? ["solver", "pools", "generator", "progress", "community", "share", "account-merge", "account", "practice"].map((name) => scriptTag(`/assets/js/${name}.js`)).join("\n") : ""}
 ${skills ? scriptTag("/assets/js/progress.js") : ""}
-${scriptTag("/assets/js/update-banner.js")}
+${scriptTag("/assets/js/silent-update.js")}
 ${scriptTag("/assets/js/hint-apply.js")}
 ${scriptTag("/assets/js/sudoku.js")}
 ${skills ? scriptTag("/assets/js/skills.js") : ""}
@@ -387,9 +380,9 @@ function hintApplyForBrowser(source) {
   return `(function (root) {\n${body}\n  root.SudokuHintApply = {\n    applyHintStep: applyHintStep,\n    placesOnApply: placesOnApply,\n    legalCandidates: legalCandidates,\n    eliminationSentence: eliminationSentence,\n    resultCopy: resultCopy,\n    cellName: cellName\n  };\n})(typeof globalThis !== "undefined" ? globalThis : this);\n`;
 }
 
-function updateBannerForBrowser(source) {
+function silentUpdateForBrowser(source) {
   const body = source.replace(/^export /gm, "");
-  return `(function (root) {\n${body}\n  root.SudokuUpdate = {\n    RELOAD_FLAG: RELOAD_FLAG,\n    DISMISS_FLAG: DISMISS_FLAG,\n    gameGate: gameGate,\n    bannerVisible: bannerVisible,\n    shouldReload: shouldReload,\n    clearReloadFlag: clearReloadFlag,\n    stripUpdateParam: stripUpdateParam\n  };\n})(typeof globalThis !== "undefined" ? globalThis : this);\n`;
+  return `(function (root) {\n${body}\n  root.SudokuSilent = {\n    gameGate: gameGate,\n    shouldApplyUpdate: shouldApplyUpdate\n  };\n})(typeof globalThis !== "undefined" ? globalThis : this);\n`;
 }
 
 function scriptTag(path) {
@@ -526,7 +519,7 @@ write("assets/js/contact.js", read("assets/js/contact.js"));
 write("assets/js/community.js", read("assets/js/community.js"));
 write("assets/js/share.js", read("assets/js/share.js"));
 write("assets/js/account-merge.js", accountMergeForBrowser(read("functions/account-merge.mjs")));
-write("assets/js/update-banner.js", updateBannerForBrowser(read("functions/update-banner.mjs")));
+write("assets/js/silent-update.js", silentUpdateForBrowser(read("functions/silent-update.mjs")));
 write("assets/js/hint-apply.js", hintApplyForBrowser(read("functions/hint-apply.mjs")));
 write("assets/js/account.js", read("assets/js/account.js"));
 write("assets/js/stats-page.js", read("assets/js/stats-page.js"));
@@ -1236,7 +1229,7 @@ const shellPaths = [
   "assets/js/share.js",
   "assets/js/account-merge.js",
   "assets/js/account.js",
-  "assets/js/update-banner.js",
+  "assets/js/silent-update.js",
   "assets/js/hint-apply.js",
   "assets/js/house-promos.js",
   ...iconSizes.map((size) => `icons/icon-${size}.png`),

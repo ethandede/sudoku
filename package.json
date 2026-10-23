@@ -15,7 +15,7 @@
     "test:articles": "node scripts/test-articles.mjs",
     "test:share": "node scripts/test-share.mjs",
     "test:cache": "node scripts/test-cache-bust.mjs",
-    "test:update": "node scripts/test-update-banner.mjs",
+    "test:update": "node scripts/test-silent-update.mjs",
     "test:hint": "node scripts/test-hint-apply.mjs",
     "test:place": "node scripts/test-hint-place.mjs",
     "test:play": "node scripts/test-candidates.mjs",
