@@ -173,11 +173,12 @@
     }
     if (!("serviceWorker" in navigator) || !Update) return;
     navigator.serviceWorker.register("/sw.js").then((registration) => {
-      const remember = async () => {
-        const worker = registration.waiting;
-        if (!worker) {
-          waitingVersion = "";
-          syncUpdateBanner();
+      const showWaiting = async (worker) => {
+        if (!worker || worker.state === "redundant") {
+          if (!registration.waiting && !registration.installing) {
+            waitingVersion = "";
+            syncUpdateBanner();
+          }
           return;
         }
         if (!navigator.serviceWorker.controller) {
@@ -185,18 +186,24 @@
           worker.postMessage({ type: "skip-waiting" });
           return;
         }
+        if (worker.state !== "installed") return;
         waitingVersion = (await workerVersion(worker)) || "waiting";
         syncUpdateBanner();
       };
       const track = (worker) => {
         if (!worker) return;
         worker.addEventListener("statechange", () => {
-          if (worker.state === "installed" || worker.state === "activated") remember();
+          if (worker.state === "installed") showWaiting(worker);
+          if (worker.state === "activated") showWaiting(registration.waiting);
         });
       };
       track(registration.installing);
-      remember();
+      track(registration.waiting);
+      showWaiting(registration.waiting);
       registration.addEventListener("updatefound", () => track(registration.installing));
+      window.setInterval(() => {
+        if (registration.waiting) showWaiting(registration.waiting);
+      }, 1000);
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") registration.update();
       });
