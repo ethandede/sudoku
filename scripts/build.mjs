@@ -392,6 +392,7 @@ ${main}
 ${privacyChoiceItem}      </ul>
     </nav>
 ${privacyChoiceNote}    <p class="copyright">&copy; ${year} SudokuSudoku. All rights reserved.</p>
+    <p class="footer-credit">The dealing animation is adapted from <a href="https://magicui.design/docs/components/number-ticker">Magic UI</a>.</p>
   </div>
 </footer>
 ${game ? ["solver", "pools", "generator", "progress", "community", "share", "daily", "account-merge", "account", "practice"].map((name) => scriptTag(`/assets/js/${name}.js`)).join("\n") : ""}
@@ -557,6 +558,7 @@ write("assets/css/style.css", versionFontUrls(compiled.css, ASSET_VERSION));
 write("assets/js/solver.js", read("assets/js/solver.js"));
 write("assets/js/pools.js", read("assets/js/pools.js"));
 write("assets/js/generator.js", read("assets/js/generator.js"));
+write("assets/js/generate-worker.js", read("assets/js/generate-worker.js"));
 write("assets/js/sudoku.js", read("assets/js/sudoku.js"));
 write("assets/js/technique-demo.js", read("assets/js/technique-demo.js"));
 write("assets/js/progress.js", read("assets/js/progress.js"));
@@ -1413,6 +1415,7 @@ const shellPaths = [
   "assets/js/solver.js",
   "assets/js/pools.js",
   "assets/js/generator.js",
+  "assets/js/generate-worker.js",
   "assets/js/progress.js",
   "assets/js/practice.js",
   "assets/js/skills.js",
