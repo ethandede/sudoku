@@ -28,6 +28,13 @@
     return `${mins}:${String(secs).padStart(2, "0")}`;
   }
 
+  function countText(value) {
+    const n = Number(value);
+    if (!Number.isInteger(n) || n <= 0) return progress.escapeHtml(value);
+    const text = String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return `<span class="count-up" data-count="${n}">${text}</span>`;
+  }
+
   function formatWhen(iso) {
     const date = new Date(iso);
     if (Number.isNaN(date.getTime())) return "";
@@ -44,6 +51,28 @@
       renderBadges(data),
       renderTransfer(),
     ].join("");
+    mountHistoryClear();
+    if (window.RareCounter) window.RareCounter.watch(root);
+  }
+
+  function mountHistoryClear() {
+    const slot = document.getElementById("history-clear");
+    if (!slot || !window.RareDelete || typeof progress.clearHistory !== "function") return;
+    slot.append(
+      window.RareDelete.create({
+        label: "Clear history",
+        note: "Clears the solved-puzzle list on this device. Skills and badges stay. A signed-in account can bring the list back the next time you play.",
+        triggerLabel: "Clear history",
+        confirmLabel: "Confirm clear history",
+        cancelLabel: "Cancel clear history",
+        statusDeleted: "History cleared",
+        statusKept: "Kept",
+        onConfirm() {
+          progress.clearHistory();
+          render();
+        },
+      })
+    );
   }
 
   function renderNext(data) {
@@ -59,7 +88,7 @@
     return `<section class="next-card" aria-labelledby="next-title">
       <p class="eyebrow" id="next-title">${title}</p>
       <h2>${progress.escapeHtml(tech.name)}</h2>
-      <p class="next-status"><span class="status status-${status}">${progress.STATUS_LABEL[status]}</span> ${row.clean} of ${progress.MASTERED_AT} clean</p>
+      <p class="next-status"><span class="status status-${status}">${progress.STATUS_LABEL[status]}</span> ${countText(row.clean)} of ${countText(progress.MASTERED_AT)} clean</p>
       <p>${blurb}</p>
       <div class="next-actions">
         <a class="primary-btn" href="/?practice=${encodeURIComponent(slug)}">Practice</a>
@@ -81,7 +110,7 @@
         <a href="/techniques/${tech.slug}/">${progress.escapeHtml(tech.name)}</a>
         <a class="ladder-practice" href="/?practice=${encodeURIComponent(tech.slug)}">Practice</a>
         ${note}
-        <span class="ladder-count">${row.clean} clean</span>
+        <span class="ladder-count">${countText(row.clean)} clean</span>
       </li>`;
     }).join("");
     return `<section aria-labelledby="ladder-title">
@@ -96,7 +125,7 @@
     const lines = [["daily", "Daily"], ...progress.LEVELS.map((id) => [id, progress.LEVEL_LABEL[id]])]
       .map(([id, label]) => {
         const row = bucket(id);
-        return `<tr><th>${label}</th><td>${row.best == null ? "–" : formatTime(row.best)}</td><td>${row.won || 0}</td></tr>`;
+        return `<tr><th>${label}</th><td>${row.best == null ? "–" : formatTime(row.best)}</td><td>${countText(row.won || 0)}</td></tr>`;
       })
       .join("");
     const streak = progress.streakNow(freshStats);
@@ -121,11 +150,11 @@
         ? `<button type="button" class="secondary-btn" id="history-more">${historyOpen ? "Show fewer" : `Show all ${history.length}`}</button>`
         : "";
     const list = history.length
-      ? `<ol class="history">${items}</ol>${more}`
+      ? `<ol class="history">${items}</ol>${more}<div id="history-clear"></div>`
       : `<p class="skills-note">Solved puzzles will show up here.</p>`;
     return `<section aria-labelledby="records-title">
       <h2 id="records-title">Records</h2>
-      <p class="streak-line">Daily streak ${streak} · longest ${longest}</p>
+      <p class="streak-line">Daily streak ${countText(streak)} · longest ${countText(longest)}</p>
       <table class="stats-table"><thead><tr><th>Puzzle</th><th>Best</th><th>Won</th></tr></thead><tbody>${lines}</tbody></table>
       <h3>History</h3>
       ${list}
@@ -150,7 +179,7 @@
     const count = data.badges.length;
     return `<section id="badges" aria-labelledby="badges-title">
       <h2 id="badges-title">Badges</h2>
-      <p class="skills-note">${count} of ${progress.BADGES.length} unlocked. Locked badges stay visible with their criteria.</p>
+      <p class="skills-note">${countText(count)} of ${countText(progress.BADGES.length)} unlocked. Locked badges stay visible with their criteria.</p>
       ${groups}
     </section>`;
   }

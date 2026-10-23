@@ -1,9 +1,10 @@
 // Light accents around the Uiverse chrome in _uiverse.scss.
-// A 1px press is original CSS. Rare UI and Skiper UI are not ported.
+// A 1px press is original CSS. Skiper UI is not ported.
+// The Rare UI counter and delete control live in _rare.scss.
 // The page dot grid, in _brand.scss and _header.scss, is an original
 // radial-gradient. The idea is Magic UI's Dot Pattern (MIT).
 // Icons are Phosphor arrow-left and arrow-right. The MIT notice is in
-// scripts/icons.mjs. Count-up lives in assets/js/stats-page.js.
+// scripts/icons.mjs.
 // Nothing here selects the board, keypad, notes, timer, or technique stepper.
 
 .ph-arrow {

@@ -270,9 +270,10 @@
         <p>Signed in as <strong id="account-signed-email" class="account-email"></strong></p>
         <div class="account-actions">
           <button type="button" id="account-signout" class="secondary-btn">Sign out</button>
-          <button type="button" id="account-delete" class="secondary-btn">Delete my account</button>
+          <div id="account-signout-all"></div>
+          <div id="account-delete-slot"></div>
         </div>
-        <p class="key-help">Delete removes the email and the saved copy on the server. This device keeps its own copy.</p>
+        <p class="key-help">Sign out ends the session on this device only.</p>
       </div>
       <p id="account-status" class="account-status" role="status" hidden></p>
     </div>

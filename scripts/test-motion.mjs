@@ -54,10 +54,30 @@ assert.match(promos, /phosphorArrow\("right"\)/);
 assert.equal(promoCss.includes('content: " \\2192"'), false);
 
 assert.match(stats, /data-count/);
-assert.match(stats, /prefers-reduced-motion:\s*reduce/);
-assert.match(stats, /minWidth/);
+assert.match(stats, /RareCounter\.watch/);
 assert.equal(stats.includes("from \"motion\""), false);
 assert.equal(stats.includes("framer-motion"), false);
 assert.match(stats, /function clock/);
+
+const counter = read("assets/js/rare-counter.js");
+const deleter = read("assets/js/rare-delete.js");
+const rareCss = read("assets/scss/components/_rare.scss");
+assert.match(counter, /Copyright \(c\) 2026 Swami Malode/);
+assert.match(counter, /https:\/\/rareui\.com/);
+assert.match(counter, /prefers-reduced-motion:\s*reduce/);
+assert.match(counter, /minWidth/);
+assert.match(counter, /IntersectionObserver/);
+assert.match(deleter, /Copyright \(c\) 2026 Swami Malode/);
+assert.match(deleter, /Escape/);
+assert.match(deleter, /aria-expanded/);
+assert.match(rareCss, /prefers-reduced-motion:\s*reduce/);
+assert.equal(rareCss.includes("#FF5F2E"), false);
+assert.equal(rareCss.includes("#ff5f2e"), false);
+assert.match(build, /https:\/\/rareui\.com/);
+for (const source of [rareCss]) {
+  for (const selector of [".sudoku-grid", ".number-pad", ".erase-key", ".mode-toggle", ".cell", "#timer"]) {
+    assert.equal(source.includes(selector), false, `${selector} leaked into rare CSS`);
+  }
+}
 
 console.log("chrome motion tests passed");

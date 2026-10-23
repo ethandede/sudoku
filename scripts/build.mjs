@@ -353,10 +353,13 @@ ${main}
 ${privacyChoiceItem}      </ul>
     </nav>
 ${privacyChoiceNote}    <p class="copyright">&copy; ${year} SudokuSudoku. All rights reserved.</p>
+    <p class="footer-credit">Number counters and the delete control are adapted from <a href="https://rareui.com">Rare UI</a> by Swami Malode.</p>
   </div>
 </footer>
-${game ? ["solver", "pools", "generator", "progress", "community", "share", "account-merge", "account", "practice"].map((name) => scriptTag(`/assets/js/${name}.js`)).join("\n") : ""}
+${game ? ["solver", "pools", "generator", "progress", "community", "share", "account-merge", "rare-delete", "account", "practice"].map((name) => scriptTag(`/assets/js/${name}.js`)).join("\n") : ""}
 ${skills ? scriptTag("/assets/js/progress.js") : ""}
+${skills ? scriptTag("/assets/js/rare-counter.js") : ""}
+${skills ? scriptTag("/assets/js/rare-delete.js") : ""}
 ${scriptTag("/assets/js/silent-update.js")}
 ${scriptTag("/assets/js/hint-apply.js")}
 ${scriptTag("/assets/js/sudoku.js")}
@@ -364,6 +367,8 @@ ${skills ? scriptTag("/assets/js/skills.js") : ""}
 ${demo ? scriptTag("/assets/js/technique-demo.js") : ""}
 ${contact ? scriptTag("/assets/js/contact.js") : ""}
 ${stats ? scriptTag("/assets/js/progress.js") : ""}
+${stats ? scriptTag("/assets/js/rare-counter.js") : ""}
+${stats ? scriptTag("/assets/js/rare-delete.js") : ""}
 ${stats ? scriptTag("/assets/js/stats-page.js") : ""}
 ${houseClicks}${adPushes}${privacyChoiceScript}${webAnalyticsTag}</body>
 </html>
@@ -522,6 +527,8 @@ write("assets/js/account-merge.js", accountMergeForBrowser(read("functions/accou
 write("assets/js/silent-update.js", silentUpdateForBrowser(read("functions/silent-update.mjs")));
 write("assets/js/hint-apply.js", hintApplyForBrowser(read("functions/hint-apply.mjs")));
 write("assets/js/account.js", read("assets/js/account.js"));
+write("assets/js/rare-counter.js", read("assets/js/rare-counter.js"));
+write("assets/js/rare-delete.js", read("assets/js/rare-delete.js"));
 write("assets/js/stats-page.js", read("assets/js/stats-page.js"));
 write("assets/js/house-promos.js", read("assets/js/house-promos.js"));
 write("ads.txt", read("ads.txt").trim() + "\n");
@@ -1229,6 +1236,8 @@ const shellPaths = [
   "assets/js/share.js",
   "assets/js/account-merge.js",
   "assets/js/account.js",
+  "assets/js/rare-counter.js",
+  "assets/js/rare-delete.js",
   "assets/js/silent-update.js",
   "assets/js/hint-apply.js",
   "assets/js/house-promos.js",

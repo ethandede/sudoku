@@ -14,7 +14,6 @@
   let epoch = 0;
   let holdProgress = false;
   let turnstileId = "";
-  let deleteArmed = false;
   let pendingNote = "";
 
   function $(id) {
@@ -146,17 +145,7 @@
       address.textContent = email;
       line.append(address);
       node.append(line);
-      const out = document.createElement("button");
-      out.type = "button";
-      out.className = "account-link";
-      out.dataset.accountSignout = "1";
-      out.textContent = "Sign out";
-      const del = document.createElement("button");
-      del.type = "button";
-      del.className = "account-link account-delete";
-      del.dataset.accountDelete = "1";
-      del.textContent = "Delete my account";
-      node.append(out, del);
+      node.append(signOutButton(), signOutEverywhereControl(), deleteControl());
       return;
     }
     const button = document.createElement("button");
@@ -167,10 +156,46 @@
     node.append(button);
   }
 
+  function signOutButton() {
+    const out = document.createElement("button");
+    out.type = "button";
+    out.className = "account-link";
+    out.dataset.accountSignout = "1";
+    out.textContent = "Sign out";
+    return out;
+  }
+
+  function signOutEverywhereControl() {
+    if (!window.RareDelete) return document.createElement("span");
+    return window.RareDelete.create({
+      label: "Sign out everywhere",
+      note: "Ends the saved session on every device. This device keeps its own copy.",
+      triggerLabel: "Sign out everywhere",
+      confirmLabel: "Confirm sign out everywhere",
+      cancelLabel: "Cancel sign out everywhere",
+      statusDeleted: "Signed out everywhere",
+      statusKept: "Kept",
+      onConfirm: signOutEverywhere,
+    });
+  }
+
+  function deleteControl() {
+    if (!window.RareDelete) return document.createElement("span");
+    return window.RareDelete.create({
+      label: "Delete account",
+      note: "Removes the email and the saved copy on the server. This device keeps its own copy.",
+      triggerLabel: "Delete account",
+      confirmLabel: "Confirm delete account",
+      cancelLabel: "Cancel delete account",
+      statusDeleted: "Account deleted",
+      statusKept: "Kept",
+      onConfirm: deleteAccount,
+    });
+  }
+
   function renderSlots() {
     renderSlot($("account-stats"));
     renderSlot($("account-settings"));
-    deleteArmed = false;
   }
 
   function setStatus(state, text) {
@@ -277,10 +302,6 @@
         event.preventDefault();
         signOut();
       }
-      if (target.closest("[data-account-delete]")) {
-        event.preventDefault();
-        deleteAccount(target.closest("[data-account-delete]"));
-      }
     });
     const request = $("account-request");
     if (request) {
@@ -296,12 +317,12 @@
         submitCode(code);
       });
     }
-    const signOutButton = $("account-signout");
-    if (signOutButton) signOutButton.addEventListener("click", signOut);
-    const deleteButton = $("account-delete");
-    if (deleteButton) {
-      deleteButton.addEventListener("click", () => deleteAccount(deleteButton));
-    }
+    const signOutControl = $("account-signout");
+    if (signOutControl) signOutControl.addEventListener("click", signOut);
+    const everywhere = $("account-signout-all");
+    if (everywhere && !everywhere.firstChild) everywhere.append(signOutEverywhereControl());
+    const deleteSlot = $("account-delete-slot");
+    if (deleteSlot && !deleteSlot.firstChild) deleteSlot.append(deleteControl());
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "hidden") flush();
     });
@@ -382,48 +403,51 @@
     if (address) address.textContent = email;
   }
 
+  function finishSignedOut(message) {
+    signedIn = false;
+    email = "";
+    dirty = false;
+    renderSlots();
+    closeSheet();
+    const live = $("live-region");
+    if (live) live.textContent = message;
+  }
+
   async function signOut() {
     try {
       await postJson("/api/account/signout", {});
     } catch {
       /* the local signed-in flag still clears */
     }
-    signedIn = false;
-    email = "";
-    dirty = false;
-    renderSlots();
-    closeSheet();
-    const live = $("live-region");
-    if (live) live.textContent = "Signed out. This device still has its copy.";
+    finishSignedOut("Signed out. This device still has its copy.");
   }
 
-  async function deleteAccount(button) {
-    if (!deleteArmed) {
-      deleteArmed = true;
-      if (button) button.textContent = "Delete the saved copy";
+  async function signOutEverywhere() {
+    try {
+      const result = await postJson("/api/account/signout-all", {});
+      if (!result.ok) {
+        setStatus("error", (result.data && result.data.error) || "Could not sign out everywhere.");
+        return;
+      }
+    } catch {
+      setStatus("error", "Could not sign out everywhere. Check the connection and try again.");
       return;
     }
-    if (button) button.disabled = true;
+    finishSignedOut("Signed out everywhere. This device still has its copy.");
+  }
+
+  async function deleteAccount() {
     try {
       const result = await postJson("/api/account/delete", {});
       if (!result.ok) {
         setStatus("error", (result.data && result.data.error) || "The account could not be deleted.");
-        if (button) button.disabled = false;
         return;
       }
     } catch {
       setStatus("error", "The account could not be deleted. Check the connection and try again.");
-      if (button) button.disabled = false;
       return;
     }
-    signedIn = false;
-    email = "";
-    dirty = false;
-    deleteArmed = false;
-    renderSlots();
-    closeSheet();
-    const live = $("live-region");
-    if (live) live.textContent = "The account is deleted. This device still has its copy.";
+    finishSignedOut("The account is deleted. This device still has its copy.");
   }
 
   function consumeQuery() {

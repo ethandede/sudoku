@@ -846,9 +846,17 @@
     };
   }
 
+  function countHtml(value, counts) {
+    const n = Number(value);
+    if (!counts || !Number.isInteger(n) || n <= 0) return escapeHtml(value);
+    const text = String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return `<span class="count-up" data-count="${n}">${text}</span>`;
+  }
+
   function hintMarkup(data, options) {
     const report = hintReport(data);
     const compact = Boolean(options && options.compact);
+    const counts = Boolean(options && options.counts) && !compact;
     const live = options && options.live && !options.live.practice ? options.live : null;
     const heading = compact ? "h3" : "h2";
     const title = compact ? "Hints" : "Your hints";
@@ -861,11 +869,11 @@
     if (!report.techniques.length && !report.solves && !(live && (live.hints || live.checks))) {
       parts.push(`<p class="stats-empty">No finished puzzles stored here yet.</p>`);
     } else if (report.techniques.length || report.solves) {
-      const zero = report.zeroPct == null ? "n/a" : `${report.zeroPct}%`;
+      const zero = report.zeroPct == null ? "n/a" : `${countHtml(report.zeroPct, counts)}%`;
       parts.push(`<dl class="stats-facts hint-facts">
-        <div><dt>Technique hints</dt><dd>${report.totalHints}</dd></div>
-        <div><dt>Checks</dt><dd>${report.checks}</dd></div>
-        <div><dt>Finishes stored</dt><dd>${report.solves}</dd></div>
+        <div><dt>Technique hints</dt><dd>${countHtml(report.totalHints, counts)}</dd></div>
+        <div><dt>Checks</dt><dd>${countHtml(report.checks, counts)}</dd></div>
+        <div><dt>Finishes stored</dt><dd>${countHtml(report.solves, counts)}</dd></div>
         <div><dt>No technique hints</dt><dd>${zero}</dd></div>
       </dl>`);
       if (report.levels.length) {
@@ -884,7 +892,7 @@
         const rows = report.techniques
           .map((row) => {
             const slug = encodeURIComponent(row.slug);
-            return `<tr><th scope="row"><a href="/techniques/${slug}/">${escapeHtml(row.name)}</a> <a class="hint-practice" href="/?practice=${slug}">Practice</a></th><td>${row.seen}</td><td>${row.clean}</td><td>${row.hinted}</td></tr>`;
+            return `<tr><th scope="row"><a href="/techniques/${slug}/">${escapeHtml(row.name)}</a> <a class="hint-practice" href="/?practice=${slug}">Practice</a></th><td>${countHtml(row.seen, counts)}</td><td>${countHtml(row.clean, counts)}</td><td>${countHtml(row.hinted, counts)}</td></tr>`;
           })
           .join("");
         parts.push(
@@ -959,6 +967,26 @@
       added: caught.data.badges.filter((id) => !before.has(id)),
       unlocked: caught.unlocked,
     };
+  }
+
+  function resetRecord() {
+    try {
+      const store = root.localStorage;
+      if (store) store.removeItem(STATS_KEY);
+    } catch {
+      /* private mode */
+    }
+    const data = fresh();
+    if (!skillsBlocked) writeJson(SKILLS_KEY, data);
+    return data;
+  }
+
+  function clearHistory() {
+    if (skillsBlocked) return load();
+    const data = load();
+    data.history = [];
+    writeJson(SKILLS_KEY, data);
+    return data;
   }
 
   function escapeHtml(value) {
@@ -1053,6 +1081,8 @@
     encode,
     decode,
     importAll,
+    resetRecord,
+    clearHistory,
     icon,
     celebrate,
     escapeHtml,
