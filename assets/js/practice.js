@@ -17,6 +17,7 @@
   skyscraper: 9.1,
   "two-string-kite": 9.2,
   "xyz-wing": 9.3,
+  "w-wing": 9.4,
   coloring: 10,
   "xy-chain": 10.1,
 };
@@ -37,6 +38,7 @@
     skyscraper: "Apply all skyscrapers",
     "two-string-kite": "Apply all two-string kites",
     "xyz-wing": "Apply all XYZ-wings",
+    "w-wing": "Apply all W-wings",
     coloring: "Apply all simple coloring",
     "xy-chain": "Apply all XY-chains",
   };
@@ -75,6 +77,7 @@
     "Hidden triple": "Hidden triples",
     "X-wing": "X-wings",
     "XY-wing": "XY-wings",
+    "W-wing": "W-wings",
     "XY-chain": "XY-chains",
   };
 
