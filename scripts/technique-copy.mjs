@@ -1088,9 +1088,55 @@ export const techniques = [
     related: ["unique-rectangle", "coloring"],
     when: "BUG+1 is Expert. It comes after the unique rectangle and before coloring.",
     nyt: "The 1,483 archived NYT puzzles never need BUG+1. Their hardest steps stop at triples.",
-    paragraphs: [
-      "BUG+1 shows up when the puzzle is almost a grave. Every empty cell has two candidates, except one cell that has three. In each house, each digit is a candidate twice, except one digit that appears three times.",
-      "That extra digit has to be the one in the busy cell. Otherwise the rest of the grid could be filled two ways. The puzzle has one solution, so the other two candidates come out of that cell.",
+    sections: [
+      {
+        h: "One extra candidate, and a grave around it",
+        p: [
+          "BUG+1 shows up when the notes are almost a grave. Every empty cell has two candidates, except one cell that has three. In each house, each digit is a candidate twice, or not at all, except one digit that appears three times. That digit sits in the busy cell.",
+          "On this board the busy cell is row 8, column 4. It can be 2, 7, or 9. The other 21 empty cells hold two candidates each. Take the 9 off row 8, column 4 and what is left is a Bivalue Universal Grave: pairs everywhere, each digit twice in its houses. A grave can be filled two ways. The name is a lot of words for a grid that forgot to have one answer.",
+        ],
+      },
+      {
+        h: "Why 9 stays and 2 and 7 leave",
+        p: [
+          "The digit that appears three times is the one that belongs in the busy cell. Delete it and you are back in the grave, with two solutions. Keep it, and the other two candidates in that cell are what made the third seat. They leave.",
+          "Row 8 holds 9 in three cells. Row 8, column 4 can be 2, 7, or 9. Row 8, column 5 can be 7 or 9. Row 8, column 6 can be 2 or 9. Column 4 holds 9 in row 2, column 4 (6 or 9), row 6, column 4 (8 or 9), and row 8, column 4. The box is rows 7 to 9 and columns 4 to 6. Its 9s are those same three from the row. Row 7 and row 9 have no 9 left in the box. 2 appears twice in the row, twice in the column, and twice in the box. So does 7. 9 is the one that showed up three times.",
+        ],
+      },
+      {
+        h: "One solution does the deleting",
+        p: [
+          "This is the same promise as a [unique rectangle](/techniques/unique-rectangle/), spread over the whole grid instead of four cells. It is a real deduction. It rests on the puzzle having one solution. A newspaper puzzle, and every puzzle this site generates, comes with that promise. The solver checks before it will take BUG+1. If the check finds a second solution, the 2 and the 7 stay in row 8, column 4.",
+          "If you typed a grid in by hand and never confirmed it has one solution, do not strip this cell. You might be deleting a digit that belongs to the other filling. I have done that, then stared at a contradiction the logic did not cause. The grid was not a puzzle.",
+        ],
+      },
+      {
+        demo: true,
+        h: "The cell that kept a third digit",
+        intro:
+          "Row 8, column 4 is the only cell with three candidates. Step through. 2 and 7 leave, and the cell becomes 9.",
+      },
+      {
+        h: "The row is a triple that deletes nothing",
+        p: [
+          "Row 8, column 1 is 8. Row 8, column 2 is 5 and row 8, column 3 is 1. Row 8, column 7 is 3, row 8, column 8 is 6, and row 8, column 9 is 4. Three cells are still open, and they are the three already counted.",
+          "Row 8, column 4, row 8, column 5, and row 8, column 6 use only 2, 7, and 9. That is a naked triple, and the rest of the row is filled, so the triple has nowhere to delete. It also cannot tell you which of the three cells is 9. BUG+1 can. 2 leaves row 8, column 4. 7 leaves with it. 9 is what remains, and the step places 9 in row 8, column 4.",
+        ],
+      },
+      {
+        h: "A crowded 9 is not the candidate to clear",
+        p: [
+          "Column 4, off the busy cell, is already pairs. Row 1, column 4 can be 5 or 7. Row 3, column 4 can be 2 or 4. Row 5, column 4 can be 5 or 6. Row 9, column 4 can be 4 or 8. Row 2, column 4 can be 6 or 9, and row 6, column 4 can be 8 or 9. Count the 9 and you get three. Count 2 or 7 and you get two, once the busy cell is included.",
+          "The near miss is clearing 9 from row 8, column 5 because the row looks overfull. That cell is 7 or 9, and both marks stay. The extra 9 is the one in the busy cell, and it is the digit that remains. I have crossed that 9 off the pair and then had to put it back.",
+        ],
+      },
+      {
+        h: "After the unique rectangle",
+        p: [
+          "BUG+1 is Expert. It comes after the [unique rectangle](/techniques/unique-rectangle/). The next page is [simple coloring](/techniques/coloring/). The rectangle is four cells and a swap. This is the notes reduced to pairs, plus one digit that appears once too often. Both of them lean on one solution.",
+          "The 1,483 archived NYT puzzles never need BUG+1. Their hardest steps stop at triples. I look for this when the pencil marks are pairs and one cell still has three. If a second cell also has three, it is not this pattern, and I leave the cell alone.",
+        ],
+      },
     ],
   },
   {
