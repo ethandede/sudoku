@@ -2,8 +2,9 @@
 // NYT profile already used by the grader (vivrao9/nyt-sudoku, August 30, 2021 through March 2, 2024,
 // 1,483 puzzles). Nothing here invents a rate the archive didn't show.
 //
-// `order` is the solver's difficulty, lowest first. The techniques index and
-// the "next harder" link both sort by it, so array position does not matter.
+// `order` is the solver's difficulty, lowest first. The techniques index,
+// the "next harder" link, and the skill ladder all sort by it, so array
+// position does not matter.
 // A tenth breaks ties (claiming after pointing, a hidden subset after the
 // naked one, XY-chain after coloring). Leave the gaps. A new technique slots
 // in by setting `order` and nothing else.
