@@ -4,6 +4,9 @@ import { DatabaseSync } from "node:sqlite";
 import {
   aggregate,
   beatPercent,
+  PUBLIC_STATS_SINCE,
+  publicPlays,
+  summarizeBucket,
   consentRequired,
   finishAction,
   puzzleKeyFrom,
@@ -169,7 +172,7 @@ assert.equal(dailyKey, await puzzleKeyFrom("daily:2026-10-21", [9, 9, 9]));
 assert.notEqual(dailyKey, givenKey);
 assert.equal(givenKey.length, 64);
 
-const now = Date.parse("2026-10-21T12:00:00.000Z");
+const now = Date.parse("2026-10-27T12:00:00.000Z");
 const plays = [];
 for (let index = 0; index < 20; index += 1) {
   plays.push({
@@ -205,6 +208,55 @@ assert.equal(summary.windows["30d"].daily.suppressed, true);
 assert.equal(summary.today.daily.suppressed, true);
 assert.equal(summary.windows.all.levels.easy.suppressed, true);
 assert.equal(summary.windows["30d"].levels.hard.topHint.slug, "x-wing");
+assert.equal(summary.windows["30d"].levels.hard.avgHints, 0.7);
+assert.equal("avgHints" in summary.windows["30d"].levels["not easy"], false);
+assert.equal(JSON.stringify(summary).includes("client"), false);
+
+const thin = Array.from({ length: 19 }, () => ({
+  outcome: "solved",
+  elapsed_seconds: 90,
+  mistakes: 0,
+  hints_used: 2,
+  hardest_hint: "pointing",
+}));
+const thinBucket = summarizeBucket(thin, thin);
+assert.equal(thinBucket.suppressed, true);
+assert.equal("avgHints" in thinBucket, false);
+const enough = summarizeBucket(
+  Array.from({ length: 20 }, (_, index) => ({
+    outcome: "solved",
+    elapsed_seconds: 90 + index,
+    mistakes: 0,
+    hints_used: index < 10 ? 0 : 2,
+    hardest_hint: index < 10 ? null : "naked-pair",
+  })),
+  Array.from({ length: 20 }, (_, index) => ({
+    outcome: "solved",
+    elapsed_seconds: 90 + index,
+    mistakes: 0,
+    hints_used: index < 10 ? 0 : 2,
+    hardest_hint: index < 10 ? null : "naked-pair",
+  }))
+);
+assert.equal(enough.suppressed, false);
+assert.equal(enough.avgHints, 1);
+assert.equal(enough.noHintPct, 50);
+
+const buried = publicPlays(
+  Array.from({ length: 25 }, () => ({
+    level: "hard",
+    is_daily: 0,
+    outcome: "solved",
+    elapsed_seconds: 100,
+    mistakes: 0,
+    hints_used: 4,
+    hardest_hint: "x-wing",
+    started_at: PUBLIC_STATS_SINCE - 1_000,
+    finished_at: PUBLIC_STATS_SINCE,
+  }))
+);
+assert.equal(buried.length, 0);
+assert.equal(aggregate(buried, PUBLIC_STATS_SINCE + 86_400_000).windows.all.levels.hard.suppressed, true);
 
 {
   const { env, sqlite } = openDb();
@@ -320,7 +372,7 @@ assert.equal(summary.windows["30d"].levels.hard.topHint.slug, "x-wing");
           puzzleKey,
           level: "not easy",
           isDaily: true,
-          date: "2026-10-21",
+          date: "2026-10-27",
         })
       ),
       env,

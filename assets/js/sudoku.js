@@ -365,6 +365,7 @@
       metadata: null,
       removed: [],
       hintSlugs: [],
+      checks: 0,
       train: null,
       practice: null,
       practiceMiss: false,
@@ -1253,7 +1254,8 @@
         level,
         seconds: state.elapsed,
         mistakes: state.mistakes,
-        hintSlugs: state.hintSlugs || [],
+        hintSlugs: techniqueHints(),
+        checks: state.checks || 0,
         path: solutionPath(),
         at: new Date().toISOString(),
       },
@@ -1442,11 +1444,34 @@
     dismissHint();
   }
 
+  function noteTechniqueHint(slug) {
+    if (!slug) return;
+    if (!state.hintSlugs) state.hintSlugs = [];
+    if (state.hintSlugs.includes(slug)) return;
+    state.hintSlugs.push(slug);
+  }
+
+  function noteCheck() {
+    if (state.practice) return;
+    state.checks = (state.checks | 0) + 1;
+  }
+
+  function techniqueHints() {
+    const slugs = [];
+    (state.hintSlugs || []).forEach((slug) => {
+      if (typeof slug === "string" && slug && !slugs.includes(slug)) slugs.push(slug);
+    });
+    state.hintSlugs = slugs;
+    return slugs;
+  }
+
   function openHint() {
     const wrong = firstWrong();
     if (wrong >= 0) {
       hintView = { kind: "wrong", stage: 1, index: wrong, key: hintKey() };
+      noteCheck();
       showHint();
+      writeSave();
       return;
     }
     const solverApi = window.SudokuSolver;
@@ -1456,7 +1481,7 @@
       return;
     }
     hintView = { kind: "step", stage: 1, step, key: hintKey() };
-    if (step.slug) state.hintSlugs.push(step.slug);
+    noteTechniqueHint(step.slug);
     showHint();
     writeSave();
   }
@@ -1561,7 +1586,7 @@
     const step = hintView.step;
     const followUp = Boolean(hintView.followUp);
     pushUndo();
-    if (followUp && step.slug) state.hintSlugs.push(step.slug);
+    if (followUp) noteTechniqueHint(step.slug);
     hintView.followUp = false;
     const applied = window.SudokuHintApply.applyHintStep(
       {
@@ -1760,7 +1785,7 @@
   }
 
   function communitySnapshot(outcome) {
-    const slugs = state.hintSlugs || [];
+    const slugs = techniqueHints();
     const hardest =
       window.SudokuProgress && slugs.length ? window.SudokuProgress.hardest(slugs) || "" : "";
     return {
@@ -2237,7 +2262,7 @@
   function shareInfo(names) {
     const daily = state.kind === "daily";
     const puzzleId = currentPuzzleId();
-    const hints = (state.hintSlugs || []).length;
+    const hints = techniqueHints().length;
     return {
       kindLabel: daily ? `Daily · ${window.SudokuShare.shortDate(state.dailyDate)}` : labelFor(state.kind),
       time: formatTime(state.elapsed),
@@ -2402,7 +2427,7 @@
       line.hidden = false;
       return;
     }
-    const hints = state.revealed ? [] : [...new Set(state.hintSlugs || [])];
+    const hints = state.revealed ? [] : techniqueHints();
     if (api && hints.length) {
       const slug = api.hardest(hints);
       const name = api.nameOf(slug);
@@ -2507,9 +2532,20 @@
         }</td><td>${average}</td></tr>`;
       })
       .join("");
+    const hintHtml =
+      window.SudokuProgress && window.SudokuProgress.hintMarkup
+        ? window.SudokuProgress.hintMarkup(window.SudokuProgress.load(), {
+            compact: true,
+            live: {
+              hints: techniqueHints().length,
+              checks: state.checks | 0,
+              practice: Boolean(state.practice || state.fastForwarded),
+            },
+          })
+        : "";
     body.innerHTML = `<table class="stats-table"><thead><tr><th>Puzzle</th><th>Played</th><th>Won</th><th>Best</th><th>Average</th></tr></thead><tbody>${table}</tbody></table><p class="streak-line">Daily streak ${currentStreak()} · longest ${
       stats.daily.longestStreak || 0
-    }</p><p class="streak-line"><a class="account-link" href="/skills/">Skill ladder</a></p>`;
+    }</p>${hintHtml}<p class="streak-line"><a class="account-link" href="/skills/">Skill ladder</a></p>`;
     showModal("stats-modal");
   }
 
@@ -2566,7 +2602,8 @@
       counted: state.counted,
       scored: state.scored,
       metadata: state.metadata,
-      hintSlugs: state.hintSlugs || [],
+      hintSlugs: techniqueHints(),
+      checks: state.checks | 0,
       train: state.train || null,
       practice: state.practice || null,
       practiceMiss: Boolean(state.practiceMiss),
@@ -2660,6 +2697,8 @@
     state.scored = Boolean(saved.scored);
     state.metadata = saved.metadata;
     state.hintSlugs = Array.isArray(saved.hintSlugs) ? saved.hintSlugs.filter((slug) => typeof slug === "string") : [];
+    state.checks = Math.max(0, saved.checks | 0);
+    techniqueHints();
     state.train = typeof saved.train === "string" ? saved.train : null;
     state.practice = typeof saved.practice === "string" ? saved.practice : null;
     state.practiceMiss = Boolean(saved.practiceMiss);

@@ -240,5 +240,11 @@ assert.ok(page.includes('next.textContent = "Place it"'), "the chained action pl
 assert.ok(page.includes("aria-keyshortcuts"), "the place button advertises Enter");
 assert.ok(page.includes("hintSlugs: (state.hintSlugs || []).slice()"), "undo snapshots hint names");
 assert.ok(page.includes("continueHint"), "a wrong digit continues into the next hint");
+assert.ok(page.includes("function noteTechniqueHint(slug)"), "technique hints have one recorder");
+assert.equal(page.includes("state.hintSlugs.push(step.slug)"), false, "a hint slug is not pushed on every open");
+assert.ok(page.includes("if (state.hintSlugs.includes(slug)) return"), "a technique hint is counted once per game");
+assert.ok(page.includes("function noteCheck()"), "wrong-digit checks are tracked");
+assert.ok(page.includes("if (state.practice) return"), "practice does not record a check");
+assert.ok(page.includes("checks: state.checks || 0"), "a solve records checks separately");
 
 console.log("hint apply ok");

@@ -36,6 +36,14 @@ export const CONSENT_REGIONS = [
 ];
 
 export const MIN_FINISHES = 20;
+
+// Plays from building the stats pipeline stay in D1 and out of the public
+// sample. The last of those rows started at 2026-10-23T10:44:36Z.
+export const PUBLIC_STATS_SINCE = Date.parse("2026-10-23T11:00:00.000Z");
+
+export function publicPlays(plays) {
+  return (plays || []).filter((play) => Number(play && play.started_at) >= PUBLIC_STATS_SINCE);
+}
 export const MIN_SOLVED_FOR_PERCENTILE = 20;
 export const MAX_STARTS_PER_DAY = 40;
 export const MIN_START_GAP_MS = 10_000;
@@ -271,6 +279,8 @@ export function summarizeBucket(starts, finishes) {
     .sort((a, b) => a - b);
   const noHints = solved.filter((play) => !play.hints_used).length;
   const topHints = hintMode(finishes);
+  const hintTotal = solved.reduce((sum, play) => sum + Math.max(0, play.hints_used | 0), 0);
+  const avgHints = solved.length ? Math.round((hintTotal / solved.length) * 10) / 10 : null;
   return {
     suppressed: false,
     starts: startCount,
@@ -288,6 +298,7 @@ export function summarizeBucket(starts, finishes) {
     p75Seconds: quantile(solvedTimes, 0.75),
     medianMistakes: quantile(mistakeTimes, 0.5),
     noHintPct: solved.length ? percent(noHints, solved.length) : null,
+    avgHints,
     topHint: topHints[0] || null,
     timeBuckets: timeBuckets(solvedTimes),
     topHints,
