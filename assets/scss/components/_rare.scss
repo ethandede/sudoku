@@ -322,6 +322,82 @@ html[data-theme="dark"] .rare-circle {
     inset 0 0.5px 0 rgba(255, 255, 255, 0.07);
 }
 
+// Hint bulb. The delete button's press and hover motion, on #hint-btn.
+// The lid lift is a bulb lift. The accent check is a lit filament.
+// A tap still opens the hint immediately. The 44px box does not change.
+// https://rareui.com/components/deletebutton
+
+#hint-btn .hint-bulb {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  transition: transform 0.6s cubic-bezier(0.34, 1.1, 0.64, 1);
+}
+
+#hint-btn svg {
+  transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+#hint-btn .hint-filament {
+  opacity: 0;
+  transition:
+    opacity 0.2s cubic-bezier(0.32, 0.72, 0, 1),
+    stroke 0.2s linear;
+}
+
+#hint-btn .hint-glass {
+  transition: filter 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+#hint-btn:active svg {
+  transform: scale(0.94);
+}
+
+#hint-btn:active .hint-bulb {
+  transform: translateY(-2px);
+}
+
+#hint-btn:active .hint-filament {
+  opacity: 1;
+  stroke: var(--accent-color);
+}
+
+#hint-btn:active .hint-glass {
+  filter: drop-shadow(0 0 1.5px var(--accent-color));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  #hint-btn:hover .hint-bulb {
+    transform: translateY(-2px);
+  }
+
+  #hint-btn:hover .hint-filament {
+    opacity: 1;
+    stroke: var(--accent-color);
+  }
+
+  #hint-btn:hover .hint-glass {
+    filter: drop-shadow(0 0 1.5px var(--accent-color));
+  }
+}
+
+html[data-theme="dark"] #hint-btn:active .hint-filament {
+  stroke: var(--accent-on-dark);
+}
+
+html[data-theme="dark"] #hint-btn:active .hint-glass {
+  filter: drop-shadow(0 0 1.5px var(--accent-on-dark));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html[data-theme="dark"] #hint-btn:hover .hint-filament {
+    stroke: var(--accent-on-dark);
+  }
+
+  html[data-theme="dark"] #hint-btn:hover .hint-glass {
+    filter: drop-shadow(0 0 1.5px var(--accent-on-dark));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rare-counter.is-rolling .rare-wheel,
   .rare-delete,
@@ -335,6 +411,19 @@ html[data-theme="dark"] .rare-circle {
   .rare-delete-trigger:active,
   .rare-circle:hover,
   .rare-circle:active {
+    transform: none;
+  }
+
+  #hint-btn .hint-bulb,
+  #hint-btn svg,
+  #hint-btn .hint-filament,
+  #hint-btn .hint-glass {
+    transition: none;
+  }
+
+  #hint-btn:hover .hint-bulb,
+  #hint-btn:active .hint-bulb,
+  #hint-btn:active svg {
     transform: none;
   }
 }

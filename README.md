@@ -48,7 +48,7 @@ Light accents, kept small: a page dot grid (the idea is Magic UI's Dot Pattern, 
 Two controls are adapted from Rare UI (copyright 2026 Swami Malode, MIT plus Commons Clause). The license allows shipping them inside this site and requires the copyright notice plus a visible link to https://rareui.com. That link is in the footer. The sources are `assets/js/rare-counter.js`, `assets/js/rare-delete.js`, and `assets/scss/components/_rare.scss`. They are not a separate component library.
 
 - Animated counter, https://rareui.com/components/animatedcounter. Integer stats roll up once when they scroll into view. The final width is reserved, numerals are tabular, and reduced motion shows the final number.
-- Delete button, https://rareui.com/components/deletebutton. The lid opens onto confirm and cancel. Used for reset on the stats page, clear history on the skill ladder, and delete account plus sign out everywhere in account settings. It is not on the board, keypad, or Reset Puzzle. The original orange is replaced with Palette A.
+- Delete button, https://rareui.com/components/deletebutton. The lid opens onto confirm and cancel. Used for reset on the stats page, clear history on the skill ladder, and delete account plus sign out everywhere in account settings. It is not on the board, keypad, or Reset Puzzle. The same press and hover motion is on the hint bulb by the grid: the bulb lifts and the filament lights, and the tap still opens the hint at once. The original orange is replaced with Palette A.
 
 Motion is off when `prefers-reduced-motion: reduce` is set. The hover then changes the button color without the expanding circle.
 

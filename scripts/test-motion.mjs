@@ -75,7 +75,7 @@ assert.equal(rareCss.includes("#FF5F2E"), false);
 assert.equal(rareCss.includes("#ff5f2e"), false);
 assert.match(build, /https:\/\/rareui\.com/);
 for (const source of [rareCss]) {
-  for (const selector of [".sudoku-grid", ".number-pad", ".erase-key", ".mode-toggle", ".cell", "#timer"]) {
+  for (const selector of [".sudoku-grid", ".number-pad", ".erase-key", ".mode-toggle", ".undo-btn", ".cell", "#timer"]) {
     assert.equal(source.includes(selector), false, `${selector} leaked into rare CSS`);
   }
 }
