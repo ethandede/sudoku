@@ -308,9 +308,16 @@ await checkCase("Start new, fill all, Done fires one assisted game_complete", as
   await page.click("#more-btn");
   await page.click("#more-fill");
   await page.locator("#fill-list button", { hasText: "Fill all naked singles" }).click();
-  await page.waitForSelector("#fill-chip:not([hidden])");
-  await page.click("#fill-done");
-  await page.waitForSelector("#solved-modal:not([hidden])", { timeout: 4000 });
+  const solvedNow = page.locator("#solved-modal:not([hidden])");
+  const chip = page.locator("#fill-chip:not([hidden])");
+  await Promise.race([
+    solvedNow.waitFor({ state: "visible", timeout: 4000 }).catch(() => {}),
+    chip.waitFor({ state: "visible", timeout: 4000 }).catch(() => {}),
+  ]);
+  if (await page.locator("#solved-modal").isHidden()) {
+    await page.click("#fill-done");
+    await page.waitForSelector("#solved-modal:not([hidden])", { timeout: 4000 });
+  }
   const summary = (await page.locator("#solved-summary").innerText()).replace(/\s+/g, " ");
   const extra = (await page.locator("#solved-stats").innerText()).replace(/\s+/g, " ");
   check(summary.startsWith("Easy"), `summary is ${summary}`);

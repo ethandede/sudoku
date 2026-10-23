@@ -417,7 +417,7 @@ function accountMergeForBrowser(source) {
 
 function hintApplyForBrowser(source) {
   const body = source.replace(/^export /gm, "");
-  return `(function (root) {\n${body}\n  root.SudokuHintApply = {\n    applyHintStep: applyHintStep,\n    placesOnApply: placesOnApply,\n    legalCandidates: legalCandidates,\n    eliminationSentence: eliminationSentence,\n    resultCopy: resultCopy,\n    cellName: cellName\n  };\n})(typeof globalThis !== "undefined" ? globalThis : this);\n`;
+  return `(function (root) {\n${body}\n  root.SudokuHintApply = {\n    applyHintStep: applyHintStep,\n    placesOnApply: placesOnApply,\n    legalCandidates: legalCandidates,\n    eliminationSentence: eliminationSentence,\n    noteClears: noteClears,\n    resultCopy: resultCopy,\n    cellName: cellName\n  };\n})(typeof globalThis !== "undefined" ? globalThis : this);\n`;
 }
 
 function dailyForBrowser(source) {
