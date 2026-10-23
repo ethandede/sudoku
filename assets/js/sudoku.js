@@ -2089,7 +2089,7 @@
       .join("");
     body.innerHTML = `<table class="stats-table"><thead><tr><th>Puzzle</th><th>Played</th><th>Won</th><th>Best</th><th>Average</th></tr></thead><tbody>${table}</tbody></table><p class="streak-line">Daily streak ${currentStreak()} · longest ${
       stats.daily.longestStreak || 0
-    }</p><p class="streak-line"><a href="/skills/">Skill ladder</a></p>`;
+    }</p><p class="streak-line"><a class="account-link" href="/skills/">Skill ladder</a></p>`;
     showModal("stats-modal");
   }
 

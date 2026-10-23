@@ -1352,6 +1352,12 @@ button:disabled {
   padding: 0;
 }
 
+.modal-card.stats-card {
+  margin: 0;
+  border: 0;
+  padding: 1.25rem 1.25rem 1.4rem;
+}
+
 .settings-card legend {
   font-weight: 700;
   margin-bottom: 0.35rem;
@@ -1374,6 +1380,18 @@ button:disabled {
     text-align: left;
     padding: 0.4rem 0.3rem;
     border-bottom: 1px solid var(--pad-border);
+  }
+}
+
+.modal-card.stats-card .stats-table {
+  th:first-child,
+  td:first-child {
+    padding-left: 0;
+  }
+
+  th:last-child,
+  td:last-child {
+    padding-right: 0;
   }
 }
 
@@ -1401,7 +1419,21 @@ button:disabled {
   min-height: 44px;
   padding: 0;
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
+}
+
+.account-link.account-delete,
+.account-card #account-delete {
+  min-height: 32px;
+  width: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--danger);
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .account-signed-in {
