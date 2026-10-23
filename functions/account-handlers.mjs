@@ -481,6 +481,19 @@ export async function handleSync({ request, env, now = Date.now() }) {
   }
 }
 
+export async function handleSignOutAll({ request, env, now = Date.now() }) {
+  const db = database(env);
+  const headers = { "set-cookie": clearCookie() };
+  if (!db) return json({ ok: true }, 200, headers);
+  try {
+    const session = await sessionFor(db, request, now);
+    if (session) await db.prepare("DELETE FROM sessions WHERE user_id = ?").bind(session.user_id).run();
+  } catch {
+    return json({ error: "Could not sign out everywhere." }, 503);
+  }
+  return json({ ok: true }, 200, headers);
+}
+
 export async function handleSignOut({ request, env }) {
   const db = database(env);
   const headers = { "set-cookie": clearCookie() };

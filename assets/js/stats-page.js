@@ -103,7 +103,8 @@
   function countSpan(value) {
     const n = Number(value);
     if (!Number.isInteger(n) || n <= 0) return escapeHtml(value);
-    return `<span class="count-up" data-count="${n}">${n}</span>`;
+    const text = String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return `<span class="count-up" data-count="${n}">${text}</span>`;
   }
 
   function hintsLabel(value) {
@@ -194,35 +195,11 @@
     return `<span class="count-up" data-count="${total}" data-format="time">${text}</span>`;
   }
 
-  function countText(node, value) {
-    if (node.dataset.format === "time") return gameTime(value);
-    return String(Math.round(value));
-  }
-
   function animateCounts(scope) {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    scope.querySelectorAll("[data-count]").forEach((node) => {
-      const target = Number(node.dataset.count);
-      if (!Number.isInteger(target) || target <= 0) return;
-      const finalText = node.textContent;
-      const width = Math.ceil(node.getBoundingClientRect().width);
-      if (width > 0) node.style.minWidth = `${width}px`;
-      const start = performance.now();
-      const duration = 650;
-      node.textContent = countText(node, 0);
-      function frame(now) {
-        if (!node.isConnected) return;
-        const t = Math.min(1, (now - start) / duration);
-        const eased = 1 - (1 - t) ** 3;
-        node.textContent = countText(node, target * eased);
-        if (t < 1) {
-          requestAnimationFrame(frame);
-          return;
-        }
-        node.textContent = finalText;
-      }
-      requestAnimationFrame(frame);
+    scope.querySelectorAll('.count-up[data-format="time"]').forEach((node) => {
+      node.classList.remove("count-up");
     });
+    if (window.RareCounter) window.RareCounter.watch(scope);
   }
 
   function renderYourGames() {
@@ -260,7 +237,35 @@
       host.innerHTML = `<section class="hint-block"><h2>Your hints</h2><p class="stats-empty">Your hint record is not available in this browser.</p></section>`;
       return;
     }
-    host.innerHTML = window.SudokuProgress.hintMarkup(window.SudokuProgress.load());
+    host.innerHTML = window.SudokuProgress.hintMarkup(window.SudokuProgress.load(), { counts: true });
+    if (window.RareCounter) window.RareCounter.watch(host);
+    mountReset(host);
+  }
+
+  function mountReset(host) {
+    if (!window.RareDelete || !window.SudokuProgress || typeof window.SudokuProgress.resetRecord !== "function") return;
+    let slot = document.getElementById("stats-reset");
+    if (!slot) {
+      slot = document.createElement("div");
+      slot.id = "stats-reset";
+      host.after(slot);
+    }
+    if (slot.firstChild) return;
+    slot.append(
+      window.RareDelete.create({
+        label: "Reset my stats and progress",
+        note: "Clears wins, streaks, skills, badges, and history on this device. The puzzle you are playing stays. A signed-in account can bring the record back the next time you play.",
+        triggerLabel: "Reset my stats and progress",
+        confirmLabel: "Confirm reset",
+        cancelLabel: "Cancel reset",
+        statusDeleted: "Stats reset",
+        statusKept: "Kept",
+        onConfirm() {
+          window.SudokuProgress.resetRecord();
+          renderYours();
+        },
+      })
+    );
   }
 
   function render() {

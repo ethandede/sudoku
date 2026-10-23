@@ -117,6 +117,26 @@
     }
   }
 
+  .footer-credit {
+    margin: 0.35rem 0 0;
+    color: #8aa0b3;
+    font-size: 0.85rem;
+
+    a {
+      color: #9ed2f8;
+      font-weight: 700;
+
+      &:hover {
+        color: #e6e9ed;
+      }
+
+      &:focus-visible {
+        outline: 3px solid #9ed2f8;
+        outline-offset: 3px;
+      }
+    }
+  }
+
   .privacy-choices-note {
     margin: 0.75rem 0 0;
     max-width: 36rem;

@@ -98,7 +98,13 @@
               <button type="button" id="mode-notes" aria-pressed="false" aria-keyshortcuts="N" title="Press N to toggle candidates"><span class="mode-label">Candidate</span><kbd>N</kbd></button>
             </div>
             <button type="button" id="hint-btn" class="icon-btn hint-icon" aria-label="Hint">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.2a6.4 6.4 0 0 0-3.5 11.7c.35.28.55.68.55 1.1v.8h5.9v-.8c0-.42.2-.82.55-1.1A6.4 6.4 0 0 0 12 2.2ZM9.2 17.6h5.6v1.5H9.2Zm.7 2.4h4.2V21.6h-4.2Z"/></svg>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <g class="hint-bulb">
+                  <path class="hint-glass" fill="currentColor" d="M12 2.2a6.4 6.4 0 0 0-3.5 11.7c.35.28.55.68.55 1.1v.8h5.9v-.8c0-.42.2-.82.55-1.1A6.4 6.4 0 0 0 12 2.2Z"/>
+                  <path class="hint-filament" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" d="M10 9.1h1.15l.85-1.7.85 1.7H14"/>
+                </g>
+                <path class="hint-base" fill="currentColor" d="M9.2 17.6h5.6v1.5H9.2Zm.7 2.4h4.2V21.6h-4.2Z"/>
+              </svg>
             </button>
             <button type="button" id="undo-btn" class="undo-btn" aria-label="Undo" disabled>Undo</button>
           </div>
@@ -273,9 +279,10 @@
         <p>Signed in as <strong id="account-signed-email" class="account-email"></strong></p>
         <div class="account-actions">
           <button type="button" id="account-signout" class="secondary-btn">Sign out</button>
-          <button type="button" id="account-delete" class="secondary-btn">Delete my account</button>
+          <div id="account-signout-all"></div>
+          <div id="account-delete-slot"></div>
         </div>
-        <p class="key-help">Delete removes the email and the saved copy on the server. This device keeps its own copy.</p>
+        <p class="key-help">Sign out ends the session on this device only.</p>
       </div>
       <p id="account-status" class="account-status" role="status" hidden></p>
     </div>

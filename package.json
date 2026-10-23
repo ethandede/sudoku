@@ -28,6 +28,7 @@
     "test:brand": "node scripts/test-brand.mjs",
     "test:white": "node scripts/test-no-white.mjs",
     "test:motion": "node scripts/test-motion.mjs",
+    "test:rare": "node scripts/test-rare.mjs",
     "test:stats-page": "node scripts/test-stats-page.mjs",
     "test:home": "node scripts/test-home-copy.mjs",
     "test:examples": "node scripts/test-example-board.mjs",
