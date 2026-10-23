@@ -73,6 +73,16 @@ function housePhrase(entries, lead) {
   return `${digit} from ${lead}${listPhrase(entries.map((entry) => cellName(entry.index)))}`;
 }
 
+export function previewSentence(eliminate) {
+  const items = [];
+  for (const [index, digits] of grouped(eliminate)) {
+    for (const digit of digits) items.push({ index, digit });
+  }
+  if (!items.length) return "";
+  const parts = items.map((item) => `${item.digit} in ${cellName(item.index)}`);
+  return `Rules out ${listPhrase(parts)}.`;
+}
+
 export function eliminationSentence(eliminate, notes) {
   const noted = [];
   const missing = [];
@@ -168,6 +178,12 @@ export function applyHintStep(state, step) {
       removed.push({ index: item.index, digit: item.digit });
     }
   }
+  const fades = [];
+  for (const item of step.eliminate || []) {
+    if (!item) continue;
+    if ((before[item.index] || []).includes(item.digit)) continue;
+    fades.push({ index: item.index, digit: item.digit });
+  }
   let placed = false;
   if (placesOnApply(step)) {
     const place = step.place;
@@ -189,6 +205,7 @@ export function applyHintStep(state, step) {
     notes: notes.map((set) => [...set].sort((a, b) => a - b)),
     removed: removed.filter((item) => board[item.index] === 0),
     placed,
+    fades,
     chain: Boolean(step.place && !placed && !placesOnApply(step)),
     copy: resultCopy(step, before, placed),
   };

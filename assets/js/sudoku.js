@@ -167,6 +167,7 @@
   // Fill highlights stay until the player acts. No dismiss timer.
   let fillReview = null;
   let fillFadeTimer = 0;
+  let hintFadeTimer = 0;
   let pendingSolved = null;
   const GHOST_DELAY = 320;
   let hoverSpot = null;
@@ -1383,7 +1384,27 @@
     return `${state.board.join(",")}|${removed}`;
   }
 
+  function clearHintFadeTimer() {
+    window.clearTimeout(hintFadeTimer);
+    hintFadeTimer = 0;
+  }
+
+  function scheduleHintFade() {
+    clearHintFadeTimer();
+    if (!hintView || !hintView.fadeUntil) return;
+    const wait = Math.max(0, hintView.fadeUntil - performance.now());
+    hintFadeTimer = window.setTimeout(() => {
+      hintFadeTimer = 0;
+      if (!hintView || !hintView.fadeUntil) return;
+      if (performance.now() + 30 < hintView.fadeUntil) return;
+      hintView.fades = [];
+      hintView.fadeUntil = 0;
+      render();
+    }, wait + 20);
+  }
+
   function dismissHint() {
+    clearHintFadeTimer();
     hintView = null;
     const sheet = document.getElementById("hint-sheet");
     if (sheet) sheet.hidden = true;
@@ -1422,7 +1443,10 @@
 
   function advanceHint() {
     if (blocked()) return;
-    if (hintView && hintView.key !== hintKey()) hintView = null;
+    if (hintView && hintView.key !== hintKey()) {
+      clearHintFadeTimer();
+      hintView = null;
+    }
     if (!hintView) {
       openHint();
       return;
@@ -1543,7 +1567,10 @@
         text.textContent = step.look;
         next.textContent = "Show why";
       } else if (hintView.stage === 2) {
-        text.textContent = step.explain;
+        const preview = window.SudokuHintApply.previewSentence
+          ? window.SudokuHintApply.previewSentence(step.eliminate)
+          : "";
+        text.textContent = preview ? `${step.explain} ${preview}` : step.explain;
         next.textContent = window.SudokuHintApply.placesOnApply(step) ? "Place it" : "Apply";
       } else {
         text.textContent =
@@ -1635,6 +1662,24 @@
     hintView.continueHint = false;
     hintView.resultText = applied.copy;
     hintView.key = hintKey();
+    const now = performance.now();
+    const reduced = motionReduced();
+    const fresh = reduced ? [] : applied.fades || [];
+    const carried = !reduced && hintView.fadeUntil > now ? hintView.fades || [] : [];
+    const seenFade = new Set();
+    const fades = [];
+    fresh.concat(carried).forEach((item) => {
+      if (!item) return;
+      const key = `${item.index}:${item.digit}`;
+      if (seenFade.has(key)) return;
+      seenFade.add(key);
+      fades.push({ index: item.index, digit: item.digit });
+    });
+    const until = !reduced && hintView.fadeUntil > now ? hintView.fadeUntil : 0;
+    hintView.fades = fades;
+    hintView.fadeUntil = fades.length ? until || now + 600 : 0;
+    if (hintView.fadeUntil) scheduleHintFade();
+    else clearHintFadeTimer();
     if (isSolved()) finish(false);
     else {
       showHint();
@@ -2086,18 +2131,34 @@
   function render() {
     const dots = conflictDots();
     const selectedValue = state.board[state.selected] || 0;
+    if (hintView && hintView.fadeUntil && hintView.key !== hintKey()) {
+      clearHintFadeTimer();
+      hintView.fades = [];
+      hintView.fadeUntil = 0;
+    }
     const hint = hintView && hintView.key === hintKey() ? hintView : null;
+    const now = performance.now();
+    const fadeLeft = hint && hint.fadeUntil > now ? hint.fadeUntil - now : 0;
+    const fadingDigits = new Map();
+    if (fadeLeft > 0) {
+      (hint.fades || []).forEach((item) => {
+        if (!item || state.board[item.index]) return;
+        if (!fadingDigits.has(item.index)) fadingDigits.set(item.index, new Set());
+        fadingDigits.get(item.index).add(item.digit);
+      });
+    }
     const hintPattern = new Set();
     const hintRegion = new Set();
     const hintEliminate = new Set();
     const hintStruck = new Map();
+    const hintQuiet = new Map();
     const hintCandidates = new Map();
     let hintPlace = -1;
     if (hint && hint.kind === "wrong" && hint.stage >= 2) hintPlace = hint.index;
     if (hint && hint.kind === "step") {
       hint.step.region.forEach((index) => hintRegion.add(index));
       hint.step.pattern.forEach((index) => hintPattern.add(index));
-      if (hint.stage >= 2) {
+      if (hint.stage === 2) {
         const eliminations = [...(hint.step.eliminate || []), ...(hint.keptEliminate || [])];
         eliminations.forEach((item) => {
           hintEliminate.add(item.index);
@@ -2105,8 +2166,14 @@
           hintStruck.get(item.index).add(item.digit);
         });
         hint.step.candidates.forEach((item) => hintCandidates.set(item.index, new Set(item.digits)));
-        if (hint.step.place) hintPlace = hint.step.place.index;
       }
+      if (hint.stage >= 3) {
+        [...(hint.step.eliminate || []), ...(hint.keptEliminate || [])].forEach((item) => {
+          if (!hintQuiet.has(item.index)) hintQuiet.set(item.index, new Set());
+          hintQuiet.get(item.index).add(item.digit);
+        });
+      }
+      if (hint.stage >= 2 && hint.step.place) hintPlace = hint.step.place.index;
     }
     cells.forEach((cell, index) => {
       const value = state.board[index];
@@ -2129,7 +2196,10 @@
       cell.classList.toggle("wrong", state.slashed.has(index) && value !== 0);
       cell.classList.toggle("hint-region", hintRegion.has(index));
       cell.classList.toggle("hint-pattern", hintPattern.has(index));
-      cell.classList.toggle("hint-eliminate", hint && hint.stage >= 2 && !value && hintEliminate.has(index));
+      cell.classList.toggle(
+        "hint-eliminate",
+        !value && ((hint && hint.stage === 2 && hintEliminate.has(index)) || fadingDigits.has(index))
+      );
       cell.classList.toggle("hint-place", hint && hint.stage >= 2 && index === hintPlace);
       const mark = fillMarkAt(index);
       cell.classList.toggle("fill-placed", Boolean(mark && mark.kind === "placed"));
@@ -2149,7 +2219,9 @@
         marks.setAttribute("aria-hidden", "true");
         const computed = state.auto ? candidatesFor(index) : null;
         const ghost = hint && hint.stage === 2 ? hintCandidates.get(index) : null;
-        const struck = hint && hint.stage >= 2 ? hintStruck.get(index) : null;
+        const struck = hint && hint.stage === 2 ? hintStruck.get(index) : null;
+        const fading = fadingDigits.get(index);
+        const quiet = hintQuiet.get(index);
         const cleared = new Set();
         if (!state.auto) {
           state.removed.forEach((item) => {
@@ -2160,10 +2232,13 @@
           const mark = document.createElement("span");
           mark.dataset.digit = String(number);
           mark.textContent = String(number);
-          if (struck && struck.has(number)) mark.classList.add("on", "struck");
+          if (fading && fading.has(number)) {
+            mark.classList.add("on", "struck", "fading");
+            mark.style.animationDelay = `-${Math.max(0, 600 - fadeLeft)}ms`;
+          } else if (struck && struck.has(number)) mark.classList.add("on", "struck");
           else if (ghost && ghost.has(number)) mark.classList.add("on", "hint-note");
           else if (state.notes[index].has(number)) mark.classList.add("on", "user-note");
-          else if (cleared.has(number)) mark.classList.add("on", "struck");
+          else if (cleared.has(number) && !(quiet && quiet.has(number))) mark.classList.add("on", "struck");
           else if (computed && computed.has(number)) mark.classList.add("on", "auto");
           marks.appendChild(mark);
         }
