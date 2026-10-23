@@ -577,7 +577,7 @@ function houseSlot(section, path, slot = `${section}-end`, size = "rectangle") {
 publish(
   "index.html",
   layout({
-    title: "SudokuSudoku",
+    title: "Free Sudoku Puzzles Online, Daily and Graded by Technique | SudokuSudoku",
     description:
       "Every puzzle on SudokuSudoku is graded by its hardest move, not the number of clues. Hints name the move and teach the technique behind it. Just play.",
     canonical: `${SITE}/`,
@@ -1001,6 +1001,7 @@ publish(
     description:
       "A technique ladder stored on this device: what you have solved, what to train next, and badges from finished puzzles.",
     canonical: `${SITE}/skills/`,
+    robots: "noindex, follow",
     skills: true,
     main: `<main id="skills" class="skills-page">
   <div class="skills-wrap">
@@ -1017,8 +1018,7 @@ publish(
     ${houseSlot("skills", "/skills/")}
   </div>
 </main>`,
-  }),
-  "/skills"
+  })
 );
 
 techniques.forEach((technique) => {
