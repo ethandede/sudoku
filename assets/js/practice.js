@@ -12,11 +12,14 @@
     "hidden-triple": 5.1,
     quads: 6,
     "x-wing": 7,
-    "xy-wing": 8,
-    swordfish: 9,
-    coloring: 10,
-    "xy-chain": 10.1,
-  };
+  "xy-wing": 8,
+  swordfish: 9,
+  skyscraper: 9.1,
+  "two-string-kite": 9.2,
+  "xyz-wing": 9.3,
+  coloring: 10,
+  "xy-chain": 10.1,
+};
 
   const FILL_LABEL = {
     "naked-single": "Fill all naked singles",
@@ -31,6 +34,9 @@
     "x-wing": "Apply all X-wings",
     swordfish: "Apply all swordfish",
     "xy-wing": "Apply all XY-wings",
+    skyscraper: "Apply all skyscrapers",
+    "two-string-kite": "Apply all two-string kites",
+    "xyz-wing": "Apply all XYZ-wings",
     coloring: "Apply all simple coloring",
     "xy-chain": "Apply all XY-chains",
   };

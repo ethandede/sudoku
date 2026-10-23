@@ -136,6 +136,16 @@ export function captureExamples(root) {
     harvest(puzzle, solution);
   }
 
+  // Mental seed teach-extra-4 used to be the only captured quad. Newer techniques
+  // can outrank that carve, so generate() no longer returns it. The grid itself
+  // still has a quad, so harvest it directly when the search comes up empty.
+  if (wanted.has("quads")) {
+    harvest(
+      [0,0,0,0,4,0,0,0,0,0,0,0,7,0,9,0,0,0,0,9,0,0,0,8,0,0,3,0,0,0,5,0,0,9,0,6,0,8,0,0,6,0,0,0,0,2,5,0,0,0,1,0,0,0,4,0,7,0,1,0,0,0,0,0,0,9,0,0,2,3,1,0,0,0,8,0,0,4,0,2,0],
+      [3,7,2,1,4,6,5,9,8,8,1,5,7,3,9,6,4,2,6,9,4,2,5,8,1,7,3,7,4,1,5,2,3,9,8,6,9,8,3,4,6,7,2,5,1,2,5,6,9,8,1,4,3,7,4,2,7,3,1,5,8,6,9,5,6,9,8,7,2,3,1,4,1,3,8,6,9,4,7,2,5]
+    );
+  }
+
   if (wanted.size) {
     throw new Error(`No solver example for: ${[...wanted].join(", ")}`);
   }

@@ -629,6 +629,182 @@
     return hits;
   }
 
+  // Two strong links on one digit that share one cover line and miss the other.
+  // The cells that see both free ends lose the digit. Tried after swordfish so
+  // an X-wing or swordfish that is also present still goes first.
+  function skyscraperHits(state) {
+    const hits = [];
+    for (let d = 0; d < 9; d++) {
+      const bit = 1 << d;
+      collectSkyscraper(state, bit, ROWS, COL_OF, "row", hits);
+      collectSkyscraper(state, bit, COLS, ROW_OF, "column", hits);
+    }
+    return hits;
+  }
+
+  function strongPairs(state, bit, lines, keyOf) {
+    const found = [];
+    for (let li = 0; li < 9; li++) {
+      const line = lines[li];
+      const cells = [];
+      for (let k = 0; k < 9; k++) if (state.c[line[k]] & bit) cells.push(line[k]);
+      if (cells.length === 2) found.push({ cells, keys: [keyOf[cells[0]], keyOf[cells[1]]] });
+    }
+    return found;
+  }
+
+  function seenByBoth(state, bit, a, b, skip) {
+    const targets = [];
+    for (let i = 0; i < 81; i++) {
+      if (skip[i] || !(state.c[i] & bit)) continue;
+      if (SEES[i * 81 + a] && SEES[i * 81 + b]) targets.push(i);
+    }
+    return targets;
+  }
+
+  function collectSkyscraper(state, bit, lines, keyOf, baseKind, hits) {
+    const pairs = strongPairs(state, bit, lines, keyOf);
+    for (let i = 0; i < pairs.length; i++) {
+      for (let j = i + 1; j < pairs.length; j++) {
+        const left = pairs[i];
+        const right = pairs[j];
+        let shared = -1;
+        for (let k = 0; k < 2; k++) {
+          if (left.keys[k] === right.keys[0] || left.keys[k] === right.keys[1]) {
+            if (shared >= 0 && shared !== left.keys[k]) {
+              shared = -2;
+              break;
+            }
+            shared = left.keys[k];
+          }
+        }
+        if (shared < 0) continue;
+        const roofA = left.cells[left.keys[0] === shared ? 1 : 0];
+        const roofB = right.cells[right.keys[0] === shared ? 1 : 0];
+        if (keyOf[roofA] === keyOf[roofB]) continue;
+        const skip = new Uint8Array(81);
+        skip[left.cells[0]] = 1;
+        skip[left.cells[1]] = 1;
+        skip[right.cells[0]] = 1;
+        skip[right.cells[1]] = 1;
+        const targets = seenByBoth(state, bit, roofA, roofB, skip);
+        if (!targets.length) continue;
+        hits.push({
+          targets,
+          bit,
+          type: "skyscraper",
+          pattern: [left.cells[0], left.cells[1], right.cells[0], right.cells[1]],
+          fishBase: baseKind,
+          roofs: [roofA, roofB],
+        });
+      }
+    }
+  }
+
+  // A row strong link and a column strong link for one digit, joined by one box.
+  function kiteHits(state) {
+    const hits = [];
+    for (let d = 0; d < 9; d++) {
+      const bit = 1 << d;
+      const rows = strongPairs(state, bit, ROWS, COL_OF);
+      const cols = strongPairs(state, bit, COLS, ROW_OF);
+      for (let r = 0; r < rows.length; r++) {
+        for (let c = 0; c < cols.length; c++) {
+          const row = rows[r];
+          const col = cols[c];
+          if (
+            row.cells[0] === col.cells[0] ||
+            row.cells[0] === col.cells[1] ||
+            row.cells[1] === col.cells[0] ||
+            row.cells[1] === col.cells[1]
+          ) {
+            continue;
+          }
+          const links = [];
+          for (let i = 0; i < 2; i++) {
+            for (let j = 0; j < 2; j++) {
+              if (BOX_OF[row.cells[i]] === BOX_OF[col.cells[j]]) links.push(i * 2 + j);
+            }
+          }
+          if (links.length !== 1) continue;
+          const ri = links[0] >> 1;
+          const ci = links[0] & 1;
+          const tailR = row.cells[1 - ri];
+          const tailC = col.cells[1 - ci];
+          const skip = new Uint8Array(81);
+          skip[row.cells[0]] = 1;
+          skip[row.cells[1]] = 1;
+          skip[col.cells[0]] = 1;
+          skip[col.cells[1]] = 1;
+          const targets = seenByBoth(state, bit, tailR, tailC, skip);
+          if (!targets.length) continue;
+          hits.push({
+            targets,
+            bit,
+            type: "kite",
+            pattern: [row.cells[0], row.cells[1], col.cells[0], col.cells[1]],
+            roofs: [tailR, tailC],
+          });
+        }
+      }
+    }
+    return hits;
+  }
+
+  // Pivot with three candidates, two wings that split them. A cell that sees
+  // all three loses the digit the wings share.
+  function xyzwingHits(state) {
+    const tri = [];
+    const bi = [];
+    for (let i = 0; i < 81; i++) {
+      const pop = POP[state.c[i]];
+      if (pop === 3) tri.push(i);
+      else if (pop === 2) bi.push(i);
+    }
+    const hits = [];
+    for (let pIndex = 0; pIndex < tri.length; pIndex++) {
+      const p = tri[pIndex];
+      const pc = state.c[p];
+      const wings = [];
+      for (let w = 0; w < bi.length; w++) {
+        const cell = bi[w];
+        if (!SEES[p * 81 + cell]) continue;
+        const mask = state.c[cell];
+        if ((mask & ~pc) !== 0 || POP[mask] !== 2) continue;
+        wings.push(cell);
+      }
+      for (let i = 0; i < wings.length; i++) {
+        for (let j = i + 1; j < wings.length; j++) {
+          const a = wings[i];
+          const b = wings[j];
+          const ac = state.c[a];
+          const bc = state.c[b];
+          if (ac === bc || (ac | bc) !== pc) continue;
+          const shared = ac & bc;
+          if (POP[shared] !== 1) continue;
+          const skip = new Uint8Array(81);
+          skip[p] = 1;
+          skip[a] = 1;
+          skip[b] = 1;
+          const targets = [];
+          for (let cell = 0; cell < 81; cell++) {
+            if (skip[cell] || !(state.c[cell] & shared)) continue;
+            if (SEES[cell * 81 + p] && SEES[cell * 81 + a] && SEES[cell * 81 + b]) targets.push(cell);
+          }
+          if (!targets.length) continue;
+          hits.push({
+            targets,
+            bit: shared,
+            type: "xyzwing",
+            pattern: [p, a, b],
+            pivot: p,
+          });
+        }
+      }
+    }
+    return hits;
+  }
+
   const TECHNIQUES = [
     { name: "locked", rank: 3, find: lockedHits },
     { name: "naked_pair", rank: 4, find: (state) => nakedHits(state, 2) },
@@ -640,6 +816,9 @@
     { name: "xwing", rank: 7, find: (state) => fishHits(state, 2) },
     { name: "xywing", rank: 8, find: xywingHits },
     { name: "swordfish", rank: 9, find: (state) => fishHits(state, 3) },
+    { name: "skyscraper", rank: 9, find: skyscraperHits },
+    { name: "kite", rank: 9, find: kiteHits },
+    { name: "xyzwing", rank: 9, find: xyzwingHits },
     { name: "coloring", rank: 10, find: coloringHits },
     { name: "xychain", rank: 10, find: xyChainHits },
   ];
@@ -740,6 +919,9 @@ function stepWidth(state, singleCount, rankCap) {
     xwing: "x-wing",
     swordfish: "swordfish",
     xywing: "xy-wing",
+    skyscraper: "skyscraper",
+    kite: "two-string-kite",
+    xyzwing: "xyz-wing",
     coloring: "coloring",
     xychain: "xy-chain",
   };
@@ -1049,6 +1231,9 @@ function stepWidth(state, singleCount, rankCap) {
     xwing: "x-wing",
     swordfish: "swordfish",
     xywing: "xy-wing",
+    skyscraper: "skyscraper",
+    kite: "two-string-kite",
+    xyzwing: "xyz-wing",
     coloring: "coloring",
     xychain: "xy-chain",
   };
@@ -1065,6 +1250,9 @@ function stepWidth(state, singleCount, rankCap) {
     xwing: "X-wing",
     swordfish: "Swordfish",
     xywing: "XY-wing",
+    skyscraper: "Skyscraper",
+    kite: "Two-string kite",
+    xyzwing: "XYZ-wing",
     coloring: "Simple coloring",
     xychain: "XY-chain",
   };
@@ -1172,6 +1360,19 @@ function stepWidth(state, singleCount, rankCap) {
     } else if (type === "xywing") {
       look = "Look at these three cells.";
       explain = `The middle cell links two pairs. One of the wings has to be ${digit}, so ${digit} can't go in a cell that sees both wings.`;
+      region = hit.pattern.slice();
+    } else if (type === "skyscraper") {
+      const lines = hit.fishBase === "row" ? "rows" : "columns";
+      look = `Look at the ${digit}s in these two ${lines}.`;
+      explain = `Each of those ${lines} has two ${digit}s, and one end lines up. At least one of the other two ends is ${digit}, so ${digit} comes out of any cell that sees both.`;
+      region = hit.pattern.slice();
+    } else if (type === "kite") {
+      look = `Look at the ${digit}s in this row and this column.`;
+      explain = `The row's two ${digit}s and the column's two ${digit}s meet in one box. One of the far cells is ${digit}, so a cell that sees both loses it.`;
+      region = hit.pattern.slice();
+    } else if (type === "xyzwing") {
+      look = "Look at these three cells.";
+      explain = `The pivot holds three digits and each wing takes two of them. One of those three cells is ${digit}, so ${digit} can't go in a cell that sees all three.`;
       region = hit.pattern.slice();
     } else if (type === "coloring") {
       const outside = hit.targets.some((index) => hit.pattern.indexOf(index) === -1);
