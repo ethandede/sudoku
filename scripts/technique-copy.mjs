@@ -912,7 +912,7 @@ export const techniques = [
         h: "The pivot kept a third digit",
         p: [
           "An XYZ-wing is three cells. The pivot has three candidates. Each wing has two, and each wing uses a different pair drawn from the pivot. Both wings see the pivot. They do not have to see each other.",
-          "The [XY-wing](/techniques/xy-wing/) on this site has a pivot of two. Row 7, column 5 there was 6 or 9. Here the pivot is row 5, column 1, and it can be 1, 3, or 5. One wing is row 4, column 2, in the same box, and it can be 3 or 5. The other wing is row 8, column 1, down the column, and it can be 1 or 3. The wings share 3. The pivot can be 3 as well. That extra seat is the whole technique.",
+          "An [XY-wing](/techniques/xy-wing/) is that same shape with only two candidates on the pivot. Here the pivot is row 5, column 1, and it can be 1, 3, or 5. One wing is row 4, column 2, in the same box, and it can be 3 or 5. The other wing is row 8, column 1, down the column, and it can be 1 or 3. The wings share 3. The pivot can be 3 as well. That extra seat is the whole technique.",
         ],
       },
       {
@@ -975,7 +975,7 @@ export const techniques = [
         h: "The link is a 5 with two homes",
         p: [
           "The shared digit that does the joining is 5, not 4. Row 5 holds 5 in exactly two cells: row 5, column 2 and row 5, column 9. Both can be 5 or 7. The rest of row 5 is filled, so the 5 has nowhere else in the row to go. One of those two cells is 5.",
-          "Each wing sees one end and misses the other. Row 2, column 2 sees row 5, column 2 down column 2, and it does not see row 5, column 9. Row 6, column 9 sees row 5, column 9 up column 9, and it does not see row 5, column 2. That crossing is the wing. Column 2 is not the link. Row 2, column 3 still lists 2, 4, 5, and 9, so column 2 has a third 5.",
+          "Each wing sees one end and misses the other. Row 2, column 2 sees row 5, column 2 down column 2, and it does not see row 5, column 9. Row 6, column 9 sees row 5, column 9 up column 9, and it does not see row 5, column 2. That crossing is the wing. Column 2 is not the link. Its only 5s are the wing in row 2, column 2 and the link end in row 5, column 2. Row 2 still has more than two 5s. Row 2, column 3 lists 2, 4, 5, and 9, and row 2, column 7 lists 2, 3, 4, and 9.",
         ],
       },
       {
@@ -1129,21 +1129,22 @@ export const techniques = [
         demo: true,
         h: "The 7s, first color then second",
         intro:
-          "The highlighted cells are the chain. The board does not paint the two colors, so the alternation is written out under it. Step through. One 7 outside the chain leaves, and nothing is placed.",
+          "The highlighted cells are the chain. The board does not paint the two colors, so the alternation is written out under it. Step through. One 7 outside the chain leaves row 3, column 4. That cell keeps its other digits.",
       },
       {
         h: "Four cells, and one outsider",
         p: [
-          "Call row 1, column 7 the first color. It can be 7 or 9. Column 7 has 7 in exactly two cells, so row 9, column 7 (7 or 9) takes the second color. Box 3 also has 7 in exactly two cells, row 1, column 7 and row 3, column 8, so row 3, column 8 (4, 6, or 7) takes the second color as well. Both ties agree.",
-          "Row 9 has 7 in row 9, column 7 and row 9, column 4. Row 9, column 7 is already the second color, so row 9, column 4 (7, 8, or 9) takes the first color. First color: row 1, column 7 and row 9, column 4. They do not see each other. Second color: row 9, column 7 and row 3, column 8. They do not see each other either. The chain is not fighting itself.",
-          "Row 3, column 4 can be 3, 5, 7, or 8. It sees row 3, column 8 along the row, the second color, and it sees row 9, column 4 down the column, the first color. The 7 leaves. 3, 5, and 8 stay. Nothing is placed. Row 4, column 5 and row 4, column 6 are another pair of 7s, and they are not in this chain. A second pair does not get the first pair's colors.",
+          "Call row 1, column 7 the first color. It can be 7 or 9. Column 7 has exactly two 7s, so row 9, column 7 (7 or 9) takes the second color. Box 3 also has exactly two 7s, row 1, column 7 and row 3, column 8 (4, 6, or 7), so row 3, column 8 takes the second color too. Row 9 has exactly two 7s. Row 9, column 7 is already the second color, so row 9, column 4 (7, 8, or 9) flips back to the first color.",
+          "That is the whole chain. Four cells, three strong links: column 7, box 3, and row 9. Row 1 is not a link. It still has three homes for 7, in row 1, column 1, row 1, column 6, and row 1, column 7. Both ends of a link have to be forced.",
+          "The two first-color cells do not see each other. Row 1, column 7 and row 9, column 4 share no row, column, or box. The two second-color cells do not either. Row 9, column 7 and row 3, column 8 are in different houses. There is no same-color crash on this board. The chain is fine. The trouble is a cell outside it.",
+          "Row 3, column 4 can be 3, 5, 7, or 8. It sees row 3, column 8 along the row, the second color. It sees row 9, column 4 down column 4, the first color. One of those colors is the real 7, so row 3, column 4 cannot be 7. The 7 leaves. Three digits remain, so the step does not place a number.",
         ],
       },
       {
         h: "I flip a color and the rest is fiction",
         p: [
-          "Four cells is about as far as I hold without writing the colors down. One flipped link and every deletion after it is junk. If you cannot name a cell's color, mark it before you delete anything.",
-          "This board does not have the same-color crash. Do not delete 7 from row 1, column 7 because an outside cell got involved. The outside cell is the one that loses the digit. The chain stays. Coloring follows a single digit the whole way. An [XY-chain](/techniques/xy-chain/) changes digit at every step. If your link suddenly involves a 6, you have left coloring.",
+          "Four cells is short, and it is still easy to flip one link and delete the wrong color. If you cannot name a cell's color, mark it before you delete anything.",
+          "Row 1, column 1 still lists 5 and 7. It sees the first color, in row 1, column 7, and it sees none of the second color. The 7 stays. Seeing one color proves nothing. The cell that sees both colors is the one that loses the digit. The chain stays. Coloring follows a single digit the whole way. An [XY-chain](/techniques/xy-chain/) changes digit at every step. If your link suddenly involves a 6, you have left coloring.",
         ],
       },
       {
@@ -1178,22 +1179,22 @@ export const techniques = [
         demo: true,
         h: "Seven cells, both ends on 7",
         intro:
-          "Read the highlighted cells from row 1, column 1 across to row 3, column 8. Step through. The 7 that leaves can see both ends, and nothing is placed.",
+          "Read the highlighted cells from row 1, column 1 across to row 3, column 8. Step through. The 7 that leaves can see both ends. That cell keeps its other digits.",
       },
       {
         h: "Each link flips the digit",
         p: [
-          "Row 1, column 1 can be 5 or 7. Row 6, column 1 can be 5 or 9, and it sees the first cell down column 1. They share 5. Row 5, column 2 can be 1 or 9, and it sees row 6, column 1 inside box 4. They share 9. Row 5, column 6 can be 1 or 2, and it sees row 5, column 2 along the row. They share 1.",
-          "Row 5, column 7 can be 2 or 8, and it sees row 5, column 6 along the same row. They share 2. Row 6, column 8 can be 2 or 8, and it sees row 5, column 7 inside box 6. They share 8. Row 3, column 8 can be 2 or 7, and it sees row 6, column 8 down column 8. They share 2.",
-          "Suppose row 1, column 1 is not 7. Then it is 5, so row 6, column 1 is 9, so row 5, column 2 is 1, so row 5, column 6 is 2, so row 5, column 7 is 8, so row 6, column 8 is 2, so row 3, column 8 is 7. If the start is not 7, the end is. If the start is 7, the end was never needed. One of the two ends is 7.",
-          "Row 3, column 1 can be 6, 7, or 9. It sees row 1, column 1 up the column, and row 3, column 8 along the row. Both ends. It loses 7 and keeps 6 and 9. Nothing is placed.",
+          "Row 1, column 1 can be 5 or 7. Row 6, column 1 can be 5 or 9, and it sees the first cell down column 1. They share 5. Row 5, column 2 can be 1 or 9, and it sees row 6, column 1 in box 4. They share 9. Row 5, column 6 can be 1 or 2, and it sees row 5, column 2 along the row. They share 1. Row 5, column 7 can be 2 or 8, and it sees row 5, column 6 along the row. They share 2.",
+          "Row 6, column 8 can be 2 or 8, and it sees row 5, column 7 in box 6. The chain arrives on 8, so they share 8, and the other digit in row 6, column 8 is 2. Row 3, column 8 can be 2 or 7, and it sees row 6, column 8 down column 8. They share 2. Both ends, row 1, column 1 and row 3, column 8, carry a 7.",
+          "Suppose row 1, column 1 is not 7. Then it is 5, so row 6, column 1 is 9, so row 5, column 2 is 1, so row 5, column 6 is 2, so row 5, column 7 is 8, so row 6, column 8 is 2, so row 3, column 8 is 7. If the start is not 7, the end is. If the start is 7, we never needed the end. One of the two ends is 7.",
+          "Row 3, column 1 can be 6, 7, or 9. It sees row 1, column 1 down column 1, and row 3, column 8 along the row. Both ends. It loses 7 and keeps 6 and 9. The step does not place a digit.",
         ],
       },
       {
-        h: "The ends do not have to touch",
+        h: "A pair that deletes nothing",
         p: [
-          "Row 1, column 1 and row 3, column 8 share no row, column, or box. That is allowed. The cell you clear is the one that sees both ends. Require the ends to see each other and you will only find wings.",
-          "Row 5 is doing a lot of the walking, from column 2 to column 6 to column 7, and each step flips the digit. None of those three cells is an end. Clearing 7 off one of them because it sits in the chain would throw the path away. The chain stays. Row 3, column 1 is the cell that pays.",
+          "Row 5, column 7 and row 6, column 8 are both 2 and 8. That is a naked pair in box 6, and as a pair it is idle. Nothing else in that box still holds 2 or 8, so there is no cell to strip. The chain uses the two cells anyway. A pattern with nothing to delete can still be a hinge.",
+          "The ends do not see each other. Row 1, column 1 and row 3, column 8 share no row, column, or box. That is allowed. The cell you clear is the one that sees both ends. Require the ends to see each other and you will only find wings.",
         ],
       },
       {

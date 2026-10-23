@@ -137,8 +137,10 @@
     return lines.join("\n");
   }
 
-  function dailyUrl() {
-    return `${SITE}/?daily`;
+  function dailyUrl(iso) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || "").trim());
+    if (!match) return `${SITE}/?daily`;
+    return `${SITE}/daily/${match[1]}-${match[2]}-${match[3]}/`;
   }
 
   function puzzleUrl(id) {

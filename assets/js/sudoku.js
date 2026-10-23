@@ -183,7 +183,8 @@
   document.addEventListener("visibilitychange", onVisibility);
   window.addEventListener("pagehide", (event) => {
     if (window.SudokuCommunity && state.puzzle.some((value) => value !== 0)) {
-      window.SudokuCommunity.leave(communitySnapshot(state.over ? "failed" : "abandoned"), event);
+      const outcome = state.won && !state.revealed ? "solved" : state.over ? "failed" : "abandoned";
+      window.SudokuCommunity.leave(communitySnapshot(outcome), event);
     }
     if (window.SudokuAccount) window.SudokuAccount.flush();
   });
@@ -214,6 +215,8 @@
       hidePaused: false,
       over: false,
       puzzleId: null,
+      shareDate: null,
+      permalink: false,
       won: false,
       revealed: false,
       scored: false,
@@ -440,6 +443,10 @@
       window.SudokuAccount.holdProgress();
     }
     migrateLegacySave();
+    if (pendingRequest && pendingRequest.unavailable) {
+      showBoardCover("That daily isn't available.");
+      return;
+    }
     if (pendingRequest && pendingRequest.unavailablePractice) {
       showPracticeUnavailable();
       return;
@@ -546,6 +553,14 @@
   }
 
   function requestFromUrl() {
+    if (window.SudokuDaily && window.SudokuDaily.gameRequest) {
+      const daily = window.SudokuDaily.gameRequest({
+        pathname: window.location.pathname,
+        search: window.location.search,
+        today: todayString(),
+      });
+      if (daily) return daily;
+    }
     const params = new URLSearchParams(window.location.search);
     const puzzle = params.get("p");
     if (puzzle && window.SudokuShare) {
@@ -585,11 +600,26 @@
 
   function writeUrl(kind) {
     const url = new URL(window.location.href);
-    if (kind === "daily") url.search = "?daily";
-    else if (state.puzzleId) url.search = `?p=${encodeURIComponent(state.puzzleId)}`;
-    else if (state.practice) url.search = `?practice=${encodeURIComponent(state.practice)}`;
-    else if (state.train) url.search = `?train=${encodeURIComponent(state.train)}`;
-    else url.search = `?difficulty=${kind.replace(/\s+/g, "-")}`;
+    url.hash = "";
+    if (state.permalink && state.shareDate) {
+      url.pathname = `/daily/${state.shareDate}/`;
+      url.search = "";
+    } else if (kind === "daily") {
+      url.pathname = "/";
+      url.search = "?daily";
+    } else if (state.puzzleId) {
+      url.pathname = "/";
+      url.search = `?p=${encodeURIComponent(state.puzzleId)}`;
+    } else if (state.practice) {
+      url.pathname = "/";
+      url.search = `?practice=${encodeURIComponent(state.practice)}`;
+    } else if (state.train) {
+      url.pathname = "/";
+      url.search = `?train=${encodeURIComponent(state.train)}`;
+    } else {
+      url.pathname = "/";
+      url.search = `?difficulty=${kind.replace(/\s+/g, "-")}`;
+    }
     history.replaceState(null, "", url);
   }
 
@@ -1051,8 +1081,14 @@
       showCompleted(done);
       return;
     }
-    const seeded = kind === "daily";
-    const difficulty = seeded ? DAILY : kind;
+    const plan = window.SudokuDaily ? window.SudokuDaily.launchFields(request, date) : null;
+    if (plan && plan.unavailable) {
+      showBoardCover("That daily isn't available.");
+      busy = false;
+      return;
+    }
+    const seeded = plan ? plan.countsAsDaily : kind === "daily";
+    const difficulty = plan ? plan.difficulty : seeded ? DAILY : kind;
     const train = request.train || null;
     const practiceSlug = request.practice || null;
     const techniqueSlug = practiceSlug || train;
@@ -1068,20 +1104,27 @@
       result = window.SudokuGenerator.generateForTechnique(techniqueSlug, { allowed, seed });
       if (window.SudokuShare) puzzleId = window.SudokuShare.idFromGivens(difficulty, result.puzzle);
     } else if (!result) {
-      const seed = seeded
-        ? `daily:${date}`
-        : request.seed || (window.SudokuShare ? window.SudokuShare.mintId(difficulty) : undefined);
-      if (!seeded) puzzleId = request.puzzleId || seed || null;
+      const seed =
+        plan && plan.seed
+          ? plan.seed
+          : seeded
+            ? `daily:${date}`
+            : request.seed || (window.SudokuShare ? window.SudokuShare.mintId(difficulty) : undefined);
+      const keepId = plan ? plan.assignPuzzleId : !seeded;
+      if (keepId) puzzleId = request.puzzleId || seed || null;
       result = window.SudokuGenerator.generate(difficulty, seed);
     }
     if (token !== generation) return;
-    const already = seeded && stats.daily.completed[date];
+    const liveDate = plan ? plan.dailyDate : seeded ? date : null;
+    const already = Boolean(liveDate && stats.daily.completed[liveDate]);
     state = blankState();
-    state.kind = kind;
+    state.kind = plan ? plan.kind : kind;
     state.train = practiceSlug ? null : train;
     state.practice = practiceSlug;
-    state.puzzleId = seeded ? null : puzzleId;
-    state.dailyDate = seeded ? date : null;
+    state.puzzleId = seeded || (plan && !plan.assignPuzzleId) ? null : puzzleId;
+    state.dailyDate = liveDate;
+    state.shareDate = plan ? plan.shareDate : seeded ? date : null;
+    state.permalink = plan ? plan.permalink : false;
     state.puzzle = result.puzzle.slice();
     state.solution = result.solution.slice();
     state.board = result.puzzle.slice();
@@ -1092,7 +1135,7 @@
     state.selected = firstEmpty();
     autoBox.checked = state.auto;
     state.baseRemoved = state.removed.map((item) => ({ index: item.index, digit: item.digit }));
-    writeUrl(kind);
+    writeUrl(state.kind);
     if (already) {
       state.board = result.solution.slice();
       state.won = true;
@@ -1114,7 +1157,7 @@
         state.anonPlayId = await window.SudokuCommunity.onNewGame({
           level,
           isDaily: seeded,
-          date: seeded ? date : null,
+          date: seeded ? state.dailyDate || date : null,
           seed: result.metadata && result.metadata.seed,
           givens: result.puzzle,
           notesUsed: state.notesUsed,
@@ -1156,6 +1199,9 @@
       state.scored = true;
       return [];
     }
+    // progress.js currentStreak walks stats.daily.completed by UTC date.
+    // Only a live daily inserts a key. An archive permalink is Not Easy,
+    // so playing an old date later cannot bridge a gap in the run.
     const key = state.kind === "daily" ? "daily" : state.kind;
     const bucket = stats[key];
     if (state.scored) {
@@ -1888,16 +1934,23 @@
     const slugs = techniqueHints();
     const hardest =
       window.SudokuProgress && slugs.length ? window.SudokuProgress.hardest(slugs) || "" : "";
+    const hintsUsed = slugs.length;
+    const filled = Boolean(state.fastForwarded);
     return {
       outcome,
       elapsed: Math.round(state.elapsed || 0),
       mistakes: state.mistakes || 0,
-      hintsUsed: slugs.length,
+      hintsUsed,
       hardestHint: hardest,
       notesUsed: Boolean(state.notesUsed || state.auto),
       kind: state.kind,
+      difficulty: state.kind === "daily" ? (state.metadata && state.metadata.difficulty) || DAILY : state.kind,
       isDaily: state.kind === "daily",
       over: Boolean(state.over),
+      filled,
+      practice: Boolean(state.practice),
+      assisted: filled || hintsUsed > 0,
+      puzzleType: state.practice ? "practice" : state.kind === "daily" ? "daily" : "random",
     };
   }
 
@@ -1915,6 +1968,9 @@
     const snapshot = communitySnapshot(revealed ? "revealed" : "solved");
     const started = state.startPromise || Promise.resolve();
     if (window.SudokuCommunity) {
+      // Analytics is not the stats post. A fill used to clear the open row
+      // here and never reach game_complete, and a hint-only solve never set gaStart.
+      if (window.SudokuCommunity.noteSolved) window.SudokuCommunity.noteSolved(snapshot);
       if (assisted && window.SudokuCommunity.skipFinish) window.SudokuCommunity.skipFinish();
       else {
         const posted = started
@@ -2284,6 +2340,7 @@
     const approximate = state.metadata && state.metadata.trainApproximate;
     if (state.practice && window.SudokuProgress) return `Practice · ${window.SudokuProgress.nameOf(state.practice)}`;
     if (state.train && window.SudokuProgress && !approximate) return `Train · ${window.SudokuProgress.nameOf(state.train)}`;
+    if (state.shareDate) return `Daily · ${formatDay(state.shareDate)}`;
     if (kind === "daily" && state.dailyDate) return `Daily · ${formatDay(state.dailyDate)}`;
     return LABELS[kind] || "Easy";
   }
@@ -2456,19 +2513,20 @@
   }
 
   function shareInfo(names) {
-    const daily = state.kind === "daily";
-    const puzzleId = currentPuzzleId();
+    const dailyDate = state.shareDate || (state.kind === "daily" ? state.dailyDate : "");
+    const daily = Boolean(dailyDate);
+    const puzzleId = daily ? "" : currentPuzzleId();
     const hints = techniqueHints().length;
     return {
-      kindLabel: daily ? `Daily · ${window.SudokuShare.shortDate(state.dailyDate)}` : labelFor(state.kind),
+      kindLabel: daily ? `Daily · ${window.SudokuShare.shortDate(dailyDate)}` : labelFor(state.kind),
       time: formatTime(state.elapsed),
       hints,
       mistakes: state.mistakes || 0,
       hardest: (state.metadata && state.metadata.hardestName) || "single",
       badges: names || [],
-      url: daily ? window.SudokuShare.dailyUrl() : window.SudokuShare.puzzleUrl(puzzleId),
-      patternKey: daily ? `daily:${state.dailyDate}` : puzzleId,
-      dateLine: window.SudokuShare.longDate(daily ? state.dailyDate : todayString()),
+      url: daily ? window.SudokuShare.dailyUrl(dailyDate) : window.SudokuShare.puzzleUrl(puzzleId),
+      patternKey: daily ? `daily:${dailyDate}` : puzzleId,
+      dateLine: window.SudokuShare.longDate(daily ? dailyDate : todayString()),
     };
   }
 
@@ -2793,9 +2851,11 @@
     if (!saved || !inProgress(saved)) return false;
     if (request && request.practice) return saved.practice === request.practice && puzzleMatches(saved, request);
     if (request && request.train) return !saved.practice && saved.train === request.train && puzzleMatches(saved, request);
-    if (saved.practice || saved.train) return false;
-    if (saved.kind !== requestKind(request)) return false;
-    return puzzleMatches(saved, request);
+  if (saved.practice || saved.train) return false;
+  if (saved.kind !== requestKind(request)) return false;
+  if (request && request.shareDate && saved.shareDate && saved.shareDate !== request.shareDate) return false;
+  if (request && request.shareDate && !saved.shareDate && saved.puzzleId) return false;
+  return puzzleMatches(saved, request);
   }
 
   function freshRequest(request, kind) {
@@ -3042,6 +3102,8 @@
         window.SudokuShare && state.kind !== "daily" && Array.isArray(state.puzzle)
           ? window.SudokuShare.idFromGivens(state.kind, state.puzzle) || null
           : null,
+      shareDate: state.shareDate || null,
+      permalink: Boolean(state.permalink),
       anonPlayId: state.anonPlayId || null,
       notesUsed: Boolean(state.notesUsed),
       over: Boolean(state.over),
@@ -3092,6 +3154,9 @@
       ? saved.baseRemoved.map((item) => ({ index: item.index, digit: item.digit }))
       : [];
     state.puzzleId = typeof saved.puzzleId === "string" ? saved.puzzleId : null;
+    state.shareDate =
+      typeof saved.shareDate === "string" ? saved.shareDate : saved.kind === "daily" ? saved.dailyDate : null;
+    state.permalink = Boolean(saved.permalink);
     state.anonPlayId = typeof saved.anonPlayId === "string" ? saved.anonPlayId : null;
     state.notesUsed = Boolean(saved.notesUsed || saved.auto);
     autoBox.checked = state.auto;

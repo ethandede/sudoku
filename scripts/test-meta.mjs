@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homeCopy } from "../home-copy.mjs";
 import { techniques } from "./technique-copy.mjs";
+import { dailyMeta, listDailyDates, utcToday } from "../functions/daily-permalink.mjs";
 import { breadcrumbList } from "./schema.mjs";
 import {
   articleMeta,
@@ -71,8 +72,15 @@ const articles = [
   { slug: "fewest-and-most-sudoku-clues", title: "The Fewest and Most Clues a Sudoku Can Have", excerpt: "17 clues." },
 ];
 const catalog = catalogPages({ home: homeCopy, techniques, articles });
-assertUniqueMeta(catalog);
-assertSearchTerms(catalog);
+const sampleDaily = dailyMeta("2026-10-23");
+assert.equal(sampleDaily.title, "Daily Sudoku for October 23, 2026 | SudokuSudoku");
+assert.equal(sampleDaily.path, "/daily/2026-10-23/");
+assert.equal(hasEmDash(sampleDaily.title), false);
+assert.equal(hasEmDash(sampleDaily.description), false);
+const dailies = listDailyDates(utcToday()).map((iso) => dailyMeta(iso));
+const pages = [...catalog, ...dailies];
+assertUniqueMeta(pages);
+assertSearchTerms(pages);
 assert.equal(catalog[0].title, homeCopy.title);
 assert.equal(catalog[0].description, homeCopy.description);
 assert.equal(catalog.some((page) => page.title.includes("—")), false);
