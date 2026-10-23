@@ -103,12 +103,16 @@
           text-decoration: none;
           font-weight: 600;
           font-size: 0.95rem;
-          padding: 0.5rem 0;
+          padding: 0.45rem 0.35rem;
           display: block;
-          transition: color 0.2s ease;
+          border-radius: var(--btn-radius);
+          transition:
+            background-color var(--btn-duration) var(--btn-ease),
+            color var(--btn-duration) var(--btn-ease);
 
           &:hover {
             color: vars.$accent-color;
+            background: color-mix(in srgb, #faf9f7 70%, #f5f4f1);
           }
 
           &:focus-visible {
@@ -134,7 +138,7 @@
               font-size: 0;
               line-height: 0;
               color: transparent;
-              transition: transform 0.2s ease;
+              transition: transform var(--btn-duration) var(--btn-ease);
             }
           }
 
@@ -155,29 +159,33 @@
           position: absolute;
           top: 100%;
           left: 0;
-          background: #faf9f7;
-          border: 1px solid #ddd8d2;
-          box-shadow: none;
-          border-radius: 8px;
+          background: var(--card);
+          border: 1px solid var(--line);
+          box-shadow: 0 1px 1px rgba(31, 28, 25, 0.08), 0 16px 32px -20px rgba(31, 28, 25, 0.45);
+          border-radius: 12px;
           min-width: 180px;
-          padding: 0.5rem 0;
+          padding: 0.35rem;
           list-style: none;
           margin: 0;
           opacity: 0;
           visibility: hidden;
-          transform: translateY(-10px);
-          transition: all 0.3s ease;
+          transform: translateY(-4px);
+          transition:
+            opacity var(--btn-duration) var(--btn-ease),
+            transform var(--btn-duration) var(--btn-ease),
+            visibility var(--btn-duration) var(--btn-ease);
 
           li {
             a {
               display: block;
-              padding: 0.75rem 1.5rem;
+              padding: 0.65rem 0.85rem;
               color: vars.$text-color;
               text-decoration: none;
-              transition: background-color 0.2s ease;
+              border-radius: var(--btn-radius);
+              transition: background-color var(--btn-duration) var(--btn-ease), color var(--btn-duration) var(--btn-ease);
 
               &:hover {
-                background: vars.$light-background;
+                background: var(--recess);
                 color: vars.$accent-color;
               }
             }
@@ -218,7 +226,7 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       max-height: 0;
       overflow: hidden;
-      transition: max-height 0.3s ease;
+      transition: max-height var(--btn-duration) var(--btn-ease);
 
       &.active {
         max-height: 500px;
@@ -251,7 +259,7 @@
               margin-top: 0.5rem;
               max-height: 0;
               overflow: hidden;
-              transition: max-height 0.3s ease;
+              transition: max-height var(--btn-duration) var(--btn-ease);
             }
 
             &:hover .dropdown-menu,
@@ -281,4 +289,17 @@
 
 html[data-theme="dark"] .site-header .nav-menu .nav-primary .menu-item.has-dropdown .dropdown-menu {
   background: #1c1b19;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header .dropdown-menu,
+  .site-header .nav-menu,
+  .site-header .dropdown-toggle .arrow,
+  .site-header .nav-primary > a {
+    transition: none;
+  }
+
+  .site-header .dropdown-menu {
+    transform: none;
+  }
 }

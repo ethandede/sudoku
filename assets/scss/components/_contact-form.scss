@@ -87,19 +87,19 @@
     color: #f7f6f3;
     padding: 0.875rem 2rem;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--btn-radius);
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background-color var(--btn-duration) var(--btn-ease);
     font-family: vars.$body-font;
 
     &:hover {
-      background: #083a64;
+      background: color-mix(in srgb, vars.$accent-color 86%, #faf9f7);
     }
 
     &:active {
-      transform: translateY(0);
+      transform: none;
     }
 
     &:disabled {

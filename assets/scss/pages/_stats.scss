@@ -33,9 +33,10 @@
 .stats-card {
   margin: 0 0 1rem;
   padding: 0.85rem 1rem 1rem;
-  border: 1px solid #ddd8d2;
-  border-radius: 10px;
-  background: #faf9f7;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: 0 1px 1px rgba(30, 35, 43, 0.08);
 }
 
 .stats-card h2 {
@@ -75,7 +76,7 @@
   height: 0.9rem;
   border-radius: 999px;
   overflow: hidden;
-  background: #e7ebf0;
+  background: #ebe8e3;
 }
 
 .stats-seg {
@@ -133,7 +134,7 @@
   height: 7.5rem;
   display: flex;
   align-items: flex-end;
-  background: #e7ebf0;
+  background: #ebe8e3;
   border-radius: 0.35rem 0.35rem 0 0;
 }
 
@@ -183,7 +184,7 @@
 .stats-tech-track {
   display: block;
   height: 0.55rem;
-  background: #e7ebf0;
+  background: #ebe8e3;
   border-radius: 999px;
   overflow: hidden;
 }
@@ -245,7 +246,7 @@
 .hint-level-track {
   display: block;
   height: 0.55rem;
-  background: #e7ebf0;
+  background: #ebe8e3;
   border-radius: 999px;
   overflow: hidden;
 }

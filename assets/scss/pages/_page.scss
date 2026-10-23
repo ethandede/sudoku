@@ -90,9 +90,14 @@
       th,
       td {
         text-align: left;
-        padding: 0.45rem 0.55rem;
-        border-bottom: 1px solid #ddd8d2;
+        padding: 0.55rem 0.65rem;
+        border-bottom: 1px solid var(--line);
         vertical-align: top;
+      }
+
+      th {
+        font-weight: 700;
+        background: var(--recess);
       }
     }
 
