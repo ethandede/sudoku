@@ -266,10 +266,12 @@ try {
     null,
     { timeout: 8000 }
   );
-  const client = await phone.newCDPSession(playing);
-  await client.send("Page.setWebLifecycleState", { state: "hidden" });
+  await playing.evaluate(() => {
+    Object.defineProperty(document, "visibilityState", { configurable: true, get: () => "hidden" });
+    Object.defineProperty(document, "hidden", { configurable: true, get: () => true });
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
   await playing.waitForTimeout(600);
-  await client.send("Page.setWebLifecycleState", { state: "active" });
   assert.equal(reloads, started, "a deploy did not reload the open game");
   assert.equal(await playing.locator(".cell").nth(anchor.index).getAttribute("data-value"), anchor.digit);
   const kept = JSON.parse(await playing.evaluate(() => localStorage.getItem("sudoku-progress:hard")));

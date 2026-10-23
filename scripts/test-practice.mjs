@@ -180,7 +180,7 @@ const noteDiff = practice.visibleFillTouches({
 assert.equal(noteDiff.length, 2, "a solver elimination counts even when that cell had no note");
 assert.equal(noteDiff[0].digits.join(","), "2,3");
 assert.equal(noteDiff[1].digits.join(","), "9");
-assert.equal(practice.reviewCopy(practice.batchesOf(noteDiff), ""), "Naked pair: 2 cells changed");
+assert.equal(practice.reviewCopy(practice.batchesOf(noteDiff), ""), "Naked pairs: 2 cells changed");
 const pairPuzzle = generator.generateForTechnique("naked-pair", { seed: "practice-naked-pair" });
 const pairBoard = pairPuzzle.puzzle.slice();
 const pairRemoved = [];
