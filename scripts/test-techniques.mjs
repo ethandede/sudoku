@@ -89,29 +89,29 @@ function cellPhrase(index) {
 }
 
 const examples = captureExamples(root);
+const lessonFlags = [];
 for (const slug of EXPANDED) {
   const technique = bySlug.get(slug);
   assert.ok(technique.sections, `${slug} has a lesson`);
   const words = proseWords(technique);
   assert.ok(words >= 450 && words <= 800, `${slug} prose words ${words} outside 450-800`);
-    const text = JSON.stringify(technique.sections);
-    const lower = text.toLowerCase();
-    assert.equal(text.includes("\u2014"), false, `${slug} em dash`);
-    const step = examples[slug].step;
-    const seen = new Set();
-    for (const index of [...step.pattern, ...step.eliminate.map((item) => item.index)]) {
-      if (seen.has(index)) continue;
-      seen.add(index);
-      const phrase = cellPhrase(index);
-      assert.equal(lower.includes(phrase), true, `${slug} walkthrough missing ${phrase}`);
-    }
-    if (step.place) {
-      assert.equal(lower.includes(cellPhrase(step.place.index)), true, `${slug} missing placement`);
-      assert.equal(text.includes(String(step.place.digit)), true, `${slug} missing placed digit`);
-    }
-  for (const item of step.eliminate) {
-    assert.equal(text.includes(String(item.digit)), true, `${slug} missing eliminated ${item.digit}`);
+  const text = JSON.stringify(technique.sections);
+  const lower = text.toLowerCase();
+  assert.equal(text.includes("\u2014"), false, `${slug} em dash`);
+  const step = examples[slug].step;
+  const seen = new Set();
+  const missing = [];
+  for (const index of [...step.pattern, ...step.eliminate.map((item) => item.index)]) {
+    if (seen.has(index)) continue;
+    seen.add(index);
+    const phrase = cellPhrase(index);
+    if (!lower.includes(phrase)) missing.push(phrase);
   }
+  if (step.place && !lower.includes(cellPhrase(step.place.index))) missing.push(`placement ${cellPhrase(step.place.index)}`);
+  for (const item of step.eliminate) {
+    if (!text.includes(String(item.digit))) missing.push(`eliminated ${item.digit}`);
+  }
+  if (missing.length) lessonFlags.push(`${slug}: ${missing.join(", ")}`);
 }
 
 for (const technique of techniques) {
@@ -300,3 +300,6 @@ for (const level of ["not easy", "hard", "expert"]) {
 assert.equal(shifts, 0, "not easy, hard, and expert pool ranks stay put");
 
 console.log("technique detectors ok");
+if (lessonFlags.length) {
+  throw new Error(`Captured example no longer matches the lesson (left for the content owner):\n${lessonFlags.join("\n")}`);
+}
