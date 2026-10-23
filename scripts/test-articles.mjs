@@ -316,7 +316,7 @@ const context = { console, Math, performance };
 context.globalThis = context;
 vm.createContext(context);
 vm.runInContext(readFileSync(new URL("../assets/js/solver.js", import.meta.url), "utf8"), context);
-const { grade, countSolutions } = context.SudokuSolver;
+const { grade, countSolutions, nextStep } = context.SudokuSolver;
 assert.equal(countSolutions(cells, 2), 1);
 const graded = grade(cells);
 assert.equal(graded.solved, true);
@@ -342,8 +342,122 @@ assert.match(stripUnpublishedLinks(grading, new Set()), /what-makes-a-sudoku-har
 assert.match(readFileSync(new URL("../src/_redirects", import.meta.url), "utf8"), /\/how-difficulty-works \/how-difficulty-works\/ 301/);
 
 const mistakes = readFileSync(new URL("../articles/02-common-mistakes.md", import.meta.url), "utf8");
-assert.equal(mistakes.includes("—"), false);
+const beginner = readFileSync(new URL("../articles/01-beginners-guide.md", import.meta.url), "utf8");
+
+function proseWords(markdown) {
+  return (
+    markdown
+      .replace(/```[\s\S]*?```/g, " ")
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+      .match(/[A-Za-z]+/g) || []
+  );
+}
+
+function pipeGrids(markdown) {
+  const grids = [];
+  for (const match of markdown.matchAll(/```[^\n]*\n([\s\S]*?)```/g)) {
+    const cells = [];
+    let ok = true;
+    for (const line of match[1].replace(/\s+$/, "").split("\n")) {
+      if (!line) continue;
+      if (line.startsWith("+")) continue;
+      if (!line.startsWith("|")) {
+        ok = false;
+        break;
+      }
+      const groups = line.split("|").slice(1, -1);
+      if (groups.length !== 3) {
+        ok = false;
+        break;
+      }
+      for (const group of groups) {
+        const tokens = group.trim().split(/\s+/);
+        if (tokens.length !== 3 || tokens.some((token) => !/^[1-9.]$/.test(token))) {
+          ok = false;
+          break;
+        }
+        for (const token of tokens) cells.push(token === "." ? 0 : Number(token));
+      }
+      if (!ok) break;
+    }
+    if (ok && cells.length === 81) grids.push(cells);
+  }
+  return grids;
+}
+
+function candidatesAt(grid, index) {
+  if (grid[index]) return [];
+  const row = Math.floor(index / 9);
+  const col = index % 9;
+  const boxRow = Math.floor(row / 3) * 3;
+  const boxCol = Math.floor(col / 3) * 3;
+  const found = [];
+  for (let digit = 1; digit <= 9; digit += 1) {
+    let ok = true;
+    for (let i = 0; i < 9; i += 1) {
+      if (grid[row * 9 + i] === digit || grid[i * 9 + col] === digit) ok = false;
+    }
+    for (let r = 0; r < 3 && ok; r += 1) {
+      for (let c = 0; c < 3; c += 1) {
+        if (grid[(boxRow + r) * 9 + (boxCol + c)] === digit) ok = false;
+      }
+    }
+    if (ok) found.push(digit);
+  }
+  return found;
+}
+
+function solvedBySingles(grid) {
+  const copy = grid.slice();
+  for (;;) {
+    const step = nextStep(copy);
+    if (!step) break;
+    copy[step.index] = step.digit;
+  }
+  return copy;
+}
+
+for (const [label, markdown] of [
+  ["beginners-guide", beginner],
+  ["common-mistakes", mistakes],
+]) {
+  assert.equal(markdown.startsWith("---"), false, `${label} publishDate frontmatter`);
+  assert.equal(markdown.includes("publishDate"), false, label);
+  assert.equal(markdown.includes("—"), false, label);
+  assert.equal(markdown.includes("–"), false, label);
+  assert.ok(proseWords(markdown).length >= 1200, `${label} words ${proseWords(markdown).length}`);
+}
+
 assert.equal(mistakes.includes("Print this checklist"), false);
+assert.match(beginner, /^# How to play Sudoku/m);
+assert.match(mistakes, /^# Sudoku mistakes I still make/m);
+assert.equal(beginner.includes("Row 1, column 2 is 3."), true);
+
+const [easyBoard] = pipeGrids(beginner);
+const [mistakeBoard] = pipeGrids(mistakes);
+assert.equal(pipeGrids(beginner).length, 1);
+assert.equal(pipeGrids(mistakes).length, 1);
+for (const board of [easyBoard, mistakeBoard]) {
+  assert.equal(countSolutions(board, 2), 1);
+  const graded = grade(board);
+  assert.equal(graded.solved, true);
+  assert.equal(graded.corrupt, false);
+  assert.equal(graded.hardestName, "single");
+  assert.equal(graded.clues, 38);
+}
+assert.deepEqual(candidatesAt(easyBoard, 3), [6]);
+assert.deepEqual(candidatesAt(easyBoard, 4), [4, 9]);
+const easySolved = solvedBySingles(easyBoard);
+assert.equal(easySolved[3], 6);
+assert.equal(easySolved[4], 4);
+assert.equal(easySolved.every(Boolean), true);
+assert.equal(mistakeBoard[5], 6);
+assert.deepEqual(candidatesAt(mistakeBoard, 13), [8]);
+assert.equal(mistakeBoard.slice(9, 18).includes(6), false);
+assert.equal([0, 1, 2, 3, 4, 5, 6, 7, 8].some((row) => mistakeBoard[row * 9 + 4] === 6), false);
+assert.deepEqual(candidatesAt(mistakeBoard, 9), [5, 6]);
+assert.equal(solvedBySingles(mistakeBoard)[9], 5);
+assert.equal(solvedBySingles(mistakeBoard)[13], 8);
 
 const contact = readFileSync(new URL("../contact-page-content.html", import.meta.url), "utf8");
 assert.equal(contact.includes("There is no account"), false);

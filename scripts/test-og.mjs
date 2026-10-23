@@ -52,7 +52,7 @@ assert.match(guide, /name="twitter:image" content="https:\/\/sudokusudoku.com\/o
 assert.equal(alt(guide), "How to play Sudoku on SudokuSudoku");
 
 const mistakes = page("articles/common-mistakes/index.html");
-assert.equal(alt(mistakes), "7 Common Sudoku Mistakes (And How to Fix Them) on SudokuSudoku");
+assert.equal(alt(mistakes), "Sudoku mistakes I still make on SudokuSudoku");
 assert.notEqual(alt(wing), alt(guide));
 
 console.log("og image tests passed");

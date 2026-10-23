@@ -8,7 +8,7 @@
 
 ![A digit checked against its row, column, and box.](/articles/images/mistakes-three-checks.svg "640x360")
 
-Last week I had a grid that went dead. Nothing left fit. I sat there blaming the puzzle, then found a 6 I had placed about twenty moves earlier. The 6 was never legal. I had checked the row and the column and felt done. The box already had a 6. I would like to say I only did this as a beginner. I did it this week.
+I still get a grid that goes dead. Nothing left fits. I sit there blaming the puzzle, then find a 6 I placed about twenty moves earlier. The 6 was never legal. I had checked the row and the column and felt done. The box already had a 6. I would like to say I only did this as a beginner. I still do it.
 
 These are the ones I actually hit. Each of them makes a later cell look impossible, and the later cell is usually fine.
 
@@ -66,7 +66,7 @@ On paper I do both extremes. Some days every empty cell wears six tiny digits an
 
 The N key toggles notes. In that mode, keys 1 through 9 add or remove a candidate in the selected cell. Auto Candidate Mode, under the pad, fills every empty cell from the rules. It is off until you turn it on. Those notes are computed, so they follow the board. They cannot go stale on their own. Handwritten notes can, and a wrong placement makes a special mess of them.
 
-Here is the part I had to learn on this site, not on paper. When you place a digit, the game removes it from your notes in that row, column, and box. It does this even when the digit is wrong. The notes are now consistent with a bad board. A candidate that was legal is gone, because the wrong digit "used it up." If you keep solving from those notes, they will argue for the mistake.
+Here is the part that bit me on this site. When you place a digit, the game removes it from your notes in that row, column, and box. It does this even when the digit is wrong. The notes are now consistent with a bad board. A candidate that was legal is gone, because the wrong digit "used it up." If you keep solving from those notes, they will argue for the mistake.
 
 Erase is not the repair. Erase clears the cell. The mistake count stays, and the notes that were stripped stay stripped. Undo puts the entry back, puts the notes back, and rolls the mistake count back with that entry. If you erased first, one Undo restores the wrong digit. Undo again to take the placement itself off. I lost a puzzle by erasing, nodding at the clean cell, and trusting notes that still believed the error.
 
@@ -76,9 +76,9 @@ If Check guesses as you go is on, a wrong entry also counts. That setting is on 
 
 A guess is a digit you place in a cell that still has two or more legal candidates, because you are tired of looking.
 
-On the board above, row 2, column 1 can be 5 or 6. Both are legal on the starting grid. The solution is 5. A 6 in that cell is not a box error. Nothing in the row, the column, or the box has a 6 yet... wait. Row 1, column 6 is a 6, but that is a different box, and column 1 is not column 6, and row 2 is not row 1. So 6 really is a candidate. Place it and the puzzle no longer has a solution. You will not feel that at the cell. You will feel it later, when some other cell has nowhere to go.
+On the board above, row 2, column 1 can be 5 or 6. Both fit that row, that column, and that box on the starting grid. The 6 at row 1, column 6 is a different box, so it does not block this cell. The solution is 5. Place a 6 and the puzzle no longer has a solution. You will not feel that at the cell. You will feel it later, when some other cell has nowhere to go.
 
-That is the annoying shape. The guess was locally legal. The digits after it can all be legal given the guess. The contradiction is downstream. Unwinding twenty placements by hand is how I used to spend a coffee. Undo is faster, if I notice before I have stacked a lot of them.
+That is the annoying shape. The guess was legal where you put it. The digits after it can all be legal given the guess. The contradiction is downstream. Unwinding twenty placements by hand is a bad afternoon. Undo is faster, if I notice before I have stacked a lot of them.
 
 Before I guess, I want a pass that could have found a single. One digit at a time, 1 through 9. For each digit, every row, every column, every box. A [hidden single](/techniques/hidden-single/) is a digit with one home in a house, even when that cell still shows another candidate. Naked singles are the cells with one candidate left. If either one exists, the guess can wait. [Practice a hidden single](/?practice=hidden-single) if that pass is the part that slips.
 

@@ -20,7 +20,7 @@ On a normal board there are nine rows, nine columns, and nine 3×3 boxes. Each o
 
 That is the whole rule. A digit can go in an empty cell only when its row, its column, and its box do not already contain it. A finished puzzle on this site has one solution, so if more than one digit still fits, you are not done looking.
 
-The filled cells at the start are givens. You do not change a given. Everything you write has to live with those, and with every digit you have already placed. Rows and columns on this page are counted from 1 at the top left. The top-left box is the first box. The top-middle box is the next one. They run left to right, then down.
+The filled cells at the start are givens. You do not change a given. Everything you write has to live with those, and with every digit you have already placed. The top-left box is the first box. The top-middle box is the next one. They run left to right, then down.
 
 A cell "sees" the other cells in its row, its column, and its box. If any of those already holds a 5, this cell cannot be 5. That is the check. I say it in my head when I am tired. Row, column, box. I have lost more Easies to a skipped box than I want to put in a byline.
 
@@ -128,7 +128,7 @@ You do not need those pages to finish the puzzle above. You do need to stop gues
 
 Undo puts the last entry back, notes included. Erase only clears the cell you are on. If Check guesses as you go is on, and it is on by default, a wrong entry counts toward a limit of 4. Four of them and the puzzle stops. Undo rolls that count back with the entry. Erase does not. You can turn the check off in settings. Then there is no limit, and a wrong digit just sits there until the grid breaks. I leave the check on. I would rather know at the cell.
 
-The daily is a Not Easy, not an Easy. The seed is the UTC date, so everyone gets the same grid that day. If you want the kind of board this article just walked, [play an Easy](/?difficulty=easy).
+The daily is a Not Easy. The seed is the UTC date, so everyone gets the same grid that day. If you want the kind of board this article just walked, [play an Easy](/?difficulty=easy).
 
 ## Where to go next
 
