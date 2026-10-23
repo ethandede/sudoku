@@ -169,7 +169,9 @@
 /category/sudoku-guides /articles/ 301
 /category/sudoku-guides/ /articles/ 301
 
-# Feeds. Pages _redirects cannot match ?p= or ?page_id=, so those keep serving the home puzzle.
+# Feeds. Pages _redirects cannot match a query string. Old WordPress
+# queries (?p=123, ?page_id=, ?s=) are answered with the 404 page by
+# functions/index.js. A puzzle link (?p=not-easy.xxxxxxxx) is not one of those.
 /feed /articles/ 301
 /feed/ /articles/ 301
 /feed/atom /articles/ 301
@@ -186,6 +188,8 @@
 /rss/ /articles/ 301
 
 # Dynamic rules stay last. Static rules above win when both match.
+# These are prefixes, not a catch-all. A /* splat would send missing
+# URLs to a real page and turn them into soft 404s.
 /page/* /articles/ 301
 /category/* /articles/ 301
 /tag/* /articles/ 301
