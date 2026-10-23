@@ -330,6 +330,7 @@ ${privacyChoiceNote}    <p class="copyright">&copy; ${year} SudokuSudoku. All ri
 ${game ? ["solver", "pools", "generator", "progress", "community", "share", "account-merge", "account"].map((name) => scriptTag(`/assets/js/${name}.js`)).join("\n") : ""}
 ${skills ? scriptTag("/assets/js/progress.js") : ""}
 ${scriptTag("/assets/js/update-banner.js")}
+${scriptTag("/assets/js/hint-apply.js")}
 ${scriptTag("/assets/js/sudoku.js")}
 ${skills ? scriptTag("/assets/js/skills.js") : ""}
 ${demo ? scriptTag("/assets/js/technique-demo.js") : ""}
@@ -343,6 +344,11 @@ ${privacyChoiceScript}</body>
 function accountMergeForBrowser(source) {
   const body = source.replace(/^export /gm, "");
   return `(function (root) {\n${body}\n  root.SudokuAccountMerge = {\n    mergeAccount: mergeAccount,\n    migrateStats: migrateStats,\n    migrateSettings: migrateSettings,\n    migrateProgress: migrateProgress,\n    BUNDLE_VERSION: BUNDLE_VERSION\n  };\n})(typeof globalThis !== "undefined" ? globalThis : this);\n`;
+}
+
+function hintApplyForBrowser(source) {
+  const body = source.replace(/^export /gm, "");
+  return `(function (root) {\n${body}\n  root.SudokuHintApply = {\n    applyHintStep: applyHintStep,\n    placesOnApply: placesOnApply,\n    legalCandidates: legalCandidates,\n    eliminationSentence: eliminationSentence,\n    resultCopy: resultCopy,\n    cellName: cellName\n  };\n})(typeof globalThis !== "undefined" ? globalThis : this);\n`;
 }
 
 function updateBannerForBrowser(source) {
@@ -476,6 +482,7 @@ write("assets/js/community.js", read("assets/js/community.js"));
 write("assets/js/share.js", read("assets/js/share.js"));
 write("assets/js/account-merge.js", accountMergeForBrowser(read("functions/account-merge.mjs")));
 write("assets/js/update-banner.js", updateBannerForBrowser(read("functions/update-banner.mjs")));
+write("assets/js/hint-apply.js", hintApplyForBrowser(read("functions/hint-apply.mjs")));
 write("assets/js/account.js", read("assets/js/account.js"));
 write("assets/js/stats-page.js", read("assets/js/stats-page.js"));
 write("ads.txt", read("ads.txt").trim() + "\n");
@@ -1095,6 +1102,7 @@ const shellPaths = [
   "assets/js/account-merge.js",
   "assets/js/account.js",
   "assets/js/update-banner.js",
+  "assets/js/hint-apply.js",
   ...iconSizes.map((size) => `icons/icon-${size}.png`),
   "icons/maskable-192.png",
   "icons/maskable-512.png",
