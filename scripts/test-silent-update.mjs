@@ -21,14 +21,14 @@ assert.equal(gameGate({ counted: false, won: false, over: false }, true), "idle"
 assert.equal(gameGate(playing, false), "idle");
 assert.equal(gameGate(null, true), "idle");
 
-assert.equal(shouldApplyUpdate(idle), true);
+assert.equal(shouldApplyUpdate(idle), false);
 assert.equal(shouldApplyUpdate({ ...idle, hidden: false }), false);
 assert.equal(shouldApplyUpdate({ ...idle, gate: "play" }), false);
 assert.equal(shouldApplyUpdate({ ...idle, gate: "pending" }), false);
 assert.equal(shouldApplyUpdate({ ...idle, pending: false }), false);
 assert.equal(shouldApplyUpdate({ ...idle, refreshing: true }), false);
 assert.equal(shouldApplyUpdate({ ...idle, reloadedAt: 90000, now: 100000 }), false);
-assert.equal(shouldApplyUpdate({ ...idle, reloadedAt: 80000, now: 100000 }), true);
+assert.equal(shouldApplyUpdate({ ...idle, reloadedAt: 80000, now: 100000 }), false);
 
 const sw = readFileSync(join(root, "assets/js/sw.js"), "utf8");
 const page = readFileSync(join(root, "assets/js/sudoku.js"), "utf8");
@@ -42,16 +42,15 @@ assert.match(activate, /clients\.claim\(\)/);
 assert.match(activate, /refreshShell\(/);
 assert.match(sw, /networkFirstNavigation/);
 assert.match(sw, /SKIP_WAITING/);
-assert.match(page, /shouldApplyUpdate/);
-assert.match(page, /visibilityState === "hidden"/);
+assert.equal(page.includes("shouldApplyUpdate"), false);
+assert.match(page, /visibilityState === "visible"/);
 assert.match(page, /writeSave\(\)/);
-assert.match(page, /SudokuAccount\.flush/);
 assert.equal(page.includes("app-update"), false);
 assert.equal(page.includes("A new version is ready."), false);
 assert.equal(page.includes("SKIP_WAITING"), false);
 assert.equal(page.includes("SudokuUpdate"), false);
 assert.equal(page.includes("location.replace"), false);
-assert.equal((page.match(/location\.reload\(\)/g) || []).length, 1);
+assert.equal(page.includes("location.reload"), false);
 assert.equal(build.includes("A new version is ready."), false);
 assert.equal(build.includes("app-update"), false);
 assert.equal(build.includes("update-banner.js"), false);
@@ -83,8 +82,14 @@ const types = {
   ".webmanifest": "application/manifest+json",
 };
 
+let swOverride = null;
 const site = createServer(async (req, res) => {
   const url = new URL(req.url, "http://127.0.0.1");
+  if (url.pathname === "/sw.js" && swOverride) {
+    res.writeHead(200, { "content-type": "text/javascript", "cache-control": "no-cache" });
+    res.end(swOverride);
+    return;
+  }
   let path = decodeURIComponent(url.pathname);
   if (path.endsWith("/")) path += "index.html";
   const file = normalize(join(dist, path));
@@ -217,6 +222,60 @@ try {
   assert.deepEqual(after.board, before.board);
   assert.deepEqual(after.puzzle, before.puzzle);
   await context.close();
+
+  const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true });
+  const playing = await phone.newPage();
+  let reloads = 0;
+  playing.on("framenavigated", (frame) => {
+    if (frame === playing.mainFrame()) reloads += 1;
+  });
+  await playing.goto(`${origin}/?difficulty=hard`, { waitUntil: "domcontentloaded" });
+  await playing.waitForSelector("#sudoku-grid button.given");
+  const anchor = await playing.evaluate(() => {
+    const save = JSON.parse(localStorage.getItem("sudoku-progress"));
+    const index = save.puzzle.findIndex((value) => value === 0);
+    return { index, digit: String(save.solution[index]), puzzleId: save.puzzleId };
+  });
+  await playing.locator(".cell").nth(anchor.index).tap();
+  await playing.keyboard.press(anchor.digit);
+  await playing.waitForFunction(
+    (digit) => document.querySelector(".cell.selected") && document.querySelector(".cell.selected").dataset.value === digit,
+    anchor.digit
+  );
+  await playing.waitForFunction(() => navigator.serviceWorker.controller);
+  const started = reloads;
+  const realSw = readFileSync(join(dist, "sw.js"), "utf8");
+  swOverride = realSw.replace(/const VERSION = "[^"]+"/, 'const VERSION = "deployed-while-playing"');
+  await playing.evaluate(() => navigator.serviceWorker.getRegistration().then((registration) => registration.update()));
+  await playing.waitForFunction(
+    () =>
+      new Promise((resolve) => {
+        const worker = navigator.serviceWorker.controller;
+        if (!worker) {
+          resolve(false);
+          return;
+        }
+        const channel = new MessageChannel();
+        const timer = setTimeout(() => resolve(false), 500);
+        channel.port1.onmessage = (event) => {
+          clearTimeout(timer);
+          resolve(event.data && event.data.version === "deployed-while-playing");
+        };
+        worker.postMessage({ type: "GET_VERSION" }, [channel.port2]);
+      }),
+    null,
+    { timeout: 8000 }
+  );
+  const client = await phone.newCDPSession(playing);
+  await client.send("Page.setWebLifecycleState", { state: "hidden" });
+  await playing.waitForTimeout(600);
+  await client.send("Page.setWebLifecycleState", { state: "active" });
+  assert.equal(reloads, started, "a deploy did not reload the open game");
+  assert.equal(await playing.locator(".cell").nth(anchor.index).getAttribute("data-value"), anchor.digit);
+  const kept = JSON.parse(await playing.evaluate(() => localStorage.getItem("sudoku-progress:hard")));
+  assert.equal(kept.puzzleId, anchor.puzzleId);
+  assert.equal(kept.board[anchor.index], Number(anchor.digit));
+  await phone.close();
 
   const stuck = await browser.newContext();
   const old = await stuck.newPage();
