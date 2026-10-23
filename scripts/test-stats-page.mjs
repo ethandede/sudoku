@@ -96,7 +96,10 @@ async function openStats(viewport, theme, reducedMotion) {
 
 async function cell(page, level, column) {
   const row = page.locator("#your-games tbody tr").filter({ has: page.locator("th", { hasText: new RegExp(`^${level}$`) }) });
-  return row.locator("td").nth(column).innerText();
+  return row.locator("td").nth(column).evaluate((td) => {
+    const sr = td.querySelector(".rare-sr");
+    return (sr ? sr.textContent : td.innerText).trim();
+  });
 }
 
 async function settle(page) {
@@ -104,9 +107,18 @@ async function settle(page) {
     () => {
       const line = document.querySelector("#your-games .streak-line");
       const easy = [...document.querySelectorAll("#your-games tbody tr")].find((row) => row.querySelector("th")?.textContent === "Easy");
-      const played = easy && easy.querySelectorAll("td")[0]?.textContent.trim();
-      const best = easy && easy.querySelectorAll("td")[1]?.textContent.trim();
-      return line && line.textContent.includes("Daily streak 2") && line.textContent.includes("longest 9") && played === "4" && best === "1:30";
+      const playedCell = easy && easy.querySelectorAll("td")[0];
+      const bestCell = easy && easy.querySelectorAll("td")[1];
+      const read = (node) => {
+        if (!node) return "";
+        const sr = node.querySelector(".rare-sr");
+        return (sr ? sr.textContent : node.innerText).trim();
+      };
+      const srs = line ? [...line.querySelectorAll(".rare-sr")].map((node) => node.textContent.trim()) : [];
+      const streakOk = srs.length
+        ? line.textContent.includes("Daily streak") && line.textContent.includes("longest") && srs[0] === "2" && srs[1] === "9"
+        : line && line.textContent.includes("Daily streak 2") && line.textContent.includes("longest 9");
+      return streakOk && read(playedCell) === "4" && read(bestCell) === "1:30";
     },
     null,
     { timeout: 4000 }
@@ -156,7 +168,10 @@ for (const [name, viewport, theme] of [
   assert.equal(await cell(page, "Hard", 0), "0");
   assert.equal(await cell(page, "Hard", 1), "–");
   assert.equal(await cell(page, "Hard", 2), "–");
-  const line = await page.locator("#your-games .streak-line").innerText();
+  const line = await page.locator("#your-games .streak-line").evaluate((node) => {
+    const srs = [...node.querySelectorAll(".rare-sr")].map((item) => item.textContent.trim());
+    return srs.length ? `Daily streak ${srs[0]} longest ${srs[1]}` : node.innerText;
+  });
   assert.match(line, /Daily streak 2/);
   assert.match(line, /longest 9/);
   await page.locator("#your-games").evaluate((el) => el.scrollIntoView({ block: "start" }));
