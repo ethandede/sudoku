@@ -44,6 +44,45 @@ function database(env) {
   return env && env.STATS_DB ? env.STATS_DB : null;
 }
 
+// Plays are a person moving a digit or a note. Headless browsers and
+// requests with no user agent are not recorded. A missing headers object
+// (unit tests that pass a plain object) is treated as blocked too, except
+// the read-path helper below, which only skips when a real header is present.
+export function blockedUserAgent(request) {
+  const ua = userAgent(request);
+  if (ua == null || !String(ua).trim()) return true;
+  return /HeadlessChrome/i.test(ua);
+}
+
+function userAgent(request) {
+  if (!request || !request.headers || typeof request.headers.get !== "function") return null;
+  const value = request.headers.get("user-agent");
+  return value == null ? "" : String(value);
+}
+
+// Empty agents, HeadlessChrome, and Cloudflare's own Early Hints probes
+// should not run the summary query. Probes usually never reach Pages, but
+// a request that does arrive with one of these agents is not a visitor.
+function skipStatsRead(request) {
+  const ua = userAgent(request);
+  if (ua == null) return false;
+  if (!ua.trim()) return true;
+  if (/HeadlessChrome/i.test(ua)) return true;
+  return /early hints/i.test(ua);
+}
+
+// A preload Link header gives the Pages Early Hints cache something to
+// store. On 22 Oct 2026 every 504 for /api/stats/summary (63) and
+// /api/stats/consent (55) was an Early Hints probe ("nginx-ssl early hints"
+// or "fl2 early hints") with origin status 0. Those probes do not run this
+// function. A 504 only means no Link header was cached for that URL yet.
+// The plays table was 57 rows and the real responses were fast.
+const EARLY_HINT_LINK = "</favicon.svg>; rel=preload; as=image";
+
+function withHint(headers) {
+  return { ...headers, link: EARLY_HINT_LINK };
+}
+
 export async function sweepAbandoned(db, now) {
   await db
     .prepare(
@@ -63,6 +102,7 @@ async function findByClientPuzzle(db, clientId, puzzleKey) {
 }
 
 export async function handleStart({ request, env, now = Date.now() }) {
+  if (blockedUserAgent(request)) return json({ error: "invalid" }, 400);
   const db = database(env);
   if (!db) return json({ error: "unavailable" }, 503);
   const parsed = await readJson(request);
@@ -160,6 +200,7 @@ async function todayPayload(db, date) {
 }
 
 export async function handleFinish({ request, env, now = Date.now() }) {
+  if (blockedUserAgent(request)) return json({ error: "invalid" }, 400);
   const db = database(env);
   if (!db) return json({ error: "unavailable" }, 503);
   const parsed = await readJson(request);
@@ -226,6 +267,7 @@ function summaryCacheKey(request) {
 }
 
 export async function handleSummary({ request, env, now = Date.now(), cache }) {
+  if (skipStatsRead(request)) return new Response(null, { status: 204, headers: withHint(PRIVATE_HEADERS) });
   const db = database(env);
   if (!db) return json({ error: "unavailable" }, 503);
   const cacheStore = cache || (typeof caches !== "undefined" ? caches.default : null);
@@ -251,10 +293,10 @@ export async function handleSummary({ request, env, now = Date.now(), cache }) {
     const body = aggregate(listed.results || [], now);
     const response = new Response(JSON.stringify(body), {
       status: 200,
-      headers: {
+      headers: withHint({
         "content-type": "application/json; charset=utf-8",
         "cache-control": "public, s-maxage=600, max-age=60",
-      },
+      }),
     });
     if (cacheStore) {
       try {
@@ -270,6 +312,7 @@ export async function handleSummary({ request, env, now = Date.now(), cache }) {
 }
 
 export async function handleConsent({ request }) {
+  if (skipStatsRead(request)) return new Response(null, { status: 204, headers: withHint(PRIVATE_HEADERS) });
   const country = request && request.cf && request.cf.country ? String(request.cf.country) : "";
-  return json({ consentRequired: consentRequired(country) });
+  return json({ consentRequired: consentRequired(country) }, 200, withHint(PRIVATE_HEADERS));
 }

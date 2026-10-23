@@ -203,7 +203,10 @@
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
   setInterval(tick, 250);
   document.addEventListener("visibilitychange", onVisibility);
-  window.addEventListener("pagehide", () => {
+  window.addEventListener("pagehide", (event) => {
+    if (window.SudokuCommunity && state.puzzle.some((value) => value !== 0)) {
+      window.SudokuCommunity.leave(communitySnapshot(state.over ? "failed" : "abandoned"), event);
+    }
     if (window.SudokuAccount) window.SudokuAccount.flush();
   });
   if (window.SudokuAccount) {
@@ -244,6 +247,7 @@
       train: null,
       anonPlayId: null,
       notesUsed: false,
+      gameplayMarked: false,
     };
   }
 
@@ -1026,6 +1030,20 @@
     else place(state.selected, number);
   }
 
+  function markGameplay() {
+    if (state.gameplayMarked || !window.SudokuCommunity) return;
+    state.gameplayMarked = true;
+    const pending = window.SudokuCommunity.noteFirstMove(communitySnapshot("abandoned"));
+    state.startPromise = pending;
+    if (pending && typeof pending.then === "function") {
+      pending
+        .then((playId) => {
+          if (playId) state.anonPlayId = playId;
+        })
+        .catch(() => {});
+    }
+  }
+
   function place(index, number) {
     if (state.puzzle[index] !== 0 || state.board[index] === number) return;
     dismissHint();
@@ -1044,6 +1062,7 @@
       if (state.mistakes >= MISTAKE_LIMIT) {
         state.over = true;
         pause(false);
+        markGameplay();
         render();
         showModal("over-modal");
         writeSave();
@@ -1052,6 +1071,7 @@
     } else {
       state.slashed.delete(index);
     }
+    markGameplay();
     render();
     if (isSolved()) finish(false);
     else writeSave();
@@ -1064,6 +1084,7 @@
     else {
       state.notes[index].add(number);
       state.notesUsed = true;
+      markGameplay();
     }
     render();
     writeSave();
@@ -1396,6 +1417,7 @@
       notesUsed: Boolean(state.notesUsed || state.auto),
       kind: state.kind,
       isDaily: state.kind === "daily",
+      over: Boolean(state.over),
     };
   }
 
@@ -1410,12 +1432,16 @@
     state.hidePaused = false;
     pause(false);
     const snapshot = communitySnapshot(revealed ? "revealed" : "solved");
-    if (window.SudokuCommunity) window.SudokuCommunity.rememberFinish(snapshot);
+    const started = state.startPromise || Promise.resolve();
+    if (window.SudokuCommunity) {
+      started
+        .then(() => window.SudokuCommunity.rememberFinish(snapshot))
+        .then(() => window.SudokuCommunity.completeFinish(snapshot));
+    }
     clearSave();
     const unlocked = revealed ? [] : recordWin();
     render();
     showSolved(false, unlocked);
-    if (window.SudokuCommunity) window.SudokuCommunity.completeFinish(snapshot);
     if (unlocked.length && window.SudokuProgress) window.SudokuProgress.celebrate(unlocked);
     if (window.SudokuAccount) window.SudokuAccount.flush();
   }
@@ -2153,7 +2179,7 @@
       notesUsed: Boolean(state.notesUsed),
       over: Boolean(state.over),
     };
-    if (window.SudokuCommunity && state.anonPlayId) {
+    if (window.SudokuCommunity && (state.anonPlayId || state.gameplayMarked)) {
       window.SudokuCommunity.noteProgress(communitySnapshot(state.over ? "failed" : "abandoned"));
     }
     try {

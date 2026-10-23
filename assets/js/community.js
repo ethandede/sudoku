@@ -23,6 +23,7 @@
   let summaryCache = null;
   let summaryAt = 0;
   let flushing = null;
+  let startGate = Promise.resolve();
 
   function readJson(key) {
     try {
@@ -223,18 +224,76 @@
     };
   }
 
+  function automatedClient() {
+    try {
+      if (navigator.webdriver) return true;
+      return /HeadlessChrome/i.test(navigator.userAgent || "");
+    } catch {
+      return false;
+    }
+  }
+
+  function trackGame(name, params) {
+    if (automatedClient() || typeof window.gtag !== "function") return;
+    const fields = params || {};
+    window.gtag("event", name, fields);
+  }
+
+  function trackGameNow(name, params) {
+    if (automatedClient() || typeof window.gtag !== "function") return;
+    const fields = {};
+    Object.keys(params || {}).forEach((key) => {
+      fields[key] = params[key];
+    });
+    fields.transport_type = "beacon";
+    window.gtag("event", name, fields);
+  }
+
+  // Consent Mode is already set before gtag loads: denied in the EEA, the
+  // UK, and Switzerland until the prompt, granted elsewhere. Calling gtag
+  // here does not bypass that. The anon-id gate stays separate.
+  function analyticsFields(open, info) {
+    const isDaily = info && typeof info.isDaily === "boolean" ? info.isDaily : Boolean(open && open.isDaily);
+    let level = open && open.level;
+    if (info && info.kind && info.kind !== "daily") level = info.kind;
+    if (!level) level = isDaily ? "not easy" : "easy";
+    return {
+      level,
+      is_daily: isDaily,
+      elapsed_seconds: Math.max(0, Math.round((info && info.elapsed) || (open && open.elapsed) || 0)),
+      mistakes: Math.max(0, Math.round((info && info.mistakes) || (open && open.mistakes) || 0)),
+      hints_used: Math.max(0, Math.round((info && info.hintsUsed) || (open && open.hintsUsed) || 0)),
+    };
+  }
+
+  function wasLogged(open) {
+    if (!open) return false;
+    if (open.logged === true || open.logging === true) return true;
+    if (open.logged === false) return false;
+    return Boolean(open.playId);
+  }
+
+  function queueFinish(open, outcome) {
+    if (!open || !wasLogged(open) || !sharingOn() || !hasId()) return;
+    const previous = open.finishOutcome || null;
+    if (previous === outcome) return;
+    if (previous && previous !== "abandoned") return;
+    enqueue("/api/stats/finish", finishPayload(open, outcome));
+    open.finishOutcome = outcome;
+    open.done = outcome !== "abandoned";
+    writeOpen(open);
+  }
+
   function closePrevious() {
     const open = readOpen();
-    if (!open || open.done) {
-      clearOpen();
-      return;
+    if (!open) return;
+    if (!open.done && !open.gaEnd && open.gaStart && !open.over) {
+      trackGame("game_abandon", analyticsFields(open));
+      open.gaEnd = "abandon";
     }
-    if (!sharingOn() || !hasId()) {
-      clearOpen();
-      return;
-    }
-    enqueue("/api/stats/finish", finishPayload(open, open.over ? "failed" : "abandoned"));
+    if (!open.done) queueFinish(open, open.over ? "failed" : "abandoned");
     clearOpen();
+    void flush();
   }
 
   async function flush() {
@@ -412,13 +471,12 @@
     await refreshSummary();
   }
 
-  async function onNewGame(info) {
+  async function openGame(info) {
     closePrevious();
-    const id = await clientId();
-    if (!id) return null;
+    if (automatedClient()) return null;
     const key = await puzzleKey(info.seed, info.givens);
     const playId = randomHex(16);
-    const open = {
+    writeOpen({
       playId,
       puzzleKey: key,
       level: info.level,
@@ -431,27 +489,102 @@
       hardestHint: "",
       notesUsed: Boolean(info.notesUsed),
       done: false,
-    };
-    writeOpen(open);
+      logged: false,
+      logging: false,
+      dropped: false,
+      gaStart: false,
+      gaEnd: null,
+    });
+    return playId;
+  }
+
+  function onNewGame(info) {
+    const run = startGate.then(() => openGame(info));
+    startGate = run.then(
+      () => {},
+      () => {}
+    );
+    return run;
+  }
+
+  async function beginLogging(info) {
+    if (automatedClient()) return null;
+    const open = readOpen();
+    if (!open || open.done) return null;
+    if (info) noteProgress(info);
+    const current = readOpen();
+    if (!current || current.done) return null;
+    if (!current.gaStart) {
+      current.gaStart = true;
+      writeOpen(current);
+      trackGame("game_start", { level: current.level, is_daily: Boolean(current.isDaily) });
+    }
+    if (current.logged || current.logging || current.dropped) return current.logged ? current.playId : null;
+    // Sessions saved before starts moved to the first move already have a row.
+    if (current.logged == null && current.playId) {
+      current.logged = true;
+      writeOpen(current);
+      return current.playId;
+    }
+    const id = await clientId();
+    const again = readOpen();
+    if (!again || again.playId !== current.playId || again.done) return null;
+    if (!id) return null;
+    again.logging = true;
+    writeOpen(again);
     enqueue("/api/stats/start", {
       clientId: id,
-      playId,
-      puzzleKey: key,
-      level: info.level,
-      isDaily: Boolean(info.isDaily),
-      date: info.isDaily ? info.date : null,
+      playId: again.playId,
+      puzzleKey: again.puzzleKey,
+      level: again.level,
+      isDaily: Boolean(again.isDaily),
+      date: again.isDaily ? again.date : null,
     });
     const flushed = await flush();
+    const saved = readOpen();
+    if (!saved || saved.playId !== again.playId) return flushed.startPlayId || null;
+    saved.logging = false;
     if (flushed.startDropped) {
-      clearOpen();
+      saved.dropped = true;
+      saved.logged = false;
+      writeOpen(saved);
       return null;
     }
-    if (flushed.startPlayId && flushed.startPlayId !== playId) {
-      open.playId = flushed.startPlayId;
-      writeOpen(open);
-      return open.playId;
+    saved.logged = true;
+    writeOpen(saved);
+    return saved.playId;
+  }
+
+  function noteFirstMove(info) {
+    const run = startGate.then(() => beginLogging(info));
+    startGate = run.then(
+      () => {},
+      () => {}
+    );
+    return run;
+  }
+
+  function leave(info, event) {
+    if (event && event.persisted) {
+      beaconQueue();
+      return;
     }
-    return playId;
+    if (info) noteProgress(info);
+    const open = readOpen();
+    if (!open || open.done || open.gaEnd || !open.gaStart) {
+      beaconQueue();
+      return;
+    }
+    if (open.over || (info && info.outcome === "failed")) {
+      queueFinish(open, "failed");
+      beaconQueue();
+      return;
+    }
+    trackGameNow("game_abandon", analyticsFields(open, info));
+    open.gaEnd = "abandon";
+    writeOpen(open);
+    queueFinish(open, "abandoned");
+    beaconQueue();
   }
 
   function noteProgress(partial) {
@@ -466,25 +599,33 @@
     writeOpen(open);
   }
 
-  function rememberFinish(info) {
+  async function commitFinish(info) {
     const open = readOpen();
-    if (!open || open.done || !sharingOn() || !hasId()) {
-      clearOpen();
-      return;
+    if (open && info) noteProgress(info);
+    const current = readOpen();
+    if (info && info.outcome === "solved" && current && current.gaStart && current.gaEnd !== "complete") {
+      trackGame("game_complete", analyticsFields(current, info));
+      current.gaEnd = "complete";
+    } else if (current && !current.gaEnd) {
+      current.gaEnd = "closed";
     }
-    const merged = {
-      playId: open.playId,
-      puzzleKey: open.puzzleKey,
-      elapsed: info.elapsed,
-      mistakes: info.mistakes,
-      hintsUsed: info.hintsUsed,
-      hardestHint: info.hardestHint,
-      notesUsed: Boolean(info.notesUsed),
-      over: info.outcome === "failed",
-    };
-    enqueue("/api/stats/finish", finishPayload(merged, info.outcome));
-    open.done = true;
-    writeOpen(open);
+    if (!current) return;
+    if (info && typeof info.elapsed === "number") current.elapsed = Math.round(info.elapsed);
+    if (info && typeof info.mistakes === "number") current.mistakes = info.mistakes;
+    if (info && typeof info.hintsUsed === "number") current.hintsUsed = info.hintsUsed;
+    if (info && typeof info.hardestHint === "string") current.hardestHint = info.hardestHint;
+    if (info && typeof info.notesUsed === "boolean") current.notesUsed = info.notesUsed;
+    writeOpen(current);
+    queueFinish(current, info.outcome);
+  }
+
+  function rememberFinish(info) {
+    const run = startGate.then(() => commitFinish(info));
+    startGate = run.then(
+      () => {},
+      () => {}
+    );
+    return run;
   }
 
   async function completeFinish(info) {
@@ -515,6 +656,8 @@
     boot,
     reconcile,
     onNewGame,
+    noteFirstMove,
+    leave,
     noteProgress,
     rememberFinish,
     completeFinish,

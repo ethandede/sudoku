@@ -63,7 +63,7 @@ Until one of those exists, the sign-in sheet still shows, and the request respon
 
 D1 is bound on the Pages project as `STATS_DB`. Production uses `sudokusudoku-stats` (`1d90567c-bc27-48d4-bd35-f9d02f2fd036`). Preview deployments use `sudokusudoku-stats-preview` (`492493ba-3bad-403e-8391-1090489ef024`). Apply the statements in [`migrations/README.md`](migrations/README.md) to both databases with the Cloudflare API. Do not seed sample rows into production.
 
-`POST /api/stats/start` and `POST /api/stats/finish` record an anonymous play. `GET /api/stats/summary` is the public aggregate, cached at the edge for about 10 minutes. A bucket with fewer than 20 finishes is omitted. `GET /api/stats/consent` says whether this request's country should wait for analytics consent before the page stores a random id. The country is not saved.
+`POST /api/stats/start` records an anonymous play on the first digit or note, not when the puzzle is dealt. `POST /api/stats/finish` records the outcome. Requests with no user agent, and HeadlessChrome, are ignored. `GET /api/stats/summary` is the public aggregate, cached at the edge for about 10 minutes. A bucket with fewer than 20 finishes is omitted. `GET /api/stats/consent` says whether this request's country should wait for analytics consent before the page stores a random id. The country is not saved. Game events `game_start`, `game_complete`, and `game_abandon` go to Google Analytics through the existing Consent Mode tag.
 
 ## Local
 
