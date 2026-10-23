@@ -23,10 +23,10 @@
   --map-fill: var(--same);
   --muted: #5e5954;
   --count-ink: #5a534c;
-  --auto-ink: #5a534c;
-  --note-ink: var(--accent-color);
+  --auto-ink: #4f4b46;
+  --note-ink: #0c4f86;
   --ghost-ink: #2c4558;
-  --auto-on-selected: #5a534c;
+  --auto-on-selected: #4f4b46;
   --note-on-selected: var(--accent-color);
   --ghost-on-selected: #2c4558;
   --card: #faf9f7;
@@ -36,7 +36,6 @@
   --focus: var(--accent-color);
   --danger: #b00016;
   --hint-pattern: #0b6e5f;
-  --hint-eliminate: #b42318;
   --hint-place: #0b6e5f;
   --hint-place-bg: #d7f3ec;
   --hint-region: #e7f6f2;
@@ -64,12 +63,12 @@ html[data-theme="dark"] .technique-page {
   --user-ink: var(--accent-on-dark);
   --line: #efece7;
   --thin: #3d3a36;
-  --selected: #355068;
+  --selected: #514a42;
   --selected-ink: var(--ink);
-  --same: #2c4256;
-  --peer: #24303a;
-  --given-peer: #24303a;
-  --hover: #2a3844;
+  --same: #454038;
+  --peer: #322e2a;
+  --given-peer: #322e2a;
+  --hover: #3a3632;
   --slash: #ffb4b4;
   --slash-on-selected: #ffb4b4;
   --dot: #ffb4b4;
@@ -80,10 +79,10 @@ html[data-theme="dark"] .technique-page {
   --map-fill: var(--same);
   --muted: #c4beb6;
   --count-ink: #c9c3bb;
-  --auto-ink: #c9c3bb;
-  --note-ink: var(--accent-on-dark);
+  --auto-ink: #c4bfb8;
+  --note-ink: #9ed2f8;
   --ghost-ink: #d4ebfa;
-  --auto-on-selected: #c9c3bb;
+  --auto-on-selected: #ecebe8;
   --note-on-selected: var(--accent-on-dark);
   --ghost-on-selected: #d4ebfa;
   --card: #242220;
@@ -93,7 +92,6 @@ html[data-theme="dark"] .technique-page {
   --focus: var(--accent-on-dark);
   --danger: #ffb4b4;
   --hint-pattern: #7ddec8;
-  --hint-eliminate: #ff8b80;
   --hint-place: #7ddec8;
   --hint-place-bg: #1a3c34;
   --hint-region: #1e3330;
@@ -566,7 +564,12 @@ body:has(.sudoku-page) .site-header {
   color: var(--user-ink);
   font: inherit;
   font-weight: 700;
-  font-size: clamp(1.15rem, 8cqi, 2.4rem);
+  font-size: clamp(11px, 3.5cqi, 16px);
+
+  &.given,
+  &.user {
+    font-size: clamp(1.15rem, 8cqi, 2.4rem);
+  }
   line-height: 1;
   min-width: 0;
   min-height: 0;
@@ -643,7 +646,8 @@ body:has(.sudoku-page) .site-header {
   }
 
   &.hint-eliminate {
-    box-shadow: inset 0 0 0 3px var(--hint-eliminate);
+    background: color-mix(in srgb, var(--danger) 8%, var(--cell-bg));
+    box-shadow: inset 0 0 0 2px var(--danger);
     z-index: 2;
   }
 
@@ -702,7 +706,13 @@ body:has(.sudoku-page) .site-header {
     animation: none;
     background: var(--cell-bg);
     box-shadow: inset 0 0 0 0 transparent;
-    transition: background-color 300ms ease, box-shadow 300ms ease;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    &.fill-placed.fill-fading,
+    &.fill-cleared.fill-fading {
+      transition: background-color 300ms ease, box-shadow 300ms ease;
+    }
   }
 
   &.given.fill-placed.fill-fading,
@@ -719,6 +729,16 @@ body:has(.sudoku-page) .site-header {
   &.given.selected.fill-placed.fill-fading,
   &.given.selected.fill-cleared.fill-fading {
     background: var(--selected);
+  }
+}
+
+@keyframes struck-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
   }
 }
 
@@ -751,12 +771,15 @@ body:has(.sudoku-page) .site-header {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
-  padding: 1px;
+  padding: 2px;
   box-sizing: border-box;
-  font-size: clamp(11px, 3.2cqi, 15px);
+  font-size: clamp(11px, 3.5cqi, 16px);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  letter-spacing: 0;
   font-weight: 650;
   line-height: 1;
-  color: var(--muted);
+  color: var(--auto-ink);
   pointer-events: none;
 
   span {
@@ -779,15 +802,19 @@ body:has(.sudoku-page) .site-header {
 
   span.struck {
     visibility: visible;
-    color: var(--slash);
-    font-weight: 800;
+    color: var(--danger);
+    font-weight: 700;
     text-decoration: line-through;
-    text-decoration-thickness: 1px;
+    text-decoration-thickness: 2px;
+  }
+
+  span.struck.fading {
+    animation: struck-out 600ms ease-out forwards;
   }
 
   span.auto {
     color: var(--auto-ink);
-    font-weight: 500;
+    font-weight: 600;
     font-style: normal;
     text-decoration: none;
     opacity: 1;
@@ -830,7 +857,7 @@ body:has(.sudoku-page) .site-header {
 
   span.auto {
     color: var(--auto-on-selected);
-    font-weight: 500;
+    font-weight: 600;
     font-style: normal;
     text-decoration: none;
     opacity: 1;
@@ -863,17 +890,22 @@ body:has(.sudoku-page) .site-header {
 
   span.struck {
     visibility: visible;
-    color: var(--slash-on-selected);
-    font-weight: 800;
+    color: var(--danger);
+    font-weight: 700;
     opacity: 1;
     text-decoration: line-through;
+    text-decoration-thickness: 2px;
   }
+}
+
+html[data-theme="dark"] .cell.hint-eliminate {
+  background: color-mix(in srgb, var(--danger) 14%, var(--cell-bg));
 }
 
 .cell.hint-pattern .marks,
 .cell.hint-eliminate .marks,
 .cell.hint-place .marks {
-  font-size: clamp(0.68rem, 2.8cqi, 0.9rem);
+  font-size: inherit;
 }
 
 .board-cover {
@@ -1216,6 +1248,7 @@ kbd {
 }
 
 .hint-next,
+.hint-fill,
 .hint-learn,
 .hint-dismiss {
   touch-action: manipulation;
@@ -1837,6 +1870,16 @@ button:disabled {
     display: none;
   }
 
+  .board-column {
+    justify-content: center;
+  }
+
+  // Centering is inside the column. The flex gap sits only under the board,
+  // so it would leave the lower gap about 6px larger than the upper one.
+  .play-surface {
+    gap: 0;
+  }
+
   .sudoku-copy h2 {
     font-size: 1.35rem;
   }
@@ -2087,6 +2130,19 @@ html.is-standalone:has(.sudoku-page) body {
   }
 }
 
+@media (max-width: 720px) {
+  html .game-intro h1 {
+    font-size: clamp(14px, 3.9vw, 16px);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: 0;
+    color: var(--ink);
+    margin: 0;
+    padding: 8px 16px 2px;
+    white-space: normal;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .celebrate .confetti span {
     animation: none;
@@ -2098,8 +2154,19 @@ html.is-standalone:has(.sudoku-page) body {
     animation: none;
   }
 
+  .marks span.struck.fading {
+    animation: none;
+  }
+
   .cell.fill-placed.fill-fading,
-  .cell.fill-cleared.fill-fading {
+  .cell.fill-cleared.fill-fading,
+  .cell.selected.fill-placed.fill-fading,
+  .cell.selected.fill-cleared.fill-fading,
+  .cell.given.fill-placed.fill-fading,
+  .cell.given.fill-cleared.fill-fading,
+  .cell.given.selected.fill-placed.fill-fading,
+  .cell.given.selected.fill-cleared.fill-fading {
+    animation: none;
     transition: none;
   }
 }

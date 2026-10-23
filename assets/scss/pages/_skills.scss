@@ -450,13 +450,22 @@ html[data-theme="dark"] .badge-toast-icon {
 .solved-practice {
   font-size: 1rem;
 
-  a {
+  a,
+  a:link,
+  a:visited {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
     margin-right: 0.85rem;
     font-weight: 800;
+    color: var(--user-ink);
   }
+}
+
+html[data-theme="dark"] .solved-practice a,
+html[data-theme="dark"] .solved-practice a:link,
+html[data-theme="dark"] .solved-practice a:visited {
+  color: var(--accent-on-dark);
 }
 
 @media (min-width: 720px) {

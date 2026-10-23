@@ -23,7 +23,8 @@ import { nextTechnique, orderedTechniques, techniques } from "./technique-copy.m
 import { adsensePushScript, housePair, renderHousePromos } from "./house-promos.mjs";
 import { phosphorArrow } from "./icons.mjs";
 import { faqJsonLd, homeCopy, renderHomeBelow, renderHomeIntro } from "../home-copy.mjs";
-import { articleMeta, assertSiteMeta, staticMeta, techniqueMeta } from "./seo-meta.mjs";
+import { articleMeta, assertSiteMeta, assertUniqueMeta, catalogPages, staticMeta, techniqueMeta } from "./seo-meta.mjs";
+import { dailyMeta, listDailyDates, utcToday } from "../functions/daily-permalink.mjs";
 import { gitDate, gitFirstDate, lastmod } from "./lastmod.mjs";
 import { articleImage, breadcrumbList } from "./schema.mjs";
 
@@ -393,7 +394,7 @@ ${privacyChoiceItem}      </ul>
 ${privacyChoiceNote}    <p class="copyright">&copy; ${year} SudokuSudoku. All rights reserved.</p>
   </div>
 </footer>
-${game ? ["solver", "pools", "generator", "progress", "community", "share", "account-merge", "account", "practice"].map((name) => scriptTag(`/assets/js/${name}.js`)).join("\n") : ""}
+${game ? ["solver", "pools", "generator", "progress", "community", "share", "daily", "account-merge", "account", "practice"].map((name) => scriptTag(`/assets/js/${name}.js`)).join("\n") : ""}
 ${skills ? scriptTag("/assets/js/progress.js") : ""}
 ${scriptTag("/assets/js/silent-update.js")}
 ${scriptTag("/assets/js/hint-apply.js")}
@@ -416,7 +417,12 @@ function accountMergeForBrowser(source) {
 
 function hintApplyForBrowser(source) {
   const body = source.replace(/^export /gm, "");
-  return `(function (root) {\n${body}\n  root.SudokuHintApply = {\n    applyHintStep: applyHintStep,\n    placesOnApply: placesOnApply,\n    legalCandidates: legalCandidates,\n    eliminationSentence: eliminationSentence,\n    resultCopy: resultCopy,\n    cellName: cellName\n  };\n})(typeof globalThis !== "undefined" ? globalThis : this);\n`;
+  return `(function (root) {\n${body}\n  root.SudokuHintApply = {\n    applyHintStep: applyHintStep,\n    placesOnApply: placesOnApply,\n    legalCandidates: legalCandidates,\n    eliminationSentence: eliminationSentence,\n    previewSentence: previewSentence,\n    noteClears: noteClears,\n    resultCopy: resultCopy,\n    cellName: cellName\n  };\n})(typeof globalThis !== "undefined" ? globalThis : this);\n`;
+}
+
+function dailyForBrowser(source) {
+  const body = source.replace(/^export /gm, "");
+  return `(function (root) {\n${body}\n  root.SudokuDaily = {\n    DAILY_START,\n    gameRequest,\n    launchFields,\n    dateStatus,\n    parseDailyPath,\n    listDailyDates,\n    dailyMeta\n  };\n})(typeof globalThis !== "undefined" ? globalThis : this);\n`;
 }
 
 function silentUpdateForBrowser(source) {
@@ -559,6 +565,7 @@ write("assets/js/skills.js", read("assets/js/skills.js"));
 write("assets/js/contact.js", read("assets/js/contact.js"));
 write("assets/js/community.js", read("assets/js/community.js"));
 write("assets/js/share.js", read("assets/js/share.js"));
+write("assets/js/daily.js", dailyForBrowser(read("functions/daily-permalink.mjs")));
 write("assets/js/account-merge.js", accountMergeForBrowser(read("functions/account-merge.mjs")));
 write("assets/js/silent-update.js", silentUpdateForBrowser(read("functions/silent-update.mjs")));
 write("assets/js/hint-apply.js", hintApplyForBrowser(read("functions/hint-apply.mjs")));
@@ -1261,6 +1268,15 @@ ${
   );
 });
 
+const dailyToday = utcToday();
+for (const iso of listDailyDates(dailyToday)) {
+  sitemap.push({
+    path: `/daily/${iso}/`,
+    sources: ["assets/js/generator.js", "functions/daily-permalink.mjs"],
+    published: iso,
+  });
+}
+
 write(
   "sitemap.xml",
   `<?xml version="1.0" encoding="UTF-8"?>
@@ -1268,7 +1284,8 @@ write(
 ${sitemap
   .map((entry) => {
     const loc = entry.path === "/" ? "/" : entry.path;
-    const day = lastmod(root, entry.sources);
+    const touched = lastmod(root, entry.sources);
+    const day = entry.published && entry.published > touched ? entry.published : touched;
     return `  <url><loc>${SITE}${loc}</loc><lastmod>${day}</lastmod></url>`;
   })
   .join("\n")}
@@ -1402,6 +1419,7 @@ const shellPaths = [
   "assets/js/sudoku.js",
   "assets/js/community.js",
   "assets/js/share.js",
+  "assets/js/daily.js",
   "assets/js/account-merge.js",
   "assets/js/account.js",
   "assets/js/silent-update.js",
@@ -1438,6 +1456,10 @@ write(
 
 assertAssetVersions();
 assertSiteMeta({ dist, home: homeCopy, techniques, articles: parsedArticles });
+assertUniqueMeta([
+  ...catalogPages({ home: homeCopy, techniques, articles: parsedArticles }),
+  ...listDailyDates(dailyToday).map((iso) => dailyMeta(iso)),
+]);
 console.log(`Built ${dist}`);
 
 function assertAssetVersions() {
