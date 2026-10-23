@@ -930,7 +930,11 @@
   }
 
   function syncNotesFromStep(step) {
-    (step.eliminate || []).forEach((item) => {
+    const clears =
+      window.SudokuHintApply && window.SudokuHintApply.noteClears
+        ? window.SudokuHintApply.noteClears(step)
+        : step.eliminate || [];
+    clears.forEach((item) => {
       if (state.notes[item.index]) state.notes[item.index].delete(item.digit);
     });
     if (!step.place || (step.slug !== "naked-single" && step.slug !== "hidden-single")) return;

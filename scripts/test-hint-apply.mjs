@@ -6,6 +6,7 @@ import vm from "node:vm";
 import {
   applyHintStep,
   legalCandidates,
+  noteClears,
   peerIndexes,
   placesOnApply,
 } from "../functions/hint-apply.mjs";
@@ -229,6 +230,76 @@ for (const [label, found] of [
   }
 }
 
+// r4c6/r9c6 are a {4,6} pair in column 6. r5c6's pencil notes include 4 and
+// 6 even though the solver does not count them as candidates there.
+const column = Array.from({ length: 9 }, (_, row) => row * 9 + 5);
+const pairStep = {
+  slug: "naked-pair",
+  name: "Naked pair",
+  pattern: [3 * 9 + 5, 8 * 9 + 5],
+  region: column,
+  eliminate: [
+    { index: 1 * 9 + 5, digit: 4 },
+    { index: 1 * 9 + 5, digit: 6 },
+    { index: 7 * 9 + 5, digit: 4 },
+    { index: 7 * 9 + 5, digit: 6 },
+  ],
+  candidates: [
+    { index: 3 * 9 + 5, digits: [4, 6] },
+    { index: 8 * 9 + 5, digits: [4, 6] },
+  ],
+};
+const pairNotes = emptyNotes();
+pairNotes[4 * 9 + 5] = [4, 6, 8, 9];
+pairNotes[1 * 9 + 5] = [4, 6, 1];
+pairNotes[3 * 9 + 5] = [4, 6];
+pairNotes[0] = [4, 6];
+const pairApplied = applyHintStep(stateFrom({ puzzle: emptyNotes().map(() => 0), solution: emptyNotes().map(() => 0), board: emptyNotes().map(() => 0), removed: [] }, pairNotes), pairStep);
+assert.deepEqual(pairApplied.notes[4 * 9 + 5], [8, 9], "pair digits leave notes the solver skipped");
+assert.deepEqual(pairApplied.notes[1 * 9 + 5], [1], "pair digits leave notes the solver did count");
+assert.deepEqual(pairApplied.notes[3 * 9 + 5], [4, 6], "the pair cells keep their own notes");
+assert.deepEqual(pairApplied.notes[0], [4, 6], "a cell outside the house keeps the digits");
+assert.equal(
+  pairApplied.removed.some((item) => item.index === 4 * 9 + 5),
+  false,
+  "a note the solver never counted is not stored as a candidate removal"
+);
+assert.equal(noteClears(pairStep).some((item) => item.index === 4 * 9 + 5 && item.digit === 4), true);
+const hidden = {
+  slug: "hidden-pair",
+  pattern: [3 * 9 + 5, 8 * 9 + 5],
+  region: column,
+  eliminate: [{ index: 3 * 9 + 5, digit: 1 }],
+  candidates: [{ index: 3 * 9 + 5, digits: [4, 6] }],
+};
+assert.equal(
+  noteClears(hidden).some((item) => item.index === 4 * 9 + 5),
+  false,
+  "a hidden pair does not strip the house"
+);
+const realPair = walk((step) => step.slug === "naked-pair" && (step.region || []).length === 9);
+assert.ok(realPair, "a real naked pair is available");
+const realPattern = new Set(realPair.step.pattern);
+const quiet = realPair.step.region.find(
+  (index) => !realPattern.has(index) && !(realPair.step.eliminate || []).some((item) => item.index === index)
+);
+assert.ok(quiet != null, "the house has a cell the solver does not eliminate");
+const realDigits = [];
+(realPair.step.candidates || []).forEach((item) => {
+  if (realPattern.has(item.index)) item.digits.forEach((digit) => {
+    if (!realDigits.includes(digit)) realDigits.push(digit);
+  });
+});
+const spareDigit = [1, 2, 3, 4, 5, 6, 7, 8, 9].find((digit) => !realDigits.includes(digit));
+const realNotes = emptyNotes();
+realNotes[quiet] = realDigits.concat(spareDigit);
+const realApplied = applyHintStep(stateFrom(realPair, realNotes), realPair.step);
+assert.deepEqual(realApplied.notes[quiet], [spareDigit], "apply strips the pair from notes outside the solver targets");
+assert.equal(
+  realApplied.removed.some((item) => item.index === quiet && realDigits.includes(item.digit)),
+  false
+);
+
 const page = fs.readFileSync(new URL("../assets/js/sudoku.js", import.meta.url), "utf8");
 const applyFn = page.slice(page.indexOf("function applyHint()"), page.indexOf("function hint()"));
 const stepPart = applyFn.split("const step = hintView.step;")[1];
@@ -241,6 +312,7 @@ assert.ok(page.includes("aria-keyshortcuts"), "the place button advertises Enter
 assert.ok(page.includes("hintSlugs: (state.hintSlugs || []).slice()"), "undo snapshots hint names");
 assert.ok(page.includes("continueHint"), "a wrong digit continues into the next hint");
 assert.ok(page.includes("function noteTechniqueHint(slug)"), "technique hints have one recorder");
+assert.ok(page.includes("SudokuHintApply.noteClears"), "fill and apply clear house notes the solver skipped");
 assert.equal(page.includes("state.hintSlugs.push(step.slug)"), false, "a hint slug is not pushed on every open");
 assert.ok(page.includes("if (state.hintSlugs.includes(slug)) return"), "a technique hint is counted once per game");
 assert.ok(page.includes("function noteCheck()"), "wrong-digit checks are tracked");

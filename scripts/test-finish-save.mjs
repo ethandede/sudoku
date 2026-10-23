@@ -79,10 +79,16 @@ async function placeCorrect(page, count) {
   return placed;
 }
 
+async function solvedOpen(page) {
+  return (await page.locator("#solved-modal").getAttribute("hidden")) === null;
+}
+
 async function fillUntilSolved(page) {
   for (let step = 0; step < 40; step += 1) {
-    if ((await page.locator("#solved-modal").getAttribute("hidden")) === null) return;
+    if (await solvedOpen(page)) return;
     if ((await page.locator("#fill-chip").getAttribute("hidden")) === null) {
+      const empties = await page.locator('#sudoku-grid .cell[data-value="0"]').count();
+      assert.notEqual(empties, 0, "a fill that finishes the board shows Solved without Done");
       await page.locator("#fill-done").click();
     }
     if ((await page.locator("#hint-sheet").getAttribute("hidden")) === null) {
@@ -90,6 +96,10 @@ async function fillUntilSolved(page) {
     }
     await page.locator("#hint-btn").click();
     await page.locator("#hint-fill").click();
+    if (await solvedOpen(page)) {
+      assert.equal(await page.locator("#fill-chip").getAttribute("hidden"), "", "the finishing fill dismisses the chip");
+      return;
+    }
   }
   assert.equal(await page.locator("#solved-modal").getAttribute("hidden"), null, "fills solved the puzzle");
 }
@@ -98,6 +108,8 @@ async function playSequence(page) {
   await page.goto(`${origin}/?difficulty=easy`, { waitUntil: "domcontentloaded" });
   await page.waitForSelector("#sudoku-grid button.given");
   const moves = await placeCorrect(page, 3);
+  const easyId = new URL(page.url()).searchParams.get("p");
+  assert.match(easyId, /^easy\./);
   await page.locator("#puzzle-label").click();
   await page.locator('[data-difficulty="hard"]').click();
   await page.waitForFunction(() => document.getElementById("puzzle-label").textContent === "Hard");
@@ -151,6 +163,10 @@ async function playSequence(page) {
   assert.equal(await page.locator("#solved-summary").innerText(), summary);
   const hardSlot = await page.evaluate(() => localStorage.getItem("sudoku-progress:hard"));
   assert.equal(hardSlot, null);
+  const easyKept = await page.evaluate(() => JSON.parse(localStorage.getItem("sudoku-progress:easy")));
+  moves.forEach((move) => {
+    assert.equal(easyKept.board[move.index], move.digit, "the unfinished Easy survives the solved Hard");
+  });
 
   await page.goto(`${origin}/`, { waitUntil: "domcontentloaded" });
   await page.waitForSelector("#resume-modal:not([hidden])");
@@ -159,6 +175,17 @@ async function playSequence(page) {
   assert.equal(await page.locator("#resume-no").innerText(), "New Easy puzzle");
   assert.match(await page.locator("#resume-detail").innerText(), /^Easy is in progress/);
   assert.equal(await page.locator("#puzzle-label").innerText(), "Easy");
+  assert.equal(await page.locator("#board-cover").getAttribute("hidden"), null);
+  await page.locator("#resume-yes").click();
+  await page.waitForSelector("#sudoku-grid button.given");
+  for (const move of moves) {
+    assert.equal(await page.locator(".cell").nth(move.index).innerText(), String(move.digit));
+  }
+
+  await page.goto(`${origin}/?p=${encodeURIComponent(easyId)}`, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector("#resume-modal:not([hidden])");
+  assert.match(await page.locator("#resume-detail").innerText(), /^Easy is in progress/);
+  assert.doesNotMatch(await page.locator("#resume-detail").innerText(), /Hard/);
   assert.equal(await page.locator("#board-cover").getAttribute("hidden"), null);
   await page.locator("#resume-yes").click();
   await page.waitForSelector("#sudoku-grid button.given");
@@ -319,8 +346,15 @@ try {
   await night.waitForSelector("#sudoku-grid button.given");
   await fillUntilSolved(night);
   await night.waitForSelector("#solved-modal:not([hidden])");
-  const ink = await night.locator("#solved-practice a").first().evaluate((link) => getComputedStyle(link).color);
-  assert.equal(ink, "rgb(158, 210, 248)");
+  const practiceLinks = night.locator("#solved-practice a");
+  const linkText = await practiceLinks.allInnerTexts();
+  assert.ok(linkText.some((text) => text.includes("Practice it")), linkText.join(" | "));
+  assert.ok(linkText.some((text) => text.includes("Skill ladder")), linkText.join(" | "));
+  const linkCount = await practiceLinks.count();
+  for (let i = 0; i < linkCount; i += 1) {
+    const ink = await practiceLinks.nth(i).evaluate((link) => getComputedStyle(link).color);
+    assert.equal(ink, "rgb(158, 210, 248)", linkText[i]);
+  }
   await dark.close();
 } finally {
   await browser.close();

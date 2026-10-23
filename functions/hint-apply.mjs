@@ -105,6 +105,42 @@ export function eliminationSentence(eliminate, notes) {
   return parts.join(" ");
 }
 
+// Solver eliminations, plus naked-subset digits written in pencil notes
+// on every other cell of the house. Those notes are not candidates, so
+// they are cleared from the player's marks and not recorded as removals.
+export function noteClears(step) {
+  const listed = [];
+  for (const item of (step && step.eliminate) || []) {
+    if (!item) continue;
+    listed.push({ index: item.index, digit: item.digit });
+  }
+  if (!step || (step.slug !== "naked-pair" && step.slug !== "naked-triple" && step.slug !== "quads")) {
+    return listed;
+  }
+  const pattern = new Set(step.pattern || []);
+  if (!pattern.size) return listed;
+  if (!listed.every((item) => !pattern.has(item.index))) return listed;
+  const digits = new Set();
+  for (const item of step.candidates || []) {
+    if (!item || !pattern.has(item.index)) continue;
+    for (const digit of item.digits || []) digits.add(digit);
+  }
+  if (!digits.size) {
+    for (const item of listed) digits.add(item.digit);
+  }
+  const seen = new Set(listed.map((item) => `${item.index}:${item.digit}`));
+  for (const index of step.region || []) {
+    if (pattern.has(index)) continue;
+    for (const digit of digits) {
+      const key = `${index}:${digit}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      listed.push({ index, digit });
+    }
+  }
+  return listed;
+}
+
 export function resultCopy(step, notesBefore, placed) {
   if (placesOnApply(step)) {
     if (!placed || !step.place) return step.explain;
@@ -124,8 +160,10 @@ export function applyHintStep(state, step) {
   const before = notes.map((set) => [...set]);
   const removed = (state.removed || []).map((item) => ({ index: item.index, digit: item.digit }));
   const board = (state.board || []).slice();
-  for (const item of step.eliminate || []) {
+  const eliminated = new Set((step.eliminate || []).map((item) => `${item.index}:${item.digit}`));
+  for (const item of noteClears(step)) {
     notes[item.index].delete(item.digit);
+    if (!eliminated.has(`${item.index}:${item.digit}`)) continue;
     if (!removed.some((kept) => kept.index === item.index && kept.digit === item.digit)) {
       removed.push({ index: item.index, digit: item.digit });
     }

@@ -253,8 +253,16 @@ assert.match(scss, /--fill-placed:\s*#3f6d90/);
 assert.match(scss, /--fill-cleared:\s*#2c4d66/);
 assert.match(scss, /--fill-ring:\s*#9ed2f8/);
 assert.match(scss, /animation-delay:\s*var\(--fill-delay/);
-assert.match(scss, /transition:\s*background-color 300ms ease/);
-assert.match(scss, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.cell\.fill-placed/);
+assert.match(
+  scss,
+  /@media \(prefers-reduced-motion: no-preference\)[\s\S]*transition:\s*background-color 300ms ease, box-shadow 300ms ease/
+);
+const fadeRule = scss.slice(scss.indexOf("&.fill-placed.fill-fading,"), scss.indexOf("prefers-reduced-motion: no-preference"));
+assert.equal(fadeRule.includes("transition"), false, "fill fade has no transition until motion is allowed");
+assert.match(
+  scss,
+  /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.cell\.fill-placed\.fill-fading[\s\S]*transition:\s*none/
+);
 assert.match(scss, /\.fill-chip[\s\S]*position:\s*absolute/);
 assert.match(scss, /\.selected\.fill-placed[\s\S]*background:\s*var\(--selected\)/);
 

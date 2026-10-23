@@ -310,8 +310,9 @@
     return `${techniqueLabel(batch.name, batch.cells.length)} · ${batch.cells.length}`;
   }
 
-  // Pencil notes are not candidates. A naked pair the player wrote down is
-  // applied only when the solver's own candidates are that pair. The chip
+  // A naked pair is found from the solver's candidates. Applying it also
+  // clears those digits from pencil notes in the rest of the house, even
+  // when the solver does not count those notes as candidates. The chip
   // counts cells whose placed digit, notes, or solver eliminations changed.
   function visibleFillTouches(diff) {
     const beforeBoard = diff.beforeBoard || [];
