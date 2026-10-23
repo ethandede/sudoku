@@ -17,6 +17,7 @@
     "test:cache": "node scripts/test-cache-bust.mjs",
     "test:update": "node scripts/test-update-banner.mjs",
     "test:hint": "node scripts/test-hint-apply.mjs",
+    "test:place": "node scripts/test-hint-place.mjs",
     "test:play": "node scripts/test-candidates.mjs",
     "test:promos": "node scripts/test-promos.mjs",
     "test:practice": "node scripts/test-practice.mjs"

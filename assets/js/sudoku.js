@@ -1423,7 +1423,18 @@
       applyHint();
       return;
     }
-    if (hintView.stage === 3 && hintView.chain) {
+    if (hintView.stage === 3 && hintView.follow) {
+      hintView.keptEliminate = (hintView.step.eliminate || []).slice();
+      hintView.step = hintView.follow;
+      hintView.follow = null;
+      hintView.followUp = true;
+      hintView.chain = false;
+      hintView.stage = 2;
+      hintView.key = hintKey();
+      applyHint();
+      return;
+    }
+    if (hintView.stage === 3 && hintView.continueHint) {
       dismissHint();
       openHint();
       return;
@@ -1475,7 +1486,12 @@
         next.textContent = "Clear it";
       } else {
         text.textContent = `Cleared the wrong digit in row ${row}, column ${col}.`;
-        next.hidden = true;
+        if (hintView.continueHint) {
+          next.hidden = false;
+          next.textContent = "Next hint";
+        } else {
+          next.hidden = true;
+        }
       }
     } else {
       const step = hintView.step;
@@ -1499,9 +1515,9 @@
           (window.SudokuHintApply.placesOnApply(step)
             ? `${step.explain} Placed ${step.place.digit}.`
             : `${step.explain} ${window.SudokuHintApply.eliminationSentence(step.eliminate, [])}`);
-        if (hintView.chain) {
+        if (hintView.follow) {
           next.hidden = false;
-          next.textContent = "Next hint";
+          next.textContent = "Place it";
         } else {
           next.hidden = true;
         }
@@ -1509,6 +1525,21 @@
     }
     render();
     announce(text.textContent);
+    focusAfterHint();
+  }
+
+  function focusAfterHint() {
+    const next = document.getElementById("hint-next");
+    if (next && !next.hidden) {
+      if (next.textContent === "Place it") next.setAttribute("aria-keyshortcuts", "Enter");
+      else next.removeAttribute("aria-keyshortcuts");
+      next.focus();
+      return;
+    }
+    if (!hintView || hintView.kind !== "step" || hintView.stage !== 3 || !hintView.step.place) return;
+    const index = hintView.step.place.index;
+    if (state.board[index] !== hintView.step.place.digit || !cells[index]) return;
+    cells[index].focus();
   }
 
   function applyHint() {
@@ -1521,13 +1552,17 @@
       state.slashed.delete(index);
       state.removed = [];
       hintView.stage = 3;
+      hintView.continueHint = true;
       hintView.key = hintKey();
       showHint();
       writeSave();
       return;
     }
     const step = hintView.step;
+    const followUp = Boolean(hintView.followUp);
     pushUndo();
+    if (followUp && step.slug) state.hintSlugs.push(step.slug);
+    hintView.followUp = false;
     const applied = window.SudokuHintApply.applyHintStep(
       {
         notes: state.notes.map((set) => [...set]),
@@ -1541,9 +1576,27 @@
     state.board = applied.board;
     state.notes = applied.notes.map((list) => new Set(list));
     state.removed = applied.removed;
-    if (applied.placed) state.slashed.delete(step.place.index);
+    if (applied.placed) {
+      state.slashed.delete(step.place.index);
+      state.selected = step.place.index;
+    }
+    let follow = null;
+    if (applied.chain && window.SudokuSolver && window.SudokuSolver.explain && step.place) {
+      const nextStep = window.SudokuSolver.explain(state.board, state.removed);
+      if (
+        nextStep &&
+        window.SudokuHintApply.placesOnApply(nextStep) &&
+        nextStep.place &&
+        nextStep.place.index === step.place.index &&
+        nextStep.place.digit === step.place.digit
+      ) {
+        follow = nextStep;
+      }
+    }
     hintView.stage = 3;
-    hintView.chain = applied.chain;
+    hintView.follow = follow;
+    hintView.chain = Boolean(follow);
+    hintView.continueHint = false;
     hintView.resultText = applied.copy;
     hintView.key = hintKey();
     if (isSolved()) finish(false);
@@ -1683,6 +1736,7 @@
     state.won = snap.won;
     state.revealed = snap.revealed;
     state.over = snap.over;
+    if (Array.isArray(snap.hintSlugs)) state.hintSlugs = snap.hintSlugs.slice();
     if (!state.over) hideModal("over-modal");
     if (!state.won) hideModal("solved-modal");
     render();
@@ -1697,6 +1751,7 @@
       mistakes: state.mistakes,
       slashed: [...state.slashed],
       removed: state.removed.map((item) => ({ index: item.index, digit: item.digit })),
+      hintSlugs: (state.hintSlugs || []).slice(),
       won: state.won,
       revealed: state.revealed,
       over: state.over,
@@ -1853,7 +1908,8 @@
       hint.step.region.forEach((index) => hintRegion.add(index));
       hint.step.pattern.forEach((index) => hintPattern.add(index));
       if (hint.stage >= 2) {
-        hint.step.eliminate.forEach((item) => {
+        const eliminations = [...(hint.step.eliminate || []), ...(hint.keptEliminate || [])];
+        eliminations.forEach((item) => {
           hintEliminate.add(item.index);
           if (!hintStruck.has(item.index)) hintStruck.set(item.index, new Set());
           hintStruck.get(item.index).add(item.digit);
@@ -1883,7 +1939,7 @@
       cell.classList.toggle("wrong", state.slashed.has(index) && value !== 0);
       cell.classList.toggle("hint-region", hintRegion.has(index));
       cell.classList.toggle("hint-pattern", hintPattern.has(index));
-      cell.classList.toggle("hint-eliminate", hint && hint.stage >= 2 && hintEliminate.has(index));
+      cell.classList.toggle("hint-eliminate", hint && hint.stage >= 2 && !value && hintEliminate.has(index));
       cell.classList.toggle("hint-place", hint && hint.stage >= 2 && index === hintPlace);
       cell.setAttribute("aria-selected", selected ? "true" : "false");
       cell.dataset.value = String(value);
