@@ -175,9 +175,14 @@ export function homeMeta(home) {
 export function techniqueMeta(technique) {
   const search = TECHNIQUE_SEARCH[technique.slug];
   if (!search) throw new Error(`No search name for ${technique.slug}`);
+  // Y-wing is the same pattern. The document title carries both names,
+  // then the brand. The visible heading stays "XY-wing", which is also the breadcrumb.
+  const title = technique.slug === "xy-wing"
+    ? `XY-Wing (Y-Wing) | ${BRAND}`
+    : `${search} Sudoku Technique, Explained on Real Boards | ${BRAND}`;
   return {
     path: `/techniques/${technique.slug}/`,
-    title: `${search} Sudoku Technique, Explained on Real Boards | ${BRAND}`,
+    title,
     description: technique.description,
     term: search.toLowerCase() === "quads" ? "quad" : search.toLowerCase(),
   };
