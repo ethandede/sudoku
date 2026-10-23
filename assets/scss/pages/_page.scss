@@ -139,7 +139,8 @@
       background: #fbfaf8;
       border-radius: 1.5rem;
 
-      img {
+      > img,
+      .teddy-art {
         display: block;
         width: 256px;
         max-width: 100%;
@@ -151,7 +152,21 @@
         background: #fbfaf8;
       }
 
+      .teddy-icon {
+        display: inline-block;
+        width: 32px;
+        min-width: 22px;
+        height: 32px;
+        aspect-ratio: 1;
+        margin: 0 0.45rem 0 0;
+        border-radius: 0.45rem;
+        vertical-align: middle;
+        background: transparent;
+      }
+
       figcaption {
+        display: flex;
+        align-items: center;
         margin-top: 0.5rem;
         font-size: 0.95rem;
         line-height: 1.4;
