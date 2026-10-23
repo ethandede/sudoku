@@ -48,6 +48,7 @@ const wing = jump("x-wing");
 const skyscraper = jump("skyscraper");
 const kite = jump("two-string-kite");
 const xyz = jump("xyz-wing");
+const wwing = jump("w-wing");
 assert.ok(hidden.jumped.applied.length > 0, "hidden pair jumps past easier steps");
 assert.ok(wing.jumped.applied.length > 0, "x-wing jumps past easier steps");
 assert.equal(practice.wantsCandidates("naked-single"), false);
@@ -228,7 +229,7 @@ assert.match(community, /function skipFinish/);
 assert.match(community, /function abandonOpen/);
 
 console.log(
-  `practice ok (hidden pair ${hidden.jumped.applied.length} steps, x-wing ${wing.jumped.applied.length} steps, skyscraper ${skyscraper.jumped.applied.length}, kite ${kite.jumped.applied.length}, xyz ${xyz.jumped.applied.length}, naked singles ${filled.applied.length})`
+  `practice ok (hidden pair ${hidden.jumped.applied.length} steps, x-wing ${wing.jumped.applied.length} steps, skyscraper ${skyscraper.jumped.applied.length}, kite ${kite.jumped.applied.length}, xyz ${xyz.jumped.applied.length}, w-wing ${wwing.jumped.applied.length}, naked singles ${filled.applied.length})`
 );
 
 vm.runInContext(fs.readFileSync(path.join(root, "assets/js/share.js"), "utf8"), context);
@@ -598,6 +599,29 @@ async function runFillReviewUi(fillUrl) {
         await practice.context.close();
       }
     }
+  });
+
+  await check("an unknown practice slug explains itself and links to a normal game", async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    await context.addInitScript(() => localStorage.clear());
+    const page = await context.newPage();
+    await page.goto(`${origin}/?practice=not-a-real-technique`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => {
+      const cover = document.getElementById("board-cover");
+      return cover && !cover.hidden && document.getElementById("board-cover-text").textContent.includes("isn't available yet");
+    });
+    const text = await page.locator("#board-cover-text").textContent();
+    checkAssert(text === "Practice for this technique isn't available yet", text);
+    const link = page.locator("#practice-unavailable a");
+    checkAssert((await link.getAttribute("href")) === "/?difficulty=easy", "missing normal-game link");
+    checkAssert((await page.locator("#resume-btn").getAttribute("hidden")) !== null, "resume is hidden");
+    await page.goto(`${origin}/?practice=naked-single`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => {
+      const prompt = document.getElementById("practice-prompt");
+      const link = document.getElementById("practice-unavailable");
+      return prompt && !prompt.hidden && prompt.textContent.includes("Naked single") && link && link.hidden;
+    });
+    await context.close();
   });
 
   await browser.close();

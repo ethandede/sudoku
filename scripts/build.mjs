@@ -18,12 +18,14 @@ import {
   stripUnpublishedLinks,
   wrapTables,
 } from "./articles.mjs";
-import { captureExamples } from "./capture-examples.mjs";
+import { resolveTechniqueExamples } from "./example-board.mjs";
 import { nextTechnique, orderedTechniques, techniques } from "./technique-copy.mjs";
 import { adsensePushScript, housePair, renderHousePromos } from "./house-promos.mjs";
 import { phosphorArrow } from "./icons.mjs";
 import { faqJsonLd, homeCopy, renderHomeBelow, renderHomeIntro } from "../home-copy.mjs";
 import { articleMeta, assertSiteMeta, staticMeta, techniqueMeta } from "./seo-meta.mjs";
+import { gitDate, gitFirstDate, lastmod } from "./lastmod.mjs";
+import { articleImage, breadcrumbList } from "./schema.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "dist");
@@ -57,9 +59,26 @@ function write(relativePath, contents) {
   writeFileSync(target, contents);
 }
 
-function publish(relativePath, contents, path) {
+function shareCard(kind, slug, alt) {
+  const relative = join("assets/og", kind, `${slug}.png`);
+  const file = join(root, relative);
+  if (!existsSync(file)) throw new Error(`Missing OG image ${relative}`);
+  const png = readFileSync(file);
+  const width = png.readUInt32BE(16);
+  const height = png.readUInt32BE(20);
+  if (png[0] !== 0x89 || width !== 1200 || height !== 630) {
+    throw new Error(`OG image ${relative} must be a 1200x630 PNG`);
+  }
+  if (alt.includes("\u2014")) throw new Error(`OG alt for ${slug} has an em dash`);
+  return {
+    shareImage: `${SITE}/og/${kind}/${slug}.png`,
+    shareImageAlt: alt,
+  };
+}
+
+function publish(relativePath, contents, path, sources = []) {
   write(relativePath, contents);
-  if (path) sitemap.push(withSlash(path));
+  if (path) sitemap.push({ path: withSlash(path), sources });
 }
 
 function escapeHtml(value) {
@@ -97,6 +116,12 @@ function withSlash(path) {
   if (!path || path === "/") return "/";
   if (path.endsWith(".html") || path.endsWith("/")) return path;
   return `${path}/`;
+}
+
+function jsonLdExtras(jsonLd, crumbNode) {
+  const extras = Array.isArray(jsonLd) ? [...jsonLd] : jsonLd ? [jsonLd] : [];
+  if (crumbNode) extras.push(crumbNode);
+  return extras;
 }
 
 function structuredData(extra) {
@@ -138,6 +163,9 @@ function layout({
   robots = "",
   contact = false,
   stats = false,
+  crumb = "",
+  shareImage = "",
+  shareImageAlt = "",
 }) {
   const descriptionTag = description
     ? `<meta name="description" content="${escapeHtml(description)}">`
@@ -145,11 +173,17 @@ function layout({
   const canonicalHref = canonical ? withSlash(canonical) : "";
   const canonicalTag = canonicalHref ? `<link rel="canonical" href="${escapeHtml(canonicalHref)}">` : "";
   const robotsTag = robots ? `<meta name="robots" content="${escapeHtml(robots)}">` : "";
-  const jsonLdTag = `<script type="application/ld+json">${JSON.stringify(structuredData(jsonLd)).replace(/</g, "\\u003c")}</script>`;
+  const crumbNode = breadcrumbList(SITE, canonicalHref, crumb);
+  const canonicalPath = canonicalHref.startsWith(SITE) ? canonicalHref.slice(SITE.length) : canonicalHref;
+  if (canonicalPath && canonicalPath !== "/" && !crumbNode) {
+    throw new Error(`Missing breadcrumb name for ${canonicalHref}`);
+  }
+  const jsonLdTag = `<script type="application/ld+json">${JSON.stringify(structuredData(jsonLdExtras(jsonLd, crumbNode))).replace(/</g, "\\u003c")}</script>`;
   const shareTitle = escapeHtml(title);
   const shareDescription = escapeHtml(description || "Free daily Sudoku with teaching hints.");
   const shareUrl = escapeHtml(canonicalHref || `${SITE}/`);
-  const image = `${SITE}/og.png`;
+  const image = escapeHtml(shareImage || `${SITE}/og.png`);
+  const imageAlt = escapeHtml(shareImageAlt || "SudokuSudoku board beside a number-pad box map");
   const adsTag = ads
     ? `  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9345046210950956" crossorigin="anonymous"></script>\n`
     : "";
@@ -256,12 +290,12 @@ function layout({
   <meta property="og:image" content="${image}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="SudokuSudoku board beside a number-pad box map">
+  <meta property="og:image:alt" content="${imageAlt}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${shareTitle}">
   <meta name="twitter:description" content="${shareDescription}">
   <meta name="twitter:image" content="${image}">
-  <meta name="twitter:image:alt" content="SudokuSudoku board beside a number-pad box map">
+  <meta name="twitter:image:alt" content="${imageAlt}">
   ${jsonLdTag}
   <script>
     try {
@@ -411,6 +445,7 @@ function standardPage(title, bodyHtml, path, options = {}) {
     robots: options.robots || "",
     contact: Boolean(options.contact),
     jsonLd: options.jsonLd,
+    crumb: title,
     main: `<main class="standard-page">
   <div class="container">
     <article class="page-content">
@@ -538,6 +573,7 @@ cpSync(join(root, "assets/img"), join(dist, "assets/img"), { recursive: true });
 cpSync(join(root, "articles/images"), join(dist, "articles/images"), { recursive: true });
 cpSync(join(root, "articles/data"), join(dist, "articles/data"), { recursive: true });
 copyFileSync(join(root, "src/og.png"), join(dist, "og.png"));
+cpSync(join(root, "assets/og"), join(dist, "og"), { recursive: true });
 write("_redirects", read("src/_redirects"));
 copyFileSync(join(root, "src/favicon.ico"), join(dist, "favicon.ico"));
 copyFileSync(join(root, "src/favicon.svg"), join(dist, "favicon.svg"));
@@ -610,7 +646,8 @@ publish(
       return homeGame.replace(homeMarker, `<div class="house-home">\n${homePromo}\n</div>`);
     })(),
   }),
-  "/"
+  "/",
+  ["src/game.html", "home-copy.mjs"]
 );
 
 const missing = staticMeta("/404.html");
@@ -620,6 +657,7 @@ const notFoundHtml = layout({
     canonical: `${SITE}/404.html`,
     robots: "noindex",
     ads: false,
+    crumb: "Page not found",
     main: `<main class="standard-page">
   <div class="container">
     <article class="page-content">
@@ -663,7 +701,8 @@ publish(
     "/about/",
     { jsonLd: personNode(), house: houseSlot("about", "/about/"), kicker: "Who made this" }
   ),
-  "/about"
+  "/about",
+  ["about-page-content.md"]
 );
 
 publish(
@@ -674,7 +713,8 @@ publish(
     "/links/",
     { ads: false, kicker: "Other places" }
   ),
-  "/links"
+  "/links",
+  ["links-page-content.html"]
 );
 
 publish(
@@ -685,7 +725,8 @@ publish(
     "/contact/",
     { contact: true, house: houseSlot("contact", "/contact/"), kicker: "Send a note" }
   ),
-  "/contact"
+  "/contact",
+  ["contact-page-content.html"]
 );
 
 publish(
@@ -696,7 +737,8 @@ publish(
     "/privacy-policy/",
     { ads: false, analytics: false, privacyChoices: false }
   ),
-  "/privacy-policy"
+  "/privacy-policy",
+  ["privacy-policy-content.html"]
 );
 
 publish(
@@ -707,7 +749,8 @@ publish(
     "/terms/",
     { ads: false, analytics: false, privacyChoices: false, kicker: "The rules" }
   ),
-  "/terms"
+  "/terms",
+  ["terms-of-use-content.html"]
 );
 
 const cards = visibleArticles
@@ -744,6 +787,7 @@ publish(
     title: staticMeta("/articles/").title,
     description: staticMeta("/articles/").description,
     canonical: `${SITE}/articles/`,
+    crumb: "Articles",
     main: `<main id="articles" class="articles-page">
   <div class="container">
     <div class="articles-with-rail">
@@ -768,8 +812,38 @@ publish(
   </div>
 </main>`,
   }),
-  "/articles"
+  "/articles",
+  visibleArticles.map((article) => article.file)
 );
+
+const GUIDE_SLUGS = new Set(["beginners-guide", "common-mistakes"]);
+
+function articleSchema(article) {
+  const personArticle = article.authored || GUIDE_SLUGS.has(article.slug);
+  const orgArticle = article.slug === "nyt-medium-vs-hard";
+  if (!personArticle && !orgArticle) return null;
+  const first = gitFirstDate(root, article.file);
+  const last = gitDate(root, article.file);
+  const datePublished = article.publishDate || first;
+  const dateModified = [datePublished, last].filter(Boolean).sort().at(-1) || "";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(datePublished) || !/^\d{4}-\d{2}-\d{2}$/.test(dateModified)) {
+    throw new Error(`No article dates for ${article.slug}`);
+  }
+  const image = articleImage(SITE, article.image);
+  if (GUIDE_SLUGS.has(article.slug) && !image?.url) {
+    throw new Error(`${article.slug} needs an article image`);
+  }
+  const node = articleJsonLd({
+    title: article.heading || article.title,
+    description: article.excerpt,
+    url: `${SITE}${article.href}`,
+    publishDate: datePublished,
+    dateModified,
+    image,
+    author: personArticle ? undefined : { "@type": "Organization", name: "SudokuSudoku" },
+  });
+  return personArticle ? [node, personNode()] : node;
+}
 
 function relatedArticlesHtml(article) {
   const items = article.relatedSlugs
@@ -810,33 +884,7 @@ visibleArticles.forEach((article, index) => {
     : "";
   const tagBlock = tags ? `<div class="article-tags"><span class="tags-label">Tags:</span> ${tags}</div>` : "";
 
-  const articleLd = article.authored
-    ? [
-        articleJsonLd({
-          title: article.title,
-          description: article.excerpt,
-          url: `${SITE}${article.href}`,
-          publishDate: article.publishDate,
-        }),
-        personNode(),
-      ]
-    : article.slug === "nyt-medium-vs-hard"
-      ? {
-          "@context": "https://schema.org",
-          "@type": "Article",
-          headline: article.title,
-          description: article.excerpt,
-          mainEntityOfPage: `${SITE}${article.href}`,
-          datePublished: "2026-10-21",
-          dateModified: "2026-10-21",
-          author: { "@type": "Organization", name: "SudokuSudoku" },
-          publisher: {
-            "@type": "Organization",
-            name: "SudokuSudoku",
-            logo: { "@type": "ImageObject", url: `${SITE}/icons/icon-512.png` },
-          },
-        }
-      : null;
+  const articleLd = articleSchema(article);
 
   const meta = articleMeta(article);
   publish(
@@ -846,6 +894,8 @@ visibleArticles.forEach((article, index) => {
       description: meta.description,
       canonical: `${SITE}${article.href}`,
       jsonLd: articleLd,
+      crumb: article.heading,
+      ...shareCard("articles", article.slug, `${article.heading} on SudokuSudoku`),
       main: `<main id="article-single" class="article-single-page">
   <article class="article-content">
     <div class="container">
@@ -873,11 +923,12 @@ visibleArticles.forEach((article, index) => {
   </article>
 </main>`,
     }),
-    article.href
+    article.href,
+    [article.file]
   );
 });
 
-const examples = captureExamples(root);
+const examples = resolveTechniqueExamples(root, techniques);
 const bySlug = new Map(techniques.map((technique) => [technique.slug, technique]));
 
 function pencilHtml(digits) {
@@ -970,7 +1021,10 @@ function lessonSections(technique) {
 function renderLesson(technique, example) {
   return lessonSections(technique)
     .map((section) => {
-      if (section.demo) return demoBlock(example, section);
+      if (section.demo) {
+        if (!example) return `<p>No worked board for this step yet.</p>`;
+        return demoBlock(example, section);
+      }
       let html = "";
       if (section.h) html += `<h2>${escapeHtml(section.h)}</h2>\n`;
       if (section.h3) html += `<h3>${escapeHtml(section.h3)}</h3>\n`;
@@ -1011,6 +1065,7 @@ publish(
     title: staticMeta("/techniques/").title,
     description: staticMeta("/techniques/").description,
     canonical: `${SITE}/techniques/`,
+    crumb: "Techniques",
     main: `<main class="standard-page technique-page">
   <div class="container">
     <article class="page-content">
@@ -1033,7 +1088,8 @@ publish(
   </div>
 </main>`,
   }),
-  "/techniques"
+  "/techniques",
+  ["scripts/technique-copy.mjs"]
 );
 
 publish(
@@ -1044,7 +1100,8 @@ publish(
     "/how-difficulty-works/",
     { kicker: "The grader", house: houseSlot("grading", "/how-difficulty-works/") }
   ),
-  "/how-difficulty-works"
+  "/how-difficulty-works",
+  ["how-difficulty-works-content.html"]
 );
 
 publish(
@@ -1054,6 +1111,7 @@ publish(
     description: staticMeta("/stats/").description,
     canonical: `${SITE}/stats/`,
     stats: true,
+    crumb: "Stats",
     jsonLd: {
       "@type": "Dataset",
       name: "SudokuSudoku community puzzle stats",
@@ -1101,7 +1159,8 @@ publish(
   </div>
 </main>`,
   }),
-  "/stats"
+  "/stats",
+  ["stats-page-content.html", "assets/js/stats-page.js"]
 );
 
 publish(
@@ -1112,6 +1171,7 @@ publish(
     canonical: `${SITE}/skills/`,
     robots: "noindex, follow",
     skills: true,
+    crumb: "Skill ladder",
     main: `<main id="skills" class="skills-page">
   <div class="skills-wrap">
     <header class="skills-header page-header-has-art">
@@ -1145,11 +1205,13 @@ techniques.forEach((technique) => {
     "@type": "HowTo",
     name: `How to spot ${technique.name} in Sudoku`,
     description: technique.description,
-    step: [
-      { "@type": "HowToStep", name: "See the pattern", text: example.step.look },
-      { "@type": "HowToStep", name: "What gets eliminated", text: example.step.explain },
-      { "@type": "HowToStep", name: "The result", text: resultSentence(example.step) },
-    ],
+    step: example
+      ? [
+          { "@type": "HowToStep", name: "See the pattern", text: example.step.look },
+          { "@type": "HowToStep", name: "What gets eliminated", text: example.step.explain },
+          { "@type": "HowToStep", name: "The result", text: resultSentence(example.step) },
+        ]
+      : [{ "@type": "HowToStep", name: technique.name, text: technique.description }],
   };
   const lesson = renderLesson(technique, example);
   const harder = nextTechnique(technique);
@@ -1163,7 +1225,9 @@ techniques.forEach((technique) => {
       description: meta.description,
       canonical: `${SITE}${path}`,
       jsonLd: howto,
-      demo: true,
+      crumb: technique.name,
+      ...shareCard("techniques", technique.slug, `${technique.name} Sudoku technique on SudokuSudoku`),
+      demo: Boolean(example),
       main: `<main class="standard-page technique-page">
   <div class="container">
     <article class="page-content">
@@ -1183,26 +1247,32 @@ techniques.forEach((technique) => {
     </article>
   </div>
 </main>
-<script type="application/json" id="technique-example">${JSON.stringify({
-        given: example.given,
-        board: example.board,
-        pencil: example.pencil,
-        step: example.step,
-      }).replace(/</g, "\\u003c")}</script>`,
+${
+        example
+          ? `<script type="application/json" id="technique-example">${JSON.stringify({
+              given: example.given,
+              board: example.board,
+              pencil: example.pencil,
+              step: example.step,
+            }).replace(/</g, "\\u003c")}</script>`
+          : ""
+      }`,
     }),
-    path
+    path,
+    ["scripts/technique-copy.mjs"]
   );
 });
 
-const today = new Date().toISOString().slice(0, 10);
 write(
   "sitemap.xml",
   `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${sitemap
-  .map(
-    (path) => `  <url><loc>${SITE}${path === "/" ? "/" : path}</loc><lastmod>${today}</lastmod></url>`
-  )
+  .map((entry) => {
+    const loc = entry.path === "/" ? "/" : entry.path;
+    const day = lastmod(root, entry.sources);
+    return `  <url><loc>${SITE}${loc}</loc><lastmod>${day}</lastmod></url>`;
+  })
   .join("\n")}
 </urlset>
 `
@@ -1269,6 +1339,7 @@ write(
   <meta name="description" content="${escapeHtml(staticMeta("/offline.html").description)}">
   <meta name="robots" content="noindex">
   <link rel="canonical" href="https://sudokusudoku.com/offline.html">
+  <script type="application/ld+json">${JSON.stringify(structuredData(breadcrumbList(SITE, `${SITE}/offline.html`, "You're offline"))).replace(/</g, "\\u003c")}</script>
   <link rel="preload" href="${asset("/assets/fonts/open-sans-latin-400.woff2")}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="${asset("/assets/css/style.css")}">
   <link rel="manifest" href="/manifest.webmanifest">

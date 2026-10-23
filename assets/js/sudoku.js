@@ -512,6 +512,10 @@
       });
     }
     const practiceStart = Boolean(pendingRequest && pendingRequest.practice);
+    if (pendingRequest && pendingRequest.unavailablePractice) {
+      showPracticeUnavailable();
+      return;
+    }
     if (saved && !practiceStart) {
       showModal("resume-modal");
       document.getElementById("resume-detail").textContent = resumeText(saved);
@@ -576,8 +580,11 @@
       }
     }
     const practice = (params.get("practice") || "").trim().toLowerCase();
-    const practiceLevel = window.SudokuGenerator && window.SudokuGenerator.trainLevel(practice);
-    if (practiceLevel) return { kind: practiceLevel, practice };
+    if (practice) {
+      const practiceLevel = window.SudokuGenerator && window.SudokuGenerator.trainLevel(practice);
+      if (practiceLevel) return { kind: practiceLevel, practice };
+      return { unavailablePractice: practice };
+    }
     const train = (params.get("train") || "").trim().toLowerCase();
     const trainLevel = window.SudokuGenerator && window.SudokuGenerator.trainLevel(train);
     if (trainLevel) return { kind: trainLevel, train };
@@ -2370,6 +2377,18 @@
     render();
   }
 
+  function hidePracticeUnavailable() {
+    const link = document.getElementById("practice-unavailable");
+    if (link) link.hidden = true;
+  }
+
+  function showPracticeUnavailable() {
+    state.running = false;
+    setCover(true, "Practice for this technique isn't available yet", false);
+    const link = document.getElementById("practice-unavailable");
+    if (link) link.hidden = false;
+  }
+
   function showBoardCover(text) {
     const show = Boolean(text);
     boardWrap.classList.toggle("is-paused", show);
@@ -2377,6 +2396,7 @@
     hideGeneration();
     coverText.hidden = false;
     if (show) coverText.textContent = text;
+    hidePracticeUnavailable();
     document.getElementById("resume-btn").hidden = text !== "Paused";
   }
 
@@ -2386,6 +2406,7 @@
     hideGeneration();
     coverText.hidden = false;
     if (show) coverText.textContent = text;
+    hidePracticeUnavailable();
     document.getElementById("resume-btn").hidden = !withButton;
   }
 

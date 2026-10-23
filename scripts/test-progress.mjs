@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { migrateStats } from "../functions/account-merge.mjs";
+import { orderedTechniques } from "./technique-copy.mjs";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const store = new Map();
@@ -31,7 +32,13 @@ function check(name, ok) {
   }
 }
 
-check("badge count is 33", progress.BADGES.length === 33);
+check("badge count is 34", progress.BADGES.length === 34);
+const libraryOrder = orderedTechniques().map((tech) => `${tech.order}:${tech.slug}`).join(",");
+check(
+  "ladder follows technique order",
+  progress.TECHNIQUES.map((tech) => `${tech.order}:${tech.slug}`).join(",") === libraryOrder
+);
+check("xy-wing is before swordfish", progress.TECHNIQUES.findIndex((tech) => tech.slug === "xy-wing") < progress.TECHNIQUES.findIndex((tech) => tech.slug === "swordfish"));
 check("mastered badges cover every technique", progress.TECHNIQUES.every((tech) => progress.BADGES.some((badge) => badge.id === `mastered-${tech.slug}`)));
 
 const empty = progress.load();
