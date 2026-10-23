@@ -19,6 +19,7 @@ import {
 const schedule = {
   "what-makes-a-sudoku-hard": "2026-10-28",
   "history-of-sudoku": "2026-10-28",
+  "world-sudoku-championship-2026": "2026-10-31",
   "sudoku-variants": "2026-11-04",
   "why-ai-is-bad-at-sudoku": "2026-11-04",
   "does-sudoku-keep-your-brain-sharp": "2026-11-11",
@@ -46,16 +47,28 @@ function live(today) {
 assert.deepEqual(live("2026-10-21"), []);
 assert.deepEqual(live("2026-10-27"), []);
 assert.deepEqual(live("2026-10-28"), ["what-makes-a-sudoku-hard", "history-of-sudoku"]);
-assert.deepEqual(live("2026-11-03"), ["what-makes-a-sudoku-hard", "history-of-sudoku"]);
+assert.deepEqual(live("2026-10-30"), ["what-makes-a-sudoku-hard", "history-of-sudoku"]);
+assert.deepEqual(live("2026-10-31"), [
+  "what-makes-a-sudoku-hard",
+  "history-of-sudoku",
+  "world-sudoku-championship-2026",
+]);
+assert.deepEqual(live("2026-11-03"), [
+  "what-makes-a-sudoku-hard",
+  "history-of-sudoku",
+  "world-sudoku-championship-2026",
+]);
 assert.deepEqual(live("2026-11-04"), [
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
+  "world-sudoku-championship-2026",
   "sudoku-variants",
   "why-ai-is-bad-at-sudoku",
 ]);
 const beforeFewest = [
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
+  "world-sudoku-championship-2026",
   "sudoku-variants",
   "why-ai-is-bad-at-sudoku",
   "does-sudoku-keep-your-brain-sharp",
@@ -66,12 +79,47 @@ assert.deepEqual(live("2026-11-17"), beforeFewest);
 assert.deepEqual(live("2026-11-18"), Object.keys(schedule));
 assert.equal(isPublished("", "2026-10-21"), true);
 assert.equal(formatPublishDate("2026-10-28"), "October 28, 2026");
+assert.equal(formatPublishDate("2026-10-31"), "October 31, 2026");
 assert.equal(formatPublishDate("2026-11-04"), "November 4, 2026");
 assert.equal(formatPublishDate("2026-11-18"), "November 18, 2026");
 
 assert.equal(losAngelesToday(new Date("2026-10-22T06:30:00Z"), ""), "2026-10-21");
 assert.equal(losAngelesToday(new Date("2026-10-22T07:00:00Z"), ""), "2026-10-22");
 assert.equal(losAngelesToday(new Date("2026-11-11T18:00:00Z"), ""), "2026-11-11");
+
+const kolkata = prepareArticle(readArticle("world-sudoku-championship-2026"));
+assert.equal(kolkata.content.includes("—"), false);
+assert.equal(kolkata.content.includes("–"), false);
+assert.equal(kolkata.content.includes("```"), false);
+assert.equal(kolkata.content.includes("By Ethan"), false);
+assert.equal((kolkata.content.match(/class="puzzle-grid"/g) || []).length, 1);
+assert.equal((kolkata.content.match(/class="puzzle-cell/g) || []).length, 81);
+assert.match(kolkata.content, /`\.\.\.98\.\.3\./);
+assert.equal(kolkata.content.includes('href="/techniques/x-wing/"'), false);
+const kolkataHtml = marked.parse(kolkata.content);
+assert.equal(kolkataHtml.includes("—"), false);
+assert.equal(kolkataHtml.includes("–"), false);
+assert.equal(kolkataHtml.includes('href="/techniques/x-wing/"'), true);
+assert.equal(kolkataHtml.includes('href="/techniques/naked-pair/"'), true);
+assert.equal(kolkataHtml.includes('href="/techniques/hidden-single/"'), true);
+assert.equal(kolkataHtml.includes('href="/?practice=x-wing"'), true);
+assert.equal(kolkataHtml.includes('href="/how-difficulty-works/"'), true);
+assert.equal(kolkataHtml.includes('href="/articles/history-of-sudoku/"'), true);
+assert.equal(kolkataHtml.includes('href="/articles/what-makes-a-sudoku-hard/"'), true);
+assert.deepEqual(kolkata.relatedSlugs, ["history-of-sudoku", "what-makes-a-sudoku-hard"]);
+const kolkataGrid = kolkata.content.match(/`([.1-9]{81})`/);
+assert.ok(kolkataGrid, "championship example grid");
+const kolkataCells = [...kolkataGrid[1]].map((digit) => (digit === "." ? 0 : Number(digit)));
+const kolkataContext = { console, Math, performance };
+kolkataContext.globalThis = kolkataContext;
+vm.createContext(kolkataContext);
+vm.runInContext(readFileSync(new URL("../assets/js/solver.js", import.meta.url), "utf8"), kolkataContext);
+assert.equal(kolkataContext.SudokuSolver.countSolutions(kolkataCells, 2), 1);
+const kolkataGrade = kolkataContext.SudokuSolver.grade(kolkataCells);
+assert.equal(kolkataGrade.solved, true);
+assert.equal(kolkataGrade.corrupt, false);
+assert.equal(kolkataGrade.hardestName, "xwing");
+assert.equal(kolkataGrade.clues, 26);
 
 const hard = prepareArticle(readArticle("what-makes-a-sudoku-hard"));
 assert.deepEqual(hard.relatedSlugs, [
@@ -274,6 +322,9 @@ function routeExists(path, search) {
   if (path === "/" && search.has("difficulty") && search.size === 1) {
     return difficulties.has(search.get("difficulty"));
   }
+  if (path === "/" && search.has("practice") && search.size === 1) {
+    return techniqueSlugs.has(search.get("practice"));
+  }
   if (search.size > 0) return false;
   if (staticPaths.has(path)) return true;
   const technique = path.match(/^\/techniques\/([a-z0-9-]+)\/$/);
@@ -331,6 +382,7 @@ for (const figure of ["1,483", "495", "387", "314", "5.0", "8.9", "51 percent", 
 }
 assert.match(grading, /August 30, 2021 through March 2, 2024/);
 assert.equal(grading.includes("January 2023"), false);
+assert.match(build, /articles\/world-sudoku-championship-2026\.md/);
 assert.match(build, /href="\/how-difficulty-works\/">How difficulty works<\/a>/);
 assert.match(build, /href="\/terms\/">Terms<\/a>/);
 const game = readFileSync(new URL("../src/game.html", import.meta.url), "utf8");
