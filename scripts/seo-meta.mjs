@@ -20,7 +20,10 @@ export const TECHNIQUE_SEARCH = {
   quads: "Quads",
   "x-wing": "X-Wing",
   swordfish: "Swordfish",
+  skyscraper: "Skyscraper",
+  "two-string-kite": "Two-String Kite",
   "xy-wing": "XY-Wing",
+  "xyz-wing": "XYZ-Wing",
   coloring: "Simple Coloring",
   "xy-chain": "XY-Chain",
 };
