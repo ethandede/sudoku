@@ -726,7 +726,7 @@ export const techniques = [
     level: "Expert",
     play: "expert",
     order: 80,
-    related: ["xyz-wing", "xy-chain", "naked-pair"],
+    related: ["xyz-wing", "w-wing", "xy-chain", "naked-pair"],
     when: "XY-wings are Expert. A puzzle that needs one is past pairs, triples, and quads.",
     nyt: "XY-wings do not appear in the 1,483 NYT puzzles. That set never goes beyond triples.",
     sections: [
@@ -950,6 +950,38 @@ export const techniques = [
           "I look for one when a two-digit cell is touching a three-digit cell, and a second two-digit cell takes the pair that is left. Two candidates on the pivot means the shorter wing, and that page is the one to use. Three candidates on the pivot means the victim has to see all three cells, pivot included.",
         ],
       },
+    ],
+  },
+  {
+    slug: "w-wing",
+    name: "W-wing",
+    description:
+      "Two matching pairs joined by a strong link. W-wings on Expert puzzles.",
+    level: "Expert",
+    play: "expert",
+    order: 84,
+    related: ["xy-wing", "xyz-wing"],
+    when: "W-wings are Expert. They sit with the other wings, after an XYZ-wing and before a swordfish.",
+    nyt: "The 1,483 archived NYT puzzles never need a W-wing. Their hardest steps stop at triples.",
+    paragraphs: [
+      "A W-wing is two cells that hold the same two digits and do not see each other. A strong link on one of those digits joins them. One cell sees one end of the link, and the other cell sees the other end.",
+      "At least one of the two cells is the other digit, because the strong link forces it. A cell that sees both loses that digit.",
+    ],
+  },
+  {
+    slug: "unique-rectangle",
+    name: "Unique rectangle",
+    description:
+      "Three corners of a rectangle hold two digits, so those digits leave the fourth. Unique rectangles on Expert puzzles.",
+    level: "Expert",
+    play: "expert",
+    order: 92,
+    related: ["swordfish", "xy-wing"],
+    when: "Unique rectangles are Expert. They come after the swordfish and before coloring.",
+    nyt: "The 1,483 archived NYT puzzles never need a unique rectangle. Their hardest steps stop at triples.",
+    paragraphs: [
+      "A unique rectangle is four cells in two rows, two columns, and two boxes. Three of the corners hold the same two digits and nothing else. The fourth holds those two plus at least one more.",
+      "If the fourth corner were only those two digits, the rectangle could flip and the puzzle would have two solutions. It does not. Those two digits come out of the fourth corner.",
     ],
   },
   {
