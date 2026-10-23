@@ -10,11 +10,12 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (path) => readFileSync(join(root, path), "utf8");
 
 const exts = new Set([".scss", ".css", ".svg"]);
+// Teddy's eye highlight is the artist's #FFF. The dog is not recolored.
 const filesIn = () =>
   execFileSync("git", ["ls-files", "-z"], { cwd: root })
     .toString("utf8")
     .split("\0")
-    .filter((path) => exts.has(extname(path)))
+    .filter((path) => exts.has(extname(path)) && !path.startsWith("assets/img/teddy/"))
     .map((path) => join(root, path));
 
 function stripComments(source) {
@@ -39,6 +40,12 @@ for (const file of filesIn()) {
   });
 }
 assert.deepEqual(hits, [], `pure white in CSS or SVG:\n${hits.join("\n")}`);
+
+const teddy = read("assets/img/teddy/teddy.svg");
+const teddyIcon = read("assets/img/teddy/teddy-icon.svg");
+assert.equal(/#FFB08C/i.test(teddy + teddyIcon), false);
+assert.match(teddyIcon, /#fbfaf8/i);
+assert.match(teddy, /#E5402A/i);
 
 function lin(channel) {
   const c = channel / 255;

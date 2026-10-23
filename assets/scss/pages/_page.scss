@@ -133,24 +133,44 @@
 
     .teddy-figure {
       margin: 0 0 1.5rem;
-      max-width: 16rem;
+      width: fit-content;
+      max-width: 100%;
+      padding: 12px 12px 8px;
+      background: #fbfaf8;
+      border-radius: 1.5rem;
 
-      picture,
-      img {
+      > img,
+      .teddy-art {
         display: block;
         width: 256px;
         max-width: 100%;
+        min-width: 160px;
         height: auto;
-        aspect-ratio: 1 / 1;
+        aspect-ratio: 960 / 1200;
         margin: 0;
-        border-radius: 1.5rem;
+        border-radius: 1rem;
+        background: #fbfaf8;
+      }
+
+      .teddy-icon {
+        display: block;
+        flex: none;
+        width: 32px;
+        min-width: 22px;
+        height: 32px;
+        aspect-ratio: 1;
+        margin: 0 0.45rem 0 0;
+        border-radius: 0.45rem;
+        background: transparent;
       }
 
       figcaption {
+        display: flex;
+        align-items: center;
         margin-top: 0.5rem;
         font-size: 0.95rem;
         line-height: 1.4;
-        color: #5a534c;
+        color: #3a3530;
       }
     }
   }
@@ -200,5 +220,13 @@
     .page-header .page-title {
       font-size: 1.65rem;
     }
+  }
+}
+
+html[data-theme="dark"] .standard-page .teddy-figure {
+  background: #fbfaf8;
+
+  figcaption {
+    color: #3a3530;
   }
 }

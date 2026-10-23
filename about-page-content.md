@@ -1,12 +1,8 @@
 Hi, I'm Ethan Ede.
 
 <figure class="teddy-figure">
-  <picture>
-    <source type="image/avif" srcset="/assets/img/teddy/teddy-128.avif 128w, /assets/img/teddy/teddy-256.avif 256w, /assets/img/teddy/teddy-512.avif 512w" sizes="256px">
-    <source type="image/webp" srcset="/assets/img/teddy/teddy-128.webp 128w, /assets/img/teddy/teddy-256.webp 256w, /assets/img/teddy/teddy-512.webp 512w" sizes="256px">
-    <img src="/assets/img/teddy/teddy-256.webp" width="256" height="256" alt="Teddy, an adult black Australian labradoodle drawn in anime style, holding a pencil over a sudoku grid" loading="lazy" decoding="async">
-  </picture>
-  <figcaption>Teddy, chief puzzle supervisor. Never once helpful.</figcaption>
+  <img class="teddy-art" src="/assets/img/teddy/teddy.svg" width="256" height="320" alt="Teddy, a black Australian labradoodle with a curly coat, tan brows, a grey beard, a white chest patch, and a red collar" loading="lazy" decoding="async">
+  <figcaption><img class="teddy-icon" src="/assets/img/teddy/teddy-icon.svg" width="32" height="32" alt="">Teddy, chief puzzle supervisor. Never once helpful.</figcaption>
 </figure>
 
 I build websites for a living, and I have for more than 20 years. I also play a lot of Sudoku. Most days that is the New York Times puzzle in their app, usually with coffee, sometimes with Teddy's head on my knee wondering why I'm not throwing the ball. I live in Portland, Oregon. I built SudokuSudoku, and I run it. Teddy is a black Australian labradoodle with a white chest patch, and he is a grown dog. Mia the tabby lives here too.
