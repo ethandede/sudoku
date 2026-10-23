@@ -24,6 +24,7 @@ const PATTERNS = {
   "x-wing": { focus: [11, 15, 47, 51] },
   swordfish: { focus: [2, 6, 29, 33, 56, 60] },
   "xy-wing": { focus: [20, 24, 56] },
+  "w-wing": { focus: [10, 19, 55, 64] },
   skyscraper: { focus: [1, 19, 14, 68] },
   "two-string-kite": { focus: [2, 20, 23, 47] },
   "xyz-wing": { focus: [30, 34, 66] },
@@ -155,9 +156,11 @@ const cards = [
   })),
 ];
 
+const only = process.argv[2] || "";
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
 for (const card of cards) {
+  if (only && card.slug !== only) continue;
   await page.setContent(pageHtml(card), { waitUntil: "load" });
   await page.evaluate(() => document.fonts.ready);
   const target = join(root, "assets/og", card.dir, `${card.slug}.png`);
