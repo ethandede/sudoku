@@ -65,6 +65,21 @@ export function gitDate(root, relativePath) {
   }
 }
 
+export function gitFirstDate(root, relativePath) {
+  ensureHistory(root);
+  try {
+    const out = execFileSync("git", ["log", "--follow", "--format=%cs", "--", relativePath], {
+      cwd: root,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+    const days = out.split("\n").map((line) => line.trim()).filter((line) => DAY.test(line));
+    return days.at(-1) || "";
+  } catch {
+    return "";
+  }
+}
+
 export function fileDate(root, relativePath) {
   try {
     const day = statSync(join(root, relativePath)).mtime.toISOString().slice(0, 10);
