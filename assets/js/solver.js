@@ -866,6 +866,59 @@
     return hits;
   }
 
+  // Counted once per solve. Unique rectangle and BUG+1 both read it.
+  function ensureUnique(state) {
+    if (state.uniqueChecked) return state.unique;
+    const puzzle = [];
+    for (let i = 0; i < 81; i++) puzzle.push(state.v[i]);
+    state.unique = countSolutions(puzzle, 2) === 1;
+    state.uniqueChecked = true;
+    return state.unique;
+  }
+
+  // Type 1. Three corners of a two-box rectangle are exactly two digits.
+  // The fourth holds those digits plus extras. A unique puzzle cannot leave
+  // the rectangle able to flip, so the two digits come off the fourth cell.
+  function uniqueRectangleHits(state) {
+    const hits = [];
+    if (!ensureUnique(state)) return hits;
+    for (let r1 = 0; r1 < 8 && hits.length < 8; r1++) {
+      for (let r2 = r1 + 1; r2 < 9 && hits.length < 8; r2++) {
+        const sameBand = ((r1 / 3) | 0) === ((r2 / 3) | 0);
+        for (let c1 = 0; c1 < 8 && hits.length < 8; c1++) {
+          for (let c2 = c1 + 1; c2 < 9 && hits.length < 8; c2++) {
+            const sameStack = ((c1 / 3) | 0) === ((c2 / 3) | 0);
+            if (sameBand === sameStack) continue;
+            const cells = [r1 * 9 + c1, r1 * 9 + c2, r2 * 9 + c1, r2 * 9 + c2];
+            let filled = false;
+            const masks = [];
+            for (let k = 0; k < 4; k++) {
+              if (state.v[cells[k]]) filled = true;
+              masks.push(state.c[cells[k]]);
+            }
+            if (filled) continue;
+            const bi = [];
+            for (let k = 0; k < 4; k++) if (POP[masks[k]] === 2) bi.push(k);
+            if (bi.length !== 3) continue;
+            const base = masks[bi[0]];
+            if (masks[bi[1]] !== base || masks[bi[2]] !== base) continue;
+            const extraAt = [0, 1, 2, 3].find((k) => bi.indexOf(k) < 0);
+            const extraMask = masks[extraAt];
+            if ((extraMask & base) !== base || POP[extraMask] < 3) continue;
+            const ordered = [cells[bi[0]], cells[bi[1]], cells[bi[2]], cells[extraAt]];
+            hits.push({
+              targets: [cells[extraAt]],
+              mask: base,
+              type: "uniquerect",
+              pattern: ordered,
+            });
+          }
+        }
+      }
+    }
+    return hits;
+  }
+
   const TECHNIQUES = [
     { name: "locked", rank: 3, find: lockedHits },
     { name: "naked_pair", rank: 4, find: (state) => nakedHits(state, 2) },
@@ -881,6 +934,7 @@
     { name: "kite", rank: 9, find: kiteHits },
     { name: "xyzwing", rank: 9, find: xyzwingHits },
     { name: "wwing", rank: 9, find: wwingHits },
+    { name: "uniquerect", rank: 9, find: uniqueRectangleHits },
     { name: "coloring", rank: 10, find: coloringHits },
     { name: "xychain", rank: 10, find: xyChainHits },
   ];
@@ -985,6 +1039,7 @@ function stepWidth(state, singleCount, rankCap) {
     kite: "two-string-kite",
     xyzwing: "xyz-wing",
     wwing: "w-wing",
+    uniquerect: "unique-rectangle",
     coloring: "coloring",
     xychain: "xy-chain",
   };
@@ -1298,6 +1353,7 @@ function stepWidth(state, singleCount, rankCap) {
     kite: "two-string-kite",
     xyzwing: "xyz-wing",
     wwing: "w-wing",
+    uniquerect: "unique-rectangle",
     coloring: "coloring",
     xychain: "xy-chain",
   };
@@ -1318,6 +1374,7 @@ function stepWidth(state, singleCount, rankCap) {
     kite: "Two-string kite",
     xyzwing: "XYZ-wing",
     wwing: "W-wing",
+    uniquerect: "Unique rectangle",
     coloring: "Simple coloring",
     xychain: "XY-chain",
   };
@@ -1442,6 +1499,11 @@ function stepWidth(state, singleCount, rankCap) {
     } else if (type === "wwing") {
       look = "Look at these two cells.";
       explain = `Both cells hold the same two digits, and a strong link on one of them joins the cells. At least one cell is ${digit}, so ${digit} comes out of any cell that sees both.`;
+      region = hit.pattern.slice();
+    } else if (type === "uniquerect") {
+      const digits = joinDigits(maskDigits(hit.mask));
+      look = "Look at these four cells.";
+      explain = `Three corners hold only ${digits}. This puzzle has one solution, so ${digits} come out of the fourth corner.`;
       region = hit.pattern.slice();
     } else if (type === "coloring") {
       const outside = hit.targets.some((index) => hit.pattern.indexOf(index) === -1);

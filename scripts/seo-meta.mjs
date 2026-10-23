@@ -25,6 +25,7 @@ export const TECHNIQUE_SEARCH = {
   "xy-wing": "XY-Wing",
   "xyz-wing": "XYZ-Wing",
   "w-wing": "W-Wing",
+  "unique-rectangle": "Unique Rectangle",
   coloring: "Simple Coloring",
   "xy-chain": "XY-Chain",
 };
