@@ -327,6 +327,8 @@ assert.equal(graded.clues, 25);
 for (const figure of ["1,483", "495", "387", "314", "5.0", "8.9", "51 percent", "18 percent", "24 percent"]) {
   assert.equal(grading.includes(figure), true, figure);
 }
+assert.match(grading, /August 30, 2021 through March 2, 2024/);
+assert.equal(grading.includes("January 2023"), false);
 assert.match(build, /href="\/how-difficulty-works\/">How difficulty works<\/a>/);
 assert.match(build, /href="\/terms\/">Terms<\/a>/);
 const game = readFileSync(new URL("../src/game.html", import.meta.url), "utf8");
