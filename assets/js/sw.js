@@ -89,6 +89,7 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
   const url = new URL(request.url);
   if (!sameOrigin(url)) return;
+  if (url.pathname.startsWith("/api/")) return;
 
   const path = shellPath(url.pathname);
   const precached = inShell(url);

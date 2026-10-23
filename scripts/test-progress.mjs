@@ -152,6 +152,35 @@ const merged = progress.load();
 check("import keeps the higher clean count", merged.techniques.pointing.clean >= 8);
 check("import keeps badges from both sides", merged.badges.includes("spotless") && merged.badges.includes("first-pointing"));
 
+store.set("sudoku-skills", "{");
+progress.recordSolve(
+  {
+    level: "easy",
+    seconds: 30,
+    mistakes: 0,
+    hintSlugs: [],
+    path: ["naked-single"],
+    at: "2026-06-01T00:00:00.000Z",
+  },
+  { daily: { completed: {}, longestStreak: 0 } }
+);
+check("corrupt skills are not replaced", store.get("sudoku-skills") === "{");
+check("corrupt skills block later writes", progress.canSync() === false);
+
+store.set("sudoku-skills", JSON.stringify({ version: 99, badges: ["spotless"], techniques: {} }));
+progress.recordSolve(
+  {
+    level: "easy",
+    seconds: 30,
+    mistakes: 0,
+    hintSlugs: [],
+    path: ["naked-single"],
+    at: "2026-06-02T00:00:00.000Z",
+  },
+  { daily: { completed: {}, longestStreak: 0 } }
+);
+check("a future skills file is left untouched", JSON.parse(store.get("sudoku-skills")).version === 99);
+
 if (failed) {
   console.error(`${failed} failed`);
   process.exit(1);

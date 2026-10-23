@@ -220,6 +220,7 @@
         <label><input type="checkbox" data-setting="showCommunityStats"> <span>Show community times on the difficulty tabs</span></label>
       </fieldset>
       <p class="key-help">Press N to toggle Normal and Notes. With checking on, a wrong entry counts toward the 4-mistake limit. With it off, there is no limit. Sharing sends the level, time, and outcome with a random id stored on this device. It does not include a name. Turn sharing off to delete that id. <a href="/stats/">Community stats</a> · <a href="/privacy-policy/">Privacy</a></p>
+      <div id="account-settings" class="account-slot"></div>
     </div>
   </div>
 
@@ -230,6 +231,39 @@
         <button type="button" class="icon-close" data-close="stats-modal" aria-label="Close stats">×</button>
       </div>
       <div id="stats-body"></div>
+      <div id="account-stats" class="account-slot"></div>
+    </div>
+  </div>
+
+  <div id="account-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="account-title" hidden>
+    <div class="modal-card account-card">
+      <div class="modal-head">
+        <h2 id="account-title">Save your progress</h2>
+        <button type="button" class="icon-close" data-close="account-modal" aria-label="Close save progress">×</button>
+      </div>
+      <p>Optional. Stats, streaks, settings, and a puzzle you have not finished stay on this device. Sign in with your email and a copy is kept for the next visit. No password.</p>
+      <form id="account-request">
+        <label>Email
+          <input type="email" name="email" autocomplete="email" inputmode="email" maxlength="254" required>
+        </label>
+        <div id="account-turnstile"></div>
+        <button type="submit" class="primary-btn">Email me a sign-in link</button>
+      </form>
+      <form id="account-code" hidden>
+        <label>6-digit code
+          <input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required>
+        </label>
+        <button type="submit" class="primary-btn">Sign in</button>
+      </form>
+      <div id="account-signed" hidden>
+        <p>Signed in as <strong id="account-signed-email" class="account-email"></strong></p>
+        <div class="account-actions">
+          <button type="button" id="account-signout" class="secondary-btn">Sign out</button>
+          <button type="button" id="account-delete" class="secondary-btn">Delete my account</button>
+        </div>
+        <p class="key-help">Delete removes the email and the saved copy on the server. This device keeps its own copy.</p>
+      </div>
+      <p id="account-status" class="account-status" role="status" hidden></p>
     </div>
   </div>
 </main>

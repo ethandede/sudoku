@@ -39,6 +39,16 @@
     });
   }
 
+  function requestPersistentStorage() {
+    try {
+      if (navigator.storage && typeof navigator.storage.persist === "function") {
+        navigator.storage.persist();
+      }
+    } catch {
+      /* the browser declined or has no storage manager */
+    }
+  }
+
   function savedTheme() {
     try {
       const stored = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
@@ -115,6 +125,7 @@
     applyDocumentTheme(savedTheme());
   });
 
+  requestPersistentStorage();
   initNavigation();
   initAppShell();
 
@@ -160,6 +171,11 @@
     showCommunityStats: true,
   };
 
+  let statsBlocked = false;
+  let settingsBlocked = false;
+  let progressBlocked = false;
+  let settingsQuiet = false;
+  let statsQuiet = false;
   let settings = loadSettings();
   let stats = loadStats();
   if (window.SudokuProgress) {
@@ -187,21 +203,16 @@
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
   setInterval(tick, 250);
   document.addEventListener("visibilitychange", onVisibility);
-
-    const saved = readSave();
-    pendingRequest = requestFromUrl();
-    if (window.SudokuCommunity) {
-      window.SudokuCommunity.reconcile(saved);
-      window.SudokuCommunity.boot().then(() => {
-        window.SudokuCommunity.paintLine(saved && !state.counted ? saved.kind : state.kind);
-      });
-    }
-    if (saved) {
-    showModal("resume-modal");
-    document.getElementById("resume-detail").textContent = resumeText(saved);
-  } else {
-    beginNew(pendingRequest || { kind: "easy" }, { count: true });
+  window.addEventListener("pagehide", () => {
+    if (window.SudokuAccount) window.SudokuAccount.flush();
+  });
+  if (window.SudokuAccount) {
+    window.SudokuAccount.attach({
+      snapshot: accountSnapshot,
+      apply: applyAccountBundle,
+    });
   }
+  void startGame();
 
   function blankState() {
     return {
@@ -241,51 +252,205 @@
   }
 
   function loadSettings() {
+    let raw = null;
     try {
-      const stored = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
-      return { ...defaultSettings, ...stored };
+      raw = localStorage.getItem(SETTINGS_KEY);
     } catch {
+      settingsBlocked = true;
       return { ...defaultSettings };
     }
+    if (raw == null) return { ...defaultSettings };
+    let stored;
+    try {
+      stored = JSON.parse(raw);
+    } catch {
+      settingsBlocked = true;
+      return { ...defaultSettings };
+    }
+    const migrated = window.SudokuAccountMerge
+      ? window.SudokuAccountMerge.migrateSettings(stored)
+      : { ok: true, settings: stored, changed: false };
+    if (!migrated.ok) {
+      settingsBlocked = true;
+      return { ...defaultSettings };
+    }
+    if (migrated.changed) {
+      try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(migrated.settings));
+      } catch {
+        /* private mode */
+      }
+    }
+    return { ...defaultSettings, ...migrated.settings };
   }
 
-  function saveSettings() {
+  function saveSettings(options) {
+    if (settingsBlocked) return;
+    if (!options || !options.keepStamp) settings.updatedAt = Date.now();
+    settings.version = 1;
     try {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     } catch {
       /* private mode */
     }
+    if (!settingsQuiet && (!options || !options.quiet)) noteAccount();
   }
 
   function freshStats() {
     const bucket = () => ({ played: 0, won: 0, best: null, totalTime: 0 });
-    const stats = { daily: { ...bucket(), completed: {}, longestStreak: 0 } };
+    const next = { version: 1, daily: { ...bucket(), completed: {}, longestStreak: 0 } };
     ORDER.forEach((id) => {
-      stats[id] = bucket();
+      next[id] = bucket();
     });
-    return stats;
+    return next;
   }
 
   function loadStats() {
+    let raw = null;
     try {
-      const stored = JSON.parse(localStorage.getItem(STATS_KEY) || "null");
-      const base = freshStats();
-      if (!stored) return base;
-      for (const key of Object.keys(base)) {
-        base[key] = { ...base[key], ...(stored[key] || {}) };
-      }
-      base.daily.completed = stored.daily?.completed || {};
-      return base;
+      raw = localStorage.getItem(STATS_KEY);
     } catch {
+      statsBlocked = true;
       return freshStats();
     }
+    if (raw == null) return freshStats();
+    let stored;
+    try {
+      stored = JSON.parse(raw);
+    } catch {
+      statsBlocked = true;
+      return freshStats();
+    }
+    const migrated = window.SudokuAccountMerge
+      ? window.SudokuAccountMerge.migrateStats(stored)
+      : { ok: false };
+    if (!migrated.ok) {
+      statsBlocked = true;
+      return freshStats();
+    }
+    if (migrated.changed) {
+      try {
+        localStorage.setItem(STATS_KEY, JSON.stringify(migrated.stats));
+      } catch {
+        /* private mode */
+      }
+    }
+    return migrated.stats;
   }
 
-  function saveStats() {
+  function saveStats(options) {
+    if (statsBlocked) return;
     try {
       localStorage.setItem(STATS_KEY, JSON.stringify(stats));
     } catch {
       /* private mode */
+    }
+    if (!statsQuiet && (!options || !options.quiet)) noteAccount();
+  }
+
+  function noteAccount() {
+    if (window.SudokuAccount) window.SudokuAccount.noteChange();
+  }
+
+  function progressStamp() {
+    try {
+      return Number(localStorage.getItem("sudoku-progress-at")) || 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  function accountSnapshot() {
+    const bundle = { v: 1 };
+    if (!statsBlocked) bundle.stats = stats;
+    if (!settingsBlocked) bundle.settings = settings;
+    if (window.SudokuProgress && typeof window.SudokuProgress.canSync === "function" && window.SudokuProgress.canSync()) {
+      bundle.skills = window.SudokuProgress.load();
+    }
+    if (!progressBlocked) {
+      const saved = readSave();
+      if (!progressBlocked) {
+        bundle.progress = saved;
+        bundle.progressUpdatedAt = saved && saved.updatedAt ? saved.updatedAt : progressStamp();
+      }
+    }
+    return bundle;
+  }
+
+  function applyAccountBundle(bundle) {
+    if (!bundle || typeof bundle !== "object") return;
+    if (bundle.stats && !statsBlocked && window.SudokuAccountMerge) {
+      const migrated = window.SudokuAccountMerge.migrateStats(bundle.stats);
+      if (migrated.ok) {
+        stats = migrated.stats;
+        statsQuiet = true;
+        saveStats({ quiet: true });
+        statsQuiet = false;
+      }
+    }
+    if (bundle.skills && window.SudokuProgress && typeof window.SudokuProgress.replace === "function") {
+      window.SudokuProgress.replace(bundle.skills);
+    }
+    if (bundle.settings && !settingsBlocked) {
+      const migrated = window.SudokuAccountMerge
+        ? window.SudokuAccountMerge.migrateSettings(bundle.settings)
+        : { ok: true, settings: bundle.settings };
+      if (migrated.ok) {
+        settings = { ...defaultSettings, ...migrated.settings };
+        settingsQuiet = true;
+        saveSettings({ quiet: true, keepStamp: true });
+        settingsQuiet = false;
+        applyTheme();
+        syncSettingsForm();
+      }
+    }
+    if (!progressBlocked && Object.prototype.hasOwnProperty.call(bundle, "progress")) {
+      const at = Number(bundle.progressUpdatedAt) || (bundle.progress && bundle.progress.updatedAt) || 0;
+      if (at >= progressStamp()) {
+        try {
+          if (bundle.progress) localStorage.setItem(SAVE_KEY, JSON.stringify(bundle.progress));
+          else if (at > progressStamp()) localStorage.removeItem(SAVE_KEY);
+          if (at) localStorage.setItem("sudoku-progress-at", String(at));
+        } catch {
+          /* private mode */
+        }
+      }
+    }
+    render();
+  }
+
+  async function startGame() {
+    let pulled = false;
+    if (window.SudokuAccount && navigator.onLine !== false) {
+      try {
+        await Promise.race([
+          window.SudokuAccount.pullBeforePlay(),
+          new Promise((_, reject) => {
+            window.setTimeout(() => reject(new Error("timeout")), 8000);
+          }),
+        ]);
+        pulled = true;
+      } catch {
+        pulled = false;
+      }
+    }
+    if (!pulled && window.SudokuAccount) {
+      window.SudokuAccount.invalidate();
+      window.SudokuAccount.holdProgress();
+    }
+    const saved = readSave();
+    pendingRequest = requestFromUrl();
+    if (window.SudokuCommunity) {
+      window.SudokuCommunity.reconcile(saved);
+      window.SudokuCommunity.boot().then(() => {
+        window.SudokuCommunity.paintLine(saved && !state.counted ? saved.kind : state.kind);
+      });
+    }
+    if (saved) {
+      showModal("resume-modal");
+      document.getElementById("resume-detail").textContent = resumeText(saved);
+    } else {
+      beginNew(pendingRequest || { kind: "easy" }, { count: true });
     }
   }
 
@@ -626,11 +791,7 @@
     });
     document.getElementById("resume-no").addEventListener("click", () => {
       hideModal("resume-modal");
-      try {
-        localStorage.removeItem(SAVE_KEY);
-      } catch {
-        /* private mode */
-      }
+      clearSave();
       beginNew(pendingRequest || { kind: "easy" }, { count: true });
     });
     document.getElementById("solved-new").addEventListener("click", () => {
@@ -1250,16 +1411,13 @@
     pause(false);
     const snapshot = communitySnapshot(revealed ? "revealed" : "solved");
     if (window.SudokuCommunity) window.SudokuCommunity.rememberFinish(snapshot);
-    try {
-      localStorage.removeItem(SAVE_KEY);
-    } catch {
-      /* private mode */
-    }
+    clearSave();
     const unlocked = revealed ? [] : recordWin();
     render();
     showSolved(false, unlocked);
     if (window.SudokuCommunity) window.SudokuCommunity.completeFinish(snapshot);
     if (unlocked.length && window.SudokuProgress) window.SudokuProgress.celebrate(unlocked);
+    if (window.SudokuAccount) window.SudokuAccount.flush();
   }
 
   function isSolved() {
@@ -1589,6 +1747,7 @@
 
   function onVisibility() {
     if (document.hidden) {
+      if (window.SudokuAccount) window.SudokuAccount.flush();
       if (state.running) {
         state.hidePaused = true;
         pause(false);
@@ -1952,10 +2111,24 @@
     saveTimer = window.setTimeout(writeSave, 150);
   }
 
+  function clearSave() {
+    if (progressBlocked) return;
+    const at = Date.now();
+    try {
+      localStorage.removeItem(SAVE_KEY);
+      localStorage.setItem("sudoku-progress-at", String(at));
+    } catch {
+      /* private mode */
+    }
+    noteAccount();
+  }
+
   function writeSave() {
+    if (progressBlocked) return;
     if (state.won || !state.counted) return;
     const payload = {
       version: 1,
+      updatedAt: Date.now(),
       kind: state.kind,
       dailyDate: state.dailyDate,
       puzzle: state.puzzle,
@@ -1985,22 +2158,59 @@
     }
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+      localStorage.setItem("sudoku-progress-at", String(payload.updatedAt));
     } catch {
       /* private mode */
     }
+    noteAccount();
   }
 
   function readSave() {
+    let raw = null;
     try {
-      const saved = JSON.parse(localStorage.getItem(SAVE_KEY) || "null");
-      if (!saved || saved.version !== 1) return null;
-      if (!Array.isArray(saved.puzzle) || saved.puzzle.length !== 81) return null;
-      if (!Array.isArray(saved.board) || saved.board.length !== 81) return null;
-      if (!Array.isArray(saved.solution) || saved.solution.length !== 81) return null;
-      return saved;
+      raw = localStorage.getItem(SAVE_KEY);
     } catch {
+      progressBlocked = true;
       return null;
     }
+    if (raw == null) return null;
+    let saved;
+    try {
+      saved = JSON.parse(raw);
+    } catch {
+      progressBlocked = true;
+      return null;
+    }
+    if (!saved || typeof saved !== "object" || Array.isArray(saved)) {
+      progressBlocked = true;
+      return null;
+    }
+    if ((saved.version | 0) !== 1) {
+      progressBlocked = true;
+      return null;
+    }
+    if (!Array.isArray(saved.puzzle) || saved.puzzle.length !== 81) {
+      progressBlocked = true;
+      return null;
+    }
+    if (!Array.isArray(saved.board) || saved.board.length !== 81) {
+      progressBlocked = true;
+      return null;
+    }
+    if (!Array.isArray(saved.solution) || saved.solution.length !== 81) {
+      progressBlocked = true;
+      return null;
+    }
+    if (!saved.updatedAt) {
+      saved.updatedAt = Date.now();
+      try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(saved));
+        localStorage.setItem("sudoku-progress-at", String(saved.updatedAt));
+      } catch {
+        /* private mode */
+      }
+    }
+    return saved;
   }
 
   function restoreSave(saved) {

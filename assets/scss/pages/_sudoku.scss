@@ -1382,6 +1382,79 @@ button:disabled {
   font-weight: 700;
 }
 
+.account-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  margin-top: 0.75rem;
+}
+
+.account-link {
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--user-ink);
+  font: inherit;
+  font-weight: 700;
+  min-height: 44px;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.account-signed-in {
+  margin: 0;
+  font-weight: 700;
+}
+
+.account-email {
+  overflow-wrap: anywhere;
+}
+
+.account-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+}
+
+.account-card input {
+  font: inherit;
+  min-height: 44px;
+  border: 1px solid var(--pad-border);
+  border-radius: 0.5rem;
+  padding: 0 0.75rem;
+  background: var(--board-bg);
+  color: var(--ink);
+}
+
+.account-card .primary-btn,
+.account-card .secondary-btn {
+  width: 100%;
+}
+
+.account-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.account-status {
+  margin-top: 0.75rem;
+}
+
+.account-status[data-state="error"] {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+#account-turnstile {
+  margin: 0 0 0.75rem;
+}
+
 .celebrate .confetti span {
   position: absolute;
   top: -10px;
