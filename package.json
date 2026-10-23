@@ -27,6 +27,7 @@
     "test:stats-page": "node scripts/test-stats-page.mjs",
     "test:home": "node scripts/test-home-copy.mjs",
     "test:not-found": "node scripts/test-not-found.mjs",
+    "test:gen": "node scripts/test-gen-progress.mjs",
     "test:meta": "node scripts/test-meta.mjs"
   },
   "devDependencies": {

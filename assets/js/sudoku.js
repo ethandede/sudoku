@@ -184,6 +184,21 @@
   const boardWrap = document.getElementById("board-wrap");
   const cover = document.getElementById("board-cover");
   const coverText = document.getElementById("board-cover-text");
+  const genProgress = document.getElementById("gen-progress");
+  const genGauge = document.getElementById("gen-gauge");
+  const genTrack = document.getElementById("gen-track");
+  const genValue = document.getElementById("gen-value");
+  const genPercent = document.getElementById("gen-percent");
+  const genStatus = document.getElementById("gen-status");
+  const GEN_SHOW_AFTER = 250;
+  const GEN_MIN_VISIBLE = 400;
+  const GEN_STAGE = {
+    layout: "Laying out givens",
+    unique: "Checking there's exactly one answer",
+    grade: "Grading difficulty",
+  };
+  let genRevealTimer = 0;
+  let genWatch = { token: 0, shownAt: 0, visible: false, info: { stage: "layout", value: 0 } };
   const live = document.getElementById("live-region");
   const undoBtn = document.getElementById("undo-btn");
   const autoBox = document.getElementById("auto-candidates");
@@ -1024,12 +1039,60 @@
     const token = ++generation;
     busy = true;
     state.running = false;
-    const practiceName =
-      request.practice && window.SudokuProgress ? window.SudokuProgress.nameOf(request.practice) : "";
-    setCover(true, practiceName ? `Finding ${practiceName}…` : "Shuffling a puzzle…", false);
-    window.setTimeout(() => {
-      void launchNew(request, kind, date, token, count);
-    }, 30);
+    window.clearTimeout(genRevealTimer);
+    genWatch = { token, shownAt: 0, visible: false, info: { stage: "layout", value: 0 } };
+    hideGeneration();
+    cover.hidden = true;
+    boardWrap.classList.remove("is-paused");
+    genRevealTimer = window.setTimeout(() => {
+      if (genWatch.token !== token) return;
+      genWatch.visible = true;
+      genWatch.shownAt = performance.now();
+      showGeneration(genWatch.info);
+    }, GEN_SHOW_AFTER);
+    void launchNew(request, kind, date, token, count);
+  }
+
+  function onGenProgress(info) {
+    if (!info || genWatch.token !== generation) return;
+    genWatch.info = info;
+    if (genWatch.visible) showGeneration(info);
+  }
+
+  function showGeneration(info) {
+    const value = Math.max(0, Math.min(100, Math.round(Number(info && info.value) || 0)));
+    boardWrap.classList.add("is-paused");
+    cover.hidden = false;
+    coverText.hidden = true;
+    document.getElementById("resume-btn").hidden = true;
+    genProgress.hidden = false;
+    genValue.style.setProperty("--stroke-percent", String(value));
+    genGauge.setAttribute("aria-valuenow", String(value));
+    genPercent.textContent = String(value);
+    const line = GEN_STAGE[info && info.stage] || GEN_STAGE.layout;
+    if (genStatus.textContent !== line) genStatus.textContent = line;
+    const track = Math.max(0, 90 - value);
+    genTrack.style.setProperty("--stroke-percent", String(track));
+    genTrack.hidden = value > 90;
+  }
+
+  function hideGeneration() {
+    if (genProgress) genProgress.hidden = true;
+    if (coverText) coverText.hidden = false;
+  }
+
+  async function settleGeneration(token, apply) {
+    if (token !== generation) return;
+    window.clearTimeout(genRevealTimer);
+    const hold = genWatch.visible ? Math.max(0, GEN_MIN_VISIBLE - (performance.now() - genWatch.shownAt)) : 0;
+    if (hold && genWatch.visible) {
+      showGeneration({ ...genWatch.info, value: 100, stage: genWatch.info.stage });
+      await new Promise((resolve) => window.setTimeout(resolve, hold));
+    }
+    if (token !== generation) return;
+    genWatch.visible = false;
+    hideGeneration();
+    apply();
   }
 
   async function launchNew(request, kind, date, token, count) {
@@ -1045,17 +1108,45 @@
       result = window.SudokuShare.materialize(request.givens, difficulty);
       puzzleId = request.puzzleId || null;
     }
+    const genStarted = performance.now();
     if (!result && techniqueSlug && window.SudokuGenerator.generateForTechnique) {
       const allowed = window.SudokuProgress ? window.SudokuProgress.comfortableSlugs() : [];
       const seed = request.seed || (window.SudokuShare ? window.SudokuShare.mintId(difficulty) : undefined);
-      result = window.SudokuGenerator.generateForTechnique(techniqueSlug, { allowed, seed });
-      if (window.SudokuShare) puzzleId = window.SudokuShare.idFromGivens(difficulty, result.puzzle);
+      try {
+        result = await window.SudokuGenerator.generateOffMain(
+          { op: "technique", slug: techniqueSlug, options: { allowed, seed } },
+          onGenProgress
+        );
+      } catch (error) {
+        if (error && error.superseded) return;
+        if (token !== generation) return;
+        result = window.SudokuGenerator.generateForTechnique(techniqueSlug, { allowed, seed, onProgress: onGenProgress });
+      }
+      if (window.SudokuShare && result) puzzleId = window.SudokuShare.idFromGivens(difficulty, result.puzzle);
     } else if (!result) {
       const seed = seeded
         ? `daily:${date}`
         : request.seed || (window.SudokuShare ? window.SudokuShare.mintId(difficulty) : undefined);
       if (!seeded) puzzleId = request.puzzleId || seed || null;
-      result = window.SudokuGenerator.generate(difficulty, seed);
+      try {
+        result = await window.SudokuGenerator.generateOffMain(
+          { op: "generate", difficulty, seed },
+          onGenProgress
+        );
+      } catch (error) {
+        if (error && error.superseded) return;
+        if (token !== generation) return;
+        result = window.SudokuGenerator.generate(difficulty, seed, onGenProgress);
+      }
+    }
+    if (token !== generation || !result) return;
+    if (performance.now() - genStarted < GEN_SHOW_AFTER) {
+      window.clearTimeout(genRevealTimer);
+      genWatch.visible = false;
+    } else if (!genWatch.visible) {
+      genWatch.visible = true;
+      genWatch.shownAt = performance.now();
+      showGeneration(genWatch.info);
     }
     if (token !== generation) return;
     const already = seeded && stats.daily.completed[date];
@@ -1083,8 +1174,10 @@
       state.counted = true;
       busy = false;
       render();
-      setCover(false);
-      showSolved(true);
+      await settleGeneration(token, () => {
+        setCover(false);
+        showSolved(true);
+      });
       return;
     }
     if (count && !practiceSlug) recordStart();
@@ -1109,8 +1202,11 @@
     if (token !== generation) return;
     busy = false;
     render();
-    setCover(false);
-    resume();
+    await settleGeneration(token, () => {
+      setCover(false);
+      resume();
+    });
+    if (token !== generation) return;
     const approximate = train && !practiceSlug && result.metadata && result.metadata.trainApproximate;
     const trainName = train && window.SudokuProgress ? window.SudokuProgress.nameOf(train) : "";
     announce(
@@ -2278,6 +2374,8 @@
     const show = Boolean(text);
     boardWrap.classList.toggle("is-paused", show);
     cover.hidden = !show;
+    hideGeneration();
+    coverText.hidden = false;
     if (show) coverText.textContent = text;
     document.getElementById("resume-btn").hidden = text !== "Paused";
   }
@@ -2285,6 +2383,8 @@
   function setCover(show, text, withButton) {
     boardWrap.classList.toggle("is-paused", show);
     cover.hidden = !show;
+    hideGeneration();
+    coverText.hidden = false;
     if (show) coverText.textContent = text;
     document.getElementById("resume-btn").hidden = !withButton;
   }

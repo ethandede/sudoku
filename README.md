@@ -41,6 +41,7 @@ The site stays plain HTML, CSS, and vanilla JS. No React and no Motion package. 
 - Inputs. Na3ar-17's simple field, https://uiverse.io/Na3ar-17/calm-panda-30. Contact form and the skill-ladder transfer fields.
 - Cards. adamgiebl's card, https://uiverse.io/adamgiebl/new-crab-79. Article cards, stats cards, and the standard page sheet. The shadow is lighter than the original.
 - Loader. adamgiebl's pulsing dots, https://uiverse.io/adamgiebl/thin-lionfish-5. Three small dots on the stats loading line.
+- Puzzle gauge. Magic UI's animated circular progress bar, https://magicui.design/docs/components/animated-circular-progress-bar (MIT, copyright Magic UI). Shown on the board while a new puzzle is built, only when that build takes time. The arc is vanilla SVG and CSS in `assets/scss/components/_gen-progress.scss`.
 - Tooltip. Cksunandh's simple tooltip, https://uiverse.io/Cksunandh/afraid-snail-51. The short stats time labels show the full label on hover.
 
 Light accents, kept small: a page dot grid (the idea is Magic UI's Dot Pattern, written here as a radial-gradient), a 1px press, and a stats count-up in `assets/js/stats-page.js`. Rare UI and Skiper UI are not ported. Arrow icons are Phosphor `arrow-left` and `arrow-right` (MIT, copyright 2023 Phosphor Icons), in `scripts/icons.mjs`.

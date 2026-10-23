@@ -70,6 +70,16 @@
           <div class="board-wrap" id="board-wrap">
             <div id="sudoku-grid" class="sudoku-grid" role="grid" aria-label="Sudoku board"></div>
             <div id="board-cover" class="board-cover" hidden>
+              <div id="gen-progress" class="gen-progress" hidden>
+                <div id="gen-gauge" class="gen-gauge" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Building a puzzle">
+                  <svg viewBox="0 0 100 100" aria-hidden="true">
+                    <circle id="gen-track" class="gen-track" cx="50" cy="50" r="45" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"></circle>
+                    <circle id="gen-value" class="gen-value" cx="50" cy="50" r="45" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"></circle>
+                  </svg>
+                  <span id="gen-percent" class="gen-percent" aria-hidden="true">0</span>
+                </div>
+                <p id="gen-status" class="gen-status" role="status">Laying out givens</p>
+              </div>
               <p id="board-cover-text">Paused</p>
               <button type="button" id="resume-btn">Resume</button>
             </div>
