@@ -138,6 +138,7 @@ body:has(.sudoku-page) .site-header {
 }
 
 .game-intro {
+  position: relative;
   flex: 0 0 auto;
   min-width: 0;
   padding: 2px 0 0;
@@ -416,6 +417,10 @@ body:has(.sudoku-page) .site-header {
   font-weight: 700;
   line-height: 1.2;
   color: var(--ink);
+}
+
+.copy-short {
+  display: none;
 }
 
 .text-btn,
@@ -1214,14 +1219,20 @@ kbd {
 }
 
 .practice-prompt {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin: 0;
-  width: 100%;
+  padding: 0 0.5rem;
+  background: var(--page);
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.92rem;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.15;
   color: var(--user-ink);
-  padding: 0 0.4rem 0.1rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1787,6 +1798,26 @@ button:disabled {
   .controls {
     padding-left: max(6px, env(safe-area-inset-left));
     padding-right: max(6px, env(safe-area-inset-right));
+  }
+
+  .copy-full {
+    display: none;
+  }
+
+  .copy-short {
+    display: inline;
+  }
+
+  .puzzle-label:has(.copy-short) {
+    font-size: 0.92rem;
+  }
+
+  .fill-chip-text {
+    font-size: 0.84rem;
+  }
+
+  .practice-prompt {
+    font-size: 0.78rem;
   }
 
   .game-intro .supporting-text {

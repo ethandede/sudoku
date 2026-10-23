@@ -22,6 +22,7 @@ for (const slug of Object.keys(practice.FILL_LABEL)) {
   assert.equal(fromGenerator, practice.RANK[slug], `${slug} rank`);
   assert.equal(practice.fillLabel(slug).includes("—"), false);
   assert.equal(practice.promptFor(practice.fillLabel(slug)).includes("—"), false);
+  assert.equal(practice.promptShort(practice.fillLabel(slug)).includes("—"), false);
 }
 
 function jump(slug) {
@@ -108,6 +109,8 @@ for (const jumped of [hidden.jumped, wing.jumped]) {
   }
   assert.equal(practice.reviewCopy(batches, "Pointing").includes("—"), false);
   assert.match(practice.reviewCopy(batches, "Pointing"), /Next up: Pointing\.$/);
+  assert.match(practice.reviewCopyShort(batches, "Pointing"), /^\d+ to Pointing$/);
+  assert.equal(practice.reviewCopyShort(batches, "Pointing").includes("—"), false);
 }
 
 const singles = practice.batchesOf(
@@ -338,7 +341,10 @@ async function runFillReviewUi(fillUrl) {
   }
 
   async function chipText(page) {
-    return page.locator("#fill-chip-text").evaluate((el) => el.textContent.replace(/\s+/g, " ").trim());
+    return page.locator("#fill-chip-text").evaluate((el) => {
+      const full = el.querySelector(".copy-full");
+      return (full || el).textContent.replace(/\s+/g, " ").trim();
+    });
   }
 
   function sameList(actual, expected, message) {
@@ -478,6 +484,120 @@ async function runFillReviewUi(fillUrl) {
     }
     checkAssert(posts.length === 0, `practice posted ${posts.join(" ")}`);
     await context.close();
+  });
+
+  await check("practice keeps the board and keypad where a normal game puts them", async () => {
+    async function openThemed(url, viewport, theme) {
+      const context = await browser.newContext({ viewport, deviceScaleFactor: 1 });
+      await context.addInitScript((value) => {
+        localStorage.clear();
+        localStorage.setItem("sudoku-settings", JSON.stringify({ theme: value }));
+      }, theme);
+      const page = await context.newPage();
+      await page.route("**/*", (route) => {
+        const target = route.request().url();
+        if (/google|gstatic|doubleclick|googlesyndication/.test(target)) return route.abort();
+        return route.continue();
+      });
+      await page.goto(`${origin}${url}`, { waitUntil: "domcontentloaded" });
+      await page.waitForFunction(
+        () => {
+          const cover = document.querySelector("#board-cover");
+          return document.querySelectorAll(".cell.given").length > 0 && cover && cover.hidden;
+        },
+        null,
+        { timeout: 45000 }
+      );
+      await page.evaluate(() => document.fonts.ready);
+      return { context, page };
+    }
+
+    async function metrics(page) {
+      return page.evaluate(() => {
+        const box = (selector) => document.querySelector(selector).getBoundingClientRect();
+        const overflows = (el) => Boolean(el) && !el.hidden && el.scrollWidth > el.clientWidth + 1;
+        const chip = document.querySelector("#fill-chip");
+        const prompt = document.querySelector("#practice-prompt");
+        const label = document.querySelector("#puzzle-label");
+        const chipText = document.querySelector("#fill-chip-text");
+        const intro = box(".game-intro");
+        const promptBox = prompt.getBoundingClientRect();
+        return {
+          board: box(".sudoku-grid").top,
+          pad: box("#number-pad").top,
+          boardHeight: box(".sudoku-grid").height,
+          labelOverflow: overflows(label),
+          chipOverflow: chip && !chip.hidden ? overflows(chipText) : false,
+          promptOverflow: prompt && !prompt.hidden ? overflows(prompt) : false,
+          promptOutsideIntro: prompt && !prompt.hidden ? promptBox.bottom > intro.bottom + 1 || promptBox.top < intro.top - 1 : false,
+          label: label.innerText.replace(/\s+/g, " ").trim(),
+          prompt: !prompt.hidden ? prompt.innerText.replace(/\s+/g, " ").trim() : "",
+          chip: chip && !chip.hidden ? chipText.innerText.replace(/\s+/g, " ").trim() : "",
+        };
+      });
+    }
+
+    const sizes = [
+      [360, 740],
+      [390, 844],
+      [430, 932],
+      [1280, 800],
+    ];
+    for (const theme of ["light", "dark"]) {
+      for (const [width, height] of sizes) {
+        const name = `${width}x${height} ${theme}`;
+        const plain = await openThemed("/", { width, height }, theme);
+        const plainBox = await metrics(plain.page);
+        await plain.context.close();
+        const practice = await openThemed("/?practice=naked-pair", { width, height }, theme);
+        await practice.page.waitForSelector("#practice-prompt:not([hidden])", { timeout: 30000 });
+        const practiceBox = await metrics(practice.page);
+        const narrow = width < 721;
+        checkAssert(Math.abs(practiceBox.board - plainBox.board) <= 1, `${name} board top ${practiceBox.board} vs ${plainBox.board}`);
+        checkAssert(Math.abs(practiceBox.pad - plainBox.pad) <= 1, `${name} keypad top ${practiceBox.pad} vs ${plainBox.pad}`);
+        checkAssert(
+          Math.abs(practiceBox.boardHeight - plainBox.boardHeight) <= 1,
+          `${name} board height ${practiceBox.boardHeight} vs ${plainBox.boardHeight}`
+        );
+        checkAssert(!practiceBox.labelOverflow, `${name} label overflows: ${practiceBox.label}`);
+        checkAssert(!practiceBox.promptOverflow, `${name} prompt overflows: ${practiceBox.prompt}`);
+        checkAssert(!practiceBox.promptOutsideIntro, `${name} prompt leaves the title row`);
+        checkAssert(practiceBox.chip.length > 0, `${name} chip is missing`);
+        checkAssert(!practiceBox.chipOverflow, `${name} chip overflows: ${practiceBox.chip}`);
+        if (narrow) {
+          checkAssert(practiceBox.label === "Naked pair", `${name} label is ${practiceBox.label}`);
+          checkAssert(practiceBox.prompt === "Find the Naked pair.", `${name} prompt is ${practiceBox.prompt}`);
+          checkAssert(/^\d+ to Naked pair$/.test(practiceBox.chip), `${name} chip is ${practiceBox.chip}`);
+        } else {
+          checkAssert(practiceBox.label === "Practice · Naked pair", `${name} label is ${practiceBox.label}`);
+          checkAssert(practiceBox.prompt === "Naked pair is the next move. Find it.", `${name} prompt is ${practiceBox.prompt}`);
+          checkAssert(/Next up: Naked pair\.$/.test(practiceBox.chip), `${name} chip is ${practiceBox.chip}`);
+        }
+        if (width === 360 && theme === "light") {
+          await practice.page.evaluate(() => {
+            document.querySelector("#puzzle-label .copy-short").textContent = "Simple coloring";
+            document.querySelector("#practice-prompt .copy-short").textContent = "Find the Simple coloring.";
+            document.querySelector("#fill-chip-text .copy-short").textContent = "23 to Simple coloring";
+          });
+          const long = await metrics(practice.page);
+          checkAssert(!long.labelOverflow, "longest practice label overflows");
+          checkAssert(!long.promptOverflow, "longest practice prompt overflows");
+          checkAssert(!long.chipOverflow, "longest practice chip overflows");
+        }
+        const shot = width >= 721 ? "desktop" : "phone";
+        if (width === 390 || width === 1280) {
+          await practice.page.screenshot({ path: path.join(shots, `practice-layout-${shot}-${theme}.png`) });
+        }
+        console.log("layout", name, {
+          board: practiceBox.board,
+          plain: plainBox.board,
+          label: practiceBox.label,
+          prompt: practiceBox.prompt,
+          chip: practiceBox.chip,
+        });
+        await practice.context.close();
+      }
+    }
   });
 
   await browser.close();
