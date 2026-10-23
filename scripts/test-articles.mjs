@@ -167,9 +167,30 @@ for (const [from, to] of [
   ["/techniques/pointing-and-claiming/", "/techniques/pointing/"],
   ["/techniques/naked-quad/", "/techniques/quads/"],
   ["/techniques/simple-coloring/", "/techniques/coloring/"],
+  ["/the-complete-beginners-guide-to-sudoku-from-zero-to-your-first-solved-puzzle/", "/articles/beginners-guide/"],
+  ["/7-common-sudoku-mistakes-and-how-to-fix-them/", "/articles/common-mistakes/"],
+  ["/x-wing-swordfish-beyond-master-these-6-advanced-sudoku-techniques/", "/techniques/"],
+  ["/contact", "/contact/"],
+  ["/about", "/about/"],
+  ["/feed/", "/articles/"],
+  ["/category/sudoku-guides/", "/articles/"],
+  ["/tag/hidden-pairs/", "/techniques/hidden-pair/"],
+  ["/medium/", "/?difficulty=not-easy"],
+  ["/difficulty/hard/", "/?difficulty=hard"],
+  ["/page/*", "/articles/"],
+  ["/tag/*", "/articles/"],
+  ["/author/*", "/about/"],
 ]) {
-  assert.match(redirects, new RegExp(`${from.replaceAll("/", "\\/")} ${to.replaceAll("/", "\\/")} 301`));
+  const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  assert.match(redirects, new RegExp(`${escape(from)} ${escape(to)} 301`));
 }
+const redirectRules = redirects.split("\n").filter((line) => {
+  const trimmed = line.trim();
+  return trimmed && !trimmed.startsWith("#");
+});
+assert.equal(redirectRules.some((line) => /wp-admin|wp-login|xmlrpc/.test(line)), false);
+const dynamicAt = redirectRules.findIndex((line) => line.includes("*") || line.includes(":"));
+assert.equal(dynamicAt > 0 && redirectRules.slice(0, dynamicAt).every((line) => !line.includes("*") && !line.includes(":")), true);
 
 const about = readFileSync(new URL("../about-page-content.md", import.meta.url), "utf8");
 assert.match(about, /^Hi, I'm Ethan Ede\./);
@@ -209,6 +230,7 @@ assert.equal(noLibrary.includes("the technique behind it"), true);
 assert.equal(noLibrary.includes(HARD_LINK), true);
 
 const build = readFileSync(new URL("./build.mjs", import.meta.url), "utf8");
+assert.match(build, /"404.html"[\s\S]*?ads: false/);
 assert.match(build, /SudokuSudoku\. All rights reserved\./);
 assert.equal(build.includes("Sudoku Online"), false);
 assert.match(build, /articles\/fewest-and-most-sudoku-clues\.md/);

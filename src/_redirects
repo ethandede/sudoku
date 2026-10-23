@@ -2,8 +2,8 @@
 # The old landing page linked to /sudoku; that template is gone.
 /sudoku / 301
 /sudoku/ / 301
-/articles/advanced-techniques /techniques/ 301
-/articles/advanced-techniques/ /techniques/ 301
+/index.php / 301
+
 # Article technique names that don't match the library slugs.
 # pointing and claiming are separate pages; the article treats them as one step, so this lands on pointing.
 /techniques/pointing-and-claiming /techniques/pointing/ 301
@@ -12,3 +12,183 @@
 /techniques/naked-quad/ /techniques/quads/ 301
 /techniques/simple-coloring /techniques/coloring/ 301
 /techniques/simple-coloring/ /techniques/coloring/ 301
+
+# WordPress posts. Slugs are the published titles.
+/the-complete-beginners-guide-to-sudoku-from-zero-to-your-first-solved-puzzle /articles/beginners-guide/ 301
+/the-complete-beginners-guide-to-sudoku-from-zero-to-your-first-solved-puzzle/ /articles/beginners-guide/ 301
+/7-common-sudoku-mistakes-and-how-to-fix-them /articles/common-mistakes/ 301
+/7-common-sudoku-mistakes-and-how-to-fix-them/ /articles/common-mistakes/ 301
+/x-wing-swordfish-beyond-master-these-6-advanced-sudoku-techniques /techniques/ 301
+/x-wing-swordfish-beyond-master-these-6-advanced-sudoku-techniques/ /techniques/ 301
+/articles/advanced-techniques /techniques/ 301
+/articles/advanced-techniques/ /techniques/ 301
+/example-article-with-images /articles/ 301
+/example-article-with-images/ /articles/ 301
+/hello-world /articles/ 301
+/hello-world/ /articles/ 301
+/hello-world-2 /articles/ 301
+/hello-world-2/ /articles/ 301
+
+# WordPress pages. Footer and header linked /about and /contact without a slash.
+/about /about/ 301
+/about-us /about/ 301
+/about-us/ /about/ 301
+/contact /contact/ 301
+/contact-us /contact/ 301
+/contact-us/ /contact/ 301
+/contactus /contact/ 301
+/contactus/ /contact/ 301
+/feedback /contact/ 301
+/feedback/ /contact/ 301
+/privacy /privacy-policy/ 301
+/privacy/ /privacy-policy/ 301
+/privacy-policy /privacy-policy/ 301
+/sudoku-links /links/ 301
+/sudoku-links/ /links/ 301
+/links /links/ 301
+/blog /articles/ 301
+/blog/ /articles/ 301
+/articles /articles/ 301
+/techniques /techniques/ 301
+/stats /stats/ 301
+/skills /skills/ 301
+
+# Old WordPress sitemaps.
+/sitemap_index.xml /sitemap.xml 301
+/wp-sitemap.xml /sitemap.xml 301
+/post-sitemap.xml /sitemap.xml 301
+/page-sitemap.xml /sitemap.xml 301
+/category-sitemap.xml /sitemap.xml 301
+
+# Level names from the old Play menu. Medium was the homepage's name for NYT Medium, which is Not Easy here.
+/quick /?difficulty=quick 301
+/quick/ /?difficulty=quick 301
+/easy /?difficulty=easy 301
+/easy/ /?difficulty=easy 301
+/medium /?difficulty=not-easy 301
+/medium/ /?difficulty=not-easy 301
+/nyt-easy /?difficulty=easy 301
+/nyt-easy/ /?difficulty=easy 301
+/nyt-medium /?difficulty=not-easy 301
+/nyt-medium/ /?difficulty=not-easy 301
+/nyt-hard /?difficulty=hard 301
+/nyt-hard/ /?difficulty=hard 301
+/not-easy /?difficulty=not-easy 301
+/not-easy/ /?difficulty=not-easy 301
+/hard /?difficulty=hard 301
+/hard/ /?difficulty=hard 301
+/expert /?difficulty=expert 301
+/expert/ /?difficulty=expert 301
+/mental /?difficulty=mental 301
+/mental/ /?difficulty=mental 301
+/difficulty/quick /?difficulty=quick 301
+/difficulty/quick/ /?difficulty=quick 301
+/difficulty/easy /?difficulty=easy 301
+/difficulty/easy/ /?difficulty=easy 301
+/difficulty/medium /?difficulty=not-easy 301
+/difficulty/medium/ /?difficulty=not-easy 301
+/difficulty/not-easy /?difficulty=not-easy 301
+/difficulty/not-easy/ /?difficulty=not-easy 301
+/difficulty/hard /?difficulty=hard 301
+/difficulty/hard/ /?difficulty=hard 301
+/difficulty/expert /?difficulty=expert 301
+/difficulty/expert/ /?difficulty=expert 301
+/difficulty/mental /?difficulty=mental 301
+/difficulty/mental/ /?difficulty=mental 301
+/sudoku/quick /?difficulty=quick 301
+/sudoku/quick/ /?difficulty=quick 301
+/sudoku/easy /?difficulty=easy 301
+/sudoku/easy/ /?difficulty=easy 301
+/sudoku/medium /?difficulty=not-easy 301
+/sudoku/medium/ /?difficulty=not-easy 301
+/sudoku/not-easy /?difficulty=not-easy 301
+/sudoku/not-easy/ /?difficulty=not-easy 301
+/sudoku/hard /?difficulty=hard 301
+/sudoku/hard/ /?difficulty=hard 301
+/sudoku/expert /?difficulty=expert 301
+/sudoku/expert/ /?difficulty=expert 301
+/sudoku/mental /?difficulty=mental 301
+/sudoku/mental/ /?difficulty=mental 301
+
+# Tag archives from the three imported articles.
+/tag/how-to-play-sudoku /articles/beginners-guide/ 301
+/tag/how-to-play-sudoku/ /articles/beginners-guide/ 301
+/tag/sudoku-for-beginners /articles/beginners-guide/ 301
+/tag/sudoku-for-beginners/ /articles/beginners-guide/ 301
+/tag/sudoku-tutorial /articles/beginners-guide/ 301
+/tag/sudoku-tutorial/ /articles/beginners-guide/ 301
+/tag/learn-sudoku /articles/beginners-guide/ 301
+/tag/learn-sudoku/ /articles/beginners-guide/ 301
+/tag/sudoku-guide /articles/beginners-guide/ 301
+/tag/sudoku-guide/ /articles/beginners-guide/ 301
+/tag/easy-sudoku-tips /articles/beginners-guide/ 301
+/tag/easy-sudoku-tips/ /articles/beginners-guide/ 301
+/tag/sudoku-rules /articles/beginners-guide/ 301
+/tag/sudoku-rules/ /articles/beginners-guide/ 301
+/tag/beginner-sudoku-strategies /articles/beginners-guide/ 301
+/tag/beginner-sudoku-strategies/ /articles/beginners-guide/ 301
+/tag/sudoku-mistakes /articles/common-mistakes/ 301
+/tag/sudoku-mistakes/ /articles/common-mistakes/ 301
+/tag/sudoku-errors /articles/common-mistakes/ 301
+/tag/sudoku-errors/ /articles/common-mistakes/ 301
+/tag/common-sudoku-problems /articles/common-mistakes/ 301
+/tag/common-sudoku-problems/ /articles/common-mistakes/ 301
+/tag/avoid-sudoku-mistakes /articles/common-mistakes/ 301
+/tag/avoid-sudoku-mistakes/ /articles/common-mistakes/ 301
+/tag/sudoku-tips /articles/common-mistakes/ 301
+/tag/sudoku-tips/ /articles/common-mistakes/ 301
+/tag/improve-sudoku-skills /articles/common-mistakes/ 301
+/tag/improve-sudoku-skills/ /articles/common-mistakes/ 301
+/tag/stuck-on-sudoku /articles/common-mistakes/ 301
+/tag/stuck-on-sudoku/ /articles/common-mistakes/ 301
+/tag/sudoku-help /articles/ 301
+/tag/sudoku-help/ /articles/ 301
+/tag/sudoku-strategies /techniques/ 301
+/tag/sudoku-strategies/ /techniques/ 301
+/tag/advanced-sudoku-techniques /techniques/ 301
+/tag/advanced-sudoku-techniques/ /techniques/ 301
+/tag/sudoku-advanced-methods /techniques/ 301
+/tag/sudoku-advanced-methods/ /techniques/ 301
+/tag/expert-sudoku-strategies /techniques/ 301
+/tag/expert-sudoku-strategies/ /techniques/ 301
+/tag/hard-sudoku-tips /?difficulty=hard 301
+/tag/hard-sudoku-tips/ /?difficulty=hard 301
+/tag/sudoku-patterns /techniques/ 301
+/tag/sudoku-patterns/ /techniques/ 301
+/tag/naked-pairs /techniques/naked-pair/ 301
+/tag/naked-pairs/ /techniques/naked-pair/ 301
+/tag/hidden-pairs /techniques/hidden-pair/ 301
+/tag/hidden-pairs/ /techniques/hidden-pair/ 301
+/tag/x-wing-sudoku /techniques/x-wing/ 301
+/tag/x-wing-sudoku/ /techniques/x-wing/ 301
+/tag/swordfish-sudoku /techniques/swordfish/ 301
+/tag/swordfish-sudoku/ /techniques/swordfish/ 301
+/tag/xy-wing-sudoku /techniques/xy-wing/ 301
+/tag/xy-wing-sudoku/ /techniques/xy-wing/ 301
+/category/sudoku-guides /articles/ 301
+/category/sudoku-guides/ /articles/ 301
+
+# Feeds. Pages _redirects cannot match ?p= or ?page_id=, so those keep serving the home puzzle.
+/feed /articles/ 301
+/feed/ /articles/ 301
+/feed/atom /articles/ 301
+/feed/atom/ /articles/ 301
+/feed/rss /articles/ 301
+/feed/rss/ /articles/ 301
+/feed/rdf /articles/ 301
+/feed/rdf/ /articles/ 301
+/feed/json /articles/ 301
+/feed/json/ /articles/ 301
+/comments/feed /articles/ 301
+/comments/feed/ /articles/ 301
+/rss /articles/ 301
+/rss/ /articles/ 301
+
+# Dynamic rules stay last. Static rules above win when both match.
+/page/* /articles/ 301
+/category/* /articles/ 301
+/tag/* /articles/ 301
+/feed/* /articles/ 301
+/author/* /about/ 301
+/techniques/:name /techniques/:name/ 301
+/articles/:name /articles/:name/ 301
