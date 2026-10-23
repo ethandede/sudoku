@@ -189,9 +189,7 @@ export async function handleRequest({ request, env, now = Date.now() }) {
     return json({ error: "Sign-in is not available yet." }, 503);
   }
   const turnstileOk = await verifyTurnstile(request, env, String(parsed.body.turnstileToken || ""));
-  const mailProbe = request.headers.get("x-sudoku-mail-probe") || "";
-  const probeOk = email === "ethanede@gmail.com" && mailProbe === "ac11367843e378c03e2a806ae884b7c7";
-  if (!turnstileOk && !probeOk) return json({ error: "Complete the spam check and try again." }, 400);
+  if (!turnstileOk) return json({ error: "Complete the spam check and try again." }, 400);
   if (!mailConfigured(env)) return json({ error: "Sign-in email is not set up on the server yet." }, 503);
 
   const ip = clientIp(request);
