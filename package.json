@@ -24,7 +24,8 @@
     "test:brand": "node scripts/test-brand.mjs",
     "test:motion": "node scripts/test-motion.mjs",
     "test:home": "node scripts/test-home-copy.mjs",
-    "test:techniques": "node scripts/test-techniques.mjs"
+    "test:techniques": "node scripts/test-techniques.mjs",
+    "test:not-found": "node scripts/test-not-found.mjs"
   },
   "devDependencies": {
     "marked": "^15.0.12",
