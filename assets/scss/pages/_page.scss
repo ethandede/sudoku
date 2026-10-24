@@ -228,6 +228,44 @@
   }
 }
 
+// Phone tables. The level table is wider than a 360px column, so it scrolls
+// inside the card instead of crushing the grader column. Header and cells
+// use the cool tokens so a dark color-scheme cannot paint them black.
+@media (max-width: 480px) {
+  .page-body .level-table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .page-body .level-table table {
+    width: 36rem;
+    min-width: 36rem;
+    max-width: none;
+  }
+
+  .standard-page .page-body .level-table th,
+  .standard-page .page-body .level-table td {
+    background: var(--card);
+    color: var(--text);
+  }
+
+  .standard-page .page-body .level-table th {
+    background: var(--track);
+    color: var(--ink);
+  }
+
+  html[data-theme="light"] .page-body .level-table table {
+    color-scheme: light;
+  }
+
+  html[data-theme="dark"] .page-body .level-table table {
+    color-scheme: dark;
+  }
+}
+
 html[data-theme="dark"] .standard-page .teddy-figure {
   background: vars.$board;
 
