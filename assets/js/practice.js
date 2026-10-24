@@ -64,8 +64,17 @@
     return `${name} is the next move. Find it.`;
   }
 
+  // These display names are gerunds. "Find the Pointing." reads as if the
+  // name were a noun, so the short banner names the move. Every other
+  // technique name is already a noun and stays "Find the {Name}."
+  const VERB_NAME = {
+    Pointing: true,
+    Claiming: true,
+    "Simple coloring": true,
+  };
+
   function promptShort(name) {
-    return `Find the ${name}.`;
+    return `Find the ${name}${VERB_NAME[name] ? " move" : ""}.`;
   }
 
   function wantsCandidates(slug) {
