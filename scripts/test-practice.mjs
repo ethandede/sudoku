@@ -769,8 +769,7 @@ async function runFillReviewUi(fillUrl) {
     }, save);
     const page = await context.newPage();
     await page.goto(`${origin}/?practice=quads`, { waitUntil: "domcontentloaded" });
-    await page.waitForSelector("#resume-yes", { timeout: 15000 });
-    await page.click("#resume-yes");
+    await page.waitForSelector("#resume-note:not([hidden])", { timeout: 15000 });
     await page.waitForFunction(() => {
       const prompt = document.getElementById("practice-prompt");
       return prompt && !prompt.hidden && prompt.classList.contains("is-miss");

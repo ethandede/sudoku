@@ -763,7 +763,7 @@ await check("candidates stay off after placements until auto-candidates is check
     localStorage.setItem("sudoku-progress", JSON.stringify(payload));
   }, stale);
   await page.reload({ waitUntil: "domcontentloaded" });
-  await page.locator("#resume-yes").click();
+  await page.waitForSelector("#resume-note:not([hidden])");
   await page.waitForFunction(() => {
     const cover = document.querySelector("#board-cover");
     return cover && cover.hidden && document.querySelectorAll(".cell.given").length > 0;
@@ -858,8 +858,8 @@ await check("candidates stay off after placements until auto-candidates is check
   await stalePage.goto(`${origin}/?difficulty=quick`, { waitUntil: "domcontentloaded" });
   await stalePage.waitForFunction(() => {
     const cover = document.querySelector("#board-cover");
-    const modal = document.querySelector("#resume-modal");
-    return cover && cover.hidden && modal && modal.hidden && document.querySelectorAll(".cell.given").length > 0;
+    const note = document.querySelector("#resume-note");
+    return cover && cover.hidden && note && note.hidden && document.querySelectorAll(".cell.given").length > 0;
   }, null, { timeout: 60000 });
   assertEqual(await stalePage.locator(".marks span.on.user-note").count(), 0, "an old save is not resumed");
   const ignoredBoard = await boardOf(stalePage);

@@ -158,7 +158,7 @@ async function playSequence(page) {
   await page.goto(`${origin}/?p=${encodeURIComponent(hardId)}`, { waitUntil: "domcontentloaded" });
   await page.waitForSelector("#solved-modal:not([hidden])");
   assert.equal(await page.locator("#solved-stats").innerText(), "You solved this.");
-  assert.equal(await page.locator("#resume-modal").getAttribute("hidden"), "");
+  assert.equal(await page.locator("#resume-note").getAttribute("hidden"), "");
   assert.equal(await page.locator('.cell[data-value="0"]').count(), 0);
   assert.equal(await page.locator("#solved-summary").innerText(), summary);
   const hardSlot = await page.evaluate(() => localStorage.getItem("sudoku-progress:hard"));
@@ -169,25 +169,24 @@ async function playSequence(page) {
   });
 
   await page.goto(`${origin}/`, { waitUntil: "domcontentloaded" });
-  await page.waitForSelector("#resume-modal:not([hidden])");
+  await page.waitForSelector("#resume-note:not([hidden])");
   const easyNow = await page.evaluate(() => JSON.parse(localStorage.getItem("sudoku-progress:easy")));
-  assert.equal(await page.locator("#resume-yes").innerText(), `Resume Easy (${formatTime(easyNow.elapsed)})`);
-  assert.equal(await page.locator("#resume-no").innerText(), "New Easy puzzle");
-  assert.match(await page.locator("#resume-detail").innerText(), /^Easy is in progress/);
+  assert.match((await page.locator("#resume-note").innerText()).replace(/\s+/g, " "), /Picked up where you left off/);
+  assert.equal(await page.locator("#resume-no").innerText(), "New game");
   assert.equal(await page.locator("#puzzle-label").innerText(), "Easy");
-  assert.equal(await page.locator("#board-cover").getAttribute("hidden"), null);
-  await page.locator("#resume-yes").click();
+  assert.equal(await page.locator("#timer").innerText(), formatTime(easyNow.elapsed));
+  assert.equal(await page.locator("#board-cover").getAttribute("hidden"), "");
   await page.waitForSelector("#sudoku-grid button.given");
   for (const move of moves) {
     assert.equal(await page.locator(".cell").nth(move.index).innerText(), String(move.digit));
   }
 
   await page.goto(`${origin}/?p=${encodeURIComponent(easyId)}`, { waitUntil: "domcontentloaded" });
-  await page.waitForSelector("#resume-modal:not([hidden])");
-  assert.match(await page.locator("#resume-detail").innerText(), /^Easy is in progress/);
-  assert.doesNotMatch(await page.locator("#resume-detail").innerText(), /Hard/);
-  assert.equal(await page.locator("#board-cover").getAttribute("hidden"), null);
-  await page.locator("#resume-yes").click();
+  await page.waitForSelector("#resume-note:not([hidden])");
+  assert.match(await page.locator("#resume-note").innerText(), /Picked up where you left off/);
+  assert.doesNotMatch(await page.locator("#resume-note").innerText(), /Hard/);
+  assert.equal(await page.locator("#board-cover").getAttribute("hidden"), "");
+  assert.equal(await page.locator("#timer").innerText(), formatTime(easyNow.elapsed));
   await page.waitForSelector("#sudoku-grid button.given");
   for (const move of moves) {
     assert.equal(await page.locator(".cell").nth(move.index).innerText(), String(move.digit));
@@ -208,7 +207,7 @@ async function honorDifficulty(page) {
   assert.equal(next.searchParams.get("difficulty"), null);
   assert.match(next.searchParams.get("p"), /^hard\./);
   assert.notEqual(next.searchParams.get("p"), easyId);
-  assert.equal(await page.locator("#resume-modal").getAttribute("hidden"), "");
+  assert.equal(await page.locator("#resume-note").getAttribute("hidden"), "");
   assert.ok((await page.locator('.cell[data-value="0"]').count()) > 0);
 }
 
@@ -252,22 +251,22 @@ async function resumeMatchesPuzzle(page) {
   }, morning);
   await page.goto(`${origin}/`, { waitUntil: "domcontentloaded" });
   await page.waitForSelector("#sudoku-grid button.given");
-  assert.equal(await page.locator("#resume-modal").getAttribute("hidden"), "");
+  assert.equal(await page.locator("#resume-note").getAttribute("hidden"), "");
   assert.equal(await page.locator("#puzzle-label").innerText(), "Easy");
-  assert.doesNotMatch(await page.locator("#resume-detail").innerText(), /Hard|16:05/);
 
   await page.goto(`${origin}/?p=hard.6qm8ab46`, { waitUntil: "domcontentloaded" });
   await page.waitForSelector("#sudoku-grid button.given");
-  assert.equal(await page.locator("#resume-modal").getAttribute("hidden"), "");
+  assert.equal(await page.locator("#resume-note").getAttribute("hidden"), "");
   assert.equal(await page.locator("#puzzle-label").innerText(), "Hard");
-  assert.doesNotMatch(await page.locator("#resume-detail").innerText(), /rsqhqyhm|16:05/);
 
   await page.goto(`${origin}/?p=hard.rsqhqyhm`, { waitUntil: "domcontentloaded" });
-  await page.waitForSelector("#resume-modal:not([hidden])");
+  await page.waitForSelector("#resume-note:not([hidden])");
   assert.equal(await page.locator("#puzzle-label").innerText(), "Hard");
   assert.equal(await page.locator("#timer").innerText(), "16:05");
-  assert.equal(await page.locator("#resume-detail").innerText(), "Hard is in progress at 16:05.");
-  assert.equal(await page.locator("#resume-yes").innerText(), "Resume Hard (16:05)");
+  assert.match(await page.locator("#resume-note").innerText(), /Picked up where you left off/);
+  assert.equal(await page.locator("#resume-no").innerText(), "New game");
+  assert.equal(await page.locator(".cell").nth(2).getAttribute("data-value"), "3");
+  assert.equal(await page.locator("#board-cover").getAttribute("hidden"), "");
 }
 
 async function fillWithAutoOff(page) {
@@ -322,7 +321,7 @@ try {
     true
   );
   await noted.reload({ waitUntil: "domcontentloaded" });
-  await noted.locator("#resume-yes").click();
+  await noted.waitForSelector("#resume-note:not([hidden])");
   await noted.waitForSelector("#sudoku-grid button.given");
   assert.equal(await noted.locator("#auto-candidates").isChecked(), true);
   await phone.close();

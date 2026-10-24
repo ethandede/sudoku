@@ -227,6 +227,7 @@
       running: false,
       userPaused: false,
       hidePaused: false,
+      holdTimer: false,
       over: false,
       puzzleId: null,
       shareDate: null,
@@ -483,24 +484,16 @@
     else beginNew(freshRequest(pendingRequest, kind), { count: !practiceStart });
   }
 
-  function resumeLabel(saved) {
-    if (saved.practice && saved.practiceMiss) return difficultyLabel(saved.kind);
-    if (saved.practice && window.SudokuProgress) return `Practice · ${window.SudokuProgress.nameOf(saved.practice)}`;
-    if (saved.train && window.SudokuProgress) return `Train · ${window.SudokuProgress.nameOf(saved.train)}`;
-    return difficultyLabel(saved.kind);
+  function hideResumeNote() {
+    const note = document.getElementById("resume-note");
+    if (note) note.hidden = true;
   }
 
   function showResume(saved) {
     offeredSave = saved;
-    const label = resumeLabel(saved);
-    const time = formatTime(saved.elapsed || 0);
-    document.getElementById("resume-yes").textContent = `Resume ${label} (${time})`;
-    document.getElementById("resume-no").textContent = `New ${label} puzzle`;
-    document.getElementById("resume-detail").textContent = `${label} is in progress at ${time}.`;
-    labelEl.textContent = label;
-    timerEl.textContent = time;
-    setCover(true, "", false);
-    showModal("resume-modal");
+    restoreSave(saved, true);
+    const note = document.getElementById("resume-note");
+    if (note) note.hidden = false;
   }
 
   function showCompleted(record) {
@@ -909,22 +902,26 @@
     document.querySelectorAll("#settings-modal input").forEach((input) => {
       input.addEventListener("change", onSettingChange);
     });
-    document.getElementById("resume-modal").addEventListener("cancel", (event) => {
-      event.preventDefault();
-    });
-    document.getElementById("resume-yes").addEventListener("click", () => {
-      hideModal("resume-modal");
-      const kind = (pendingRequest && pendingRequest.kind) || state.kind || "easy";
-      const savedGame = offeredSave && saveMatches(offeredSave, pendingRequest) ? offeredSave : readMatching(pendingRequest);
-      if (savedGame && inProgress(savedGame)) restoreSave(savedGame);
-      else beginNew(freshRequest(pendingRequest, kind), { count: true });
-    });
     document.getElementById("resume-no").addEventListener("click", () => {
-      hideModal("resume-modal");
       const kind = (pendingRequest && pendingRequest.kind) || state.kind || "easy";
       clearSlot(offeredSave || { kind });
+      // The board is already the saved game. Drop counted so beginNew does
+      // not write that game back into the slot we just cleared.
+      state.counted = false;
       beginNew(freshRequest(pendingRequest, kind), { count: true });
     });
+    document.getElementById("resume-dismiss").addEventListener("click", hideResumeNote);
+    document.addEventListener(
+      "pointerdown",
+      (event) => {
+        if (!state.holdTimer) return;
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+        if (target.closest("#resume-note, #pause-btn, .modal, .icon-row, #more-menu, #difficulty-tabs, a")) return;
+        resume();
+      },
+      true
+    );
     document.getElementById("solved-new").addEventListener("click", () => {
       hideModal("solved-modal");
       if (state.practice) beginNew({ kind: state.kind, practice: state.practice }, { count: false });
@@ -1076,6 +1073,8 @@
   }
 
   function beginNew(request, { count }) {
+    state.holdTimer = false;
+    hideResumeNote();
     if (state.counted && !state.won && !state.over && state.puzzle.some((value) => value !== 0)) writeSave();
     dismissHint();
     clearFillReview();
@@ -2821,6 +2820,8 @@
 
   function resume() {
     if (state.won || state.over) return;
+    state.holdTimer = false;
+    hideResumeNote();
     state.userPaused = false;
     state.hidePaused = false;
     state.running = true;
@@ -2878,9 +2879,10 @@
     if (event.metaKey || event.ctrlKey || event.altKey) return;
     const modal = openModal();
     if (modal) {
-      if (event.key === "Escape" && modal.id !== "resume-modal") hideModal(modal.id);
+      if (event.key === "Escape") hideModal(modal.id);
       return;
     }
+    if (state.holdTimer && event.key !== "Escape") resume();
     if (event.key === "Escape") {
       if (!moreMenu.hasAttribute("hidden")) {
         closeMenu();
@@ -3568,7 +3570,7 @@
     noteAccount();
   }
 
-  function restoreSave(saved) {
+  function restoreSave(saved, hold) {
     state = blankState();
     state.kind = saved.kind;
     state.dailyDate = saved.dailyDate;
@@ -3610,9 +3612,18 @@
     autoBox.checked = state.auto;
     writeUrl(state.kind);
     render();
-    resume();
+    if (hold) {
+      state.running = false;
+      state.userPaused = false;
+      state.hidePaused = false;
+      state.holdTimer = true;
+      showBoardCover("");
+      render();
+    } else {
+      resume();
+    }
     if (window.SudokuCommunity) window.SudokuCommunity.paintLine(state.kind);
-    announce("Game resumed");
+    announce(hold ? "Picked up where you left off." : "Game resumed");
   }
 
   function resumeText(saved) {
