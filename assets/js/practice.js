@@ -103,6 +103,9 @@
       if (!item || board[item.index]) continue;
       const digit = item.digit;
       if (digit < 1 || digit > 9) continue;
+      // A wrong digit on the board can make the solver drop the real answer.
+      // Never record that as an elimination.
+      if (solution && solution[item.index] === digit) continue;
       let exists = false;
       for (let k = 0; k < removed.length; k += 1) {
         if (removed[k].index === item.index && removed[k].digit === digit) {

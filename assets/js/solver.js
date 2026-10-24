@@ -165,6 +165,9 @@
     let firstHiddenI = -1;
     let firstHiddenD = 0;
     let firstHiddenBox = false;
+    let anyHiddenI = -1;
+    let anyHiddenD = 0;
+    let anyHiddenBox = false;
     const hidden = new Uint8Array(81);
     for (let u = 0; u < UNITS.length; u++) {
       const unit = UNITS[u];
@@ -184,6 +187,13 @@
         const inBox = uniqueInBox(state, pos, bit);
         if (boxOnly && !inBox && !naked[pos]) continue;
         if (!hidden[pos]) hidden[pos] = d;
+        // A hidden single that is also naked still counts for Fill. The hint
+        // keeps preferring a hidden single that is not naked.
+        if (anyHiddenI < 0 && !(boxOnly && !inBox)) {
+          anyHiddenI = pos;
+          anyHiddenD = d;
+          anyHiddenBox = inBox;
+        }
         if (firstHiddenI < 0 && !naked[pos]) {
           if (boxOnly && !inBox) continue;
           firstHiddenI = pos;
@@ -202,12 +212,16 @@
       firstHiddenI >= 0
         ? { i: firstHiddenI, d: firstHiddenD, kind: firstHiddenBox ? "hidden_box" : "hidden_line" }
         : null;
+    const anyHidden =
+      anyHiddenI >= 0
+        ? { i: anyHiddenI, d: anyHiddenD, kind: anyHiddenBox ? "hidden_box" : "hidden_line" }
+        : null;
 
     if (firstNaked >= 0) {
-      return { place: { i: firstNaked, d: nakedDigit, kind: "single" }, hidden: hiddenPlace, width };
+      return { place: { i: firstNaked, d: nakedDigit, kind: "single" }, hidden: hiddenPlace, anyHidden, width };
     }
-    if (hiddenPlace) return { place: hiddenPlace, hidden: hiddenPlace, width };
-    return { place: null, hidden: null, width: 0 };
+    if (hiddenPlace) return { place: hiddenPlace, hidden: hiddenPlace, anyHidden, width };
+    return { place: null, hidden: null, anyHidden, width: 0 };
   }
 
   function uniqueInBox(state, index, bit) {
@@ -1627,7 +1641,11 @@ function stepWidth(state, singleCount, rankCap) {
     applyRemoved(state, removed);
     if (slug === "naked-single" || slug === "hidden-single") {
       const singles = findSingles(state, false);
-      const place = slug === "naked-single" ? singles.place && singles.place.kind === "single" && singles.place : singles.hidden;
+      const naked = singles.place && singles.place.kind === "single" && singles.place;
+      // Hidden singles that are also naked are still hidden singles. Fill
+      // names them that way instead of reporting that none are left.
+      const hidden = singles.hidden || singles.anyHidden;
+      const place = slug === "naked-single" ? naked : hidden;
       return place ? describeSingle(state, place) : null;
     }
     for (let t = 0; t < TECHNIQUES.length; t++) {

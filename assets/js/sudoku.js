@@ -1591,7 +1591,11 @@
     if (state.puzzle[index] !== 0 || state.board[index] === number) return;
     dismissHint();
     pushUndo();
-    if (number !== state.solution[index]) state.removed = [];
+    const previous = state.board[index];
+    const replacingWrong = previous !== 0 && previous !== state.solution[index];
+    // A wrong digit invalidates every elimination that was computed from it,
+    // including when the player replaces that digit with the right one.
+    if (number !== state.solution[index] || replacingWrong) state.removed = [];
     state.board[index] = number;
     buzz(number === state.solution[index] ? 12 : [18, 40, 24]);
     state.notes[index].clear();
@@ -1643,7 +1647,9 @@
     }
     dismissHint();
     pushUndo();
-    state.removed = [];
+    // Erasing a correct digit or a note leaves eliminations that are still
+    // valid. Only a wrong digit made them untrustworthy.
+    if (state.board[index] !== 0 && state.board[index] !== state.solution[index]) state.removed = [];
     state.board[index] = 0;
     state.notes[index].clear();
     state.slashed.delete(index);
@@ -2104,14 +2110,23 @@
     const practiceApi = window.SudokuPractice;
     const solver = window.SudokuSolver;
     if (!practiceApi || !solver || !solver.explain) return;
+    const label = practiceApi.fillLabel(slug);
+    const name = window.SudokuProgress ? window.SudokuProgress.nameOf(slug) : label;
+    // The same guard as Hint. A fill computed from a wrong digit removes
+    // correct candidates and the next hint then stalls.
+    if (firstWrong() >= 0) {
+      dismissHint();
+      showFillMessage("A digit on the board is wrong. Fix it before using Fill.", false);
+      render();
+      announce(fillReview.summary);
+      return;
+    }
     // Apply this technique wherever it is on the board, even when an easier
     // step comes first. explain() alone only returns the next step, so most
     // techniques used to do nothing while a single was still open.
     const find = (board, removed) =>
       solver.explainTechnique ? solver.explainTechnique(board, removed, slug) : solver.explain(board, removed);
     const probe = find(state.board, state.removed);
-    const label = practiceApi.fillLabel(slug);
-    const name = window.SudokuProgress ? window.SudokuProgress.nameOf(slug) : label;
     if (!probe || probe.slug !== slug) {
       dismissHint();
       showFillMessage(`${name}: none on the board right now.`, false);
@@ -2120,12 +2135,10 @@
       return;
     }
     dismissHint();
-    pushUndo();
     const beforeBoard = state.board.slice();
     const beforeNotes = state.notes.map((set) => [...set]);
     const beforeRemoved = state.removed.map((item) => ({ index: item.index, digit: item.digit }));
-    state.fastForwarded = true;
-    if (state.practice && slug === state.practice) state.practiceFilled = true;
+    pushUndo();
     const result = practiceApi.fillAll(
       state.board,
       state.removed,
@@ -2134,6 +2147,18 @@
       state.solution,
       syncNotesFromStep
     );
+    if (!result.applied.length) {
+      state.undo.pop();
+      state.board = beforeBoard;
+      state.notes = beforeNotes.map((list) => new Set(list));
+      state.removed = beforeRemoved;
+      showFillMessage(`${name}: none on the board right now.`, false);
+      render();
+      announce(fillReview.summary);
+      return;
+    }
+    state.fastForwarded = true;
+    if (state.practice && slug === state.practice) state.practiceFilled = true;
     const stepName = (result.applied[0] && result.applied[0].name) || label;
     result.touches = practiceApi.visibleFillTouches({
       beforeBoard,
@@ -2269,7 +2294,8 @@
     state.over = snap.over;
     if (Array.isArray(snap.puzzle)) state.puzzle = snap.puzzle.slice();
     if (Array.isArray(snap.hintSlugs)) state.hintSlugs = snap.hintSlugs.slice();
-    if (typeof snap.elapsed === "number") state.elapsed = snap.elapsed;
+    // Undo takes back the move, not the clock. Restoring elapsed let a player
+    // cut a solve time by undoing.
     if (!state.over) hideModal("over-modal");
     if (!state.won) hideModal("solved-modal");
     render();
@@ -2286,7 +2312,6 @@
       slashed: [...state.slashed],
       removed: state.removed.map((item) => ({ index: item.index, digit: item.digit })),
       hintSlugs: (state.hintSlugs || []).slice(),
-      elapsed: state.elapsed,
       won: state.won,
       revealed: state.revealed,
       over: state.over,

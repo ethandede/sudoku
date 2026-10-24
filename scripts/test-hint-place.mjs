@@ -665,6 +665,137 @@ await check("reduced motion drops an unnoted digit immediately", async () => {
   }
 });
 
+function clockSeconds(text) {
+  const [mins, secs] = text.trim().split(":").map(Number);
+  return mins * 60 + secs;
+}
+
+async function openFill(page, label) {
+  await page.click("#more-btn");
+  await page.click("#more-fill");
+  await page.locator("#fill-list button", { hasText: label }).click();
+}
+
+const missSlug = ["swordfish", "xy-chain", "coloring", "bug-plus-one", "unique-rectangle"].find(
+  (slug) => !SudokuSolver.explainTechnique(pointing.board, pointing.removed, slug)
+);
+const missLabel = {
+  swordfish: "Apply all swordfish",
+  "xy-chain": "Apply all XY-chains",
+  coloring: "Apply all simple coloring",
+  "bug-plus-one": "Apply all BUG+1",
+  "unique-rectangle": "Apply all unique rectangles",
+}[missSlug];
+
+await check("fill refuses a wrong digit and a miss adds no undo", async () => {
+  const bad = wrongBoard(pointing);
+  assert(bad, "a wrong digit can sit beside the pointing");
+  const { context, page } = await openGame(phone, saveFor(pointing, { auto: true, board: bad.board }));
+  try {
+    await openFill(page, "Apply all pointing");
+    await page.waitForFunction(() => /wrong/.test(document.getElementById("fill-chip-text").textContent || ""));
+    const text = await page.locator("#fill-chip-text").innerText();
+    assert(text.includes("A digit on the board is wrong. Fix it before using Fill."), text);
+    assert(await page.locator("#fill-undo").isHidden(), "the refusal offers no undo");
+    assert((await valueAt(page, bad.index)) === bad.wrong, "the wrong digit stays");
+    assert(await page.locator("#undo-btn").isDisabled(), "refusing fill pushes no undo entry");
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("sudoku-progress")));
+    assert(saved.fastForwarded !== true, "a refused fill does not flag the game as filled");
+  } finally {
+    await context.close();
+  }
+});
+
+await check("a fill that finds nothing says so and pushes no undo", async () => {
+  assert(missSlug && missLabel, "a technique is absent from the pointing board");
+  const { context, page } = await openGame(phone, saveFor(pointing, { auto: false }));
+  try {
+    await openFill(page, missLabel);
+    await page.waitForFunction(() => /none on the board/.test(document.getElementById("fill-chip-text").textContent || ""));
+    const text = await page.locator("#fill-chip-text").innerText();
+    assert(!/0 steps/.test(text), text);
+    assert(await page.locator("#fill-undo").isHidden(), "a miss offers no undo");
+    assert(await page.locator("#undo-btn").isDisabled(), "a miss pushes no undo entry");
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("sudoku-progress")));
+    assert(saved.fastForwarded !== true, "a miss does not flag the game as filled");
+  } finally {
+    await context.close();
+  }
+});
+
+await check("erasing a correct digit keeps eliminations and erasing a wrong one clears them", async () => {
+  const eliminated = (pointing.step.eliminate || []).find(
+    (item) => pointing.board[item.index] === 0 && pointing.solution[item.index] !== item.digit
+  );
+  assert(eliminated, "pointing removes a candidate");
+  let correct = -1;
+  for (let index = 0; index < 81; index += 1) {
+    if (pointing.puzzle[index] !== 0 || !pointing.board[index]) continue;
+    if (pointing.board[index] !== pointing.solution[index] || index === eliminated.index) continue;
+    correct = index;
+    break;
+  }
+  assert(correct >= 0, "a correct entered digit can be erased");
+  const { context, page } = await openGame(phone, saveFor(pointing, { auto: true }));
+  try {
+    await openFill(page, "Apply all pointing");
+    await page.waitForFunction(() => !document.getElementById("fill-chip").hidden);
+    const gone = String(eliminated.digit);
+    const before = await marks(page, eliminated.index, "auto");
+    assert(!before.includes(gone), `fill removed ${gone}`);
+    await page.locator(".cell").nth(correct).click();
+    await page.click("#erase-btn");
+    const kept = await marks(page, eliminated.index, "auto");
+    assert(!kept.includes(gone), "erasing a correct digit keeps the elimination");
+  } finally {
+    await context.close();
+  }
+
+  let wrongIndex = -1;
+  for (let index = 0; index < 81; index += 1) {
+    if (pointing.puzzle[index] !== 0 || pointing.board[index] || index === eliminated.index) continue;
+    wrongIndex = index;
+    break;
+  }
+  assert(wrongIndex >= 0, "an empty cell can hold a wrong digit");
+  const wrong = pointing.solution[wrongIndex] === 1 ? 2 : 1;
+  const board = pointing.board.slice();
+  board[wrongIndex] = wrong;
+  const seeded = saveFor(pointing, { auto: true, board });
+  seeded.removed = [{ index: eliminated.index, digit: eliminated.digit }];
+  const again = await openGame(phone, seeded);
+  try {
+    const hidden = await marks(again.page, eliminated.index, "auto");
+    assert(!hidden.includes(String(eliminated.digit)), "the stored elimination is hidden");
+    await again.page.locator(".cell").nth(wrongIndex).click();
+    await again.page.click("#erase-btn");
+    const back = await marks(again.page, eliminated.index, "auto");
+    assert(back.includes(String(eliminated.digit)), "erasing the wrong digit clears eliminations");
+  } finally {
+    await again.context.close();
+  }
+});
+
+await check("undo does not rewind the timer", async () => {
+  const index = naked.step.place.index;
+  const { context, page } = await openGame(phone, saveFor(naked, { auto: false }));
+  try {
+    const start = clockSeconds(await page.locator("#timer").innerText());
+    await page.locator(".cell").nth(index).click();
+    await page.keyboard.press(String(naked.step.place.digit));
+    await page.waitForFunction(() => !document.getElementById("undo-btn").disabled);
+    await page.waitForTimeout(1100);
+    const mid = clockSeconds(await page.locator("#timer").innerText());
+    assert(mid >= start, "the clock is running");
+    await page.click("#undo-btn");
+    const after = clockSeconds(await page.locator("#timer").innerText());
+    assert(after >= mid, `undo moved the clock from ${mid}s back to ${after}s`);
+    assert((await valueAt(page, index)) !== naked.step.place.digit, "undo removed the placed digit");
+  } finally {
+    await context.close();
+  }
+});
+
 await browser.close();
 server.close();
 if (failures.length) {

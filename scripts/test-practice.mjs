@@ -230,8 +230,31 @@ assert.match(prepareFn, /showFillReview\(jumped\.touches, name\)/);
 const undoFn = game.slice(game.indexOf("function undo("), game.indexOf("function pushUndo"));
 assert.match(undoFn, /snap\.puzzle/);
 assert.match(undoFn, /clearFillReview\(\)/);
+assert.equal(undoFn.includes("snap.elapsed"), false, "undo does not rewind the timer");
+assert.equal(undoFn.includes("state.elapsed"), false, "undo leaves the clock alone");
 const pushFn = game.slice(game.indexOf("function pushUndo"), game.indexOf("function communitySnapshot"));
 assert.match(pushFn, /puzzle: state\.puzzle\.slice\(\)/);
+assert.equal(pushFn.includes("elapsed"), false, "undo snapshots omit the timer");
+const placeFn = game.slice(game.indexOf("function place("), game.indexOf("function toggleNote"));
+assert.match(placeFn, /replacingWrong/);
+assert.match(
+  placeFn,
+  /number !== state\.solution\[index\] \|\| replacingWrong\) state\.removed = \[\]/,
+  "fixing a wrong digit drops eliminations that depended on it"
+);
+const eraseFn = game.slice(game.indexOf("function erase("), game.indexOf("function runAction"));
+assert.match(
+  eraseFn,
+  /state\.board\[index\] !== 0 && state\.board\[index\] !== state\.solution\[index\]\) state\.removed = \[\]/,
+  "erase clears eliminations only for a wrong digit"
+);
+assert.equal(eraseFn.includes("pushUndo();\n    state.removed = [];"), false);
+const appliedGuard = fillFn.indexOf("if (!result.applied.length)");
+const filledFlag = fillFn.indexOf("state.fastForwarded = true");
+assert.ok(appliedGuard > 0 && filledFlag > appliedGuard, "a no-op fill does not flag the game as filled");
+assert.match(fillFn, /state\.undo\.pop\(\)/, "a no-op fill drops the empty undo entry");
+assert.match(fillFn, /firstWrong\(\) >= 0/, "fill refuses while a digit is wrong");
+assert.match(fillFn, /A digit on the board is wrong\. Fix it before using Fill\./);
 
 const html = fs.readFileSync(path.join(root, "src/game.html"), "utf8");
 assert.match(html, /id="more-fill"/);
