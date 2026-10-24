@@ -1136,6 +1136,7 @@ publish(
       description:
         "Anonymous solve times and outcomes by Sudoku difficulty, from plays on SudokuSudoku. No account and no IP address are stored.",
       url: `${SITE}/stats/`,
+      license: "https://creativecommons.org/licenses/by/4.0/",
       creator: { "@type": "Organization", name: "SudokuSudoku" },
     },
     main: `<main class="standard-page stats-page">
