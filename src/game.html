@@ -40,6 +40,11 @@
           <button type="button" id="fill-undo" class="text-btn">Undo</button>
           <button type="button" id="fill-done" class="text-btn">Done</button>
         </div>
+        <div id="resume-note" class="resume-note" hidden>
+          <p class="resume-note-text">Picked up where you left off.</p>
+          <button type="button" id="resume-no" class="text-btn">New game</button>
+          <button type="button" id="resume-dismiss" class="text-btn" aria-label="Dismiss">×</button>
+        </div>
         <div class="status-bar">
           <div class="level-with-mark">
             <button type="button" id="puzzle-label" class="puzzle-label" aria-haspopup="listbox" aria-expanded="false" aria-controls="difficulty-tabs">Easy</button>
@@ -141,17 +146,6 @@
   </div>
 
   <div id="live-region" class="sr-only" aria-live="polite"></div>
-
-  <div id="resume-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="resume-title" hidden>
-    <div class="modal-card">
-      <h2 id="resume-title">Resume or start new?</h2>
-      <p id="resume-detail"></p>
-      <div class="modal-actions">
-        <button type="button" id="resume-yes" class="primary-btn">Resume</button>
-        <button type="button" id="resume-no" class="secondary-btn">Start new</button>
-      </div>
-    </div>
-  </div>
 
   <div id="solved-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="solved-title" hidden>
     <div class="modal-card celebrate">

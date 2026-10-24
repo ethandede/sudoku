@@ -296,12 +296,12 @@ await checkCase("Start new, fill all, Done fires one assisted game_complete", as
   await page.locator(".cell").nth(cell.index).click();
   await page.locator(`#number-pad button[data-number="${cell.digit}"]`).click();
   await page.reload({ waitUntil: "domcontentloaded" });
-  await page.waitForSelector("#resume-modal:not([hidden])");
+  await page.waitForSelector("#resume-note:not([hidden])");
   await page.click("#resume-no");
   await page.waitForFunction(() => {
     const cover = document.querySelector("#board-cover");
-    const modal = document.querySelector("#resume-modal");
-    return document.querySelectorAll(".cell.given").length > 0 && cover && cover.hidden && modal && modal.hidden;
+    const note = document.querySelector("#resume-note");
+    return document.querySelectorAll(".cell.given").length > 0 && cover && cover.hidden && note && note.hidden;
   });
   const wonBefore = await wonCount(page, "easy");
   const before = await gameEvents(page);

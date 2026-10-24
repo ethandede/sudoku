@@ -233,8 +233,7 @@ async function openGame(viewport, save, options = {}) {
     return route.continue();
   });
   await page.goto(`${origin}/`, { waitUntil: "domcontentloaded" });
-  await page.waitForSelector("#resume-yes", { timeout: 15000 });
-  await page.click("#resume-yes");
+  await page.waitForSelector("#resume-note:not([hidden])", { timeout: 15000 });
   await page.waitForFunction(() => {
     const cover = document.querySelector("#board-cover");
     return document.querySelectorAll(".cell").length === 81 && cover && cover.hidden;

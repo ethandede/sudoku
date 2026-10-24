@@ -228,11 +228,13 @@ html[data-theme="dark"] .game-brand-echo {
   gap: 0;
 }
 
-// The practice bar is absolute across the toolbar. Keep the icon nav painted
-// above it, on the page color, so the bar stops before the buttons. The row
-// is as wide as the panel column, so its empty left side sits over Undo and
-// Done. Let those clicks through. The buttons themselves still take the hit.
-.play-chrome:has(#fill-chip:not([hidden])) .icon-row {
+// The practice bar and the resume note are absolute across the toolbar.
+// Keep the icon nav painted above them, on the page color, so the bar stops
+// before the buttons. The row is as wide as the panel column, so its empty
+// left side sits over Undo, Done, and New game. Let those clicks through.
+// The buttons themselves still take the hit.
+.play-chrome:has(#fill-chip:not([hidden])) .icon-row,
+.play-chrome:has(#resume-note:not([hidden])) .icon-row {
   position: relative;
   z-index: 8;
   pointer-events: none;
@@ -613,6 +615,66 @@ html[data-theme="dark"] .unique-mark {
   font-weight: 700;
   line-height: 1.2;
   color: var(--ink);
+}
+
+// Sits on the toolbar, out of the document flow, so the board and keypad
+// stay where a fresh game puts them.
+.resume-note {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  height: 44px;
+  margin: 0;
+  padding: 0 0.35rem 0 0.55rem;
+  background: var(--card);
+  color: var(--ink);
+  border-bottom: 1px solid var(--thin);
+  box-sizing: border-box;
+
+  &[hidden] {
+    display: none;
+  }
+
+  .text-btn {
+    flex: 0 0 auto;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 0.45rem;
+  }
+}
+
+.resume-note-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .resume-note:not([hidden]) {
+    animation: resume-note-in 0.18s linear;
+  }
+}
+
+@keyframes resume-note-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .copy-short {
@@ -2340,11 +2402,23 @@ button:disabled {
     padding-right: calc(84px + max(6px, env(safe-area-inset-right)));
   }
 
+  .resume-note {
+    right: calc(80px + max(6px, env(safe-area-inset-right)));
+    padding-right: 0.15rem;
+  }
+
+  .resume-note-text {
+    white-space: normal;
+    font-size: 0.72rem;
+    line-height: 1.1;
+  }
+
   .fill-chip-text {
     font-size: 0.72rem;
   }
 
-  .play-chrome:has(#fill-chip:not([hidden])) .icon-row {
+  .play-chrome:has(#fill-chip:not([hidden])) .icon-row,
+  .play-chrome:has(#resume-note:not([hidden])) .icon-row {
     background: var(--page);
   }
 
@@ -2487,7 +2561,8 @@ button:disabled {
     top: calc(1.25rem + 22px + 0.3rem);
   }
 
-  .play-chrome:has(#fill-chip:not([hidden])) .fill-chip {
+  .play-chrome:has(#fill-chip:not([hidden])) .fill-chip,
+  .resume-note {
     // Three 44px icon buttons, plus a small gap.
     padding-right: 140px;
   }
