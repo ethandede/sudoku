@@ -25,6 +25,7 @@
     "test:practice": "node scripts/test-practice.mjs",
     "test:techniques": "node scripts/test-techniques.mjs",
     "test:finish": "node scripts/test-finish-save.mjs",
+    "test:fill": "node scripts/test-fill-any.mjs",
     "test:brand": "node scripts/test-brand.mjs",
     "test:white": "node scripts/test-no-white.mjs",
     "test:motion": "node scripts/test-motion.mjs",
