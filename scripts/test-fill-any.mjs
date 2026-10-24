@@ -73,4 +73,63 @@ assert.equal(hiddenCase.entry.solution[hiddenCase.step.place.index], hiddenCase.
 const solvedBoard = boards[0].solution.slice();
 assert.equal(solver.explainTechnique(solvedBoard, [], "naked-pair"), null);
 
+// A cell that is both a naked single and a hidden single is still a hidden
+// single. Fill all hidden singles used to say none were left.
+const lone = boards[0].solution.slice();
+const loneAnswer = lone[0];
+lone[0] = 0;
+assert.equal(solver.explain(lone, []).slug, "naked-single");
+const loneHidden = solver.explainTechnique(lone, [], "hidden-single");
+assert.ok(loneHidden, "a naked single that is also hidden is still a hidden single");
+assert.equal(loneHidden.slug, "hidden-single");
+assert.equal(loneHidden.place.index, 0);
+assert.equal(loneHidden.place.digit, loneAnswer);
+const loneBoard = lone.slice();
+const loneRemoved = [];
+const loneFill = practice.fillAll(
+  loneBoard,
+  loneRemoved,
+  "hidden-single",
+  (board, removed) => solver.explainTechnique(board, removed, "hidden-single"),
+  boards[0].solution
+);
+assert.equal(loneFill.applied.length, 1, "fill places the hidden single");
+assert.equal(loneBoard[0], loneAnswer);
+assert.equal(solver.explainTechnique(loneBoard, loneRemoved, "hidden-single"), null);
+
+// Fill must not strike the answer digit when a wrong entry skewed the step.
+const guardBoard = Array(81).fill(0);
+const guardSolution = Array(81).fill(1);
+guardSolution[4] = 7;
+const guardRemoved = [];
+const guarded = practice.applyStep(
+  guardBoard,
+  guardRemoved,
+  {
+    slug: "pointing",
+    name: "Pointing",
+    eliminate: [
+      { index: 4, digit: 7 },
+      { index: 5, digit: 3 },
+    ],
+  },
+  guardSolution
+);
+assert.equal(guarded.changed, true);
+assert.equal(
+  guardRemoved.some((item) => item.index === 4 && item.digit === 7),
+  false,
+  "the solution digit is not removed"
+);
+assert.equal(guardRemoved.length, 1);
+assert.equal(guardRemoved[0].index, 5);
+assert.equal(guardRemoved[0].digit, 3);
+const blocked = practice.applyStep(
+  Array(81).fill(0),
+  [],
+  { slug: "pointing", eliminate: [{ index: 4, digit: 7 }] },
+  guardSolution
+);
+assert.equal(blocked.changed, false, "a step that only removes the answer changes nothing");
+
 console.log("fill applies a technique wherever it exists");
