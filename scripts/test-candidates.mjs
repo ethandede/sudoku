@@ -56,10 +56,7 @@ assert(sudokuScss.includes("--auto-ink: #bcc3c6"), "dark auto candidates stay of
 assert(sudokuScss.includes("--auto-on-selected: #eceeec"), "selected auto candidates lighten in dark mode");
 assert(!sudokuScss.includes("#24303a") && !sudokuScss.includes("#2c4256") && !sudokuScss.includes("#355068"), "dark cell tints are no longer cool slate");
 const phoneHeading = sudokuScss.slice(sudokuScss.indexOf("html .game-intro h1"), sudokuScss.indexOf("html .game-intro h1") + 360);
-assert(phoneHeading.includes("font-size: clamp(14px, 3.9vw, 16px)"), "phone heading uses the tight clamp");
-assert(phoneHeading.includes("padding: 8px 16px 2px"), "phone heading uses the tight padding");
-assert(phoneHeading.includes("white-space: normal"), "phone heading keeps the default wrap");
-assert(!phoneHeading.includes("ellipsis") && !phoneHeading.includes("nowrap"), "phone heading is not truncated");
+assert(phoneHeading.includes("clip-path: inset(50%)"), "phone tagline is visually hidden but stays in the page");
 
 function peerIndexes(index) {
   const row = Math.floor(index / 9);
@@ -1151,19 +1148,7 @@ await check("the phone keypad keys and mini-grid cells are square", async () => 
     assert(metrics.intro !== "none", `${width} shows the heading`);
     assert(metrics.subhead === "none", `${width} hides the subhead`);
     assert(metrics.h1.text === homeCopy.h1, `${width} heading words`);
-    assert(metrics.h1.lines === 1, `${width} heading is one line (${metrics.h1.lines}, ${metrics.h1.height})`);
-    assert(metrics.h1.height > 0 && metrics.h1.height <= 34, `${width} heading height is ${metrics.h1.height}`);
-    assert(metrics.h1.width <= metrics.clientWidth + 1, `${width} heading stays on screen`);
-    assert(metrics.h1.fontWeight === "600", `${width} heading weight`);
-    assert(metrics.h1.letterSpacing === "0px" || metrics.h1.letterSpacing === "normal", `${width} heading tracking is ${metrics.h1.letterSpacing}`);
-    assert(metrics.h1.padding === "8px 16px 2px", `${width} heading padding`);
-    assert(metrics.h1.margin === "0px", `${width} heading margin`);
-    assert(metrics.h1.whiteSpace === "normal", `${width} heading can wrap`);
-    assert(metrics.h1.textOverflow === "clip", `${width} heading is not ellipsized`);
-    assert(metrics.h1.color === metrics.h1.ink, `${width} heading uses the ink color`);
-    const expectedSize = Math.min(16, Math.max(14, width * 0.039));
-    assert(Math.abs(parseFloat(metrics.h1.fontSize) - expectedSize) <= 0.2, `${width} heading size ${metrics.h1.fontSize}`);
-    assert(Math.abs(parseFloat(metrics.h1.lineHeight) - parseFloat(metrics.h1.fontSize) * 1.25) <= 0.2, `${width} heading line height`);
+    assert(metrics.h1.width <= 1 && metrics.h1.height <= 1, `${width} hides the tagline (${metrics.h1.width}x${metrics.h1.height})`);
     assert(Math.abs(metrics.gapAbove - metrics.gapBelow) <= 4, `${width} board gaps ${metrics.gapAbove.toFixed(2)} and ${metrics.gapBelow.toFixed(2)}`);
     assert(metrics.help === "none", `${width} hides the instructions`);
     assert(metrics.padDisplay === "contents", `${width} keeps the 5 by 2 pad`);
@@ -1171,7 +1156,6 @@ await check("the phone keypad keys and mini-grid cells are square", async () => 
     assert(metrics.columnJustify === "center", `${width} centers the board in the column`);
     if (width === 390 && height === 844) {
       assert(metrics.keypadBottom <= 792, `${width} keypad bottom ${metrics.keypadBottom} is past 792`);
-      assert(Math.abs(metrics.h1.height - 26) <= 4, `390 heading height ${metrics.h1.height}px is about 26px`);
       const dark = await page.evaluate(() => {
         document.documentElement.dataset.theme = "dark";
         const h1 = document.querySelector(".game-intro h1");
@@ -1200,8 +1184,6 @@ await check("the phone keypad keys and mini-grid cells are square", async () => 
         document.documentElement.dataset.theme = "light";
       });
       assert(dark.text === homeCopy.h1, "dark heading words");
-      assert(dark.lines === 1, "dark heading is one line");
-      assert(dark.color === dark.ink, `dark heading color ${dark.color} is not ink ${dark.ink}`);
       assert(Math.abs(dark.gapAbove - dark.gapBelow) <= 4, `dark board gaps ${dark.gapAbove.toFixed(2)} and ${dark.gapBelow.toFixed(2)}`);
       assert(dark.keypadBottom <= 792, `dark keypad bottom ${dark.keypadBottom} is past 792`);
       assert(dark.square, "dark keys stay square");

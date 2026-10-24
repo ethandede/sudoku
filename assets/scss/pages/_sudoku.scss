@@ -2235,6 +2235,20 @@ button:disabled {
     gap: 0;
   }
 
+  // Tighter rows under the board leave more height for it on short screens.
+  // Tall phones already fit a full-width board, so their spare height goes
+  // under the keypad to keep it clear of the home bar.
+  .controls {
+    gap: clamp(4px, 0.6dvh, 10px);
+    padding-bottom: clamp(0px, calc(100dvh - 760px), 16px);
+  }
+
+  .aux-row,
+  .auto-toggle {
+    min-height: 32px;
+    height: 32px;
+  }
+
   .sudoku-copy h2 {
     font-size: 1.35rem;
   }
@@ -2560,16 +2574,18 @@ html.is-standalone:has(.sudoku-page) body {
   }
 }
 
+// The tagline gives its row to the board on a phone. It stays in the page as
+// the heading for search and screen readers.
 @media (max-width: 720px) {
   html .game-intro h1 {
-    font-size: clamp(14px, 3.9vw, 16px);
-    font-weight: 600;
-    line-height: 1.25;
-    letter-spacing: 0;
-    color: var(--ink);
-    margin: 0;
-    padding: 8px 16px 2px;
-    white-space: normal;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }
 
