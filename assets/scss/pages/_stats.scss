@@ -295,6 +295,14 @@
     white-space: normal;
   }
 
+  // The rolling digit is 1.5em. Its default offset sits a couple of pixels
+  // below the plain time text in the same row.
+  td .count-up {
+    vertical-align: middle;
+    position: relative;
+    top: -1.5px;
+  }
+
   a {
     display: inline-flex;
     align-items: center;

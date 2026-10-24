@@ -420,23 +420,24 @@ html[data-theme="dark"] .game-brand-echo {
 }
 
 .level-with-mark {
-  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
   justify-self: start;
   width: max-content;
   max-width: 100%;
   min-width: 0;
 }
 
-// The generator only keeps a puzzle when uniqueCount is 1. The mark sits on
-// the level button's right edge, out of the row's flow, so the timer, the
-// errors, and the phone toolbar stay where they are.
+// The generator only keeps a puzzle when uniqueCount is 1. The mark sits
+// beside the level button, in the row, with a gap so it does not touch it.
 .unique-mark {
-  position: absolute;
+  position: relative;
   z-index: 2;
-  right: -2px;
-  top: 50%;
-  transform: translateY(-50%);
+  flex: none;
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 14px;
   height: 14px;
   color: var(--accent-color);
@@ -489,6 +490,8 @@ html[data-theme="dark"] .unique-mark {
 }
 
 .puzzle-label {
+  flex: 0 1 auto;
+  min-width: 0;
   justify-self: start;
   margin: 0;
   max-width: 100%;
@@ -2284,12 +2287,6 @@ button:disabled {
     flex: 0 1 auto;
   }
 
-  // The phone chevron sits further in, so the mark can rest in that padding
-  // and still clear the timer when the level name is long.
-  .unique-mark {
-    right: -5px;
-  }
-
   .puzzle-label {
     flex: 0 1 auto;
     min-width: 0;
@@ -2302,10 +2299,12 @@ button:disabled {
 
   .puzzle-label {
     font-size: 1rem;
-    padding: 0 1.45rem 0 0.6rem;
+    // 14px mark and a 4px gap. The padding gives that width back so the
+    // timer, pause, and errors stay on their old marks.
+    padding: 0 calc(1.45rem - 13px) 0 calc(0.6rem - 5px);
 
     &::after {
-      right: 0.6rem;
+      right: 3px;
       width: 0.34rem;
       height: 0.34rem;
     }
@@ -2428,7 +2427,6 @@ button:disabled {
   .unique-mark {
     width: 12px;
     height: 12px;
-    right: -7px;
 
     svg {
       width: 12px;
@@ -2436,14 +2434,23 @@ button:disabled {
     }
   }
 
+  // The mark is 2px smaller than the phone rule above, so the button
+  // keeps those 2px and the row stays put.
+  .puzzle-label {
+    padding-right: calc(1.45rem - 11px);
+  }
+
   .puzzle-label:has(.copy-short) {
-    font-size: 0.6rem;
-    padding: 0 0.9rem 0 0.3rem;
+    // A hair under 0.6rem, so "Simple coloring" still fits once the mark
+    // takes its 4px gap beside the button.
+    font-size: 0.56rem;
+    letter-spacing: -0.03em;
+    padding: 0 8px 0 2px;
 
     &::after {
-      right: 0.28rem;
-      width: 0.26rem;
-      height: 0.26rem;
+      right: 2px;
+      width: 0.2rem;
+      height: 0.2rem;
     }
   }
 }
@@ -2487,7 +2494,13 @@ button:disabled {
 
   .puzzle-label:has(.copy-short) {
     font-size: 1rem;
-    padding: 0 1.45rem 0 0.65rem;
+    // 14px mark and a 4px gap. Give that width back so the practice name
+    // still fits in the column.
+    padding: 0 calc(1.45rem - 11px) 0 calc(0.65rem - 7px);
+
+    &::after {
+      right: 3px;
+    }
   }
 
   .fill-chip-text {
