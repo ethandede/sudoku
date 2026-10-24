@@ -7,7 +7,7 @@ Hi, I'm Ethan Ede.
 
 I build websites for a living, and I have for more than 20 years. I also play a lot of Sudoku. Most days that is the New York Times puzzle in their app, usually with coffee, sometimes with Teddy's head on my knee wondering why I'm not throwing the ball. I live in Portland, Oregon. I built SudokuSudoku, and I run it. Teddy is a black Australian labradoodle with a white chest patch, and he is a grown dog. Mia the tabby lives here too.
 
-I'm not a Sudoku genius. I have a ceiling. Some days I fly through a Hard, and some days a Medium stops me cold and I have no idea why. That gap is why this site exists. I wanted a level I could point at, and a hint that taught the move instead of quietly filling a cell.
+I'm not a Sudoku genius. I have a ceiling. For years I solved on singles and stubbornness, and when a puzzle needed an X-wing or a coloring chain, I'd guess or give up. I knew those techniques existed. I was too lazy to sit down and learn them, and every place I looked made it feel like homework: a wall of text, a static diagram, and good luck. So I built the tool I wanted. When you're stuck, it shows you the move on your own board, names it, explains why it works, and lets you practice that one technique until it clicks. The honest difficulty grades came along for the ride.
 
 ## How a puzzle gets a level
 

@@ -146,9 +146,11 @@ assert.match(historyHtml, /wrote up the variants too/);
 
 const bio = shortBio(readFileSync(new URL("../author-bio.md", import.meta.url), "utf8"));
 assert.match(bio, /^I'm Ethan\./);
+assert.match(bio, /SudokuSudoku started as my way to finally learn the techniques I'd been too lazy to figure out: hints that teach the move on your own board, and honest difficulty\./);
 assert.match(bio, /Neither pet has ever helped with a puzzle\.$/);
 assert.equal(bio.includes("##"), false);
 assert.equal(bio.includes("—"), false);
+assert.equal(bio.includes("the site I wanted to play on"), false);
 
 const ld = articleJsonLd({
   title: "More Clues Doesn't Mean Easier: What Actually Makes a Sudoku Hard",
@@ -217,6 +219,12 @@ assert.match(about, /\/techniques\//);
 assert.equal(about.includes("DRAFT"), false);
 assert.equal(about.includes("—"), false);
 assert.equal(about.includes("–"), false);
+assert.match(
+  about,
+  /For years I solved on singles and stubbornness, and when a puzzle needed an X-wing or a coloring chain, I'd guess or give up\./
+);
+assert.match(about, /The honest difficulty grades came along for the ride\./);
+assert.equal(about.includes("Some days I fly through a Hard"), false);
 assert.ok(visibleWords(about) >= 450, `about words ${visibleWords(about)}`);
 
 const HARD_LINK =
