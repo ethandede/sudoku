@@ -13,7 +13,7 @@
   .hero {
     position: relative;
     overflow: hidden;
-    color: #f7f6f3;
+    color: vars.$on-accent;
     text-align: center;
     padding: 100px 0 50px;
 
@@ -43,7 +43,7 @@
     p {
       font-size: 1.25rem;
       margin-bottom: 2rem;
-      color: #c4beb6;
+      color: vars.$dark-muted;
       
       @media screen and (max-width: 768px) {
         font-size: 1rem;

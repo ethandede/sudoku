@@ -272,8 +272,8 @@ function layout({
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f4f1">
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141311">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#edf0eb">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111316">
   <meta name="color-scheme" content="light dark">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -656,8 +656,16 @@ publish(
         belowMarker,
         stripUnpublishedLinks(renderHomeBelow({ techniqueCount: techniques.length }), unpublishedSlugs)
       );
-      const homePromo = houseSlot("home", "/", "home-below", "billboard");
-      return homeGame.replace(homeMarker, `<div class="house-home">\n${homePromo}\n</div>`);
+      // A sidebar beside the copy: a 300x250 and a 300x600. Both start below
+      // the game, at least 150px from the board (AdSense game-page guidance).
+      const homePromos = houseSlots("home", "/", [
+        { slot: "home-below", size: "rectangle" },
+        { slot: "home-rail", size: "halfpage" },
+      ]);
+      return homeGame.replace(
+        homeMarker,
+        `<aside class="house-home">\n${homePromos["home-below"] || ""}\n${homePromos["home-rail"] || ""}\n</aside>`
+      );
     })(),
   }),
   "/",
@@ -1336,8 +1344,8 @@ write(
       scope: "/",
       display: "standalone",
       orientation: "portrait",
-      background_color: "#f5f4f1",
-      theme_color: "#f5f4f1",
+      background_color: "#edf0eb",
+      theme_color: "#edf0eb",
       categories: ["games"],
       icons: manifestIcons,
     },
@@ -1353,8 +1361,8 @@ write(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="robots" content="noindex">
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f4f1">
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141311">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#edf0eb">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111316">
   <title>${escapeHtml(staticMeta("/offline.html").title)}</title>
   <meta name="description" content="${escapeHtml(staticMeta("/offline.html").description)}">
   <meta name="robots" content="noindex">

@@ -68,34 +68,34 @@ function contrast(fg, bg) {
 }
 
 const pairs = [
-  ["ink on paper", "#1f1c19", "#faf9f7"],
-  ["ink on recess", "#1f1c19", "#f5f4f1"],
-  ["ink on board", "#1f1c19", "#fbfaf8"],
-  ["muted on paper", "#5e5954", "#faf9f7"],
-  ["muted on recess", "#5e5954", "#f5f4f1"],
-  ["accent on paper", "#0c4f86", "#faf9f7"],
-  ["accent on recess", "#0c4f86", "#f5f4f1"],
-  ["button ink on accent", "#f7f6f3", "#0c4f86"],
-  ["button ink on danger", "#f7f6f3", "#8e1d28"],
-  ["quiet danger on paper", "#8e1d28", "#faf9f7"],
-  ["footer ink", "#f3f0eb", "#1f1c19"],
-  ["footer muted", "#c4beb6", "#1f1c19"],
-  ["dark ink on page", "#f3f0eb", "#141311"],
-  ["dark ink on surface", "#f3f0eb", "#1c1b19"],
-  ["dark ink on card", "#f3f0eb", "#242220"],
-  ["dark ink on board", "#f3f0eb", "#1e1d1b"],
-  ["dark muted on page", "#c4beb6", "#141311"],
-  ["dark muted on card", "#c4beb6", "#242220"],
-  ["dark body on page", "#c9c3bb", "#141311"],
-  ["dark accent on page", "#9ed2f8", "#141311"],
-  ["dark accent on card", "#9ed2f8", "#242220"],
-  ["dark accent on board", "#9ed2f8", "#1e1d1b"],
-  ["dark button ink on accent", "#141311", "#9ed2f8"],
-  ["dark danger text", "#e7a3a0", "#141311"],
-  ["dark danger text on card", "#e7a3a0", "#242220"],
-  ["dark danger button", "#141311", "#e7a3a0"],
-  ["selected ink", "#1f1c19", "#c0dcf1"],
-  ["count on pad", "#5a534c", "#efece7"],
+  ["ink on paper", "#1a1d21", "#f6f7f4"],
+  ["ink on recess", "#1a1d21", "#edf0eb"],
+  ["ink on board", "#1a1d21", "#fbfcfa"],
+  ["muted on paper", "#565c61", "#f6f7f4"],
+  ["muted on recess", "#565c61", "#edf0eb"],
+  ["accent on paper", "#2141a8", "#f6f7f4"],
+  ["accent on recess", "#2141a8", "#edf0eb"],
+  ["button ink on accent", "#f6f7f4", "#2141a8"],
+  ["button ink on danger", "#f6f7f4", "#8e1d28"],
+  ["quiet danger on paper", "#8e1d28", "#f6f7f4"],
+  ["footer ink", "#eef1ee", "#1a1d21"],
+  ["footer muted", "#b6bec2", "#1a1d21"],
+  ["dark ink on page", "#eef1ee", "#111316"],
+  ["dark ink on surface", "#eef1ee", "#181b1f"],
+  ["dark ink on card", "#eef1ee", "#20242a"],
+  ["dark ink on board", "#eef1ee", "#1a1d21"],
+  ["dark muted on page", "#b6bec2", "#111316"],
+  ["dark muted on card", "#b6bec2", "#20242a"],
+  ["dark body on page", "#c1c8cb", "#111316"],
+  ["dark accent on page", "#a9bcff", "#111316"],
+  ["dark accent on card", "#a9bcff", "#20242a"],
+  ["dark accent on board", "#a9bcff", "#1a1d21"],
+  ["dark button ink on accent", "#111316", "#a9bcff"],
+  ["dark danger text", "#e7a3a0", "#111316"],
+  ["dark danger text on card", "#e7a3a0", "#20242a"],
+  ["dark danger button", "#111316", "#e7a3a0"],
+  ["selected ink", "#1a1d21", "#c9d5f6"],
+  ["count on pad", "#50575c", "#e9ece7"],
 ];
 
 for (const [name, fg, bg] of pairs) {
@@ -106,9 +106,9 @@ for (const [name, fg, bg] of pairs) {
 const variables = read("assets/scss/abstracts/_variables.scss");
 const buttons = read("assets/scss/components/_buttons.scss");
 const sudoku = read("assets/scss/pages/_sudoku.scss");
-assert.match(variables, /\$paper:\s*#faf9f7/);
-assert.match(variables, /\$recess:\s*#f5f4f1/);
-assert.match(variables, /\$on-accent:\s*#f7f6f3/);
+assert.match(variables, /\$paper:\s*#f6f7f4/);
+assert.match(variables, /\$recess:\s*#edf0eb/);
+assert.match(variables, /\$on-accent:\s*#f6f7f4/);
 assert.match(variables, /--btn-radius:\s*0\.55rem/);
 assert.match(variables, /--btn-primary:\s*#\{\$accent-color\}/);
 assert.equal(variables.includes("#f5f0e6"), false);
@@ -121,10 +121,10 @@ assert.equal(buttons.includes(".number-pad"), false);
 assert.equal(buttons.includes(".undo-btn"), false);
 assert.equal(buttons.includes(".mode-toggle"), false);
 assert.equal(buttons.includes("#hint-btn"), false);
-assert.match(sudoku, /--board-bg:\s*#fbfaf8/);
-assert.match(sudoku, /--board-bg:\s*#1e1d1b/);
+assert.match(sudoku, /--board-bg:\s*#\{vars\.\$board\}/);
+assert.match(sudoku, /--board-bg:\s*#\{vars\.\$dark-board\}/);
 assert.match(sudoku, /\.undo-btn[\s\S]*?border:\s*0/);
-assert.match(sudoku, /\.icon-btn,\s*\n\.play-home\s*\{[\s\S]*?width:\s*44px/);
+assert.match(sudoku, /\n\.icon-btn\s*\{[\s\S]*?width:\s*44px/);
 
 const siteNav = read("assets/scss/layout/_siteNav.scss");
 const articles = read("assets/scss/pages/_articles.scss");
@@ -134,7 +134,7 @@ const stats = read("assets/js/stats-page.js");
 assert.equal(siteNav.includes("Roboto"), false);
 assert.equal(articles.includes("Courier"), false);
 assert.equal(cards.includes("10px 22px"), false);
-assert.match(cards, /box-shadow:\s*0 1px 1px rgba\(30, 35, 43, 0\.08\)/);
+assert.match(cards, /0 -3px 0 inset/, "cards keep the adamgiebl inset lip");
 assert.equal(promos.includes("Pairs, X-wings, chains."), false);
 assert.equal(promos.includes("Median times, give-ups"), false);
 assert.equal(stats.includes("—"), false);

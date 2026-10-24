@@ -353,7 +353,7 @@ try {
   const linkCount = await practiceLinks.count();
   for (let i = 0; i < linkCount; i += 1) {
     const ink = await practiceLinks.nth(i).evaluate((link) => getComputedStyle(link).color);
-    assert.equal(ink, "rgb(158, 210, 248)", linkText[i]);
+    assert.equal(ink, "rgb(169, 188, 255)", linkText[i]);
   }
   await dark.close();
 } finally {

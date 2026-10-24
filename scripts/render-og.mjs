@@ -99,32 +99,32 @@ function pageHtml({ title, kicker, art }) {
     gap: 48px;
     padding: 64px 72px;
     background-color: #f4f6f8;
-    background-image: radial-gradient(rgba(12, 79, 134, 0.18) 1.2px, transparent 1.35px);
+    background-image: radial-gradient(rgba(33, 65, 168, 0.18) 1.2px, transparent 1.35px);
     background-size: 22px 22px;
     color: #1e232b;
     font-family: "Open Sans", sans-serif;
   }
   .copy { width: 640px; }
-  .brand { display: flex; align-items: center; gap: 12px; color: #0c4f86; font-weight: 700; font-size: 22px; letter-spacing: 0.01em; }
+  .brand { display: flex; align-items: center; gap: 12px; color: #2141a8; font-weight: 700; font-size: 22px; letter-spacing: 0.01em; }
   .brand svg { width: 28px; height: 28px; }
   h1 { margin: 28px 0 0; font-size: ${size}px; line-height: 1.05; font-weight: 700; letter-spacing: -0.03em; }
   .kicker { margin: 22px 0 0; color: #5c6670; font-size: 28px; font-weight: 600; }
-  .site { margin: 36px 0 0; color: #0c4f86; font-size: 22px; font-weight: 700; }
+  .site { margin: 36px 0 0; color: #2141a8; font-size: 22px; font-weight: 700; }
   .board { width: 392px; height: 392px; display: grid; grid-template-columns: repeat(9, 1fr); background: #f4f6f8; border-radius: 8px; }
   .cell { border: 1px solid #8aa4bb; background: #f4f6f8; }
-  .cell.bl { border-left-width: 3px; border-left-color: #0c4f86; }
-  .cell.bt { border-top-width: 3px; border-top-color: #0c4f86; }
-  .cell.br { border-right-width: 3px; border-right-color: #0c4f86; }
-  .cell.bb { border-bottom-width: 3px; border-bottom-color: #0c4f86; }
-  .cell.focus { background: #0c4f86; }
+  .cell.bl { border-left-width: 3px; border-left-color: #2141a8; }
+  .cell.bt { border-top-width: 3px; border-top-color: #2141a8; }
+  .cell.br { border-right-width: 3px; border-right-color: #2141a8; }
+  .cell.bb { border-bottom-width: 3px; border-bottom-color: #2141a8; }
+  .cell.focus { background: #2141a8; }
   .cell.accent { background: #0b6e5f; }
-  .cell.soft { background: #d4e8f7; }
-  .sheet { width: 280px; height: 340px; background: #f4f6f8; border: 3px solid #0c4f86; border-radius: 10px; padding: 36px 28px; }
+  .cell.soft { background: #dae2f9; }
+  .sheet { width: 280px; height: 340px; background: #f4f6f8; border: 3px solid #2141a8; border-radius: 10px; padding: 36px 28px; }
   .sheet i { display: block; height: 8px; margin: 0 0 22px; background: #8aa4bb; }
   .sheet i:nth-child(1) { width: 78%; }
   .sheet i:nth-child(2) { width: 62%; }
   .sheet i:nth-child(3) { width: 44%; }
-  .sheet b { display: block; width: 36px; height: 36px; margin-top: 28px; background: #0c4f86; }
+  .sheet b { display: block; width: 36px; height: 36px; margin-top: 28px; background: #2141a8; }
 </style>
 </head>
 <body>

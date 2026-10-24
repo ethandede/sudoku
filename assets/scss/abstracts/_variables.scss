@@ -1,22 +1,66 @@
 @use "sass:color";
 
-// Warm neutrals. A few degrees off cool gray, still gray, not cream.
-$paper: #faf9f7;
-$recess: #f5f4f1;
-$ink: #1f1c19;
-$text-color: #3a352f;
-$muted: #5e5954;
-$line: #ddd8d2;
-$on-accent: #f7f6f3;
+// Graph paper and ballpoint. Cool newsprint, graphite, pen blue, and a teal
+// marker for hover. Partials use these names, never the hex, so the palette
+// changes here and nowhere else.
+$paper: #f6f7f4;
+$recess: #edf0eb;
+$ink: #1a1d21;
+$text-color: #32373c;
+$muted: #565c61;
+$line: #d5d9d3;
+$on-accent: #f6f7f4;
 
 // $primary-color is light ink on dark chrome (the old site nav), never pure white.
 $primary-color: $on-accent;
 $secondary-color: $ink;
-$accent-color: #0c4f86;
-$accent-on-dark: #9ed2f8;
+$accent-color: #2141a8;
+$accent-on-dark: #a9bcff;
 $highlight-color: #BF3978;
 $accent-color-light: color.adjust($accent-color, $lightness: 10%);
-$initial-color: #8a847c;
+$initial-color: #838a85;
+
+$board: #fbfcfa;
+$track: #e3e7e1;
+$pad: #e9ece7;
+$count-ink: #50575c;
+$btn-edge: #bfc6bf;
+$rule: #8b928d;
+$hairline: #dfe3dd;
+$selected: #c9d5f6;
+$soft: #dae2f9;
+$peer: #edf1fc;
+$pattern: #0b6e66;
+$danger: #b00016;
+$marker: #bfe8e3;
+$accent-edge: #162f7d;
+$accent-hover: #2f55c9;
+
+$dark-page: #111316;
+$dark-surface: #181b1f;
+$dark-card: #20242a;
+$dark-board: #1a1d21;
+$dark-ink: #eef1ee;
+$dark-muted: #b6bec2;
+$dark-body: #c1c8cb;
+$dark-track: #292e34;
+$dark-line: #363c43;
+$dark-edge: #4a525c;
+// Dark board. Each step up from the board color is a visible step: thin
+// lines, row and column, same digit, selected. Mini-grid cells on the keys
+// are filled or empty, so those two differ clearly too.
+$dark-thin: #3d444d;
+$dark-peer: #243049;
+$dark-hover: #2c3440;
+$dark-same: #2a3963;
+$dark-selected: #364a87;
+$dark-map-empty: #3b424b;
+$dark-map-fill: #374d98;
+$dark-pattern: #78dccf;
+$dark-danger: #ffb4b4;
+$dark-marker: #1d4d4a;
+$dark-accent-edge: #8ea3ea;
+$dark-accent-hover: #c3d0ff;
 
 // Output as CSS variables for runtime use
 :root {
@@ -36,12 +80,14 @@ $initial-color: #8a847c;
   --recess: #{$recess};
   --card: #{$paper};
   --ink: #{$ink};
+  --text: #{$text-color};
   --muted: #{$muted};
   --line: #{$line};
   --on-accent: #{$on-accent};
-  --track: #ebe8e3;
+  --track: #{$track};
+  --marker: #{$marker};
 
-  // Hairline buttons. One radius, one weight, one press. See components/_buttons.scss.
+  // Buttons. One radius, one weight, one ink edge and offset. See components/_buttons.scss.
   --btn-radius: 0.55rem;
   --btn-weight: 600;
   --btn-tracking: 0.01em;
@@ -51,14 +97,19 @@ $initial-color: #8a847c;
   --btn-icon-nudge: 2px;
   --btn-focus-width: 1px;
   --btn-focus-offset: 3px;
+  --btn-edge-width: 1.5px;
+  --btn-edge: #{$ink};
+  --btn-offset: 2px;
+  --btn-offset-color: #{$ink};
   --btn-primary: #{$accent-color};
-  --btn-primary-edge: #083556;
+  --btn-primary-edge: #{$accent-edge};
+  --btn-primary-hover: #{$accent-hover};
   --btn-primary-ink: #{$on-accent};
-  --btn-highlight: rgba(250, 249, 247, 0.34);
-  --btn-shadow: 0 1px 1px rgba(31, 28, 25, 0.05), 0 8px 16px -10px rgba(31, 28, 25, 0.32);
+  --btn-highlight: rgba(246, 247, 244, 0.34);
+  --btn-shadow: 0 1px 1px rgba(26, 29, 33, 0.05), 0 8px 16px -10px rgba(26, 29, 33, 0.32);
   --btn-secondary-bg: #{$paper};
   --btn-secondary-ink: #{$ink};
-  --btn-secondary-edge: #cfc8be;
+  --btn-secondary-edge: #{$btn-edge};
   --btn-ghost-ink: #{$ink};
   --btn-danger: #8e1d28;
   --btn-danger-edge: #6e1620;
@@ -67,27 +118,32 @@ $initial-color: #8a847c;
 }
 
 html[data-theme="dark"] {
-  --paper: #1c1b19;
-  --recess: #141311;
-  --card: #242220;
-  --ink: #f3f0eb;
-  --muted: #c4beb6;
-  --line: #3d3a36;
-  --on-accent: #141311;
-  --primary-color: #f3f0eb;
-  --track: #2c2a27;
+  --paper: #{$dark-surface};
+  --recess: #{$dark-page};
+  --card: #{$dark-card};
+  --ink: #{$dark-ink};
+  --text: #{$dark-body};
+  --muted: #{$dark-muted};
+  --line: #{$dark-line};
+  --on-accent: #{$dark-page};
+  --primary-color: #{$dark-ink};
+  --track: #{$dark-track};
   --btn-primary: #{$accent-on-dark};
-  --btn-primary-edge: #7eb6dc;
-  --btn-primary-ink: #141311;
-  --btn-highlight: rgba(250, 249, 247, 0.45);
+  --btn-edge: #{$dark-muted};
+  --btn-offset-color: #{$dark-edge};
+  --btn-primary-edge: #{$dark-accent-edge};
+  --btn-primary-hover: #{$dark-accent-hover};
+  --marker: #{$dark-marker};
+  --btn-primary-ink: #{$dark-page};
+  --btn-highlight: rgba(246, 247, 244, 0.45);
   --btn-shadow: 0 1px 1px rgba(0, 0, 0, 0.28), 0 8px 16px -12px rgba(0, 0, 0, 0.55);
-  --btn-secondary-bg: #242220;
-  --btn-secondary-ink: #f3f0eb;
-  --btn-secondary-edge: #4a463f;
-  --btn-ghost-ink: #f3f0eb;
+  --btn-secondary-bg: #{$dark-card};
+  --btn-secondary-ink: #{$dark-ink};
+  --btn-secondary-edge: #{$dark-edge};
+  --btn-ghost-ink: #{$dark-ink};
   --btn-danger: #e7a3a0;
   --btn-danger-edge: #c48480;
-  --btn-danger-ink: #141311;
+  --btn-danger-ink: #{$dark-page};
   --btn-focus: #{$accent-on-dark};
 }
 

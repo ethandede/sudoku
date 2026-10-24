@@ -12,11 +12,7 @@
 
       <div class="play-chrome">
         <div class="icon-row">
-          <a class="play-home icon-btn" href="/" aria-label="SudokuSudoku home">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-8.5Z" fill="currentColor"/></svg>
-          </a>
-          <span class="icon-spacer"></span>
-          <button type="button" id="help-btn" class="icon-btn help-btn" aria-label="Help">?</button>
+          <button type="button" id="help-btn" class="icon-btn help-btn" aria-haspopup="dialog" aria-label="How to play">?</button>
           <button type="button" id="settings-btn" class="icon-btn" aria-haspopup="dialog" aria-label="Settings">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 8.6A3.4 3.4 0 1 0 12 15.4 3.4 3.4 0 0 0 12 8.6Zm8.2 2.6-1.7-.3a6.8 6.8 0 0 0-.8-1.8l1-1.4-1.6-1.6-1.4 1a6.8 6.8 0 0 0-1.8-.8L13.6 4h-2.2l-.3 1.7a6.8 6.8 0 0 0-1.8.8l-1.4-1-1.6 1.6 1 1.4a6.8 6.8 0 0 0-.8 1.8L4 11.2v2.2l1.7.3c.2.6.4 1.2.8 1.8l-1 1.4 1.6 1.6 1.4-1c.6.4 1.2.6 1.8.8l.3 1.7h2.2l.3-1.7c.6-.2 1.2-.4 1.8-.8l1.4 1 1.6-1.6-1-1.4c.4-.6.6-1.2.8-1.8l1.7-.3v-2.2Z"/></svg>
           </button>
@@ -25,6 +21,7 @@
               <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6 10.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z"/></svg>
             </button>
             <div id="more-menu" class="more-menu" role="menu" hidden>
+              <button type="button" role="menuitem" id="more-help">How to play</button>
               <button type="button" role="menuitem" id="more-stats">Stats</button>
               <button type="button" role="menuitem" data-action="hint">Hint</button>
               <button type="button" role="menuitem" id="more-fill">Fill a technique</button>
@@ -129,11 +126,13 @@
 
   </div>
 
-  <div class="sudoku-copy">
-    <!-- home-below -->
-  </div>
+  <div class="home-below-wrap">
+    <div class="sudoku-copy">
+      <!-- home-below -->
+    </div>
 
-  <!-- house-slot:home-below -->
+    <!-- house-slot:home-below -->
+  </div>
 
   <div id="live-region" class="sr-only" aria-live="polite"></div>
 
@@ -223,6 +222,48 @@
       </fieldset>
       <p class="key-help">Press N to toggle Normal and Notes. With checking on, a wrong entry counts toward the 4-mistake limit. With it off, there is no limit. Sharing sends the level, time, and outcome with a random id stored on this device. It does not include a name. Turn sharing off to delete that id. <a href="/stats/">Stats</a> · <a href="/privacy-policy/">Privacy</a></p>
       <div id="account-settings" class="account-slot"></div>
+    </div>
+  </div>
+
+  <div id="help-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="help-title" hidden>
+    <div class="modal-card help-card">
+      <div class="modal-head">
+        <h2 id="help-title">How to play</h2>
+        <button type="button" class="icon-close" data-close="help-modal" aria-label="Close how to play">×</button>
+      </div>
+      <p class="help-rule">Fill every row, column, and 3×3 box with the digits 1 to 9, each one once.</p>
+
+      <h3>Entering numbers</h3>
+      <ul>
+        <li><strong>Normal</strong> puts a digit in the selected square. <strong>Candidate</strong> pencils in small notes instead.</li>
+        <li>On a selected empty square, tap one of the small digit spots to toggle that note.</li>
+        <li><strong>Undo</strong> takes back your last move. <strong>Erase</strong> clears the selected square.</li>
+        <li><strong>Auto Candidate Mode</strong> notes every digit that still fits in every empty square.</li>
+      </ul>
+
+      <h3>Hints</h3>
+      <p>The lightbulb points at the next step and names the technique. Tap <strong>Show why</strong> for the reasoning, then <strong>Apply</strong> or <strong>Place it</strong> to make the move. Each hint links to a page on that technique.</p>
+
+      <h3>Mistakes</h3>
+      <p>With <strong>Check guesses as you go</strong> on in Settings, a wrong digit counts as an error, and the fourth ends the game. Turn it off to play with no limit.</p>
+
+      <div class="help-keys">
+        <h3>Keyboard</h3>
+        <ul>
+          <li><kbd>1</kbd> to <kbd>9</kbd> enter a digit</li>
+          <li><kbd>N</kbd> switches between Normal and Candidate</li>
+          <li>Arrow keys move between squares</li>
+          <li><kbd>Backspace</kbd> erases</li>
+          <li><kbd>Enter</kbd> places a hinted digit</li>
+        </ul>
+      </div>
+
+      <h3>Go further</h3>
+      <ul class="help-links">
+        <li><a href="/how-difficulty-works/">How the levels are graded</a></li>
+        <li><a href="/techniques/">All the techniques, easiest first</a></li>
+        <li><a href="/articles/beginners-guide/">How to play Sudoku, step by step</a></li>
+      </ul>
     </div>
   </div>
 

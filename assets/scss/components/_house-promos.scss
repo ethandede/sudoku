@@ -1,16 +1,20 @@
-// House marks. Fixed boxes so a later AdSense swap does not move the page.
+@use "../abstracts/variables" as vars;
+
+// House marks: our own banner ads for internal pages until AdSense is live.
+// A pen-blue banner, the art on a paper tile, and a real button for the
+// call to action. Fixed boxes so a later AdSense swap does not move the page.
 // Billboard 100% x 280, rectangle 300 x 250, leaderboard 728 x 90, skyscraper 160 x 600.
 
 .house-slot {
-  --hm-ink: #1f1c19;
-  --hm-muted: #5e5954;
-  --hm-line: #948f88;
-  --hm-accent: #0c4f86;
-  --hm-accent-soft: #d4e8f7;
-  --hm-paper: #f5f4f1;
-  --hm-card: #faf9f7;
-  --hm-border: #ddd8d2;
-  --hm-pattern: #0b6e5f;
+  --hm-ink: #{vars.$ink};
+  --hm-muted: #{vars.$muted};
+  --hm-line: #{vars.$rule};
+  --hm-accent: #{vars.$accent-color};
+  --hm-accent-soft: #{vars.$soft};
+  --hm-paper: #{vars.$recess};
+  --hm-card: #{vars.$paper};
+  --hm-border: #{vars.$line};
+  --hm-pattern: #{vars.$pattern};
 
   box-sizing: border-box;
   margin: 1.75rem auto 0;
@@ -18,15 +22,15 @@
 }
 
 html[data-theme="dark"] .house-slot {
-  --hm-ink: #f3f0eb;
-  --hm-muted: #c4beb6;
-  --hm-line: #8a847c;
-  --hm-accent: #9ed2f8;
-  --hm-accent-soft: #2a4560;
-  --hm-paper: #1c1b19;
-  --hm-card: #242220;
-  --hm-border: #3d3a36;
-  --hm-pattern: #7ddec8;
+  --hm-ink: #{vars.$dark-ink};
+  --hm-muted: #{vars.$dark-muted};
+  --hm-line: #{vars.$initial-color};
+  --hm-accent: #{vars.$accent-on-dark};
+  --hm-accent-soft: #2b3a6a;
+  --hm-paper: #{vars.$dark-surface};
+  --hm-card: #{vars.$dark-card};
+  --hm-border: #{vars.$dark-line};
+  --hm-pattern: #{vars.$dark-pattern};
 }
 
 .house-slot-billboard {
@@ -51,10 +55,28 @@ html[data-theme="dark"] .house-slot {
   height: 600px;
 }
 
+.house-slot-halfpage {
+  width: 300px;
+  max-width: 100%;
+  height: 600px;
+}
+
 .house-home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
   max-width: 40rem;
   margin: 0 auto;
   padding: 0 1rem 2.5rem;
+}
+
+// On phones and small tablets only the 300x250 shows. Hiding a responsive
+// unit with CSS at small widths is allowed: no ad request is made.
+@media (max-width: 899px) {
+  .house-home .house-slot-halfpage {
+    display: none;
+  }
 }
 
 .house-home .house-slot,
@@ -101,30 +123,32 @@ html[data-theme="dark"] .house-slot {
 }
 
 .house-slot a.house-promo {
+  --banner-bg: var(--btn-primary);
+  --banner-ink: var(--btn-primary-ink);
+
   display: flex;
   box-sizing: border-box;
   width: 100%;
   height: 100%;
   overflow: hidden;
-  border: 1px solid var(--hm-border);
-  border-radius: 8px;
-  background: var(--hm-card);
-  color: var(--hm-ink);
+  border: var(--btn-edge-width) solid var(--btn-primary-edge);
+  border-radius: 12px;
+  background: var(--banner-bg);
+  color: var(--banner-ink);
   text-decoration: none;
   font-family: "Open Sans", sans-serif;
 }
 
+// Page and dark-mode link colors must not repaint the banner text.
 .page-content .house-slot a.house-promo,
-.article-content .house-slot a.house-promo {
-  background: var(--hm-paper);
-}
-
+.article-content .house-slot a.house-promo,
 html[data-theme="dark"] .standard-page .house-slot a.house-promo,
 html[data-theme="dark"] .article-single-page .house-slot a.house-promo,
 html[data-theme="dark"] .articles-page .house-slot a.house-promo,
 html[data-theme="dark"] .skills-page .house-slot a.house-promo,
 html[data-theme="dark"] .sudoku-page .house-slot a.house-promo {
-  color: var(--hm-ink);
+  background: var(--banner-bg);
+  color: var(--banner-ink);
   text-decoration: none;
 }
 
@@ -138,17 +162,21 @@ html[data-theme="dark"] .sudoku-page .house-slot a.house-promo {
 }
 
 @media (hover: hover) {
-  .house-slot a.house-promo:hover {
-    border-color: var(--hm-accent);
+  .house-slot a.house-promo:hover .house-promo-cue {
+    background: var(--marker);
   }
 }
 
+// The art keeps its light palette on a paper tile inside the banner.
 .house-promo-art {
   display: flex;
   align-items: center;
   justify-content: center;
   flex: none;
   min-width: 0;
+  padding: 6px;
+  border-radius: 8px;
+  background: var(--hm-paper);
 }
 
 .house-promo-art svg {
@@ -177,43 +205,9 @@ html[data-theme="dark"] .sudoku-page .house-slot a.house-promo {
   text-align: left;
 }
 
-.house-promo-brand {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.3rem 0.45rem;
-  margin: 0 0 0.3rem;
-  color: var(--hm-accent);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  line-height: 1.2;
-  text-transform: uppercase;
-}
-
-.house-mark {
-  display: block;
-  width: 16px;
-  height: 16px;
-  flex: none;
-}
-
-.house-mark svg {
-  display: block;
-  width: 16px;
-  height: 16px;
-}
-
-.house-promo-from {
-  color: var(--hm-muted);
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  text-transform: none;
-}
-
 .house-promo-title {
   display: block;
-  color: var(--hm-ink);
+  color: var(--banner-ink);
   font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: 0;
@@ -225,7 +219,7 @@ html[data-theme="dark"] .sudoku-page .house-slot a.house-promo {
 .house-promo-line {
   display: block;
   margin-top: 0.35rem;
-  color: var(--hm-muted);
+  color: color-mix(in srgb, var(--banner-ink) 84%, var(--banner-bg));
   font-size: 0.9rem;
   font-weight: 400;
   line-height: 1.35;
@@ -235,13 +229,24 @@ html[data-theme="dark"] .sudoku-page .house-slot a.house-promo {
   display: none;
 }
 
+// The call to action is a button face (Dear31, see components/_buttons.scss).
+// It is a span: the whole banner is the link.
 .house-promo-cue {
-  display: inline-block;
-  margin-top: 0.5rem;
-  color: var(--hm-accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.7rem;
+  padding: 0.45rem 0.95rem;
+  border: var(--btn-edge-width) solid var(--btn-edge);
+  border-radius: var(--btn-radius);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--btn-offset) var(--btn-offset) 0 var(--btn-offset-color);
   font-size: 0.9rem;
   font-weight: 700;
   line-height: 1.3;
+  white-space: nowrap;
+  transition: background-color var(--btn-duration) var(--btn-ease);
 }
 
 .hm-paper { fill: var(--hm-paper); stroke: none; }
@@ -269,8 +274,6 @@ html[data-theme="dark"] .sudoku-page .house-slot a.house-promo {
   font-size: 11px;
   font-weight: 600;
 }
-.house-mark .hm-line,
-.house-mark .hm-accent-stroke { stroke-width: 1.1; }
 
 .house-slot-billboard .house-promo {
   flex-direction: column;
@@ -374,14 +377,9 @@ html[data-theme="dark"] .sudoku-page .house-slot a.house-promo {
   flex: 1;
 }
 
-.house-slot-leaderboard .house-promo-brand,
 .house-slot-leaderboard .house-promo-title,
 .house-slot-leaderboard .house-promo-line {
   grid-column: 1;
-}
-
-.house-slot-leaderboard .house-promo-brand {
-  margin-bottom: 0.1rem;
 }
 
 .house-slot-leaderboard .house-promo-title {
@@ -404,7 +402,8 @@ html[data-theme="dark"] .sudoku-page .house-slot a.house-promo {
   margin: 0;
 }
 
-.house-slot-skyscraper .house-promo {
+.house-slot-skyscraper .house-promo,
+.house-slot-halfpage .house-promo {
   flex-direction: column;
   align-items: stretch;
   justify-content: center;
@@ -422,12 +421,36 @@ html[data-theme="dark"] .sudoku-page .house-slot a.house-promo {
   height: 100%;
 }
 
+.house-slot-halfpage .house-promo-art {
+  width: 220px;
+  height: 220px;
+  align-self: center;
+}
+
+.house-slot-halfpage .house-promo-art svg {
+  width: 100%;
+  height: 100%;
+}
+
+.house-slot-halfpage .house-promo {
+  padding: 24px 22px;
+}
+
+.house-slot-halfpage .house-promo-title {
+  font-size: 1.3rem;
+}
+
 .house-slot-skyscraper .house-promo-copy {
   flex: 0 1 auto;
 }
 
 .house-slot-skyscraper .house-promo-cue {
-  margin-top: 0.75rem;
+  justify-content: center;
+  align-self: stretch;
+  margin-top: 0.85rem;
+  padding-inline: 0.6rem;
+  white-space: normal;
+  text-align: center;
 }
 
 @media (forced-colors: active) {

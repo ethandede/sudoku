@@ -16,15 +16,20 @@
     text-align: center;
     margin-bottom: 3rem;
 
+    // The header with art is a left-aligned row: kicker, title, art.
+    &.page-header-has-art {
+      text-align: left;
+    }
+
     h1 {
       font-size: 2.5rem;
-      color: vars.$secondary-color;
+      color: var(--ink);
       margin-bottom: 1rem;
     }
 
     .page-description {
       font-size: 1.2rem;
-      color: vars.$text-color;
+      color: var(--text);
     }
   }
 
@@ -36,7 +41,7 @@
   }
 
   .article-card {
-    background: #faf9f7;
+    background: vars.$paper;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -63,7 +68,7 @@
       display: flex;
       justify-content: space-between;
       font-size: 0.85rem;
-      color: #5e5954;
+      color: vars.$muted;
       margin-bottom: 0.75rem;
     }
 
@@ -72,7 +77,7 @@
       margin-bottom: 1rem;
 
       a {
-        color: vars.$text-color;
+        color: var(--text);
         text-decoration: none;
         transition: color 0.3s ease;
 
@@ -83,7 +88,7 @@
     }
 
     .article-excerpt {
-      color: #5e5954;
+      color: vars.$muted;
       line-height: 1.6;
       margin-bottom: 1rem;
     }
@@ -94,7 +99,7 @@
       font-weight: 700;
 
       &:hover {
-        color: vars.$secondary-color;
+        color: var(--ink);
       }
     }
   }
@@ -103,7 +108,7 @@
     text-align: center;
     padding: 3rem;
     font-size: 1.2rem;
-    color: #5e5954;
+    color: vars.$muted;
   }
 
   .pagination {
@@ -114,15 +119,15 @@
 
     a, span {
       padding: 0.5rem 1rem;
-      border: 1px solid #ddd8d2;
+      border: 1px solid vars.$line;
       border-radius: 4px;
       text-decoration: none;
-      color: vars.$text-color;
+      color: var(--text);
       transition: all 0.3s ease;
 
       &.current {
         background: vars.$accent-color;
-        color: #f7f6f3;
+        color: vars.$on-accent;
         border-color: vars.$accent-color;
       }
 
@@ -146,10 +151,10 @@
   }
 
   .article-content {
-    background: #faf9f7;
+    background: vars.$paper;
     border-radius: 12px;
     padding: 2.25rem 2.5rem 2.5rem;
-    border: 1px solid #ddd8d2;
+    border: 1px solid vars.$line;
     box-shadow: none;
   }
 
@@ -160,13 +165,13 @@
       display: flex;
       gap: 1rem;
       font-size: 0.9rem;
-      color: #5e5954;
+      color: vars.$muted;
       margin-bottom: 1rem;
     }
 
     .article-title {
       font-size: 2.35rem;
-      color: #1f1c19;
+      color: vars.$ink;
       line-height: 1.15;
       letter-spacing: -0.03em;
       margin-bottom: 0.85rem;
@@ -187,19 +192,19 @@
 
   .article-body {
     line-height: 1.8;
-    color: #3a352f;
+    color: var(--text);
     font-size: 1.1rem;
 
     h2 {
       font-size: 2rem;
-      color: vars.$secondary-color;
+      color: var(--ink);
       margin-top: 2rem;
       margin-bottom: 1rem;
     }
 
     h3 {
       font-size: 1.5rem;
-      color: vars.$text-color;
+      color: var(--text);
       margin-top: 1.5rem;
       margin-bottom: 0.75rem;
     }
@@ -222,18 +227,18 @@
       padding-left: 1.5rem;
       margin: 2rem 0;
       font-style: italic;
-      color: #5e5954;
+      color: vars.$muted;
     }
 
     code {
-      background: #f5f4f1;
+      background: vars.$recess;
       padding: 0.2rem 0.4rem;
       border-radius: 3px;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     }
 
     pre {
-      background: #f5f4f1;
+      background: vars.$recess;
       padding: 1rem;
       border-radius: 4px;
       overflow-x: auto;
@@ -257,7 +262,7 @@
       text-decoration: underline;
 
       &:hover {
-        color: vars.$secondary-color;
+        color: var(--ink);
       }
     }
   }
@@ -265,7 +270,7 @@
   .article-footer {
     margin-top: 3rem;
     padding-top: 2rem;
-    border-top: 1px solid #ddd8d2;
+    border-top: 1px solid vars.$line;
 
     .article-tags {
       margin-bottom: 2rem;
@@ -279,7 +284,7 @@
         display: inline-block;
         padding: 0.25rem 0.75rem;
         background: vars.$light-background;
-        color: vars.$text-color;
+        color: var(--text);
         text-decoration: none;
         border: 1px solid var(--line);
         border-radius: 999px;
@@ -304,23 +309,23 @@
         display: flex;
         flex-direction: column;
         padding: 1rem;
-        background: vars.$light-background;
+        background: var(--recess);
         border-radius: 8px;
         text-decoration: none;
         transition: background 0.3s ease;
 
         &:hover {
-          background: color.adjust(vars.$light-background, $lightness: -5%);
+          background: var(--track);
         }
 
         .nav-label {
           font-size: 0.85rem;
-          color: #5e5954;
+          color: var(--muted);
           margin-bottom: 0.5rem;
         }
 
         .nav-title {
-          color: vars.$accent-color;
+          color: var(--btn-focus);
           font-weight: 600;
         }
       }
@@ -334,7 +339,7 @@
     .external-resources {
       margin-top: 2rem;
       padding-top: 2rem;
-      border-top: 1px solid #e4e0da;
+      border-top: 1px solid vars.$hairline;
 
       h2 {
         font-size: 1.1rem;
@@ -359,7 +364,7 @@
           font-size: 0.9rem;
 
           a {
-            color: #5e5954;
+            color: vars.$muted;
             text-decoration: none;
             display: inline-block;
             transition: color 0.3s ease;
@@ -435,7 +440,7 @@
 }
 
 .compare-track {
-  background: #ebe8e3;
+  background: vars.$track;
   border-radius: 999px;
   overflow: hidden;
   min-height: 1.7rem;
@@ -447,7 +452,7 @@
   min-height: 1.7rem;
   padding: 0 0.55rem;
   background: var(--accent-color);
-  color: #f7f6f3;
+  color: vars.$on-accent;
   font-weight: 800;
   font-size: 0.9rem;
   white-space: nowrap;
@@ -455,7 +460,7 @@
 
 .compare-fill.is-hard {
   background: color-mix(in srgb, var(--accent-color) 72%, #000);
-  color: #f7f6f3;
+  color: vars.$on-accent;
 }
 
 .article-single-page .container,
@@ -487,7 +492,7 @@
   time {
     display: block;
     margin-top: 0.2rem;
-    color: #5e5954;
+    color: vars.$muted;
     font-size: 0.95rem;
   }
 }
@@ -513,7 +518,7 @@
   font-weight: 800;
 
   a {
-    color: vars.$text-color;
+    color: var(--text);
     text-decoration: none;
 
     &:hover {
@@ -547,17 +552,17 @@
 
   p {
     margin: 0.25rem 0 0;
-    color: #5a534c;
+    color: vars.$count-ink;
     font-size: 0.98rem;
   }
 }
 
 .puzzle-grid,
 .puzzle-strip-cells {
-  --grid-line: #ddd8d2;
-  --grid-thick: #1f1c19;
-  background: #fbfaf8;
-  color: #1f1c19;
+  --grid-line: #{vars.$line};
+  --grid-thick: #{vars.$ink};
+  background: vars.$board;
+  color: vars.$ink;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -658,50 +663,50 @@
   td {
     text-align: left;
     padding: 0.45rem 0.5rem;
-    border-bottom: 1px solid #ddd8d2;
+    border-bottom: 1px solid vars.$line;
     vertical-align: top;
   }
 }
 
 html[data-theme="dark"] {
   .compare-track {
-    background: #2c2a27;
+    background: vars.$dark-track;
   }
 
   .article-body table th,
   .article-body table td {
-    border-bottom-color: #3d3a36;
+    border-bottom-color: vars.$dark-line;
   }
 
   .article-byline,
   .article-byline time,
   .related-articles p {
-    color: #c9c3bb;
+    color: vars.$dark-body;
   }
 
   .author-box {
-    background: #242220;
+    background: vars.$dark-card;
   }
 
   .author-box-name a {
-    color: #f3f0eb;
+    color: vars.$dark-ink;
   }
 
   .puzzle-grid,
   .puzzle-strip-cells {
-    --grid-line: #3d3a36;
-    --grid-thick: #efece7;
-    background: #242220;
-    color: #f3f0eb;
+    --grid-line: #{vars.$dark-line};
+    --grid-thick: #{vars.$pad};
+    background: vars.$dark-card;
+    color: vars.$dark-ink;
   }
 
   .puzzle-strip-label {
-    color: #f3f0eb;
+    color: vars.$dark-ink;
   }
 
   .article-body code,
   .article-body pre {
-    background: #242220;
-    color: #f3f0eb;
+    background: vars.$dark-card;
+    color: vars.$dark-ink;
   }
 }

@@ -30,8 +30,8 @@ body {
   font-family: vars.$body-font;
   font-size: vars.$font-sm;
   line-height: 1.5;
-  color: #1f1c19;
-  background: #f5f4f1;
+  color: vars.$ink;
+  background: vars.$recess;
 }
 
 // Global Typography for Headings and Paragraphs

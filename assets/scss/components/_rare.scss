@@ -1,3 +1,5 @@
+@use "../abstracts/variables" as vars;
+
 // Adapted from Rare UI.
 // Copyright (c) 2026 Swami Malode
 // https://rareui.com/components/animatedcounter
@@ -132,11 +134,11 @@
 .rare-delete {
   --rare-tile: 48px;
   --rare-panel: 84px;
-  --rare-surface: #faf9f7;
-  --rare-recess: #ebe8e3;
-  --rare-glyph: #5e5954;
-  --rare-accent: #0c4f86;
-  --rare-hover: #f5f4f1;
+  --rare-surface: #{vars.$paper};
+  --rare-recess: #{vars.$track};
+  --rare-glyph: #{vars.$muted};
+  --rare-accent: #{vars.$accent-color};
+  --rare-hover: #{vars.$recess};
   position: relative;
   order: -1;
   flex: none;
@@ -300,11 +302,11 @@ html[data-theme="dark"] .rare-action-note {
 }
 
 html[data-theme="dark"] .rare-delete {
-  --rare-surface: #242220;
-  --rare-recess: #1c1b19;
-  --rare-glyph: #c4beb6;
-  --rare-accent: #9ed2f8;
-  --rare-hover: #2c2a27;
+  --rare-surface: #{vars.$dark-card};
+  --rare-recess: #{vars.$dark-surface};
+  --rare-glyph: #{vars.$dark-muted};
+  --rare-accent: #{vars.$accent-on-dark};
+  --rare-hover: #{vars.$dark-track};
   box-shadow:
     0 0.5px 1px rgba(0, 0, 0, 0.35),
     0 1.5px 4px rgba(0, 0, 0, 0.25),

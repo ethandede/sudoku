@@ -1,22 +1,24 @@
+@use "../abstracts/variables" as vars;
+
 .skills-page {
-  --ink: #1f1c19;
-  --muted: #5e5954;
-  --card: #faf9f7;
-  --page: #f5f4f1;
-  --line: #ddd8d2;
+  --ink: #{vars.$ink};
+  --muted: #{vars.$muted};
+  --card: #{vars.$paper};
+  --page: #{vars.$recess};
+  --line: #{vars.$line};
   --accent: var(--accent-color);
-  --accent-ink: #f7f6f3;
-  --pad: #efece7;
-  --pad-ink: #1f1c19;
-  --learning: #1f1c19;
-  --learning-bg: #ebe8e3;
-  --comfort: #0b6e5f;
+  --accent-ink: #{vars.$on-accent};
+  --pad: #{vars.$pad};
+  --pad-ink: #{vars.$ink};
+  --learning: #{vars.$ink};
+  --learning-bg: #{vars.$track};
+  --comfort: #{vars.$pattern};
   --comfort-bg: #d7f3ec;
   --master: var(--accent-color);
-  --master-bg: color-mix(in srgb, var(--accent-color) 16%, #faf9f7);
-  --locked: #5e5954;
-  --locked-bg: #ebe8e3;
-  --next: color-mix(in srgb, var(--accent-color) 8%, #faf9f7);
+  --master-bg: color-mix(in srgb, var(--accent-color) 16%, #{vars.$paper});
+  --locked: #{vars.$muted};
+  --locked-bg: #{vars.$track};
+  --next: color-mix(in srgb, var(--accent-color) 8%, #{vars.$paper});
 
   background: transparent;
   color: var(--ink);
@@ -44,24 +46,24 @@
 }
 
 html[data-theme="dark"] .skills-page {
-  --ink: #f3f0eb;
-  --muted: #c4beb6;
-  --card: #242220;
-  --page: #141311;
-  --line: #3d3a36;
+  --ink: #{vars.$dark-ink};
+  --muted: #{vars.$dark-muted};
+  --card: #{vars.$dark-card};
+  --page: #{vars.$dark-page};
+  --line: #{vars.$dark-line};
   --accent: var(--accent-on-dark);
-  --accent-ink: #141311;
-  --pad: #2c2a27;
-  --pad-ink: #f3f0eb;
-  --learning: #f3f0eb;
-  --learning-bg: #2c2a27;
-  --comfort: #7ddec8;
+  --accent-ink: #{vars.$dark-page};
+  --pad: #{vars.$dark-track};
+  --pad-ink: #{vars.$dark-ink};
+  --learning: #{vars.$dark-ink};
+  --learning-bg: #{vars.$dark-track};
+  --comfort: #{vars.$dark-pattern};
   --comfort-bg: #1a3c34;
   --master: var(--accent-on-dark);
-  --master-bg: color-mix(in srgb, var(--accent-on-dark) 16%, #1c1b19);
-  --locked: #c4beb6;
-  --locked-bg: #2c2a27;
-  --next: color-mix(in srgb, var(--accent-on-dark) 10%, #1c1b19);
+  --master-bg: color-mix(in srgb, var(--accent-on-dark) 16%, #{vars.$dark-surface});
+  --locked: #{vars.$dark-muted};
+  --locked-bg: #{vars.$dark-track};
+  --next: color-mix(in srgb, var(--accent-on-dark) 10%, #{vars.$dark-surface});
 }
 
 .skills-wrap {
@@ -368,9 +370,9 @@ html[data-theme="dark"] .skills-page {
   gap: 0.65rem;
   padding: 0.7rem 0.55rem 0.7rem 0.75rem;
   border-radius: 0.85rem;
-  background: #faf9f7;
-  color: #1f1c19;
-  border: 1px solid #ddd8d2;
+  background: vars.$paper;
+  color: vars.$ink;
+  border: 1px solid vars.$line;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
 
   &[hidden] {
@@ -384,9 +386,9 @@ html[data-theme="dark"] .skills-page {
 }
 
 html[data-theme="dark"] .badge-toast {
-  background: #242220;
-  color: #f3f0eb;
-  border-color: #3d3a36;
+  background: vars.$dark-card;
+  color: vars.$dark-ink;
+  border-color: vars.$dark-line;
 
   a {
     color: var(--accent-on-dark);

@@ -24,12 +24,17 @@ export function assetVersion(root) {
   const fromPages = (process.env.CF_PAGES_COMMIT_SHA || "").trim();
   if (/^[0-9a-f]{7,40}$/i.test(fromPages)) return fromPages.slice(0, 12);
   try {
-    const sha = execSync("git rev-parse --short=12 HEAD", {
-      cwd: root,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-    }).trim();
-    if (/^[0-9a-f]{7,40}$/i.test(sha)) return sha;
+    const git = (args) =>
+      execSync(`git ${args}`, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 64 * 1024 * 1024 });
+    const sha = git("rev-parse --short=12 HEAD").trim();
+    if (/^[0-9a-f]{7,40}$/i.test(sha)) {
+      // Uncommitted edits keep the same commit, so a local build would reuse
+      // the last version and the service worker would keep serving old
+      // scripts. Fold the working-tree changes into the version instead.
+      const status = git("status --porcelain");
+      if (!status.trim()) return sha;
+      return createHash("sha256").update(sha).update(status).update(git("diff HEAD")).digest("hex").slice(0, 12);
+    }
   } catch {
     // A checkout without git still needs a stable suffix.
   }

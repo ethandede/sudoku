@@ -196,20 +196,18 @@
     let width = nakedCount;
     for (let i = 0; i < 81; i++) if (hidden[i] && !naked[i]) width++;
 
+    // The first hidden single that is not also naked, even when a naked single
+    // comes first. Fill a technique uses it to fill hidden singles on demand.
+    const hiddenPlace =
+      firstHiddenI >= 0
+        ? { i: firstHiddenI, d: firstHiddenD, kind: firstHiddenBox ? "hidden_box" : "hidden_line" }
+        : null;
+
     if (firstNaked >= 0) {
-      return { place: { i: firstNaked, d: nakedDigit, kind: "single" }, width };
+      return { place: { i: firstNaked, d: nakedDigit, kind: "single" }, hidden: hiddenPlace, width };
     }
-    if (firstHiddenI >= 0) {
-      return {
-        place: {
-          i: firstHiddenI,
-          d: firstHiddenD,
-          kind: firstHiddenBox ? "hidden_box" : "hidden_line",
-        },
-        width,
-      };
-    }
-    return { place: null, width: 0 };
+    if (hiddenPlace) return { place: hiddenPlace, hidden: hiddenPlace, width };
+    return { place: null, hidden: null, width: 0 };
   }
 
   function uniqueInBox(state, index, bit) {
@@ -1620,6 +1618,29 @@ function stepWidth(state, singleCount, rankCap) {
     return null;
   }
 
+  // First step of one technique, wherever it is on the board, even when an
+  // easier step comes first. Null when that technique has nothing to do.
+  // Fill a technique uses this, so "Apply all pointing" works while singles
+  // are still open.
+  function explainTechnique(puzzle, removed, slug) {
+    const state = load(puzzle);
+    applyRemoved(state, removed);
+    if (slug === "naked-single" || slug === "hidden-single") {
+      const singles = findSingles(state, false);
+      const place = slug === "naked-single" ? singles.place && singles.place.kind === "single" && singles.place : singles.hidden;
+      return place ? describeSingle(state, place) : null;
+    }
+    for (let t = 0; t < TECHNIQUES.length; t++) {
+      const hits = TECHNIQUES[t].find(state);
+      for (let h = 0; h < hits.length; h++) {
+        if (STEP_SLUG[hits[h].type] && STEP_SLUG[hits[h].type] !== slug) continue;
+        const step = describeHit(state, hits[h]);
+        if (step && step.slug === slug) return step;
+      }
+    }
+    return null;
+  }
+
   // Next logical step on the current digits. `removed` is a list of
   // {index, digit} candidates already eliminated by an earlier hint.
   // Pass full=true to attach the candidate grid used for that step.
@@ -1641,6 +1662,7 @@ function stepWidth(state, singleCount, rankCap) {
     nextStep,
     fillGrid,
     explain,
+    explainTechnique,
     RANK_NAME,
   };
 })(typeof globalThis !== "undefined" ? globalThis : window);

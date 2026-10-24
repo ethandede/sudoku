@@ -1,11 +1,13 @@
+@use "../abstracts/variables" as vars;
+
 // Site chrome in the House marks system. The game screen is untouched:
 // these rules never select the board, keypad, notes, or play column.
 // The dot grid is an original radial-gradient. The idea is Magic UI's
 // Dot Pattern (MIT). Their component is not copied.
 
 html:not(:has(.sudoku-page)) body {
-  background-color: #f5f4f1;
-  background-image: radial-gradient(rgba(12, 79, 134, 0.2) 1px, transparent 1.15px);
+  background-color: vars.$recess;
+  background-image: radial-gradient(rgba(33, 65, 168, 0.2) 1px, transparent 1.15px);
   background-size: 22px 22px;
 }
 
@@ -14,7 +16,7 @@ html:not(:has(.sudoku-page)) body {
   align-items: center;
   gap: 0.4rem;
   margin: 0 0 0.45rem;
-  color: #0c4f86;
+  color: vars.$accent-color;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -44,11 +46,11 @@ html:not(:has(.sudoku-page)) body {
   width: 96px;
   height: 72px;
   flex: none;
-  color: #0c4f86;
-  --soft: #d4e8f7;
-  --paper: #f5f4f1;
-  --rule: #948f88;
-  --pattern: #0b6e5f;
+  color: vars.$accent-color;
+  --soft: #{vars.$soft};
+  --paper: #{vars.$recess};
+  --rule: #{vars.$rule};
+  --pattern: #{vars.$pattern};
 }
 
 .page-header-art svg {
@@ -67,13 +69,13 @@ html:not(:has(.sudoku-page)) body {
 .standard-page .page-content,
 .article-single-page .article-content,
 .articles-page .article-card {
-  border: 1px solid #ddd8d2;
+  border: 1px solid vars.$line;
   box-shadow: none;
 }
 
 .standard-page .page-header,
 .articles-page .page-header {
-  border-bottom: 1px solid #ddd8d2;
+  border-bottom: 1px solid vars.$line;
 }
 
 .standard-page .page-header .page-title,
@@ -90,22 +92,22 @@ html:not(:has(.sudoku-page)) body {
 
 .articles-page .page-description,
 .skills-lead {
-  color: #5e5954;
+  color: vars.$muted;
 }
 
 .page-body a:hover,
 .article-body a:hover,
 .articles-page .read-more:hover {
-  color: #0c4f86;
+  color: vars.$accent-color;
 }
 
 .stats-empty,
 .no-articles {
   padding: 1rem 1.1rem;
-  border: 1px dashed #948f88;
+  border: 1px dashed vars.$rule;
   border-radius: 10px;
-  background: #faf9f7;
-  color: #1f1c19;
+  background: vars.$paper;
+  color: vars.$ink;
 }
 
 .skills-header {
@@ -114,51 +116,51 @@ html:not(:has(.sudoku-page)) body {
 
 html[data-theme="dark"] {
   &:not(:has(.sudoku-page)) body {
-    background-color: #141311;
-    background-image: radial-gradient(rgba(158, 210, 248, 0.16) 1px, transparent 1.15px);
+    background-color: vars.$dark-page;
+    background-image: radial-gradient(rgba(169, 188, 255, 0.16) 1px, transparent 1.15px);
     background-size: 22px 22px;
-    color: #f3f0eb;
+    color: vars.$dark-ink;
   }
 
   .site-header {
-    background-color: #1c1b19;
-    background-image: radial-gradient(rgba(158, 210, 248, 0.18) 1px, transparent 1.15px);
+    background-color: vars.$dark-surface;
+    background-image: radial-gradient(rgba(169, 188, 255, 0.18) 1px, transparent 1.15px);
     background-size: 16px 16px;
-    border-bottom-color: #9ed2f8;
+    border-bottom-color: vars.$accent-on-dark;
     box-shadow: none;
 
     .site-logo,
     .nav-primary a,
     .dropdown-menu a {
-      color: #f3f0eb;
+      color: vars.$dark-ink;
     }
 
     .site-logo .logo-mark,
     .site-logo .logo-echo {
-      color: #9ed2f8;
+      color: vars.$accent-on-dark;
     }
 
     .nav-menu,
     .dropdown-menu {
-      background: #242220;
-      border-color: #3d3a36;
+      background: vars.$dark-card;
+      border-color: vars.$dark-line;
     }
 
     .mobile-menu-toggle span {
-      background: #f3f0eb;
+      background: vars.$dark-ink;
     }
   }
 
   .brand-kicker,
   .page-header-art {
-    color: #9ed2f8;
+    color: vars.$accent-on-dark;
   }
 
   .page-header-art {
-    --soft: #2a4560;
-    --paper: #1c1b19;
-    --rule: #8a847c;
-    --pattern: #7ddec8;
+    --soft: #2b3a6a;
+    --paper: #{vars.$dark-surface};
+    --rule: #{vars.$initial-color};
+    --pattern: #{vars.$dark-pattern};
   }
 
   .standard-page,
@@ -171,29 +173,29 @@ html[data-theme="dark"] {
   .standard-page .page-content,
   .article-single-page .article-content,
   .articles-page .article-card {
-    border-color: #3d3a36;
+    border-color: vars.$dark-line;
   }
 
   .standard-page .page-header,
   .articles-page .page-header {
-    border-bottom-color: #3d3a36;
+    border-bottom-color: vars.$dark-line;
   }
 
   .articles-page .page-description,
   .skills-lead {
-    color: #c4beb6;
+    color: vars.$dark-muted;
   }
 
   .stats-empty,
   .no-articles {
-    background: #1c1b19;
-    border-color: #8a847c;
-    color: #f3f0eb;
+    background: vars.$dark-surface;
+    border-color: vars.$initial-color;
+    color: vars.$dark-ink;
   }
 
   .site-footer {
-    background: #141311;
-    border-top-color: #9ed2f8;
+    background: vars.$dark-page;
+    border-top-color: vars.$accent-on-dark;
   }
 }
 
