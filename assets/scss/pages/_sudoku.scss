@@ -1374,6 +1374,10 @@ kbd {
   margin-top: 0.15rem;
 }
 
+.game-intro:has(.practice-prompt.is-miss:not([hidden])) {
+  min-height: 3.4rem;
+}
+
 .practice-prompt {
   position: absolute;
   inset: 0;
@@ -1395,6 +1399,13 @@ kbd {
 
   &[hidden] {
     display: none;
+  }
+
+  &.is-miss {
+    white-space: normal;
+    line-height: 1.25;
+    overflow: visible;
+    text-overflow: clip;
   }
 }
 
@@ -1421,6 +1432,10 @@ kbd {
   align-items: center;
   justify-content: center;
   color: var(--user-ink);
+
+  &[hidden] {
+    display: none;
+  }
 }
 
 .hint-dismiss {

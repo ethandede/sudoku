@@ -25,6 +25,7 @@ for (const slug of Object.keys(practice.FILL_LABEL)) {
   assert.equal(practice.promptShort(practice.fillLabel(slug)).includes("—"), false);
 }
 
+const linedUp = {};
 function jump(slug) {
   const result = generator.generateForTechnique(slug, { seed: `practice-${slug}` });
   assert.equal(Boolean(result.metadata && result.metadata.trainApproximate), false, `${slug} approximate`);
@@ -43,14 +44,19 @@ function jump(slug) {
   return { result, jumped };
 }
 
-const hidden = jump("hidden-pair");
-const wing = jump("x-wing");
-const skyscraper = jump("skyscraper");
-const kite = jump("two-string-kite");
-const xyz = jump("xyz-wing");
-const wwing = jump("w-wing");
-const rectangle = jump("unique-rectangle");
-const bug = jump("bug-plus-one");
+for (const slug of Object.keys(practice.FILL_LABEL)) linedUp[slug] = jump(slug);
+const hidden = linedUp["hidden-pair"];
+const wing = linedUp["x-wing"];
+const skyscraper = linedUp.skyscraper;
+const kite = linedUp["two-string-kite"];
+const xyz = linedUp["xyz-wing"];
+const wwing = linedUp["w-wing"];
+const rectangle = linedUp["unique-rectangle"];
+const bug = linedUp["bug-plus-one"];
+for (const slug of ["naked-triple", "hidden-triple", "quads", "coloring", "hidden-single", "naked-single"]) {
+  assert.equal(linedUp[slug].result.metadata.trainApproximate, undefined, `${slug} lined up`);
+  assert.equal(linedUp[slug].jumped.ready, true, `${slug} ready`);
+}
 assert.ok(hidden.jumped.applied.length > 0, "hidden pair jumps past easier steps");
 assert.ok(wing.jumped.applied.length > 0, "x-wing jumps past easier steps");
 assert.equal(practice.wantsCandidates("naked-single"), false);
@@ -269,12 +275,17 @@ assert.match(chrome, /id="fill-done"/);
 assert.equal(html.slice(html.indexOf('class="play-surface"'), html.indexOf('class="controls"')).includes('id="fill-chip"'), false);
 
 const scss = fs.readFileSync(path.join(root, "assets/scss/pages/_sudoku.scss"), "utf8");
-assert.match(scss, /--fill-placed:\s*#8fbee0/);
-assert.match(scss, /--fill-cleared:\s*#d7ebf8/);
-assert.match(scss, /--fill-ring:\s*#2141a8/);
-assert.match(scss, /--fill-placed:\s*#3f6d90/);
-assert.match(scss, /--fill-cleared:\s*#2c4d66/);
-assert.match(scss, /--fill-ring:\s*#a9bcff/);
+assert.match(scss, /--fill-placed:\s*#a3b5ec/);
+assert.match(scss, /--fill-cleared:\s*#dee5fa/);
+assert.match(scss, /--fill-ring:\s*#\{vars\.\$accent-color\}/);
+assert.match(scss, /--fill-placed:\s*#3d4f8f/);
+assert.match(scss, /--fill-cleared:\s*#2c3a63/);
+assert.match(scss, /--fill-ring:\s*#\{vars\.\$accent-on-dark\}/);
+assert.match(scss, /\.practice-prompt\.is-miss/);
+assert.match(scss, /\.game-intro:has\(\.practice-prompt\.is-miss:not\(\[hidden\]\)\)/);
+assert.match(game, /state\.practice && !state\.practiceMiss/);
+assert.match(game, /el\.classList\.add\("is-miss"\)/);
+assert.match(game, /pairText\(el, full, full\)/);
 assert.match(scss, /animation-delay:\s*var\(--fill-delay/);
 assert.match(
   scss,
@@ -664,6 +675,89 @@ async function runFillReviewUi(fillUrl) {
         await practice.context.close();
       }
     }
+  });
+
+  await check("a rare practice link lines up on a phone", async () => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    await context.addInitScript(() => localStorage.clear());
+    const page = await context.newPage();
+    await page.goto(`${origin}/?practice=naked-triple`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(
+      () => {
+        const prompt = document.getElementById("practice-prompt");
+        const cover = document.getElementById("board-cover");
+        return prompt && !prompt.hidden && cover && cover.hidden;
+      },
+      null,
+      { timeout: 45000 }
+    );
+    const prompt = (await page.locator("#practice-prompt").innerText()).replace(/\s+/g, " ").trim();
+    const label = (await page.locator("#puzzle-label").innerText()).replace(/\s+/g, " ").trim();
+    checkAssert(prompt === "Find the Naked triple.", prompt);
+    checkAssert(label === "Naked triple", label);
+    checkAssert(((await page.locator("#practice-prompt").getAttribute("class")) || "").includes("is-miss") === false, "a lined-up practice is not a miss");
+    await page.click("#hint-btn");
+    await page.waitForFunction(() => document.getElementById("hint-kicker").textContent === "Naked triple");
+    await context.close();
+  });
+
+  await check("a practice miss explains itself on a phone and leaves the level name", async () => {
+    const note = "No puzzle lined up on Quads. This one stays off your records.";
+    const save = {
+      version: 1,
+      updatedAt: Date.now(),
+      kind: "expert",
+      dailyDate: null,
+      puzzle: Array(81).fill(0),
+      solution: Array(81).fill(1),
+      board: Array(81).fill(0),
+      notes: Array.from({ length: 81 }, () => []),
+      removed: [],
+      mistakes: 0,
+      slashed: [],
+      undo: [],
+      selected: 0,
+      mode: "normal",
+      elapsed: 12,
+      auto: false,
+      counted: true,
+      scored: false,
+      metadata: { trainApproximate: true, trainTarget: "quads", path: [] },
+      hintSlugs: [],
+      train: null,
+      practice: "quads",
+      practiceNote: note,
+      practiceMiss: true,
+      practiceFilled: false,
+      fastForwarded: false,
+      puzzleId: "practice-miss",
+      anonPlayId: null,
+      notesUsed: false,
+      over: false,
+    };
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    await context.addInitScript((payload) => {
+      localStorage.clear();
+      const raw = JSON.stringify(payload);
+      localStorage.setItem("sudoku-progress", raw);
+      localStorage.setItem("sudoku-progress:practice:quads", raw);
+      localStorage.setItem("sudoku-progress-at", String(payload.updatedAt));
+    }, save);
+    const page = await context.newPage();
+    await page.goto(`${origin}/?practice=quads`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#resume-yes", { timeout: 15000 });
+    await page.click("#resume-yes");
+    await page.waitForFunction(() => {
+      const prompt = document.getElementById("practice-prompt");
+      return prompt && !prompt.hidden && prompt.classList.contains("is-miss");
+    });
+    const prompt = (await page.locator("#practice-prompt").innerText()).replace(/\s+/g, " ").trim();
+    const label = (await page.locator("#puzzle-label").innerText()).replace(/\s+/g, " ").trim();
+    checkAssert(prompt === note, prompt);
+    checkAssert(label === "Expert", label);
+    const wrap = await page.locator("#practice-prompt").evaluate((el) => getComputedStyle(el).whiteSpace);
+    checkAssert(wrap === "normal", `miss prompt white-space is ${wrap}`);
+    await context.close();
   });
 
   await check("an unknown practice slug explains itself and links to a normal game", async () => {

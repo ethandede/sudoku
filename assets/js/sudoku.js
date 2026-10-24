@@ -242,6 +242,7 @@
       checks: 0,
       train: null,
       practice: null,
+      practiceNote: "",
       practiceMiss: false,
       practiceFilled: false,
       fastForwarded: false,
@@ -483,6 +484,7 @@
   }
 
   function resumeLabel(saved) {
+    if (saved.practice && saved.practiceMiss) return difficultyLabel(saved.kind);
     if (saved.practice && window.SudokuProgress) return `Practice · ${window.SudokuProgress.nameOf(saved.practice)}`;
     if (saved.train && window.SudokuProgress) return `Train · ${window.SudokuProgress.nameOf(saved.train)}`;
     return difficultyLabel(saved.kind);
@@ -1860,7 +1862,11 @@
           ? window.SudokuHintApply.previewSentence(step.eliminate)
           : "";
         text.textContent = preview ? `${step.explain} ${preview}` : step.explain;
-        next.textContent = window.SudokuHintApply.placesOnApply(step) ? "Place it" : "Apply";
+        next.textContent = window.SudokuHintApply.placesOnApply(step)
+          ? "Place it"
+          : window.SudokuHintApply.removalLabel
+            ? window.SudokuHintApply.removalLabel(step)
+            : "Apply";
       } else {
         text.textContent =
           hintView.resultText ||
@@ -2719,11 +2725,13 @@
     }
     const api = window.SudokuPractice;
     if (state.practiceMiss) {
-      const full = state.practiceNote || "Practice puzzle. This one stays off your records.";
-      pairText(el, full, "Practice stays off your records.");
+      const full = state.practiceNote || "No puzzle lined up. This one stays off your records.";
+      pairText(el, full, full);
+      el.classList.add("is-miss");
       el.hidden = false;
       return;
     }
+    el.classList.remove("is-miss");
     const step = window.SudokuSolver && window.SudokuSolver.explain ? window.SudokuSolver.explain(state.board, state.removed) : null;
     if (!step || step.slug !== state.practice) {
       el.hidden = true;
@@ -2760,7 +2768,9 @@
 
   function labelFor(kind) {
     const approximate = state.metadata && state.metadata.trainApproximate;
-    if (state.practice && window.SudokuProgress) return `Practice · ${window.SudokuProgress.nameOf(state.practice)}`;
+    if (state.practice && !state.practiceMiss && window.SudokuProgress) {
+      return `Practice · ${window.SudokuProgress.nameOf(state.practice)}`;
+    }
     if (state.train && window.SudokuProgress && !approximate) return `Train · ${window.SudokuProgress.nameOf(state.train)}`;
     if (state.shareDate) return `Daily · ${formatDay(state.shareDate)}`;
     if (kind === "daily" && state.dailyDate) return `Daily · ${formatDay(state.dailyDate)}`;
@@ -2771,7 +2781,7 @@
   // prefix and the daily date there. The full label shows on wider screens.
   function shortLabelFor(kind) {
     const approximate = state.metadata && state.metadata.trainApproximate;
-    if (state.practice && window.SudokuProgress) return window.SudokuProgress.nameOf(state.practice);
+    if (state.practice && !state.practiceMiss && window.SudokuProgress) return window.SudokuProgress.nameOf(state.practice);
     if (state.train && window.SudokuProgress && !approximate) return window.SudokuProgress.nameOf(state.train);
     if (state.shareDate || kind === "daily") return "Daily";
     return "";
@@ -3529,6 +3539,7 @@
       checks: state.checks | 0,
       train: state.train || null,
       practice: state.practice || null,
+      practiceNote: state.practiceNote || "",
       practiceMiss: Boolean(state.practiceMiss),
       practiceFilled: Boolean(state.practiceFilled),
       fastForwarded: Boolean(state.fastForwarded),
@@ -3583,6 +3594,7 @@
     techniqueHints();
     state.train = typeof saved.train === "string" ? saved.train : null;
     state.practice = typeof saved.practice === "string" ? saved.practice : null;
+    state.practiceNote = typeof saved.practiceNote === "string" ? saved.practiceNote : "";
     state.practiceMiss = Boolean(saved.practiceMiss);
     state.practiceFilled = Boolean(saved.practiceFilled);
     state.fastForwarded = Boolean(saved.fastForwarded);
@@ -3604,6 +3616,9 @@
   }
 
   function resumeText(saved) {
+    if (saved.practice && saved.practiceMiss) {
+      return `${difficultyLabel(saved.kind)} is in progress at ${formatTime(saved.elapsed || 0)}.`;
+    }
     if (saved.practice && window.SudokuProgress) {
       return `Practice · ${window.SudokuProgress.nameOf(saved.practice)} is in progress at ${formatTime(saved.elapsed || 0)}.`;
     }

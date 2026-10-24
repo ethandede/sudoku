@@ -10,6 +10,7 @@ import {
   peerIndexes,
   placesOnApply,
   previewSentence,
+  removalLabel,
 } from "../functions/hint-apply.mjs";
 
 const root = new URL("..", import.meta.url);
@@ -323,6 +324,27 @@ assert.ok(stepPart.indexOf("pushUndo()") < stepPart.indexOf("applyHintStep"), "u
 assert.equal(previewSentence([{ index: 54, digit: 2 }]), "Rules out 2 in row 7, column 1.");
 assert.equal(previewSentence([]), "");
 assert.equal(previewSentence([{ index: 54, digit: 2 }]).includes("—"), false);
+assert.equal(
+  previewSentence([
+    { index: 69, digit: 1 },
+    { index: 69, digit: 3 },
+    { index: 69, digit: 6 },
+  ]),
+  "Rules out 1, 3, and 6 in row 8, column 7."
+);
+assert.equal(removalLabel({ eliminate: [{ index: 1, digit: 4 }] }), "Remove 1 candidate");
+assert.equal(
+  removalLabel({
+    eliminate: [
+      { index: 1, digit: 4 },
+      { index: 2, digit: 4 },
+      { index: 2, digit: 4 },
+    ],
+  }),
+  "Remove 2 candidates"
+);
+assert.equal(removalLabel({ eliminate: [] }), "Apply");
+assert.equal(removalLabel({ slug: "naked-single", place: { index: 0, digit: 1 } }), "Apply");
 assert.equal(page.includes("hint.stage >= 2 ? hintStruck"), false, "stage 3 does not keep eliminated digits struck");
 assert.ok(page.includes('mark.classList.add("on", "struck", "fading")'), "a digit that was not noted fades out");
 assert.ok(page.includes("hint.stage === 2 ? hintStruck"), "stage 2 strikes the eliminated digit");
@@ -330,12 +352,17 @@ assert.ok(page.includes("SudokuHintApply.previewSentence"), "stage 2 says what t
 assert.ok(page.includes("fadeUntil"), "the strike fade has a deadline");
 const built = fs.readFileSync(new URL("../scripts/build.mjs", import.meta.url), "utf8");
 assert.ok(built.includes("previewSentence: previewSentence"), "the page can call previewSentence");
+assert.ok(built.includes("removalLabel: removalLabel"), "the page can name an elimination");
+assert.ok(page.includes("SudokuHintApply.removalLabel"), "an elimination hint names the candidates it removes");
 const sheet = fs.readFileSync(new URL("../assets/scss/pages/_sudoku.scss", import.meta.url), "utf8");
 assert.equal(sheet.includes("--hint-eliminate"), false, "the old eliminate color is gone");
 assert.ok(sheet.includes("color-mix(in srgb, var(--danger) 8%, var(--cell-bg))"), "light eliminate mix");
 assert.ok(sheet.includes("color-mix(in srgb, var(--danger) 14%, var(--cell-bg))"), "dark eliminate mix");
 assert.ok(sheet.includes("animation: struck-out 600ms ease-out forwards"), "the strike fades over 600ms");
 assert.ok(sheet.includes(".marks span.struck.fading"), "reduced motion drops the strike animation");
+assert.match(sheet, /\.hint-learn[\s\S]*&\[hidden\]\s*\{\s*display:\s*none/);
+const buttons = fs.readFileSync(new URL("../assets/scss/components/_buttons.scss", import.meta.url), "utf8");
+assert.match(buttons, /@mixin control-face[\s\S]*&\[hidden\]\s*\{\s*display:\s*none/);
 assert.ok(page.includes("hintView.follow"), "a chained single is offered from the elimination hint");
 assert.ok(page.includes('next.textContent = "Place it"'), "the chained action places");
 assert.ok(page.includes("aria-keyshortcuts"), "the place button advertises Enter");
