@@ -41,7 +41,13 @@
           <button type="button" id="fill-done" class="text-btn">Done</button>
         </div>
         <div class="status-bar">
-          <button type="button" id="puzzle-label" class="puzzle-label" aria-haspopup="listbox" aria-expanded="false" aria-controls="difficulty-tabs">Easy</button>
+          <div class="level-with-mark">
+            <button type="button" id="puzzle-label" class="puzzle-label" aria-haspopup="listbox" aria-expanded="false" aria-controls="difficulty-tabs">Easy</button>
+            <span class="unique-mark" tabindex="0" role="img" aria-label="One solution, verified.">
+              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.15" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4.9 8.15 7 10.2 11.2 5.85" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="unique-mark-tip" aria-hidden="true">One solution, verified.</span>
+            </span>
+          </div>
           <div class="timer-group">
             <span id="timer" class="timer" aria-live="off">0:00</span>
             <button type="button" id="pause-btn" class="icon-btn" data-state="running" aria-label="Pause timer">

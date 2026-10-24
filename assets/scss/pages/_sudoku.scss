@@ -229,10 +229,17 @@ html[data-theme="dark"] .game-brand-echo {
 }
 
 // The practice bar is absolute across the toolbar. Keep the icon nav painted
-// above it, on the page color, so the bar stops before the buttons.
+// above it, on the page color, so the bar stops before the buttons. The row
+// is as wide as the panel column, so its empty left side sits over Undo and
+// Done. Let those clicks through. The buttons themselves still take the hit.
 .play-chrome:has(#fill-chip:not([hidden])) .icon-row {
   position: relative;
   z-index: 8;
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
 
   .icon-btn {
     background: var(--page);
@@ -410,6 +417,75 @@ html[data-theme="dark"] .game-brand-echo {
 .timer {
   font-variant-numeric: tabular-nums;
   font-weight: 700;
+}
+
+.level-with-mark {
+  position: relative;
+  justify-self: start;
+  width: max-content;
+  max-width: 100%;
+  min-width: 0;
+}
+
+// The generator only keeps a puzzle when uniqueCount is 1. The mark sits on
+// the level button's right edge, out of the row's flow, so the timer, the
+// errors, and the phone toolbar stay where they are.
+.unique-mark {
+  position: absolute;
+  z-index: 2;
+  right: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  color: var(--accent-color);
+  cursor: pointer;
+
+  svg {
+    display: block;
+    width: 14px;
+    height: 14px;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: var(--btn-focus-width) solid var(--btn-focus);
+    outline-offset: 2px;
+    border-radius: 50%;
+  }
+}
+
+.unique-mark-tip {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  top: calc(100% + 0.4rem);
+  width: max-content;
+  max-width: 14rem;
+  padding: 0.28rem 0.5rem;
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.unique-mark:hover .unique-mark-tip,
+.unique-mark:focus .unique-mark-tip,
+.unique-mark:focus-visible .unique-mark-tip {
+  opacity: 1;
+}
+
+html[data-theme="dark"] .unique-mark {
+  color: var(--accent-on-dark);
 }
 
 .puzzle-label {
@@ -2204,6 +2280,16 @@ button:disabled {
     gap: 0.35rem;
   }
 
+  .level-with-mark {
+    flex: 0 1 auto;
+  }
+
+  // The phone chevron sits further in, so the mark can rest in that padding
+  // and still clear the timer when the level name is long.
+  .unique-mark {
+    right: -5px;
+  }
+
   .puzzle-label {
     flex: 0 1 auto;
     min-width: 0;
@@ -2339,6 +2425,17 @@ button:disabled {
 // practice name shrinks, and only on the narrowest phones. This follows the
 // phone rules above so it wins over the 0.92rem short label.
 @media (max-width: 380px) {
+  .unique-mark {
+    width: 12px;
+    height: 12px;
+    right: -7px;
+
+    svg {
+      width: 12px;
+      height: 12px;
+    }
+  }
+
   .puzzle-label:has(.copy-short) {
     font-size: 0.6rem;
     padding: 0 0.9rem 0 0.3rem;

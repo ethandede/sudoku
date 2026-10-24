@@ -333,6 +333,39 @@ html[data-theme="dark"] {
   }
 }
 
+@media (max-width: 480px) {
+  .your-games-wrap,
+  .hint-table-wrap {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .stats-page .page-body .hint-table {
+    th,
+    td {
+      padding: 0.12rem 0.22rem;
+      background: var(--card);
+      color: var(--text);
+    }
+
+    th {
+      background: var(--track);
+      color: var(--ink);
+    }
+  }
+
+  html[data-theme="light"] .hint-table {
+    color-scheme: light;
+  }
+
+  html[data-theme="dark"] .hint-table {
+    color-scheme: dark;
+  }
+}
+
 @media (max-width: 720px) {
   .stats-facts {
     grid-template-columns: 1fr;
