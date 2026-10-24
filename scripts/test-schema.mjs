@@ -134,6 +134,15 @@ function expectGuide(slug, source) {
 expectGuide("beginners-guide", "articles/01-beginners-guide.md");
 expectGuide("common-mistakes", "articles/02-common-mistakes.md");
 
+const statsHtml = readFileSync(join(root, "dist/stats/index.html"), "utf8");
+const dataset = graphs(statsHtml)
+  .flatMap((data) => data["@graph"])
+  .find((node) => node["@type"] === "Dataset");
+assert.ok(dataset, "stats dataset");
+assert.equal(dataset.name, "SudokuSudoku community puzzle stats");
+assert.equal(dataset.license, "https://creativecommons.org/licenses/by/4.0/");
+assert.equal(dataset.url, `${SITE}/stats/`);
+
 const nyt = articleNode("articles/nyt-medium-vs-hard/index.html");
 assert.equal(nyt.author["@type"], "Organization");
 assert.equal(nyt.author.name, "SudokuSudoku");

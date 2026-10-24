@@ -603,8 +603,24 @@ async function runFillReviewUi(fillUrl) {
         const prompt = document.querySelector("#practice-prompt");
         const label = document.querySelector("#puzzle-label");
         const chipText = document.querySelector("#fill-chip-text");
+        const status = document.querySelector(".status-bar");
         const intro = box(".game-intro");
         const promptBox = prompt.getBoundingClientRect();
+        const chipBox = chip && !chip.hidden ? chip.getBoundingClientRect() : null;
+        const labelBox = label.getBoundingClientRect();
+        const statusBox = status.getBoundingClientRect();
+        let shadowY = 0;
+        const shadow = getComputedStyle(label).boxShadow;
+        if (shadow && shadow !== "none") {
+          for (const part of shadow.split(/,(?![^(]*\))/)) {
+            if (part.includes("inset")) continue;
+            const nums = [...part.matchAll(/(-?[\d.]+)px/g)].map((match) => Number(match[1]));
+            if (nums.length >= 2) shadowY = Math.max(shadowY, nums[1] + (nums[2] || 0) + (nums[3] || 0));
+          }
+        }
+        const clip = getComputedStyle(status).overflowY;
+        const paintedBottom =
+          clip === "hidden" || clip === "clip" ? Math.min(labelBox.bottom + shadowY, statusBox.bottom) : labelBox.bottom + shadowY;
         return {
           board: box(".sudoku-grid").top,
           pad: box("#number-pad").top,
@@ -616,6 +632,7 @@ async function runFillReviewUi(fillUrl) {
           label: label.innerText.replace(/\s+/g, " ").trim(),
           prompt: !prompt.hidden ? prompt.innerText.replace(/\s+/g, " ").trim() : "",
           chip: chip && !chip.hidden ? chipText.innerText.replace(/\s+/g, " ").trim() : "",
+          labelPeeks: Boolean(chipBox) && paintedBottom > chipBox.bottom + 0.5,
         };
       });
     }
@@ -647,6 +664,7 @@ async function runFillReviewUi(fillUrl) {
         checkAssert(!practiceBox.promptOutsideIntro, `${name} prompt leaves the title row`);
         checkAssert(practiceBox.chip.length > 0, `${name} chip is missing`);
         checkAssert(!practiceBox.chipOverflow, `${name} chip overflows: ${practiceBox.chip}`);
+        checkAssert(!practiceBox.labelPeeks, `${name} level button peeks below the practice bar`);
         if (narrow) {
           checkAssert(practiceBox.label === "Naked pair", `${name} label is ${practiceBox.label}`);
           checkAssert(practiceBox.prompt === "Find the Naked pair.", `${name} prompt is ${practiceBox.prompt}`);

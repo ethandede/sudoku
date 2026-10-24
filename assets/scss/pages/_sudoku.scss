@@ -239,6 +239,12 @@ html[data-theme="dark"] .game-brand-echo {
   }
 }
 
+// The level button is the same height as the bar, and its hard offset hangs
+// 2px below that. Clip the status line so the rounded edge stays hidden.
+.play-chrome:has(#fill-chip:not([hidden])) .status-bar {
+  overflow: hidden;
+}
+
 .icon-btn {
   width: 44px;
   min-width: 44px;
