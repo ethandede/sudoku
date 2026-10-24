@@ -596,15 +596,15 @@ const TECHNIQUE_RANK = {
 };
 
 const TRAIN = {
-  "naked-single": { level: "easy", live: 12, budget: 200 },
-  "hidden-single": { level: "easy", live: 24, budget: 250 },
+  "naked-single": { level: "easy", live: 12, budget: 200, puzzle: [0,2,8,7,3,1,0,6,0,7,0,0,0,4,0,0,3,1,0,3,0,0,0,6,0,4,0,0,0,0,0,5,7,0,9,6,1,6,0,4,0,0,0,7,0,3,5,7,0,0,9,0,0,0,6,0,4,0,0,0,0,2,7,2,7,5,8,0,0,0,0,3,9,0,0,6,7,0,4,0,0], solution: [4,2,8,7,3,1,5,6,9,7,9,6,2,4,5,8,3,1,5,3,1,9,8,6,7,4,2,8,4,2,3,5,7,1,9,6,1,6,9,4,2,8,3,7,5,3,5,7,1,6,9,2,8,4,6,8,4,5,1,3,9,2,7,2,7,5,8,9,4,6,1,3,9,1,3,6,7,2,4,5,8] },
+  "hidden-single": { level: "easy", live: 24, budget: 250, puzzle: [0,7,0,3,4,9,1,5,2,0,0,3,5,0,6,7,8,9,0,5,9,1,0,0,0,0,3,3,0,5,0,0,0,0,9,0,9,0,7,6,0,0,0,0,5,0,0,2,0,7,0,0,0,0,7,0,0,0,5,1,9,0,0,5,0,1,8,9,3,4,0,0,0,0,0,7,0,0,0,0,1], solution: [6,7,8,3,4,9,1,5,2,4,1,3,5,2,6,7,8,9,2,5,9,1,8,7,6,4,3,3,6,5,2,1,4,8,9,7,9,4,7,6,3,8,2,1,5,1,8,2,9,7,5,3,6,4,7,3,6,4,5,1,9,2,8,5,2,1,8,9,3,4,7,6,8,9,4,7,6,2,5,3,1] },
   pointing: { level: "not easy", live: 2, budget: 80 },
   claiming: { level: "not easy", live: 2, budget: 80 },
   "naked-pair": { level: "hard", live: 2, budget: 80 },
   "hidden-pair": { level: "hard", live: 2, budget: 80 },
-  "naked-triple": { level: "hard", live: 8, budget: 500 },
-  "hidden-triple": { level: "hard", live: 8, budget: 500 },
-  quads: { level: "expert", live: 8, budget: 500 },
+  "naked-triple": { level: "hard", live: 8, budget: 500, puzzle: [0,0,4,0,3,0,0,6,5,0,0,9,1,0,0,0,0,0,6,0,0,0,2,0,7,0,0,3,0,0,0,0,8,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,0,7,2,0,0,0,0,4,0,9,0,9,0,0,0,5,0,0,0,8,1,4,0,0,8,0,5,0,0], solution: [8,2,4,9,3,7,1,6,5,7,5,9,1,4,6,2,8,3,6,3,1,8,2,5,7,4,9,3,9,7,4,1,8,6,5,2,5,6,2,7,9,3,8,1,4,4,1,8,5,6,2,9,3,7,2,8,5,6,7,4,3,9,1,9,7,6,3,5,1,4,2,8,1,4,3,2,8,9,5,7,6] },
+  "hidden-triple": { level: "hard", live: 8, budget: 500, puzzle: [0,8,7,0,0,0,0,0,2,2,0,9,0,0,0,0,0,0,0,0,5,0,0,0,1,0,8,1,0,0,0,0,3,0,0,0,0,0,0,9,0,1,0,0,7,0,5,0,2,0,0,0,0,0,0,6,0,0,8,0,0,0,4,0,7,0,0,2,0,0,6,5,0,0,3,0,0,0,7,0,0], solution: [4,8,7,1,3,6,5,9,2,2,1,9,8,5,7,6,4,3,6,3,5,4,9,2,1,7,8,1,9,4,5,7,3,2,8,6,3,2,8,9,6,1,4,5,7,7,5,6,2,4,8,9,3,1,5,6,2,7,8,9,3,1,4,9,7,1,3,2,4,8,6,5,8,4,3,6,1,5,7,2,9] },
+  quads: { level: "expert", live: 8, budget: 500, puzzle: [0,0,9,0,5,0,0,0,0,0,0,0,1,0,4,0,0,0,2,0,4,6,0,0,0,0,0,0,0,0,0,6,0,9,0,5,3,0,0,0,1,5,6,0,0,0,0,0,4,0,2,0,0,7,0,7,0,0,0,0,0,0,1,0,0,0,0,8,0,0,6,0,6,0,0,5,9,3,7,0,0], solution: [7,1,9,3,5,8,4,2,6,5,6,8,1,2,4,3,7,9,2,3,4,6,7,9,1,5,8,1,4,2,8,6,7,9,3,5,3,8,7,9,1,5,6,4,2,9,5,6,4,3,2,8,1,7,8,7,3,2,4,6,5,9,1,4,9,5,7,8,1,2,6,3,6,2,1,5,9,3,7,8,4], more: [{ puzzle: [0,0,0,0,0,5,0,0,0,0,4,0,0,6,8,0,0,0,3,6,0,0,0,0,2,4,0,9,0,2,0,0,0,5,3,0,0,0,0,0,0,0,9,7,0,0,0,0,0,2,0,0,0,0,0,2,0,0,9,7,0,0,6,0,0,8,0,1,0,0,0,7,4,0,0,0,5,0,0,0,0], solution: [1,8,9,2,4,5,7,6,3,2,4,7,3,6,8,1,9,5,3,6,5,9,7,1,2,4,8,9,1,2,7,8,6,5,3,4,8,5,6,1,3,4,9,7,2,7,3,4,5,2,9,6,8,1,5,2,3,8,9,7,4,1,6,6,9,8,4,1,2,3,5,7,4,7,1,6,5,3,8,2,9] }] },
   "x-wing": { level: "expert", live: 2, budget: 80 },
   swordfish: { level: "expert", live: 4, budget: 200 },
   "xy-wing": { level: "expert", live: 2, budget: 80 },
@@ -656,7 +656,7 @@ const TRAIN = {
     puzzle: [0,2,0,0,0,6,8,4,0,0,0,0,0,4,0,2,9,1,0,0,0,3,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,6,0,0,5,0,0,0,0,9,8,0,6,0,4,1,0,9,0,0,4,5,0,0,6,7,5,0,7,0,0,0,0,3,0,0,0,0,0,0,0,0,0,2],
     solution: [7,2,9,5,1,6,8,4,3,6,5,3,7,4,8,2,9,1,8,1,4,3,9,2,7,5,6,1,7,5,9,3,4,6,2,8,2,4,6,1,8,5,3,7,9,3,9,8,2,6,7,4,1,5,9,8,2,4,5,3,1,6,7,5,6,7,8,2,1,9,3,4,4,3,1,6,7,9,5,8,2],
   },
-  coloring: { level: "mental", live: 2, budget: 120 },
+  coloring: { level: "mental", live: 2, budget: 120, puzzle: [0,0,0,0,0,0,5,8,1,0,0,8,0,2,0,6,0,0,9,0,0,0,0,5,0,0,0,0,5,2,0,6,0,3,0,7,0,0,0,0,8,0,0,0,0,0,0,0,9,0,0,0,0,6,0,0,6,0,3,0,0,0,0,0,2,0,0,9,0,0,0,0,0,0,0,4,0,0,2,3,0], solution: [2,3,7,6,4,9,5,8,1,5,1,8,3,2,7,6,4,9,9,6,4,8,1,5,7,2,3,8,5,2,1,6,4,3,9,7,6,7,9,5,8,3,4,1,2,1,4,3,9,7,2,8,5,6,4,8,6,2,3,1,9,7,5,3,2,5,7,9,8,1,6,4,7,9,1,4,5,6,2,3,8] },
   "xy-chain": { level: "mental", live: 2, budget: 120 },
 };
 
@@ -727,16 +727,96 @@ function chooseRow(rows, slug, allowed) {
   return null;
 }
 
+function applyTrainStep(board, removed, step, solution) {
+  let changed = false;
+  const eliminate = step.eliminate || [];
+  for (let i = 0; i < eliminate.length; i++) {
+    const item = eliminate[i];
+    if (!item || board[item.index]) continue;
+    const digit = item.digit;
+    if (digit < 1 || digit > 9) continue;
+    if (solution && solution[item.index] === digit) continue;
+    let exists = false;
+    for (let k = 0; k < removed.length; k++) {
+      if (removed[k].index === item.index && removed[k].digit === digit) {
+        exists = true;
+        break;
+      }
+    }
+    if (exists) continue;
+    removed.push({ index: item.index, digit });
+    changed = true;
+  }
+  const place = step.place;
+  if (place && (step.slug === "naked-single" || step.slug === "hidden-single") && board[place.index] === 0) {
+    if (!solution || solution[place.index] === place.digit) {
+      board[place.index] = place.digit;
+      changed = true;
+    }
+  }
+  for (let i = removed.length - 1; i >= 0; i--) {
+    if (board[removed[i].index] !== 0) removed.splice(i, 1);
+  }
+  return changed;
+}
+
+// The grade path can keep going into a harder technique after the one a
+// practice link wants. The link is usable when a normal walk reaches it first.
+function reachesBeforeHarder(puzzle, solution, slug) {
+  const target = TECHNIQUE_RANK[slug];
+  if (target == null || !puzzle || !solution) return false;
+  const explain = solver().explain;
+  const board = puzzle.slice();
+  const removed = [];
+  const seen = new Set();
+  for (let guard = 0; guard < 400; guard++) {
+    const step = explain(board, removed);
+    if (!step) return false;
+    const pattern = step.pattern || [];
+    const eliminate = step.eliminate || [];
+    let key = step.slug + "|" + pattern.join(".");
+    for (let i = 0; i < eliminate.length; i++) key += "|" + eliminate[i].index + ":" + eliminate[i].digit;
+    if (step.place) key += "|p" + step.place.index + ":" + step.place.digit;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    if (step.slug === slug) return true;
+    const rank = TECHNIQUE_RANK[step.slug];
+    if (rank == null || rank >= target) return false;
+    if (!applyTrainStep(board, removed, step, solution)) return false;
+  }
+  return false;
+}
+
+function exemplarList(spec) {
+  const entries = [];
+  if (spec && spec.puzzle && spec.solution) entries.push(spec);
+  const more = spec && spec.more;
+  if (!more) return entries;
+  for (let i = 0; i < more.length; i++) {
+    const extra = more[i];
+    if (extra && extra.puzzle && extra.solution) entries.push(extra);
+  }
+  return entries;
+}
+
 function exemplarTrain(slug, allowed) {
-  const spec = TRAIN[slug];
-  if (!spec || !spec.puzzle || !spec.solution) return null;
-  const { grade } = solver();
-  const quick = scorePuzzle(spec.puzzle, { solution: spec.solution, metrics: false });
-  if (!quick.solved || quick.corrupt) return null;
-  const path = quick.path || [];
-  if (hardestSlug(path) !== slug) return null;
-  if (allowed && !restAllowed(path, slug, allowed)) return null;
-  return packTrain({ puzzle: spec.puzzle, solution: spec.solution }, slug, false);
+  const entries = exemplarList(TRAIN[slug]);
+  if (!entries.length) return null;
+  const start = entries.length > 1 ? Math.floor(random() * entries.length) : 0;
+  let loose = null;
+  for (let n = 0; n < entries.length; n++) {
+    const entry = entries[(start + n) % entries.length];
+    const quick = scorePuzzle(entry.puzzle, { solution: entry.solution, metrics: false });
+    if (!quick.solved || quick.corrupt) continue;
+    const path = quick.path || [];
+    if (!path.includes(slug)) continue;
+    if (!reachesBeforeHarder(entry.puzzle, entry.solution, slug)) continue;
+    const strict = hardestSlug(path) === slug && (!allowed || restAllowed(path, slug, allowed));
+    if (strict) return packTrain(entry, slug, false);
+    if (!loose) loose = entry;
+  }
+  if (!loose) return null;
+  return packTrain(loose, slug, true);
 }
 
 function packTrain(entry, slug, relaxed) {

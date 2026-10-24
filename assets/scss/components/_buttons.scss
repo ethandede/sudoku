@@ -74,6 +74,10 @@
   i {
     flex: none;
   }
+
+  &[hidden] {
+    display: none;
+  }
 }
 
 @mixin control-press {

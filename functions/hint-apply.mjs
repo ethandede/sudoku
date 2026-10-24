@@ -73,13 +73,25 @@ function housePhrase(entries, lead) {
   return `${digit} from ${lead}${listPhrase(entries.map((entry) => cellName(entry.index)))}`;
 }
 
-export function previewSentence(eliminate) {
-  const items = [];
-  for (const [index, digits] of grouped(eliminate)) {
-    for (const digit of digits) items.push({ index, digit });
+export function removalLabel(step) {
+  const seen = new Set();
+  for (const item of (step && step.eliminate) || []) {
+    if (!item || item.digit < 1 || item.digit > 9) continue;
+    seen.add(`${item.index}:${item.digit}`);
   }
-  if (!items.length) return "";
-  const parts = items.map((item) => `${item.digit} in ${cellName(item.index)}`);
+  const count = seen.size;
+  if (count === 1) return "Remove 1 candidate";
+  if (count > 1) return `Remove ${count} candidates`;
+  return "Apply";
+}
+
+export function previewSentence(eliminate) {
+  const parts = [];
+  for (const [index, digits] of grouped(eliminate)) {
+    if (digits.length === 1) parts.push(`${digits[0]} in ${cellName(index)}`);
+    else parts.push(`${listPhrase(digits.map(String))} in ${cellName(index)}`);
+  }
+  if (!parts.length) return "";
   return `Rules out ${listPhrase(parts)}.`;
 }
 

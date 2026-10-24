@@ -250,6 +250,10 @@ async function marks(page, index, kind) {
     .evaluateAll((nodes) => nodes.map((node) => node.textContent));
 }
 
+async function hiddenForReal(page, selector) {
+  return page.locator(selector).evaluate((el) => el.hidden && getComputedStyle(el).display === "none");
+}
+
 async function valueAt(page, index) {
   return Number(await page.locator(".cell").nth(index).getAttribute("data-value"));
 }
@@ -267,7 +271,7 @@ async function placeChain(page, afterApply) {
   await page.click("#hint-btn");
   await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Show why");
   await page.click("#hint-next");
-  await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Apply");
+  await page.waitForFunction(() => /^Remove \d+ candidates?$/.test(document.getElementById("hint-next").textContent || ""));
   const why = await page.locator("#hint-text").innerText();
   assert(/Rules out \d+ in row \d+, column \d+/.test(why), "stage 2 names the ruled-out digit");
   assert(!why.includes("—"), "stage 2 has no em dash");
@@ -446,6 +450,8 @@ await check("wrong digit then placement", async () => {
   try {
     await page.click("#hint-btn");
     await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Show it");
+    assert(await hiddenForReal(page, "#hint-fill"), "fill stays hidden on a wrong-digit hint");
+    assert(await hiddenForReal(page, "#hint-learn"), "learn stays hidden on a wrong-digit hint");
     await page.click("#hint-next");
     await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Clear it");
     assert(
@@ -501,6 +507,7 @@ await check("undo of a placement restores one step and the next hint places agai
   const { context, page } = await openGame(desktop, saveFor(naked, { notes: plan.notes, auto: true }));
   try {
     await placeSingle(page);
+    assert(await hiddenForReal(page, "#hint-next"), "the place button hides after the digit is placed");
     assert((await valueAt(page, naked.step.place.index)) === naked.step.place.digit, "digit placed");
     await page.evaluate(() => document.getElementById("undo-btn").click());
     await page.waitForFunction((index) => document.querySelectorAll(".cell")[index].dataset.value === "0", naked.step.place.index);
@@ -584,7 +591,7 @@ await check("a noted elimination is removed without a strike", async () => {
     await page.click("#hint-btn");
     await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Show why");
     await page.click("#hint-next");
-    await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Apply");
+    await page.waitForFunction(() => /^Remove \d+ candidates?$/.test(document.getElementById("hint-next").textContent || ""));
     const why = await page.locator("#hint-text").innerText();
     assert(why.includes(`${eliminated.digit} in row ${row}, column ${col}`), "stage 2 names this cell");
     const before = (await fadeMark(page, eliminated.index, eliminated.digit).getAttribute("class")) || "";
@@ -617,7 +624,7 @@ await check("dark stage 2 uses the danger color", async () => {
     await page.click("#hint-btn");
     await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Show why");
     await page.click("#hint-next");
-    await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Apply");
+    await page.waitForFunction(() => /^Remove \d+ candidates?$/.test(document.getElementById("hint-next").textContent || ""));
     const mark = fadeMark(page, eliminated.index, eliminated.digit);
     const style = await mark.evaluate((el) => {
       const computed = getComputedStyle(el);
@@ -652,7 +659,7 @@ await check("reduced motion drops an unnoted digit immediately", async () => {
     await page.click("#hint-btn");
     await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Show why");
     await page.click("#hint-next");
-    await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Apply");
+    await page.waitForFunction(() => /^Remove \d+ candidates?$/.test(document.getElementById("hint-next").textContent || ""));
     await page.click("#hint-next");
     await page.waitForFunction(() => {
       const next = document.getElementById("hint-next");
