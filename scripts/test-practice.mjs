@@ -248,10 +248,10 @@ assert.equal(html.slice(html.indexOf('class="play-surface"'), html.indexOf('clas
 const scss = fs.readFileSync(path.join(root, "assets/scss/pages/_sudoku.scss"), "utf8");
 assert.match(scss, /--fill-placed:\s*#8fbee0/);
 assert.match(scss, /--fill-cleared:\s*#d7ebf8/);
-assert.match(scss, /--fill-ring:\s*#0c4f86/);
+assert.match(scss, /--fill-ring:\s*#2141a8/);
 assert.match(scss, /--fill-placed:\s*#3f6d90/);
 assert.match(scss, /--fill-cleared:\s*#2c4d66/);
-assert.match(scss, /--fill-ring:\s*#9ed2f8/);
+assert.match(scss, /--fill-ring:\s*#a9bcff/);
 assert.match(scss, /animation-delay:\s*var\(--fill-delay/);
 assert.match(
   scss,

@@ -13,21 +13,21 @@
   }
 
   .page-content {
-    background: #faf9f7;
+    background: vars.$paper;
     border-radius: 12px;
     padding: 2.25rem 2.5rem 2.5rem;
-    border: 1px solid #ddd8d2;
+    border: 1px solid vars.$line;
     box-shadow: none;
   }
 
   .page-header {
     margin-bottom: 2rem;
     padding-bottom: 1.5rem;
-    border-bottom: 1px solid #ddd8d2;
+    border-bottom: 1px solid vars.$line;
 
     .page-title {
       font-size: 2.5rem;
-      color: vars.$secondary-color;
+      color: var(--ink);
       line-height: 1.2;
       margin: 0;
     }
@@ -35,12 +35,12 @@
 
   .page-body {
     line-height: 1.8;
-    color: #3a352f;
+    color: var(--text);
     font-size: 1.1rem;
 
     h2 {
       font-size: 1.75rem;
-      color: vars.$secondary-color;
+      color: var(--ink);
       margin-top: 2.5rem;
       margin-bottom: 1rem;
       padding-top: 0.5rem;
@@ -48,7 +48,7 @@
 
     h3 {
       font-size: 1.35rem;
-      color: vars.$text-color;
+      color: var(--text);
       margin-top: 2rem;
       margin-bottom: 0.75rem;
     }
@@ -78,7 +78,7 @@
 
     strong {
       font-weight: 600;
-      color: vars.$secondary-color;
+      color: var(--ink);
     }
 
     table {
@@ -117,7 +117,7 @@
 
     hr {
       border: none;
-      border-top: 1px solid #e4e0da;
+      border-top: 1px solid vars.$hairline;
       margin: 2rem 0;
     }
 
@@ -126,7 +126,7 @@
       padding-left: 1.5rem;
       margin: 2rem 0;
       font-style: italic;
-      color: #5e5954;
+      color: vars.$muted;
     }
 
     img {
@@ -141,7 +141,7 @@
       width: fit-content;
       max-width: 100%;
       padding: 12px 12px 8px;
-      background: #fbfaf8;
+      background: vars.$board;
       border-radius: 1.5rem;
 
       > img,
@@ -154,7 +154,7 @@
         aspect-ratio: 960 / 1200;
         margin: 0;
         border-radius: 1rem;
-        background: #fbfaf8;
+        background: vars.$board;
       }
 
       .teddy-icon {
@@ -175,7 +175,7 @@
         margin-top: 0.5rem;
         font-size: 0.95rem;
         line-height: 1.4;
-        color: #3a3530;
+        color: #33383d;
       }
     }
   }
@@ -229,9 +229,9 @@
 }
 
 html[data-theme="dark"] .standard-page .teddy-figure {
-  background: #fbfaf8;
+  background: vars.$board;
 
   figcaption {
-    color: #3a3530;
+    color: #33383d;
   }
 }

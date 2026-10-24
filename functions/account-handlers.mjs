@@ -359,10 +359,10 @@ function expiredPage(origin) {
   body { margin: 0; font-family: system-ui, sans-serif; background: #f4f6f8; color: #1e232b; }
   main { max-width: 28rem; margin: 0 auto; padding: 2.5rem 1.25rem; }
   h1 { font-size: 1.4rem; line-height: 1.3; }
-  a { color: #0c4f86; font-weight: 700; }
+  a { color: #2141a8; font-weight: 700; }
   @media (prefers-color-scheme: dark) {
     body { background: #121416; color: #e6e9ed; }
-    a { color: #9ed2f8; }
+    a { color: #a9bcff; }
   }
 </style>
 </head>

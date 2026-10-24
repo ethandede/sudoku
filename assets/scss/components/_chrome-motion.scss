@@ -16,15 +16,18 @@
 }
 
 .skills-back a,
-.articles-page .read-more,
-.house-promo-cue {
+.articles-page .read-more {
   gap: 0.28rem;
 }
 
-.articles-page .read-more,
-.house-promo-cue {
+.articles-page .read-more {
   display: inline-flex;
   align-items: center;
+}
+
+// The cue wraps in narrow rails, so the arrow stays inline with the last word.
+.house-promo-cue .ph-arrow {
+  margin-left: 0.28rem;
 }
 
 .count-up {

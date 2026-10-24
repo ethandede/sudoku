@@ -59,7 +59,7 @@
     }
   }
 
-  const THEME_COLORS = { light: "#f5f4f1", dark: "#141311" };
+  const THEME_COLORS = { light: "#edf0eb", dark: "#111316" };
 
   function applyDocumentTheme(theme) {
     const dark =
@@ -536,14 +536,12 @@
     return date.toISOString().slice(0, 10);
   }
 
+  // "Oct 24" this year, "Oct 24, 2025" for an older daily from a shared link.
   function formatDay(iso) {
     const [y, m, d] = iso.split("-").map(Number);
-    return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString(undefined, {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-      timeZone: "UTC",
-    });
+    const options = { month: "short", day: "numeric", timeZone: "UTC" };
+    if (y !== new Date().getUTCFullYear()) options.year = "numeric";
+    return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString(undefined, options);
   }
 
   function streakEnding(iso) {
@@ -813,7 +811,11 @@
       const open = tabs.classList.toggle("is-open");
       labelEl.setAttribute("aria-expanded", open ? "true" : "false");
     });
-    document.getElementById("help-btn").addEventListener("click", () => advanceHint());
+    document.getElementById("help-btn").addEventListener("click", () => showModal("help-modal"));
+    document.getElementById("more-help").addEventListener("click", () => {
+      closeMenu();
+      showModal("help-modal");
+    });
     document.getElementById("more-stats").addEventListener("click", () => {
       closeMenu();
       openStats();
@@ -1138,8 +1140,30 @@
     return layer ? [...layer.querySelectorAll(".deal-cell")] : [];
   }
 
-  function heldDigit(index) {
-    return 1 + ((index * 7) % 9);
+  // Each cell rolls its own random digit at its own jittered pace, so the
+  // board reads as many tickers rather than one pattern. Rows the scan has
+  // passed hold a random digit until the puzzle settles.
+  function randomDigit(except) {
+    let digit;
+    do digit = 1 + Math.floor(Math.random() * 9);
+    while (digit === except);
+    return digit;
+  }
+
+  function newRoll() {
+    return {
+      held: Array.from({ length: 81 }, () => randomDigit()),
+      digits: Array.from({ length: 81 }, () => randomDigit()),
+      next: new Array(81).fill(0),
+    };
+  }
+
+  function rollingDigit(roll, index, now) {
+    if (now >= roll.next[index]) {
+      roll.digits[index] = randomDigit(roll.digits[index]);
+      roll.next[index] = now + 45 + Math.random() * 55;
+    }
+    return roll.digits[index];
   }
 
   function stopDeal() {
@@ -1181,7 +1205,7 @@
     layer.hidden = false;
     layer.classList.add("is-search");
     layer.classList.remove("is-veil", "is-fade");
-    deal = { token, mode: "search", row: scanRow(genWatch.value), last: performance.now(), raf: 0 };
+    deal = { token, mode: "search", row: scanRow(genWatch.value), last: performance.now(), raf: 0, roll: newRoll() };
     grid.setAttribute("aria-busy", "true");
     if (dealStatus) dealStatus.textContent = GEN_STAGE[genWatch.stage] || GEN_STAGE.layout;
     deal.raf = window.requestAnimationFrame(tickDeal);
@@ -1217,15 +1241,17 @@
     layer.classList.remove("is-search", "is-veil", "is-fade");
     const nodes = dealCells();
     const now = performance.now();
+    const roll = fromSearch && deal && deal.roll ? deal.roll : newRoll();
     deal = {
       token,
       mode: "settle",
       started: now,
       last: now,
       raf: 0,
+      roll,
       cells: nodes.map((el, index) => {
         const target = puzzle[index] || 0;
-        let shown = fromSearch ? heldDigit(index) : 1 + (index % 9);
+        let shown = roll.held[index];
         if (shown === target) shown = target === 9 ? 1 : target + 1;
         if (target === 0 && shown === 0) shown = 5;
         return {
@@ -1258,13 +1284,12 @@
       return;
     }
     if (deal.mode === "search") {
-      const frame = Math.floor(now / 50);
       const row = deal.row || 0;
       dealCells().forEach((el, index) => {
         const r = Math.floor(index / 9);
         if (r > row) paintDealCell(el, 0, "ahead");
-        else if (r === row) paintDealCell(el, 1 + ((frame + index) % 9), "hot");
-        else paintDealCell(el, heldDigit(index), "past");
+        else if (r === row) paintDealCell(el, rollingDigit(deal.roll, index, now), "hot");
+        else paintDealCell(el, deal.roll.held[index], "past");
       });
       deal.raf = window.requestAnimationFrame(tickDeal);
       return;
@@ -1274,11 +1299,10 @@
     deal.last = now;
     const elapsed = now - deal.started;
     let pending = 0;
-    const frame = Math.floor(now / 50);
     deal.cells.forEach((cell, index) => {
       if (elapsed < cell.delay) {
         pending += 1;
-        paintDealCell(cell.el, 1 + ((frame + index) % 9), "hot");
+        paintDealCell(cell.el, rollingDigit(deal.roll, index, now), "hot");
         return;
       }
       if (!cell.done) {
@@ -1990,6 +2014,22 @@
     };
   }
 
+  // A chip with words only: no cells to mark. canUndo is false when nothing
+  // was applied, so the chip's Undo does not reach back to an earlier move.
+  function showFillMessage(message, canUndo) {
+    clearFillReview();
+    fillReview = {
+      cells: [],
+      summary: message,
+      short: message,
+      detail: "",
+      fading: false,
+      keep: false,
+      armed: false,
+      canUndo,
+    };
+  }
+
   function dismissFillReview() {
     if (!fillReview) return;
     if (motionReduced() || !fillReview.cells.length || fillReview.fading) {
@@ -2064,11 +2104,19 @@
     const practiceApi = window.SudokuPractice;
     const solver = window.SudokuSolver;
     if (!practiceApi || !solver || !solver.explain) return;
-    const probe = solver.explain(state.board, state.removed);
+    // Apply this technique wherever it is on the board, even when an easier
+    // step comes first. explain() alone only returns the next step, so most
+    // techniques used to do nothing while a single was still open.
+    const find = (board, removed) =>
+      solver.explainTechnique ? solver.explainTechnique(board, removed, slug) : solver.explain(board, removed);
+    const probe = find(state.board, state.removed);
     const label = practiceApi.fillLabel(slug);
+    const name = window.SudokuProgress ? window.SudokuProgress.nameOf(slug) : label;
     if (!probe || probe.slug !== slug) {
       dismissHint();
-      announce(probe ? `${label} isn't available yet. Next up is ${probe.name}.` : `${label} isn't available. Nothing legal is left.`);
+      showFillMessage(`${name}: none on the board right now.`, false);
+      render();
+      announce(fillReview.summary);
       return;
     }
     dismissHint();
@@ -2082,7 +2130,7 @@
       state.board,
       state.removed,
       slug,
-      (board, removed) => solver.explain(board, removed),
+      find,
       state.solution,
       syncNotesFromStep
     );
@@ -2100,6 +2148,17 @@
     });
     showFillReview(result.touches, "");
     const count = result.applied.length;
+    // Eliminations on a board with no notes showing change nothing visible,
+    // so say what happened instead of leaving the board looking untouched.
+    if (!fillReview) {
+      const gone = state.removed.length - beforeRemoved.length;
+      showFillMessage(
+        gone > 0
+          ? `${name}: removed ${gone} ${gone === 1 ? "candidate" : "candidates"}. Turn on Auto Candidate Mode to see them.`
+          : `${name}: ${count} ${count === 1 ? "step" : "steps"}.`,
+        true
+      );
+    }
     const message = fillReview ? fillReview.summary : `${label}: ${count} ${count === 1 ? "step" : "steps"}.`;
     if (isSolved()) {
       clearFillReview();
@@ -2202,7 +2261,8 @@
     state.board = snap.board;
     state.notes = snap.notes.map((list) => new Set(list));
     state.removed = (snap.removed || []).map((item) => ({ index: item.index, digit: item.digit }));
-    state.mistakes = snap.mistakes;
+    // Undo takes back the digit, not the error: errors count every wrong entry
+    // tried. Undo at game over still continues, and the next error ends it.
     state.slashed = new Set(snap.slashed);
     state.won = snap.won;
     state.revealed = snap.revealed;
@@ -2522,7 +2582,7 @@
       }
     });
     const fullLabel = labelFor(state.kind);
-    const shortLabel = state.practice && window.SudokuProgress ? window.SudokuProgress.nameOf(state.practice) : "";
+    const shortLabel = shortLabelFor(state.kind);
     if (shortLabel && shortLabel !== fullLabel) pairText(labelEl, fullLabel, shortLabel);
     else labelEl.textContent = fullLabel;
     timerEl.textContent = formatTime(state.elapsed);
@@ -2667,7 +2727,10 @@
       text.removeAttribute("title");
     }
     chip.hidden = false;
-    if (undo) undo.disabled = state.undo.length === 0;
+    if (undo) {
+      undo.hidden = fillReview.canUndo === false;
+      undo.disabled = state.undo.length === 0;
+    }
   }
 
   function labelFor(kind) {
@@ -2677,6 +2740,16 @@
     if (state.shareDate) return `Daily · ${formatDay(state.shareDate)}`;
     if (kind === "daily" && state.dailyDate) return `Daily · ${formatDay(state.dailyDate)}`;
     return LABELS[kind] || "Easy";
+  }
+
+  // The phone toolbar is one row, so the level button drops the technique
+  // prefix and the daily date there. The full label shows on wider screens.
+  function shortLabelFor(kind) {
+    const approximate = state.metadata && state.metadata.trainApproximate;
+    if (state.practice && window.SudokuProgress) return window.SudokuProgress.nameOf(state.practice);
+    if (state.train && window.SudokuProgress && !approximate) return window.SudokuProgress.nameOf(state.train);
+    if (state.shareDate || kind === "daily") return "Daily";
+    return "";
   }
 
   function formatTime(seconds) {
@@ -3103,8 +3176,8 @@
     const host = document.querySelector("#solved-modal .confetti");
     host.replaceChildren();
     const style = getComputedStyle(document.documentElement);
-    const accent = style.getPropertyValue("--accent-color").trim() || "#0c4f86";
-    const lifted = style.getPropertyValue("--accent-on-dark").trim() || "#9ed2f8";
+    const accent = style.getPropertyValue("--accent-color").trim() || "#2141a8";
+    const lifted = style.getPropertyValue("--accent-on-dark").trim() || "#a9bcff";
     const colors = [accent, lifted, "#1e232b", "#e6e9ed", "#2f9e44"];
     for (let i = 0; i < 18; i += 1) {
       const piece = document.createElement("span");

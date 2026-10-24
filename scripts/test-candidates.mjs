@@ -42,8 +42,8 @@ assertEqual(boardTokens.length, 6, "light and dark board, cell, and given tokens
 for (const line of boardTokens) {
   assert(!/#fff\b|#ffffff/i.test(line), `pure white left on ${line.trim()}`);
 }
-assertEqual(boardTokens.filter((line) => line.includes("#fbfaf8")).length, 3, "light board is warm paper");
-assertEqual(boardTokens.filter((line) => line.includes("#1e1d1b")).length, 3, "dark board is warm graphite");
+assertEqual(boardTokens.filter((line) => line.includes("vars.$board}")).length, 3, "light board uses the board token");
+assertEqual(boardTokens.filter((line) => line.includes("vars.$dark-board}")).length, 3, "dark board uses the dark board token");
 
 const sudokuScss = readFileSync(join(root, "assets/scss/pages/_sudoku.scss"), "utf8");
 assert(sudokuScss.includes("font-size: clamp(11px, 3.5cqi, 16px)"), "candidate size uses the phone clamp");
@@ -51,9 +51,9 @@ assert(!sudokuScss.includes("3.2cqi"), "the old candidate clamp is gone");
 assert(!sudokuScss.includes("2.8cqi"), "hints no longer shrink candidates");
 assert(sudokuScss.includes("font-variant-numeric: tabular-nums"), "candidates use tabular numerals");
 assert(sudokuScss.includes('font-feature-settings: "tnum"'), "candidates enable tnum");
-assert(sudokuScss.includes("--auto-ink: #4f4b46"), "light auto candidates use the warm ink");
-assert(sudokuScss.includes("--auto-ink: #c4bfb8"), "dark auto candidates stay off the muted chrome");
-assert(sudokuScss.includes("--auto-on-selected: #ecebe8"), "selected auto candidates lighten in dark mode");
+assert(sudokuScss.includes("--auto-ink: #4a5056"), "light auto candidates use the graphite ink");
+assert(sudokuScss.includes("--auto-ink: #bcc3c6"), "dark auto candidates stay off the muted chrome");
+assert(sudokuScss.includes("--auto-on-selected: #eceeec"), "selected auto candidates lighten in dark mode");
 assert(!sudokuScss.includes("#24303a") && !sudokuScss.includes("#2c4256") && !sudokuScss.includes("#355068"), "dark cell tints are no longer cool slate");
 const phoneHeading = sudokuScss.slice(sudokuScss.indexOf("html .game-intro h1"), sudokuScss.indexOf("html .game-intro h1") + 360);
 assert(phoneHeading.includes("font-size: clamp(14px, 3.9vw, 16px)"), "phone heading uses the tight clamp");
@@ -992,11 +992,11 @@ await check("selection fills keep givens distinct from entries", async () => {
   });
   assertEqual(fills.selected, fills.selectedFill, "selected cell uses the palette fill");
   assertEqual(fills.selectedOutline, "none", "selection has no border");
-  // Approved color change: the board is warm paper, not pure white.
-  const paper = "rgb(251, 250, 248)";
-  assertEqual(fills.given, paper, "givens sit on the warm board");
-  assertEqual(fills.open, paper, "empty cells use the warm board");
-  if (fills.entered) assertEqual(fills.entered, paper, "player entries use the warm board");
+  // The board is the palette board color, not pure white.
+  const paper = "rgb(251, 252, 250)";
+  assertEqual(fills.given, paper, "givens sit on the board color");
+  assertEqual(fills.open, paper, "empty cells use the board color");
+  if (fills.entered) assertEqual(fills.entered, paper, "player entries use the board color");
   assert(fills.givenPeer && fills.emptyPeer, "the highlight includes a given and an open cell");
   assert(fills.givenPeer !== fills.given, "a highlighted given is tinted");
   assert(fills.emptyPeer !== fills.open, "a highlighted open cell is tinted");
@@ -1307,12 +1307,55 @@ await check("the phone keypad keys and mini-grid cells are square", async () => 
     assert(edges.name === "SudokuSudoku", `${width} wordmark`);
     assert(edges.subhead !== "none", `${width} keeps the subhead`);
     assert(edges.brandTop >= 16, `${width} header starts ${edges.brandTop}px down`);
-    assert(Math.abs(edges.icons.left - edges.board.left) <= 2, `${width} icon row left ${edges.icons.left} vs board ${edges.board.left}`);
-    assert(Math.abs(edges.icons.right - edges.controls.right) <= 2, `${width} icon row right ${edges.icons.right} vs panel ${edges.controls.right}`);
+    // One toolbar row: the status line spans the board, the icons sit over the panel.
+    assert(Math.abs(edges.status.top - edges.icons.top) <= 2, `${width} status and icons share a row (${edges.status.top} vs ${edges.icons.top})`);
     assert(Math.abs(edges.status.left - edges.board.left) <= 2, `${width} status left ${edges.status.left} vs board ${edges.board.left}`);
-    assert(Math.abs(edges.status.right - edges.controls.right) <= 2, `${width} status right ${edges.status.right} vs panel ${edges.controls.right}`);
+    assert(Math.abs(edges.status.left + edges.status.width - edges.board.left - edges.board.width) <= 2, `${width} status right vs board right`);
+    assert(Math.abs(edges.icons.right - edges.controls.right) <= 2, `${width} icon row right ${edges.icons.right} vs panel ${edges.controls.right}`);
   }
   await context.close();
+});
+
+await check("undo takes back a wrong digit but the error still counts", async () => {
+  const { context, page } = await openPage({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 });
+  const empty = await page.evaluate(() =>
+    [...document.querySelectorAll(".sudoku-grid .cell")].findIndex((cell) => !cell.classList.contains("given") && !/^\d$/.test(cell.textContent.trim()))
+  );
+  await page.locator(".sudoku-grid .cell").nth(empty).click();
+  for (const digit of ["1", "2", "3", "4", "5", "6", "7", "8", "9"]) {
+    await page.keyboard.press(digit);
+    if ((await page.textContent("#mistake-count")) === "1") break;
+  }
+  assert((await page.textContent("#mistake-count")) === "1", "a wrong digit counts one error");
+  await page.click("#undo-btn");
+  const cell = await page.locator(".sudoku-grid .cell").nth(empty).textContent();
+  assert(!/^\d$/.test(cell.trim()), "undo removes the wrong digit");
+  assert((await page.textContent("#mistake-count")) === "1", "the error still counts after undo");
+  await context.close();
+});
+
+await check("homepage ads stay at least 150px from the game", async () => {
+  // AdSense game-page guidance: keep ad units 150px or more from the game.
+  for (const [width, height] of [
+    [1280, 800],
+    [1024, 768],
+    [1366, 650],
+    [390, 844],
+  ]) {
+    const { context, page } = await openPage({ viewport: { width, height }, deviceScaleFactor: 1 });
+    const gap = await page.evaluate(() => {
+      const game = Math.max(
+        document.querySelector(".sudoku-grid").getBoundingClientRect().bottom,
+        document.querySelector(".controls").getBoundingClientRect().bottom
+      );
+      const tops = [...document.querySelectorAll(".house-home .house-slot")]
+        .filter((slot) => getComputedStyle(slot).display !== "none")
+        .map((slot) => slot.getBoundingClientRect().top);
+      return Math.min(...tops) - game;
+    });
+    assert(gap >= 150, `${width}x${height} first ad is ${gap}px below the game`);
+    await context.close();
+  }
 });
 
 await check("side-by-side keypad uses the pre-redesign 3x3 key size", async () => {

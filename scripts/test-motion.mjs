@@ -19,7 +19,7 @@ const sudoku = read("assets/scss/pages/_sudoku.scss");
 
 assert.match(main, /@use 'components\/chrome-motion'/);
 assert.match(main, /@use 'components\/uiverse'/);
-assert.match(brand, /radial-gradient\(rgba\(12, 79, 134/);
+assert.match(brand, /radial-gradient\(rgba\(33, 65, 168/);
 assert.match(motion, /prefers-reduced-motion:\s*no-preference/);
 assert.match(motion, /translateY\(1px\)/);
 assert.match(motion, /var\(--btn-duration\)/);

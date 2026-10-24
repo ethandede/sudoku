@@ -1,47 +1,55 @@
+@use "../abstracts/variables" as vars;
+
+// Desktop: the board's top edge sits about 152px down (intro plus the toolbar
+// row), and 16px stays clear below it. The board is min(540px, 100dvh minus
+// this), so it always fits on screen. It was 108px, which let the board run
+// past the bottom of short screens.
+$board-offset: 168px;
+
 .sudoku-page,
 .technique-page {
-  --board-bg: #fbfaf8;
-  --cell-bg: #fbfaf8;
-  --given-bg: #fbfaf8;
-  --ink: #1f1c19;
+  --board-bg: #{vars.$board};
+  --cell-bg: #{vars.$board};
+  --given-bg: #{vars.$board};
+  --ink: #{vars.$ink};
   --user-ink: var(--accent-color);
-  --line: #1f1c19;
-  --thin: #ddd8d2;
-  --selected: #c0dcf1;
+  --line: #{vars.$ink};
+  --thin: #{vars.$line};
+  --selected: #{vars.$selected};
   --selected-ink: var(--ink);
-  --same: #d4e8f7;
-  --peer: #e7f2fb;
-  --given-peer: #e7f2fb;
-  --hover: #e7f2fb;
-  --slash: #b00016;
-  --slash-on-selected: #b00016;
-  --dot: #b00016;
-  --pad: #efece7;
-  --pad-ink: #1f1c19;
-  --pad-border: #ddd8d2;
-  --map-empty: #ddd8d2;
+  --same: #{vars.$soft};
+  --peer: #{vars.$peer};
+  --given-peer: #{vars.$peer};
+  --hover: #{vars.$peer};
+  --slash: #{vars.$danger};
+  --slash-on-selected: #{vars.$danger};
+  --dot: #{vars.$danger};
+  --pad: #{vars.$pad};
+  --pad-ink: #{vars.$ink};
+  --pad-border: #{vars.$line};
+  --map-empty: #{vars.$line};
   --map-fill: var(--same);
-  --muted: #5e5954;
-  --count-ink: #5a534c;
-  --auto-ink: #4f4b46;
-  --note-ink: #0c4f86;
-  --ghost-ink: #2c4558;
-  --auto-on-selected: #4f4b46;
+  --muted: #{vars.$muted};
+  --count-ink: #{vars.$count-ink};
+  --auto-ink: #4a5056;
+  --note-ink: #{vars.$accent-color};
+  --ghost-ink: #2a3a66;
+  --auto-on-selected: #4a5056;
   --note-on-selected: var(--accent-color);
-  --ghost-on-selected: #2c4558;
-  --card: #faf9f7;
-  --page: #f5f4f1;
+  --ghost-on-selected: #2a3a66;
+  --card: #{vars.$paper};
+  --page: #{vars.$recess};
   --accent-btn: var(--accent-color);
-  --accent-on: #f7f6f3;
+  --accent-on: #{vars.$on-accent};
   --focus: var(--accent-color);
-  --danger: #b00016;
-  --hint-pattern: #0b6e5f;
-  --hint-place: #0b6e5f;
+  --danger: #{vars.$danger};
+  --hint-pattern: #{vars.$pattern};
+  --hint-place: #{vars.$pattern};
   --hint-place-bg: #d7f3ec;
   --hint-region: #e7f6f2;
-  --fill-placed: #8fbee0;
-  --fill-cleared: #d7ebf8;
-  --fill-ring: #0c4f86;
+  --fill-placed: #a3b5ec;
+  --fill-cleared: #dee5fa;
+  --fill-ring: #{vars.$accent-color};
 
   background: var(--page);
   color: var(--ink);
@@ -56,48 +64,48 @@
 
 html[data-theme="dark"] .sudoku-page,
 html[data-theme="dark"] .technique-page {
-  --board-bg: #1e1d1b;
-  --cell-bg: #1e1d1b;
-  --given-bg: #1e1d1b;
-  --ink: #f3f0eb;
+  --board-bg: #{vars.$dark-board};
+  --cell-bg: #{vars.$dark-board};
+  --given-bg: #{vars.$dark-board};
+  --ink: #{vars.$dark-ink};
   --user-ink: var(--accent-on-dark);
-  --line: #efece7;
-  --thin: #3d3a36;
-  --selected: #514a42;
+  --line: #{vars.$pad};
+  --thin: #{vars.$dark-thin};
+  --selected: #{vars.$dark-selected};
   --selected-ink: var(--ink);
-  --same: #454038;
-  --peer: #322e2a;
-  --given-peer: #322e2a;
-  --hover: #3a3632;
-  --slash: #ffb4b4;
-  --slash-on-selected: #ffb4b4;
-  --dot: #ffb4b4;
-  --pad: #2c2a27;
-  --pad-ink: #f3f0eb;
-  --pad-border: #3d3a36;
-  --map-empty: #3d3a36;
-  --map-fill: var(--same);
-  --muted: #c4beb6;
-  --count-ink: #c9c3bb;
-  --auto-ink: #c4bfb8;
-  --note-ink: #9ed2f8;
-  --ghost-ink: #d4ebfa;
-  --auto-on-selected: #ecebe8;
+  --same: #{vars.$dark-same};
+  --peer: #{vars.$dark-peer};
+  --given-peer: #{vars.$dark-peer};
+  --hover: #{vars.$dark-hover};
+  --slash: #{vars.$dark-danger};
+  --slash-on-selected: #{vars.$dark-danger};
+  --dot: #{vars.$dark-danger};
+  --pad: #{vars.$dark-track};
+  --pad-ink: #{vars.$dark-ink};
+  --pad-border: #{vars.$dark-line};
+  --map-empty: #{vars.$dark-map-empty};
+  --map-fill: #{vars.$dark-map-fill};
+  --muted: #{vars.$dark-muted};
+  --count-ink: #{vars.$dark-body};
+  --auto-ink: #bcc3c6;
+  --note-ink: #{vars.$accent-on-dark};
+  --ghost-ink: #d5defd;
+  --auto-on-selected: #eceeec;
   --note-on-selected: var(--accent-on-dark);
-  --ghost-on-selected: #d4ebfa;
-  --card: #242220;
-  --page: #141311;
+  --ghost-on-selected: #d5defd;
+  --card: #{vars.$dark-card};
+  --page: #{vars.$dark-page};
   --accent-btn: var(--accent-on-dark);
-  --accent-on: #141311;
+  --accent-on: #{vars.$dark-page};
   --focus: var(--accent-on-dark);
-  --danger: #ffb4b4;
-  --hint-pattern: #7ddec8;
-  --hint-place: #7ddec8;
+  --danger: #{vars.$dark-danger};
+  --hint-pattern: #{vars.$dark-pattern};
+  --hint-place: #{vars.$dark-pattern};
   --hint-place-bg: #1a3c34;
   --hint-region: #1e3330;
-  --fill-placed: #3f6d90;
-  --fill-cleared: #2c4d66;
-  --fill-ring: #9ed2f8;
+  --fill-placed: #3d4f8f;
+  --fill-cleared: #2c3a63;
+  --fill-ring: #{vars.$accent-on-dark};
 }
 
 .sudoku-shell {
@@ -120,11 +128,11 @@ html[data-theme="dark"] .technique-page {
 }
 
 body:has(.sudoku-page) {
-  background: #f5f4f1;
+  background: vars.$recess;
 }
 
 html[data-theme="dark"] body:has(.sudoku-page) {
-  background: #141311;
+  background: vars.$dark-page;
 }
 
 body:has(.sudoku-page) .site-header {
@@ -155,11 +163,11 @@ body:has(.sudoku-page) .site-header {
   height: 22px;
   flex: none;
   display: block;
-  color: #0c4f86;
+  color: vars.$accent-color;
 }
 
 html[data-theme="dark"] .game-brand .logo-mark {
-  color: #9ed2f8;
+  color: vars.$accent-on-dark;
 }
 
 .game-brand-echo {
@@ -198,25 +206,29 @@ html[data-theme="dark"] .game-brand-echo {
   display: none;
 }
 
+// One toolbar row: level, timer, and errors, then help, settings, and more.
+// The logo is the home link. The status line comes first in the row but
+// after the icons in the markup, so order puts it in front.
 .play-chrome {
   position: relative;
   z-index: 6;
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0.35rem 0;
 }
 
 .icon-row {
+  order: 2;
+  flex: none;
   display: flex;
   align-items: center;
   min-height: 44px;
   gap: 0;
 }
 
-.icon-spacer {
-  flex: 1 1 auto;
-}
-
-.icon-btn,
-.play-home {
+.icon-btn {
   width: 44px;
   min-width: 44px;
   height: 44px;
@@ -225,15 +237,14 @@ html[data-theme="dark"] .game-brand-echo {
   align-items: center;
   justify-content: center;
   border: 0;
-  background: var(--btn-secondary-bg);
+  background: transparent;
   color: var(--ink);
   padding: 0;
   text-decoration: none;
   border-radius: var(--btn-radius);
-  box-shadow: inset 0 0 0 1px var(--btn-secondary-edge), inset 0 1px 0 var(--btn-highlight);
 
   &:hover {
-    background: color-mix(in srgb, var(--btn-secondary-bg) 78%, var(--recess));
+    background: color-mix(in srgb, var(--track) 70%, transparent);
   }
 
   &:focus-visible {
@@ -299,7 +310,7 @@ html[data-theme="dark"] .game-brand-echo {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 12px;
-  box-shadow: 0 1px 1px rgba(31, 28, 25, 0.08), 0 16px 32px -20px rgba(31, 28, 25, 0.45);
+  box-shadow: 0 1px 1px rgba(26, 29, 33, 0.08), 0 16px 32px -20px rgba(26, 29, 33, 0.45);
 
   &.is-open {
     display: flex;
@@ -360,11 +371,14 @@ html[data-theme="dark"] .game-brand-echo {
 }
 
 .status-bar {
+  order: 1;
+  flex: 1 1 auto;
+  min-width: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 0.35rem;
-  min-height: 40px;
+  min-height: 44px;
   margin: 0;
 }
 
@@ -395,8 +409,9 @@ html[data-theme="dark"] .game-brand-echo {
   font-size: 1.2rem;
   font-weight: 800;
   line-height: 1;
+  position: relative;
   min-height: 44px;
-  padding: 0;
+  padding: 0 1.75rem 0 0.8rem;
   border-radius: var(--btn-radius);
   box-shadow: inset 0 0 0 1px var(--btn-secondary-edge);
   cursor: pointer;
@@ -404,11 +419,29 @@ html[data-theme="dark"] .game-brand-echo {
   &:hover {
     background: color-mix(in srgb, var(--btn-secondary-bg) 78%, var(--recess));
   }
+
+  // A chevron says the level opens a menu. It is a pseudo-element because
+  // the script replaces the label text. It flips while the menu is open.
+  &::after {
+    content: "";
+    position: absolute;
+    right: 0.8rem;
+    top: 50%;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: translateY(-70%) rotate(45deg);
+  }
+
+  &[aria-expanded="true"]::after {
+    transform: translateY(-20%) rotate(-135deg);
+  }
 }
 
 .timer-group {
   justify-self: center;
-  gap: 0;
+  gap: 0.5rem;
 }
 
 .mistake-counter {
@@ -447,7 +480,7 @@ html[data-theme="dark"] .game-brand-echo {
 
 .fill-chip {
   position: absolute;
-  top: 44px;
+  top: 0;
   left: 0;
   right: 0;
   z-index: 7;
@@ -530,7 +563,7 @@ html[data-theme="dark"] .game-brand-echo {
   color: var(--ink);
   border: 1px solid var(--line);
   border-radius: 12px;
-  box-shadow: 0 1px 1px rgba(31, 28, 25, 0.08), 0 16px 32px -20px rgba(31, 28, 25, 0.45);
+  box-shadow: 0 1px 1px rgba(26, 29, 33, 0.08), 0 16px 32px -20px rgba(26, 29, 33, 0.45);
   padding: 0.35rem;
   display: flex;
   flex-direction: column;
@@ -1067,10 +1100,14 @@ html[data-theme="dark"] .cell.hint-eliminate {
   align-items: stretch;
   background: var(--track);
   border: 0;
-  border-radius: 999px;
-  padding: 0.18rem;
+  border-radius: var(--btn-radius);
+  padding: 0.22rem;
   min-height: 44px;
-  box-shadow: inset 0 0 0 1px var(--line);
+  // The same ink edge and offset as Easy, Undo, and Erase. Not var(--line):
+  // on the game page that is the board's ink grid line.
+  box-shadow:
+    inset 0 0 0 var(--btn-edge-width) var(--btn-edge),
+    var(--btn-offset) var(--btn-offset) 0 var(--btn-offset-color);
   container-type: inline-size;
 
   button {
@@ -1084,7 +1121,7 @@ html[data-theme="dark"] .cell.hint-eliminate {
     border: 0;
     background: transparent;
     color: var(--pad-ink);
-    border-radius: 999px;
+    border-radius: calc(var(--btn-radius) - 0.15rem);
     font-weight: 650;
     letter-spacing: var(--btn-tracking);
     font-size: 0.88rem;
@@ -1230,6 +1267,7 @@ kbd {
   height: auto;
   aspect-ratio: 1;
   padding: 0;
+  font: inherit;
   cursor: pointer;
   box-shadow: inset 0 0 0 1px var(--btn-secondary-edge), inset 0 1px 0 var(--btn-highlight);
 
@@ -1274,7 +1312,7 @@ kbd {
   border: 1px solid var(--line);
   border-radius: 12px 12px 0 0;
   padding: 0.2rem 0.85rem calc(0.6rem + env(safe-area-inset-bottom));
-  box-shadow: 0 1px 1px rgba(31, 28, 25, 0.08), 0 -16px 32px -20px rgba(31, 28, 25, 0.45);
+  box-shadow: 0 1px 1px rgba(26, 29, 33, 0.08), 0 -16px 32px -20px rgba(26, 29, 33, 0.45);
   touch-action: none;
 
   &[hidden] {
@@ -1431,7 +1469,7 @@ kbd {
     border: 1px solid var(--btn-secondary-edge);
     background: var(--btn-secondary-bg);
     color: var(--btn-secondary-ink);
-    box-shadow: inset 0 1px 0 var(--btn-highlight), 0 1px 1px rgba(31, 28, 25, 0.04);
+    box-shadow: inset 0 1px 0 var(--btn-highlight), 0 1px 1px rgba(26, 29, 33, 0.04);
     touch-action: manipulation;
     cursor: pointer;
   }
@@ -1451,20 +1489,6 @@ kbd {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-}
-
-.play-technique {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 48px;
-  padding: 0 1rem;
-  border-radius: var(--btn-radius);
-  background: var(--btn-primary);
-  color: var(--btn-primary-ink);
-  border: 1px solid var(--btn-primary-edge);
-  box-shadow: inset 0 1px 0 var(--btn-highlight), var(--btn-shadow);
-  text-decoration: none;
 }
 
 .technique-index {
@@ -1530,27 +1554,48 @@ button:disabled {
   gap: 0.55rem;
   min-height: 44px;
   height: 44px;
-  font-size: 1rem;
+  font-size: 0.83rem;
   color: var(--ink);
 
+  // After G4b413l's minimalist switch on Uiverse.io (MIT):
+  // https://uiverse.io/G4b413l/bitter-hound-66. A thin track and a large knob
+  // with a paper ring that slides across. Red and green became track and pen.
   input {
     appearance: none;
-    width: 2.45rem;
-    height: 1.35rem;
+    position: relative;
+    width: 2.9rem;
+    height: 1.5rem;
     margin: 0;
     flex: none;
-    border: 1px solid var(--btn-secondary-edge);
+    border: 0;
     border-radius: 999px;
-    background-color: var(--track);
-    background-image: radial-gradient(circle at 0.68rem 50%, var(--paper) 0 0.4rem, transparent 0.44rem);
-    box-shadow: inset 0 1px 2px rgba(31, 28, 25, 0.16);
+    background: linear-gradient(var(--track-fill, var(--btn-secondary-edge)), var(--track-fill, var(--btn-secondary-edge))) center / 100% 0.55rem no-repeat;
     cursor: pointer;
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 1.5rem;
+      height: 1.5rem;
+      box-sizing: border-box;
+      border: 0.4rem solid var(--paper);
+      border-radius: 50%;
+      background: var(--muted);
+      box-shadow: 0 0 0 1px var(--btn-secondary-edge), 0 1px 2px rgba(26, 29, 33, 0.2);
+      transform: translateY(-50%);
+    }
   }
 
   input:checked {
-    background-color: var(--btn-primary);
-    border-color: var(--btn-primary-edge);
-    background-image: radial-gradient(circle at 1.72rem 50%, var(--btn-primary-ink) 0 0.4rem, transparent 0.44rem);
+    --track-fill: color-mix(in srgb, var(--btn-primary) 45%, var(--paper));
+
+    &::before {
+      background: var(--btn-primary);
+      box-shadow: 0 0 0 1px var(--btn-primary-edge), 0 1px 2px rgba(26, 29, 33, 0.2);
+      transform: translate(1.4rem, -50%);
+    }
   }
 
   input:focus-visible {
@@ -1650,6 +1695,47 @@ button:disabled {
       font-size: 1.5rem;
     }
   }
+
+  // The copy and its ad column share the play area's width, so they line up
+  // with the board instead of centering on the page.
+  .home-below-wrap {
+    width: min(
+      100%,
+      calc(540px + 220px + clamp(16px, 2vw, 32px)),
+      calc(100dvh - #{$board-offset} + 220px + clamp(16px, 2vw, 32px))
+    );
+    margin: 0 auto;
+  }
+
+  .sudoku-copy,
+  .house-home {
+    max-width: none;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .sudoku-copy > * {
+    max-width: 40rem;
+  }
+}
+
+// Wide enough for a 300px sidebar beside a readable column of copy: the
+// 300x250 on top, the 300x600 under it.
+@media (min-width: 900px) {
+  .home-below-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    column-gap: clamp(24px, 3vw, 40px);
+    align-items: start;
+  }
+
+  // AdSense asks for at least 150px between ads and a game. The board ends
+  // at least 16px above the copy, so 140px here keeps the first ad 156px or
+  // more below it at any window height.
+  .house-home {
+    margin: 0;
+    padding-top: 140px;
+  }
 }
 
 .modal[hidden] {
@@ -1672,10 +1758,11 @@ button:disabled {
   width: min(100%, 28rem);
   background: var(--card);
   color: var(--ink);
-  border: 1px solid var(--line);
+  // Not var(--line): on the game page that is the board's ink grid line.
+  border: 1px solid var(--thin);
   border-radius: 12px;
   padding: 1.25rem 1.25rem 1.4rem;
-  box-shadow: 0 1px 1px rgba(31, 28, 25, 0.08), 0 18px 40px -24px rgba(31, 28, 25, 0.5);
+  box-shadow: 0 1px 1px rgba(26, 29, 33, 0.08), 0 18px 40px -24px rgba(26, 29, 33, 0.5);
   overflow: auto;
   max-height: calc(100dvh - 2rem);
 
@@ -1747,6 +1834,57 @@ button:disabled {
   padding: 0;
 }
 
+// How to play. A reading sheet, so a comfortable measure and quiet headings.
+.help-card {
+  width: min(100%, 32rem);
+
+  h3 {
+    margin: 1.1rem 0 0.35rem;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  p,
+  li {
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.1rem;
+  }
+
+  li + li {
+    margin-top: 0.3rem;
+  }
+
+  kbd {
+    padding: 0.05rem 0.35rem;
+    font-weight: 700;
+  }
+
+  a {
+    color: var(--btn-focus);
+    font-weight: 600;
+  }
+}
+
+.help-rule {
+  color: var(--muted);
+}
+
+// No keyboard on a touch screen, so no shortcut list there.
+@media (hover: none) and (pointer: coarse) {
+  .help-keys {
+    display: none;
+  }
+}
+
 .modal-card.stats-card {
   margin: 0;
   border: 0;
@@ -1781,7 +1919,7 @@ button:disabled {
   border-radius: 999px;
   background-color: var(--track);
   background-image: radial-gradient(circle at 0.65rem 50%, var(--paper) 0 0.38rem, transparent 0.42rem);
-  box-shadow: inset 0 1px 2px rgba(31, 28, 25, 0.16);
+  box-shadow: inset 0 1px 2px rgba(26, 29, 33, 0.16);
 }
 
 .settings-card input[type="checkbox"]:checked {
@@ -1982,7 +2120,7 @@ button:disabled {
 }
 
 // Below this the Candidate label and the N badge no longer both fit with an inset.
-@container (max-width: 200px) {
+@container (max-width: 250px) {
   .mode-toggle kbd {
     display: none;
   }
@@ -2012,6 +2150,67 @@ button:disabled {
 
   .puzzle-label:has(.copy-short) {
     font-size: 0.92rem;
+  }
+
+  // The board is centered between the toolbar and the mode toggle, so the
+  // toolbar adds no bottom margin of its own.
+  .play-chrome {
+    margin-bottom: 0;
+  }
+
+  // One toolbar row on a phone: the icons and pause drop to 40px and 36px
+  // to make room.
+  // Only the level label may shrink, so a long name ellipsizes instead of
+  // running into the timer.
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.35rem;
+  }
+
+  .puzzle-label {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .timer-group,
+  .mistake-counter {
+    flex: none;
+  }
+
+  .puzzle-label {
+    font-size: 1rem;
+    padding: 0 1.45rem 0 0.6rem;
+
+    &::after {
+      right: 0.6rem;
+      width: 0.34rem;
+      height: 0.34rem;
+    }
+  }
+
+  .timer-group {
+    gap: 0.15rem;
+  }
+
+  #pause-btn {
+    width: 36px;
+    min-width: 36px;
+  }
+
+  .mistake-label {
+    font-size: 0.92rem;
+  }
+
+  .icon-row .icon-btn {
+    width: 40px;
+    min-width: 40px;
+  }
+
+  // How to play moves into the more menu on a phone, so the level name fits
+  // in the toolbar row.
+  #help-btn {
+    display: none;
   }
 
   .fill-chip-text {
@@ -2051,13 +2250,13 @@ button:disabled {
   }
 
   // The icon row and status line share the board-plus-panel width.
-  // Board is min(540px, 100dvh - 108px); the panel is 220px; the gap matches .play-surface.
+  // Board is min(540px, 100dvh - $board-offset); the panel is 220px; the gap matches .play-surface.
   .game-intro,
   .play-chrome {
     width: min(
       100%,
       calc(540px + 220px + clamp(16px, 2vw, 32px)),
-      calc(100dvh - 108px + 220px + clamp(16px, 2vw, 32px))
+      calc(100dvh - #{$board-offset} + 220px + clamp(16px, 2vw, 32px))
     );
     margin-left: auto;
     margin-right: auto;
@@ -2065,6 +2264,18 @@ button:disabled {
 
   .game-intro {
     padding-top: 1.25rem;
+  }
+
+  // Same columns as .play-surface: the status line spans the board and the
+  // icons sit over the panel, so the timer stays centered on the board.
+  .play-chrome {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    column-gap: clamp(16px, 2vw, 32px);
+  }
+
+  .icon-row {
+    justify-content: flex-end;
   }
 
   .play-surface {
@@ -2090,7 +2301,7 @@ button:disabled {
   .board-wrap {
     // 540px is the pre-redesign board. The dvh cap keeps the border inside the
     // screen under the icon row and status line.
-    width: min(100%, 540px, calc(100dvh - 108px));
+    width: min(100%, 540px, calc(100dvh - #{$board-offset}));
     max-width: 540px;
   }
 
@@ -2199,11 +2410,11 @@ button:disabled {
 }
 
 @mixin standalone-app {
-  background: #f5f4f1;
+  background: vars.$recess;
   overscroll-behavior: none;
 
   body {
-    background: #f5f4f1;
+    background: vars.$recess;
     overscroll-behavior: none;
     padding-top: env(safe-area-inset-top);
     padding-right: env(safe-area-inset-right);
@@ -2212,10 +2423,10 @@ button:disabled {
   }
 
   &[data-theme="dark"] {
-    background: #141311;
+    background: vars.$dark-page;
 
     body {
-      background: #141311;
+      background: vars.$dark-page;
     }
   }
 
@@ -2265,6 +2476,27 @@ html.is-standalone:has(.sudoku-page) body {
   padding: 0;
 }
 
+// The game's action controls share the chrome button's ink edge and hard
+// offset from components/_buttons.scss. Utility icons (home, help,
+// settings, more, pause) stay plain so the header does not read as a row
+// of keys. No hover circle here: these get pressed constantly.
+#hint-btn,
+.puzzle-label,
+.undo-btn,
+.erase-key {
+  box-shadow:
+    inset 0 0 0 var(--btn-edge-width) var(--btn-edge),
+    var(--btn-offset) var(--btn-offset) 0 var(--btn-offset-color);
+}
+
+#hint-btn {
+  background: var(--btn-secondary-bg);
+}
+
+.undo-btn:disabled {
+  box-shadow: inset 0 0 0 1px var(--btn-secondary-edge);
+}
+
 .undo-btn,
 .erase-key,
 .mode-toggle button,
@@ -2293,13 +2525,27 @@ html.is-standalone:has(.sudoku-page) body {
       transform var(--btn-duration) var(--btn-ease);
   }
 
-  .undo-btn:active:not(:disabled),
-  .erase-key:active,
   .mode-toggle button:active,
   .number-pad button:active,
   .text-btn:active,
   .icon-btn:not(#hint-btn):active {
     transform: translateY(var(--btn-press));
+  }
+
+  // Sink into the offset, like the chrome buttons.
+  .undo-btn:active:not(:disabled),
+  .erase-key:active,
+  .puzzle-label:active {
+    transform: translate(var(--btn-offset), var(--btn-offset));
+    box-shadow: inset 0 0 0 var(--btn-edge-width) var(--btn-edge);
+  }
+
+  .auto-toggle input::before {
+    transition: transform 0.25s var(--btn-ease), background-color 0.25s var(--btn-ease);
+  }
+
+  .puzzle-label::after {
+    transition: transform var(--btn-duration) var(--btn-ease);
   }
 
   .more-menu button,

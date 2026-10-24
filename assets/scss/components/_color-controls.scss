@@ -1,3 +1,5 @@
+@use "../abstracts/variables" as vars;
+
 #color-controls {
   display: none;
   flex-wrap: wrap;
@@ -22,7 +24,7 @@
       padding: 0;
       cursor: pointer;
       -webkit-appearance: none;
-      border: 1px solid #cfc8be;
+      border: 1px solid vars.$btn-edge;
       border-radius: 4px;
 
       &::-webkit-color-swatch-wrapper {

@@ -1,36 +1,39 @@
+@use "../abstracts/variables" as vars;
+
 // Chrome controls adapted from Uiverse.io. Each element there is MIT.
-// Colors, sizes, and motion are fitted to Palette A. The game screen is not
+// Colors, sizes, and motion are fitted to the site palette. The game screen is not
 // styled here: no board, keypad, mode toggle, technique stepper, or settings
 // checkboxes. Those controls stay as they are.
 //
 // Button. From Uiverse.io by Dear31 (MIT): https://uiverse.io/Dear31/good-yak-38
-// Tags: simple, button, hover. The comic shadow, teal, and circle-grow are not used.
-// The resting face lives in components/_buttons.scss (hairline, inner highlight).
+// Tags: simple, button, hover. The ink edge, the hard offset shadow, and the
+// circle-grow fill are kept. The teal became the marker token. It lives in
+// components/_buttons.scss.
 //
 // Switch. A rounded track with a filled selected state.
 // From Uiverse.io by G4b413l (MIT): https://uiverse.io/G4b413l/bitter-hound-66
-// Tags: minimalist, switch. Used on the stats window, which is two buttons,
-// not a checkbox. The red and green knob is not used.
+// Tags: minimalist, switch. The stats window is two buttons, not a checkbox,
+// so it keeps a filled pill. The sliding ringed knob is on the Auto Candidate
+// toggle in pages/_sudoku.scss.
 //
-// Input. A plain field whose border color changes on focus.
+// Input. A plain field with a 2px edge whose color changes on focus.
 // From Uiverse.io by Na3ar-17 (MIT): https://uiverse.io/Na3ar-17/calm-panda-30
 // Tags: simple, input. Applied to the contact form and the skills transfer fields.
 //
-// Card. A quiet radius and a soft shadow.
+// Card. Two drop shadows and an inset bottom lip.
 // From Uiverse.io by adamgiebl (MIT): https://uiverse.io/adamgiebl/new-crab-79
-// Tags: card. The heavy drop shadow is lightened.
+// Tags: card. The three shadows are kept and lightened.
 //
 // Loader. Three pulsing dots.
 // From Uiverse.io by adamgiebl (MIT): https://uiverse.io/adamgiebl/thin-lionfish-5
-// Tags: loader, dots, pulse. Five large dots became three small ones.
+// Tags: loader, dots, pulse. Five large dots became three small ones. The scale,
+// the color shift, and the ring that fades out are kept.
 //
 // Tooltip. A small label above the trigger, with a square turned into an arrow.
 // From Uiverse.io by Cksunandh (MIT): https://uiverse.io/Cksunandh/afraid-snail-51
-// Tags: simple, tooltip. Used on the abbreviated stats time labels.
+// Tags: simple, tooltip. Used on the abbreviated stats time labels. It rises
+// into place as it fades in.
 
-.contact-form input:focus-visible,
-.contact-form textarea:focus-visible,
-.skills-page .transfer-text:focus-visible,
 .stats-switch button:focus-visible {
   outline: var(--btn-focus-width) solid var(--btn-focus);
   outline-offset: var(--btn-focus-offset);
@@ -44,20 +47,26 @@
 .contact-form input,
 .contact-form textarea,
 .skills-page .transfer-text {
-  border: 1px solid var(--btn-secondary-edge);
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--btn-secondary-edge);
   border-radius: var(--btn-radius);
   background: var(--paper);
   color: var(--ink);
-  box-shadow: inset 0 1px 0 var(--btn-highlight);
+  box-shadow: none;
+  transition: border-color 100ms var(--btn-ease);
+}
+
+.contact-form input:hover,
+.contact-form textarea:hover,
+.skills-page .transfer-text:hover {
+  border-color: color-mix(in srgb, var(--btn-secondary-edge) 55%, var(--ink));
 }
 
 .contact-form input:focus,
 .contact-form textarea:focus,
 .skills-page .transfer-text:focus {
   border-color: var(--btn-focus);
-  box-shadow: none;
-  outline: var(--btn-focus-width) solid var(--btn-focus);
-  outline-offset: var(--btn-focus-offset);
+  outline: none;
 }
 
 .articles-page .article-card,
@@ -67,7 +76,10 @@
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--card);
-  box-shadow: 0 1px 1px rgba(30, 35, 43, 0.08);
+  box-shadow:
+    rgba(26, 29, 33, 0.1) 0 2px 4px,
+    rgba(26, 29, 33, 0.07) 0 7px 13px -3px,
+    rgba(26, 29, 33, 0.06) 0 -3px 0 inset;
 }
 
 .stats-switch {
@@ -108,8 +120,7 @@
   width: 0.4rem;
   height: 0.4rem;
   border-radius: 50%;
-  background: currentColor;
-  opacity: 0.45;
+  background: var(--soft-dot, #{vars.$selected});
 }
 
 .stats-col-label {
@@ -119,6 +130,7 @@
 .stats-col-label:hover::before,
 .stats-col-label:hover::after {
   opacity: 1;
+  translate: 0 -0.3rem;
 }
 
 .stats-col-label::after {
@@ -156,28 +168,47 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .ui-dots span {
-    animation: ui-dot 1.2s ease-in-out infinite;
+    animation: ui-dot 1.5s ease-in-out infinite;
+  }
+
+  .ui-dots span:nth-child(1) {
+    animation-delay: -0.3s;
   }
 
   .ui-dots span:nth-child(2) {
-    animation-delay: 0.15s;
+    animation-delay: -0.1s;
   }
 
   .ui-dots span:nth-child(3) {
-    animation-delay: 0.3s;
+    animation-delay: 0.1s;
+  }
+
+  .stats-col-label::before,
+  .stats-col-label::after {
+    transition:
+      opacity 0.3s var(--btn-ease),
+      translate 0.3s var(--btn-ease);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-dots span {
+    background: var(--accent-color);
   }
 }
 
 @keyframes ui-dot {
   0%,
   100% {
-    opacity: 0.35;
-    transform: scale(0.85);
+    transform: scale(0.8);
+    background-color: #{vars.$selected};
+    box-shadow: 0 0 0 0 rgba(33, 65, 168, 0.35);
   }
 
   50% {
-    opacity: 1;
-    transform: scale(1);
+    transform: scale(1.2);
+    background-color: var(--accent-color);
+    box-shadow: 0 0 0 0.3rem rgba(33, 65, 168, 0);
   }
 }
 
@@ -186,7 +217,7 @@ html[data-theme="dark"] {
   .stats-card,
   .standard-page .page-content,
   .article-single-page .article-content {
-    box-shadow: none;
+    box-shadow: rgba(0, 0, 0, 0.25) 0 -3px 0 inset;
   }
 
   .stats-col-label::after {

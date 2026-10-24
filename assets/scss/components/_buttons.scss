@@ -1,49 +1,78 @@
 @use "../abstracts/variables" as vars;
 
-// Site chrome buttons. Tonal fill, 1px inner highlight, hairline edge,
-// soft shadow, 1px press. Calm on purpose: no circle-grow, no glow.
-// The game keypad, mode toggle, undo, and hint icon keep their own boxes.
+// Site chrome buttons, after Dear31's simple hover button on Uiverse.io (MIT):
+// https://uiverse.io/Dear31/good-yak-38. An ink edge, a hard offset shadow,
+// and a fill that grows from the center on hover. The press sinks the button
+// into its shadow. The game keypad, mode toggle, undo, and hint icon keep
+// their own boxes in pages/_sudoku.scss.
 
 @mixin control-face {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.28rem;
+  gap: 0.5rem;
   box-sizing: border-box;
   min-height: 44px;
-  padding: 0.5rem 1.05rem;
+  padding: 0.55rem 1.25rem;
   border-radius: var(--btn-radius);
-  border: 1px solid transparent;
+  border: var(--btn-edge-width) solid var(--btn-edge);
   font-family: vars.$header-font;
   font-size: 0.95rem;
   font-weight: var(--btn-weight);
   letter-spacing: var(--btn-tracking);
   line-height: 1.15;
   text-decoration: none;
+  white-space: nowrap;
   cursor: pointer;
-  box-shadow: inset 0 1px 0 var(--btn-highlight), var(--btn-shadow);
+  box-shadow:
+    inset 0 1px 0 var(--btn-highlight),
+    var(--btn-offset) var(--btn-offset) 0 var(--btn-offset-color);
   transition:
     background-color var(--btn-duration) var(--btn-ease),
     border-color var(--btn-duration) var(--btn-ease),
     color var(--btn-duration) var(--btn-ease),
     box-shadow var(--btn-duration) var(--btn-ease);
 
+  // The growing fill. It sits under the label and over the face.
+  &::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--btn-fill, var(--marker));
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  &:hover:not(:disabled)::after {
+    width: max(200px, 260%);
+  }
+
   &:focus {
     outline: none;
   }
 
   &:focus-visible {
-    outline: var(--btn-focus-width) solid var(--btn-focus);
+    outline: 2px solid var(--btn-focus);
     outline-offset: var(--btn-focus-offset);
   }
 
   &:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+    box-shadow: none;
   }
 
+  svg,
   i {
-    margin-left: 0.15rem;
+    flex: none;
   }
 }
 
@@ -55,13 +84,18 @@
     box-shadow var(--btn-duration) var(--btn-ease),
     transform var(--btn-duration) var(--btn-ease);
 
+  &::after {
+    transition: width 0.3s ease-in;
+  }
+
   &:active:not(:disabled) {
-    transform: translateY(var(--btn-press));
-    box-shadow: inset 0 1px 2px rgba(31, 28, 25, 0.22);
+    transform: translate(var(--btn-offset), var(--btn-offset));
+    box-shadow: inset 0 1px 0 var(--btn-highlight), 0 0 0 var(--btn-offset-color);
   }
 }
 
 .cta-button,
+.play-technique,
 .contact-form button[type="submit"],
 .wpcf7 input[type="submit"],
 .wpcf7 button[type="submit"],
@@ -80,24 +114,35 @@
 }
 
 .cta-button,
+.play-technique,
 .contact-form button[type="submit"],
 .wpcf7 input[type="submit"],
 .wpcf7 button[type="submit"],
 .skills-page .primary-btn,
 .primary-btn,
 #resume-btn {
+  --btn-fill: var(--btn-primary-hover);
   background: var(--btn-primary);
   color: var(--btn-primary-ink);
   border-color: var(--btn-primary-edge);
+}
 
-  &:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--btn-primary) 86%, var(--paper));
-  }
+// Page link colors (.standard-page .page-body a, and the dark theme's
+// html[data-theme="dark"] .article-single-page a) outrank a plain class, so
+// button-style links inside page content restate their ink here.
+html :is(.standard-page, .technique-page, .articles-page, .article-single-page, .skills-page) a:is(.cta-button, .play-technique, .primary-btn) {
+  color: var(--btn-primary-ink);
+  text-decoration: none;
+}
+
+html :is(.standard-page, .technique-page, .articles-page, .article-single-page, .skills-page) a:is(.secondary-btn, .file-btn) {
+  color: var(--btn-secondary-ink);
+  text-decoration: none;
 }
 
 .cta-button.sm {
   min-height: 36px;
-  padding: 0.35rem 0.85rem;
+  padding: 0.35rem 0.95rem;
   font-size: 0.83rem;
 }
 
@@ -106,29 +151,17 @@
 .secondary-btn {
   background: var(--btn-secondary-bg);
   color: var(--btn-secondary-ink);
-  border-color: var(--btn-secondary-edge);
-  box-shadow: inset 0 1px 0 var(--btn-highlight), 0 1px 1px rgba(31, 28, 25, 0.04);
-
-  &:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--btn-secondary-bg) 78%, var(--recess));
-    border-color: color-mix(in srgb, var(--btn-secondary-edge) 55%, var(--ink));
-  }
 }
 
 .btn-quiet,
 .articles-page .read-more,
 .skills-back a {
+  --btn-offset: 0px;
+  padding-inline: 0.85rem;
   background: transparent;
   color: var(--btn-ghost-ink);
   border-color: transparent;
   box-shadow: none;
-
-  &:hover {
-    background: color-mix(in srgb, var(--paper) 72%, transparent);
-    border-color: var(--btn-secondary-edge);
-    box-shadow: inset 0 1px 0 var(--btn-highlight);
-    color: var(--btn-focus);
-  }
 }
 
 .articles-page .read-more {
@@ -140,13 +173,10 @@ html[data-theme="dark"] .articles-page .read-more {
 }
 
 .btn-danger {
+  --btn-fill: color-mix(in srgb, var(--btn-danger) 82%, var(--paper));
   background: var(--btn-danger);
   color: var(--btn-danger-ink);
   border-color: var(--btn-danger-edge);
-
-  &:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--btn-danger) 88%, var(--paper));
-  }
 }
 
 .account-delete,
@@ -164,22 +194,15 @@ html[data-theme="dark"] .articles-page .read-more {
   padding: 0;
   background: var(--btn-secondary-bg);
   color: var(--btn-secondary-ink);
-  border-color: var(--btn-secondary-edge);
-
-  &:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--btn-secondary-bg) 78%, var(--recess));
-  }
 }
 
 .articles-page .pagination a,
 .articles-page .pagination span {
   @include control-face;
   min-height: 40px;
-  padding: 0.35rem 0.8rem;
+  padding: 0.35rem 0.85rem;
   background: var(--btn-secondary-bg);
   color: var(--btn-secondary-ink);
-  border-color: var(--btn-secondary-edge);
-  box-shadow: inset 0 1px 0 var(--btn-highlight);
 
   &.current {
     background: var(--btn-primary);
@@ -203,6 +226,7 @@ html[data-theme="dark"] .articles-page .read-more {
 
 @media (prefers-reduced-motion: no-preference) {
   .cta-button,
+  .play-technique,
   .contact-form button[type="submit"],
   .wpcf7 input[type="submit"],
   .wpcf7 button[type="submit"],
@@ -217,9 +241,12 @@ html[data-theme="dark"] .articles-page .read-more {
   .articles-page .read-more,
   .skills-back a,
   .btn-icon,
-  .articles-page .pagination a,
-  .stats-switch button {
+  .articles-page .pagination a {
     @include control-press;
+  }
+
+  .stats-switch button:active {
+    transform: translateY(var(--btn-press));
   }
 
   .cta-button .ph-arrow,

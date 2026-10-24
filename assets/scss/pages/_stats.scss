@@ -11,7 +11,7 @@
   min-height: 44px;
   padding: 0 1rem;
   border-radius: 999px;
-  border: 1px solid #cfc8be;
+  border: 1px solid vars.$btn-edge;
   background: transparent;
   color: inherit;
   font: inherit;
@@ -60,7 +60,7 @@
 }
 
 .stats-facts dt {
-  color: #5e5954;
+  color: vars.$muted;
   font-size: 0.9rem;
 }
 
@@ -76,7 +76,7 @@
   height: 0.9rem;
   border-radius: 999px;
   overflow: hidden;
-  background: #ebe8e3;
+  background: vars.$track;
 }
 
 .stats-seg {
@@ -93,11 +93,11 @@
 }
 
 .stats-seg-failed {
-  background: #bf3978;
+  background: vars.$highlight-color;
 }
 
 .stats-seg-abandoned {
-  background: #8d887e;
+  background: #868c88;
 }
 
 .stats-legend {
@@ -134,7 +134,7 @@
   height: 7.5rem;
   display: flex;
   align-items: flex-end;
-  background: #ebe8e3;
+  background: vars.$track;
   border-radius: 0.35rem 0.35rem 0 0;
 }
 
@@ -160,7 +160,7 @@
 
 .stats-col-label {
   font-size: 0.8rem;
-  color: #5a534c;
+  color: vars.$count-ink;
 }
 
 .stats-tech {
@@ -184,7 +184,7 @@
 .stats-tech-track {
   display: block;
   height: 0.55rem;
-  background: #ebe8e3;
+  background: vars.$track;
   border-radius: 999px;
   overflow: hidden;
 }
@@ -201,7 +201,7 @@
 
 .stats-empty,
 .stats-note {
-  color: #5a534c;
+  color: vars.$count-ink;
 }
 
 .your-games-wrap {
@@ -246,7 +246,7 @@
 .hint-level-track {
   display: block;
   height: 0.55rem;
-  background: #ebe8e3;
+  background: vars.$track;
   border-radius: 999px;
   overflow: hidden;
 }
@@ -278,7 +278,7 @@
   td {
     text-align: left;
     padding: 0.15rem 0.4rem;
-    border-bottom: 1px solid #e4e0da;
+    border-bottom: 1px solid vars.$hairline;
     vertical-align: middle;
   }
 
@@ -305,31 +305,31 @@
 
 html[data-theme="dark"] {
   .stats-switch button {
-    border-color: #4a463f;
+    border-color: vars.$dark-edge;
   }
 
   .stats-card {
-    border-color: #3d3a36;
-    background: #1c1b19;
+    border-color: vars.$dark-line;
+    background: vars.$dark-surface;
   }
 
   .stats-facts dt,
   .stats-col-label,
   .stats-empty,
   .stats-note {
-    color: #c4beb6;
+    color: vars.$dark-muted;
   }
 
   .stats-bar,
   .stats-col-plot,
   .stats-tech-track,
   .hint-level-track {
-    background: #2c2a27;
+    background: vars.$dark-track;
   }
 
   .hint-table th,
   .hint-table td {
-    border-bottom-color: #3d3a36;
+    border-bottom-color: vars.$dark-line;
   }
 }
 
