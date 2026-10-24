@@ -24,6 +24,12 @@ for (const slug of Object.keys(practice.FILL_LABEL)) {
   assert.equal(practice.promptFor(practice.fillLabel(slug)).includes("—"), false);
   assert.equal(practice.promptShort(practice.fillLabel(slug)).includes("—"), false);
 }
+assert.equal(practice.promptShort("Pointing"), "Find the Pointing move.");
+assert.equal(practice.promptShort("Claiming"), "Find the Claiming move.");
+assert.equal(practice.promptShort("Simple coloring"), "Find the Simple coloring move.");
+assert.equal(practice.promptShort("Naked triple"), "Find the Naked triple.");
+assert.equal(practice.promptShort("Naked pair"), "Find the Naked pair.");
+assert.equal(practice.promptShort("X-wing"), "Find the X-wing.");
 
 const linedUp = {};
 function jump(slug) {
@@ -653,7 +659,7 @@ async function runFillReviewUi(fillUrl) {
         if (width === 360 && theme === "light") {
           await practice.page.evaluate(() => {
             document.querySelector("#puzzle-label .copy-short").textContent = "Simple coloring";
-            document.querySelector("#practice-prompt .copy-short").textContent = "Find the Simple coloring.";
+            document.querySelector("#practice-prompt .copy-short").textContent = "Find the Simple coloring move.";
             document.querySelector("#fill-chip-text .copy-short").textContent = "23 to Simple coloring";
           });
           const long = await metrics(practice.page);

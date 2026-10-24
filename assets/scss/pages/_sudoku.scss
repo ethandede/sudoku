@@ -228,6 +228,17 @@ html[data-theme="dark"] .game-brand-echo {
   gap: 0;
 }
 
+// The practice bar is absolute across the toolbar. Keep the icon nav painted
+// above it, on the page color, so the bar stops before the buttons.
+.play-chrome:has(#fill-chip:not([hidden])) .icon-row {
+  position: relative;
+  z-index: 8;
+
+  .icon-btn {
+    background: var(--page);
+  }
+}
+
 .icon-btn {
   width: 44px;
   min-width: 44px;
@@ -513,7 +524,7 @@ html[data-theme="dark"] .game-brand-echo {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.92rem;
+  font-size: 0.86rem;
   font-weight: 700;
   line-height: 1.2;
   color: var(--ink);
@@ -1380,7 +1391,10 @@ kbd {
 
 .practice-prompt {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 2;
   display: flex;
   align-items: center;
@@ -1402,6 +1416,7 @@ kbd {
   }
 
   &.is-miss {
+    top: 0;
     white-space: normal;
     line-height: 1.25;
     overflow: visible;
@@ -2228,8 +2243,53 @@ button:disabled {
     display: none;
   }
 
+  .fill-chip {
+    // 80px of icon buttons plus the toolbar padding and a small gap, so
+    // Undo and Done sit clear of settings and more.
+    padding-right: calc(84px + max(6px, env(safe-area-inset-right)));
+  }
+
   .fill-chip-text {
-    font-size: 0.84rem;
+    font-size: 0.72rem;
+  }
+
+  .play-chrome:has(#fill-chip:not([hidden])) .icon-row {
+    background: var(--page);
+  }
+
+  // The phone intro is only as tall as the wordmark, so the banner sits
+  // beside the logo instead of painting over it. The row keeps the brand's
+  // old bottom margin as padding, which holds the board where a normal
+  // game puts it.
+  .game-intro:has(.practice-prompt:not([hidden]):not(.is-miss)) {
+    display: flex;
+    align-items: center;
+    column-gap: 0.35rem;
+    padding-bottom: 0.3rem;
+  }
+
+  .game-intro:has(.practice-prompt:not([hidden]):not(.is-miss)) .game-brand {
+    margin-bottom: 0;
+    flex: none;
+    position: relative;
+    z-index: 3;
+  }
+
+  .practice-prompt:not(.is-miss) {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+    height: auto;
+    justify-content: flex-start;
+    text-align: left;
+    background: transparent;
+    padding: 0;
+    font-size: 0.62rem;
   }
 
   .practice-prompt {
@@ -2269,6 +2329,22 @@ button:disabled {
   }
 }
 
+// "Simple coloring" has to fit the level button at 360px. Only the short
+// practice name shrinks, and only on the narrowest phones. This follows the
+// phone rules above so it wins over the 0.92rem short label.
+@media (max-width: 380px) {
+  .puzzle-label:has(.copy-short) {
+    font-size: 0.6rem;
+    padding: 0 0.9rem 0 0.3rem;
+
+    &::after {
+      right: 0.28rem;
+      width: 0.26rem;
+      height: 0.26rem;
+    }
+  }
+}
+
 @media (min-width: 721px) {
   .play-column {
     width: 100%;
@@ -2293,6 +2369,26 @@ button:disabled {
 
   .game-intro {
     padding-top: 1.25rem;
+  }
+
+  // The banner replaces the tagline under the wordmark. 1.25rem matches the
+  // intro padding above, 22px is the mark, and 0.3rem is the wordmark margin.
+  .practice-prompt:not(.is-miss) {
+    top: calc(1.25rem + 22px + 0.3rem);
+  }
+
+  .play-chrome:has(#fill-chip:not([hidden])) .fill-chip {
+    // Three 44px icon buttons, plus a small gap.
+    padding-right: 140px;
+  }
+
+  .puzzle-label:has(.copy-short) {
+    font-size: 1rem;
+    padding: 0 1.45rem 0 0.65rem;
+  }
+
+  .fill-chip-text {
+    font-size: 0.72rem;
   }
 
   // Same columns as .play-surface: the status line spans the board and the
