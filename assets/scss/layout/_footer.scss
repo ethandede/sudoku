@@ -1,7 +1,9 @@
+@use "../abstracts/variables" as vars;
+
 .site-footer {
-  background: #1e232b;
-  color: #e6e9ed;
-  border-top: 3px solid #0c4f86;
+  background: vars.$ink;
+  color: vars.$dark-ink;
+  border-top: 3px solid vars.$accent-color;
   padding: 2rem 0 1.75rem;
   text-align: left;
   font-size: 0.9rem;
@@ -24,25 +26,25 @@
     width: 28px;
     height: 28px;
     flex: none;
-    color: #9ed2f8;
+    color: vars.$accent-on-dark;
   }
 
   .footer-name {
     margin: 0;
-    color: #fff;
+    color: vars.$dark-ink;
     font-size: 1.15rem;
     font-weight: 700;
     letter-spacing: -0.03em;
     line-height: 1.1;
 
     span {
-      color: #9ed2f8;
+      color: vars.$accent-on-dark;
     }
   }
 
   .footer-line {
     margin: 0.2rem 0 0;
-    color: #b7c0c8;
+    color: vars.$dark-muted;
     font-size: 0.9rem;
     line-height: 1.35;
   }
@@ -62,17 +64,19 @@
       li {
         a,
         .privacy-choices {
-          color: #e6e9ed;
+          color: vars.$dark-ink;
           text-decoration: none;
           font-size: 0.95rem;
           font-weight: 600;
+          border-radius: var(--btn-radius);
 
           &:hover {
-            color: #9ed2f8;
+            color: vars.$accent-on-dark;
+            background: rgba(169, 188, 255, 0.12);
           }
 
           &:focus-visible {
-            outline: 3px solid #9ed2f8;
+            outline: 3px solid vars.$accent-on-dark;
             outline-offset: 3px;
           }
         }
@@ -93,14 +97,54 @@
 
   .copyright {
     margin: 0;
-    color: #8aa0b3;
+    color: vars.$dark-muted;
     font-size: 0.85rem;
+  }
+
+  .footer-credit {
+    margin: 0.35rem 0 0;
+    color: #8f9cc4;
+    font-size: 0.85rem;
+
+    a {
+      color: vars.$accent-on-dark;
+      font-weight: 700;
+
+      &:hover {
+        color: #e6e9ed;
+      }
+
+      &:focus-visible {
+        outline: 3px solid vars.$accent-on-dark;
+        outline-offset: 3px;
+      }
+    }
+  }
+
+  .footer-credit {
+    margin: 0.35rem 0 0;
+    color: #8f9cc4;
+    font-size: 0.85rem;
+
+    a {
+      color: vars.$accent-on-dark;
+      font-weight: 700;
+
+      &:hover {
+        color: #e6e9ed;
+      }
+
+      &:focus-visible {
+        outline: 3px solid vars.$accent-on-dark;
+        outline-offset: 3px;
+      }
+    }
   }
 
   .privacy-choices-note {
     margin: 0.75rem 0 0;
     max-width: 36rem;
-    color: #b7c0c8;
+    color: vars.$dark-muted;
   }
 }
 

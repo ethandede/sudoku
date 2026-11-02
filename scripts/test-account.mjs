@@ -23,6 +23,7 @@ import {
   handleRequest,
   handleSession,
   handleSignOut,
+  handleSignOutAll,
   handleSync,
   handleVerifyGet,
   handleVerifyPost,
@@ -727,6 +728,21 @@ const afterDelete = await call(handleSync, {
 assert.equal(afterDelete.status, 401);
 assert.equal(db.users.length, 1);
 assert.equal(db.users[0].email, "bob@example.com");
+
+const everywhere = await call(handleSignOutAll, {
+  url: "https://sudokusudoku.com/api/account/signout-all",
+  cookie: bobCookie,
+});
+assert.equal(everywhere.status, 200);
+assert.match(everywhere.headers.get("set-cookie"), /Max-Age=0/);
+assert.equal(db.users.some((row) => row.email === "bob@example.com"), true);
+assert.equal(db.sessions.some((row) => row.user_id === db.users.find((user) => user.email === "bob@example.com").id), false);
+const bobAfterAll = await call(handleSync, {
+  url: "https://sudokusudoku.com/api/account/sync",
+  cookie: bobCookie,
+  body: { stats: right },
+});
+assert.equal(bobAfterAll.status, 401);
 
 const signedOut = await call(handleSignOut, {
   url: "https://sudokusudoku.com/api/account/signout",

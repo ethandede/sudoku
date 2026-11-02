@@ -26,24 +26,30 @@ The www hostname should redirect to the apex with a Cloudflare redirect rule. Th
 
 ## House promos
 
-Reserved ad boxes are filled by House marks, a small in-house series that links to other pages on this site. The graphics and copy are the page. They are not labeled as ads.
+Reserved ad boxes are filled by House marks: our own banner ads for pages on this site until AdSense is live. Each is a pen-blue banner with the art on a paper tile, a headline, a line of copy, and a button-style call to action (the whole banner is the link). They are not labeled as ads. On the homepage a 300px sidebar sits beside the copy below the game: a 300x250 (`home-below`) and a 300x600 (`home-rail`). Under 900px wide the column stacks under the copy and only the 300x250 shows (hiding a responsive unit with CSS at small widths is allowed). AdSense asks for ads to stay 150px or more from a game, so the sidebar starts 140px down and `test:play` checks the gap at several window sizes.
 
 Real AdSense units stay off. `ADSENSE_UNITS_ENABLED` in `scripts/house-promos.mjs` is false, and every unit id is still `REPLACE_WITH_SLOT`. The publisher id is `ca-pub-9345046210950956`. Flip the flag only after those ids are live units. The boxes keep the same sizes, so the swap does not move the layout. The AdSense script in the page head is unchanged.
 
-Privacy, the 404 page, links, and account screens do not get a unit. The game unit sits below the homepage copy, outside the play column, so the phone keypad stays on the first screen.
+Privacy, the 404 page, links, and account screens do not get a unit. The homepage units sit beside and below the copy, outside the play column, so the phone keypad stays on the first screen.
 
 ## Chrome controls
 
-The site stays plain HTML, CSS, and vanilla JS. No React and no Motion package. Uiverse.io is the source for the chrome controls. Each element is MIT. The adapted CSS, with the author and the element URL, is in `assets/scss/components/_uiverse.scss`. Colors are Palette A. The game's board, keypad, mode toggle, technique stepper, and settings checkboxes are not restyled.
+The site stays plain HTML, CSS, and vanilla JS. No React and no Motion package. Uiverse.io is the source for the chrome controls. Each element is MIT. The adapted CSS, with the author and the element URL, is in `assets/scss/components/_uiverse.scss`. Colors come from the palette in `assets/scss/abstracts/_variables.scss` (graph paper and ballpoint: cool newsprint, graphite, pen blue, teal marker). Partials use those Sass names, not hex values, so the palette changes in that one file. The game's board, keypad, mode toggle, technique stepper, and settings checkboxes are not restyled.
 
-- Buttons. Dear31's simple hover button, https://uiverse.io/Dear31/good-yak-38. Used on the article back link, the contact submit button, and the skill-ladder actions.
-- Switch. G4b413l's minimalist switch, https://uiverse.io/G4b413l/bitter-hound-66. The stats window is a two-button track with a filled selection.
-- Inputs. Na3ar-17's simple field, https://uiverse.io/Na3ar-17/calm-panda-30. Contact form and the skill-ladder transfer fields.
-- Cards. adamgiebl's card, https://uiverse.io/adamgiebl/new-crab-79. Article cards, stats cards, and the standard page sheet. The shadow is lighter than the original.
-- Loader. adamgiebl's pulsing dots, https://uiverse.io/adamgiebl/thin-lionfish-5. Three small dots on the stats loading line.
+- Buttons. Dear31's simple hover button, https://uiverse.io/Dear31/good-yak-38. An ink edge, a hard 2px offset shadow, and a fill that grows from the center on hover (teal marker, or a lighter pen blue on primary buttons). The press sinks the button into its shadow. The face is in `assets/scss/components/_buttons.scss` and covers the chrome buttons. The game's icon buttons, level label, Undo, and Erase share the edge and offset without the hover fill.
+- Switch. G4b413l's minimalist switch, https://uiverse.io/G4b413l/bitter-hound-66. The Auto Candidate toggle is a thin track with a ringed knob that slides across. The stats window is a two-button track with a filled selection.
+- Inputs. Na3ar-17's simple field, https://uiverse.io/Na3ar-17/calm-panda-30. A 2px edge whose color changes on focus. Contact form and the skill-ladder transfer fields.
+- Cards. adamgiebl's card, https://uiverse.io/adamgiebl/new-crab-79. Article cards, stats cards, and the standard page sheet. The two drop shadows and the inset bottom lip are kept, lighter than the original.
+- Loader. adamgiebl's pulsing dots, https://uiverse.io/adamgiebl/thin-lionfish-5. Three small dots on the stats loading line that scale, shift color, and shed a ring.
+- Dealing animation. Magic UI's number ticker, https://magicui.design/docs/components/number-ticker (MIT, copyright Magic UI). A scan sweeps the board while a puzzle is built, and the digits roll like tickers before the givens lock. Vanilla, in `assets/scss/components/_deal-scan.scss`. The circular gauge is not used: it covered the cells this scan needs.
 - Tooltip. Cksunandh's simple tooltip, https://uiverse.io/Cksunandh/afraid-snail-51. The short stats time labels show the full label on hover.
 
-Light accents, kept small: a page dot grid (the idea is Magic UI's Dot Pattern, written here as a radial-gradient), a 1px press, and a stats count-up in `assets/js/stats-page.js`. Rare UI and Skiper UI are not ported. Arrow icons are Phosphor `arrow-left` and `arrow-right` (MIT, copyright 2023 Phosphor Icons), in `scripts/icons.mjs`.
+Light accents, kept small: a page dot grid (the idea is Magic UI's Dot Pattern, written here as a radial-gradient) and a 1px press. Skiper UI is not ported. Arrow icons are Phosphor `arrow-left` and `arrow-right` (MIT, copyright 2023 Phosphor Icons), in `scripts/icons.mjs`.
+
+Two controls are adapted from Rare UI (copyright 2026 Swami Malode, MIT plus Commons Clause). The license allows shipping them inside this site and requires the copyright notice plus a visible link to https://rareui.com. That link is in the footer. The sources are `assets/js/rare-counter.js`, `assets/js/rare-delete.js`, and `assets/scss/components/_rare.scss`. They are not a separate component library.
+
+- Animated counter, https://rareui.com/components/animatedcounter. Integer stats roll up once when they scroll into view. The final width is reserved, numerals are tabular, and reduced motion shows the final number.
+- Delete button, https://rareui.com/components/deletebutton. The lid opens onto confirm and cancel. Used for reset on the stats page, clear history on the skill ladder, and delete account plus sign out everywhere in account settings. It is not on the board, keypad, or Reset Puzzle. The same press and hover motion is on the hint bulb by the grid: the bulb lifts and the filament lights, and the tap still opens the hint at once. The original orange is replaced with Palette A.
 
 Motion is off when `prefers-reduced-motion: reduce` is set. The hover then changes the button color without the expanding circle.
 

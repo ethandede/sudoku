@@ -54,8 +54,9 @@ assert.equal(practice.art, "practice");
 for (const size of ["billboard", "rectangle", "leaderboard", "skyscraper"]) {
   const html = renderHousePromos([{ slot: "sample", size }], { ...base, section: "about", path: "/about/" }).sample;
   assert.match(html, new RegExp(`house-slot-${size}`));
-  assert.match(html, /House marks/);
-  assert.match(html, /From SudokuSudoku/);
+  // A banner with a button-style call to action, not a labeled card.
+  assert.match(html, /class="house-promo-cue"/);
+  assert.equal(html.includes("House marks"), false);
   assert.match(html, /data-promo-slot="sample"/);
   assert.equal(html.includes("adsbygoogle"), false);
   assert.equal(html.includes("Advertisement"), false);
@@ -63,14 +64,14 @@ for (const size of ["billboard", "rectangle", "leaderboard", "skyscraper"]) {
   assert.equal(targets(html).includes("/about/"), false);
 }
 
-const home = renderHousePromos([{ slot: "home-below", size: "billboard" }], {
+const home = renderHousePromos([{ slot: "home-below", size: "rectangle" }], {
   ...base,
   section: "home",
   path: "/",
 })["home-below"];
 assert.equal(targets(home).includes("/"), false);
 assert.equal(targets(home).includes("/?daily"), false);
-assert.match(home, /height: 280px|house-slot-billboard/);
+assert.match(home, /house-slot-rectangle/);
 
 const stats = renderHousePromos([{ slot: "stats-end", size: "rectangle" }], {
   ...base,
@@ -121,7 +122,7 @@ const bothTargets = targets(both);
 assert.equal(new Set(bothTargets).size, bothTargets.length);
 assert.equal(bothTargets.includes("/articles/"), false);
 
-const again = renderHousePromos([{ slot: "home-below", size: "billboard" }], {
+const again = renderHousePromos([{ slot: "home-below", size: "rectangle" }], {
   ...base,
   section: "home",
   path: "/",
@@ -151,6 +152,7 @@ assert.match(styles, /\.house-slot-billboard[\s\S]*height:\s*280px/);
 assert.match(styles, /\.house-slot-rectangle[\s\S]*width:\s*300px[\s\S]*height:\s*250px/);
 assert.match(styles, /\.house-slot-leaderboard[\s\S]*width:\s*728px[\s\S]*height:\s*90px/);
 assert.match(styles, /\.house-slot-skyscraper[\s\S]*width:\s*160px[\s\S]*height:\s*600px/);
+assert.match(styles, /\.house-slot-halfpage[\s\S]*width:\s*300px[\s\S]*height:\s*600px/);
 assert.match(styles, /\.hm-art-narrow/);
 assert.match(styles, /\.house-slot-billboard \.hm-art-wide/);
 assert.equal(styles.includes("#f7f4ef"), false);

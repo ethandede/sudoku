@@ -58,7 +58,7 @@ None of this makes Sudoku a toy. Generalized to bigger grids, it's NP-complete, 
 
 I didn't want to just assert that, so I measured it. I've been building websites for over 20 years, and I still like seeing a number for myself.
 
-We have [an archive of 1,483 NYT Sudoku puzzles](https://github.com/vivrao9/nyt-sudoku) (Easy, Medium and Hard, from August 2021 to March 2024). I wrote the most naive backtracking solver I could, a dozen or so lines of JavaScript, and ran it on all of them on an ordinary cloud server.
+We have [an archive of 1,483 NYT Sudoku puzzles](https://github.com/vivrao9/nyt-sudoku) (Easy, Medium and Hard, from August 30, 2021 through March 2, 2024). I wrote the most naive backtracking solver I could, a dozen or so lines of JavaScript, and ran it on all of them on an ordinary cloud server.
 
 - It solved all 1,483 correctly, checked against the rules. Average time: about 3.4 milliseconds per puzzle. The slowest single puzzle took about half a second, because naive search can wander.
 - Adding the "fewest options first" tweak dropped the average to about 0.24 milliseconds and the slowest to about 11 milliseconds.

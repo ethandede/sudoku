@@ -137,8 +137,10 @@
     return lines.join("\n");
   }
 
-  function dailyUrl() {
-    return `${SITE}/?daily`;
+  function dailyUrl(iso) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || "").trim());
+    if (!match) return `${SITE}/?daily`;
+    return `${SITE}/daily/${match[1]}-${match[2]}-${match[3]}/`;
   }
 
   function puzzleUrl(id) {
@@ -312,7 +314,7 @@
     const ctx = canvas.getContext("2d");
     const width = canvas.width;
     const height = canvas.height;
-    const accent = paletteHex("--accent-color", "#0c4f86");
+    const accent = paletteHex("--accent-color", "#2141a8");
     const ink = "#1e232b";
     ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = "#f4f6f8";

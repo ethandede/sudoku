@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import vm from "node:vm";
 import { marked } from "marked";
 import { techniques } from "./technique-copy.mjs";
 import {
@@ -19,6 +20,8 @@ const schedule = {
   "what-to-do-when-stuck": "2026-10-26",
   "what-makes-a-sudoku-hard": "2026-10-28",
   "history-of-sudoku": "2026-10-28",
+  "sudoku-techniques-in-order": "2026-10-29",
+  "world-sudoku-championship-2026": "2026-10-31",
   "sudoku-variants": "2026-11-04",
   "why-ai-is-bad-at-sudoku": "2026-11-04",
   "does-sudoku-keep-your-brain-sharp": "2026-11-11",
@@ -52,15 +55,32 @@ assert.deepEqual(live("2026-10-28"), [
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
 ]);
+assert.deepEqual(live("2026-10-30"), [
+  "what-to-do-when-stuck",
+  "what-makes-a-sudoku-hard",
+  "history-of-sudoku",
+  "sudoku-techniques-in-order",
+]);
+assert.deepEqual(live("2026-10-31"), [
+  "what-to-do-when-stuck",
+  "what-makes-a-sudoku-hard",
+  "history-of-sudoku",
+  "sudoku-techniques-in-order",
+  "world-sudoku-championship-2026",
+]);
 assert.deepEqual(live("2026-11-03"), [
   "what-to-do-when-stuck",
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
+  "sudoku-techniques-in-order",
+  "world-sudoku-championship-2026",
 ]);
 assert.deepEqual(live("2026-11-04"), [
   "what-to-do-when-stuck",
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
+  "sudoku-techniques-in-order",
+  "world-sudoku-championship-2026",
   "sudoku-variants",
   "why-ai-is-bad-at-sudoku",
 ]);
@@ -68,6 +88,8 @@ const beforeFewest = [
   "what-to-do-when-stuck",
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
+  "sudoku-techniques-in-order",
+  "world-sudoku-championship-2026",
   "sudoku-variants",
   "why-ai-is-bad-at-sudoku",
   "does-sudoku-keep-your-brain-sharp",
@@ -78,6 +100,7 @@ assert.deepEqual(live("2026-11-17"), beforeFewest);
 assert.deepEqual(live("2026-11-18"), Object.keys(schedule));
 assert.equal(isPublished("", "2026-10-21"), true);
 assert.equal(formatPublishDate("2026-10-28"), "October 28, 2026");
+assert.equal(formatPublishDate("2026-10-31"), "October 31, 2026");
 assert.equal(formatPublishDate("2026-11-04"), "November 4, 2026");
 assert.equal(formatPublishDate("2026-11-18"), "November 18, 2026");
 assert.equal(formatPublishDate("2026-10-26"), "October 26, 2026");
@@ -108,6 +131,40 @@ assert.deepEqual(stuck.relatedSlugs, [
 assert.equal(losAngelesToday(new Date("2026-10-22T06:30:00Z"), ""), "2026-10-21");
 assert.equal(losAngelesToday(new Date("2026-10-22T07:00:00Z"), ""), "2026-10-22");
 assert.equal(losAngelesToday(new Date("2026-11-11T18:00:00Z"), ""), "2026-11-11");
+
+const kolkata = prepareArticle(readArticle("world-sudoku-championship-2026"));
+assert.equal(kolkata.content.includes("—"), false);
+assert.equal(kolkata.content.includes("–"), false);
+assert.equal(kolkata.content.includes("```"), false);
+assert.equal(kolkata.content.includes("By Ethan"), false);
+assert.equal((kolkata.content.match(/class="puzzle-grid"/g) || []).length, 1);
+assert.equal((kolkata.content.match(/class="puzzle-cell/g) || []).length, 81);
+assert.match(kolkata.content, /`\.\.\.98\.\.3\./);
+assert.equal(kolkata.content.includes('href="/techniques/x-wing/"'), false);
+const kolkataHtml = marked.parse(kolkata.content);
+assert.equal(kolkataHtml.includes("—"), false);
+assert.equal(kolkataHtml.includes("–"), false);
+assert.equal(kolkataHtml.includes('href="/techniques/x-wing/"'), true);
+assert.equal(kolkataHtml.includes('href="/techniques/naked-pair/"'), true);
+assert.equal(kolkataHtml.includes('href="/techniques/hidden-single/"'), true);
+assert.equal(kolkataHtml.includes('href="/?practice=x-wing"'), true);
+assert.equal(kolkataHtml.includes('href="/how-difficulty-works/"'), true);
+assert.equal(kolkataHtml.includes('href="/articles/history-of-sudoku/"'), true);
+assert.equal(kolkataHtml.includes('href="/articles/what-makes-a-sudoku-hard/"'), true);
+assert.deepEqual(kolkata.relatedSlugs, ["history-of-sudoku", "what-makes-a-sudoku-hard"]);
+const kolkataGrid = kolkata.content.match(/`([.1-9]{81})`/);
+assert.ok(kolkataGrid, "championship example grid");
+const kolkataCells = [...kolkataGrid[1]].map((digit) => (digit === "." ? 0 : Number(digit)));
+const kolkataContext = { console, Math, performance };
+kolkataContext.globalThis = kolkataContext;
+vm.createContext(kolkataContext);
+vm.runInContext(readFileSync(new URL("../assets/js/solver.js", import.meta.url), "utf8"), kolkataContext);
+assert.equal(kolkataContext.SudokuSolver.countSolutions(kolkataCells, 2), 1);
+const kolkataGrade = kolkataContext.SudokuSolver.grade(kolkataCells);
+assert.equal(kolkataGrade.solved, true);
+assert.equal(kolkataGrade.corrupt, false);
+assert.equal(kolkataGrade.hardestName, "xwing");
+assert.equal(kolkataGrade.clues, 26);
 
 const hard = prepareArticle(readArticle("what-makes-a-sudoku-hard"));
 assert.deepEqual(hard.relatedSlugs, [
@@ -182,9 +239,11 @@ assert.match(historyHtml, /wrote up the variants too/);
 
 const bio = shortBio(readFileSync(new URL("../author-bio.md", import.meta.url), "utf8"));
 assert.match(bio, /^I'm Ethan\./);
+assert.match(bio, /SudokuSudoku started as my way to finally learn the techniques I'd been too lazy to figure out: hints that teach the move on your own board, and honest difficulty\./);
 assert.match(bio, /Neither pet has ever helped with a puzzle\.$/);
 assert.equal(bio.includes("##"), false);
 assert.equal(bio.includes("—"), false);
+assert.equal(bio.includes("the site I wanted to play on"), false);
 
 const ld = articleJsonLd({
   title: "More Clues Doesn't Mean Easier: What Actually Makes a Sudoku Hard",
@@ -198,6 +257,8 @@ assert.equal(ld.author.name, "Ethan Ede");
 assert.equal(ld.author.url, "https://sudokusudoku.com/about/");
 assert.equal(ld.author.sameAs, "https://ethanede.com");
 assert.equal(ld.datePublished, "2026-10-28");
+assert.equal(ld.dateModified, "2026-10-28");
+assert.equal(ld.image, undefined);
 
 const redirects = readFileSync(new URL("../src/_redirects", import.meta.url), "utf8");
 for (const [from, to] of [
@@ -229,12 +290,35 @@ assert.equal(redirectRules.some((line) => /wp-admin|wp-login|xmlrpc/.test(line))
 const dynamicAt = redirectRules.findIndex((line) => line.includes("*") || line.includes(":"));
 assert.equal(dynamicAt > 0 && redirectRules.slice(0, dynamicAt).every((line) => !line.includes("*") && !line.includes(":")), true);
 
+function visibleWords(text) {
+  const plain = text
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/[#>*_`]/g, " ");
+  return plain.split(/\s+/).filter((token) => /[A-Za-z]/.test(token)).length;
+}
+
 const about = readFileSync(new URL("../about-page-content.md", import.meta.url), "utf8");
 assert.match(about, /^Hi, I'm Ethan Ede\./);
 assert.match(about, /Teddy, chief puzzle supervisor\. Never once helpful\./);
+assert.match(about, /\/assets\/img\/teddy\/teddy\.svg/);
+assert.match(about, /\/assets\/img\/teddy\/teddy-icon\.svg/);
+assert.match(about, /red collar/);
+assert.equal(about.includes("anime style"), false);
+assert.equal(about.includes("teddy-256.webp"), false);
 assert.match(about, /\/contact\//);
+assert.match(about, /\/how-difficulty-works\//);
+assert.match(about, /\/techniques\//);
 assert.equal(about.includes("DRAFT"), false);
 assert.equal(about.includes("—"), false);
+assert.equal(about.includes("–"), false);
+assert.match(
+  about,
+  /For years I solved on singles and stubbornness, and when a puzzle needed an X-wing or a coloring chain, I'd guess or give up\./
+);
+assert.match(about, /The honest difficulty grades came along for the ride\./);
+assert.equal(about.includes("Some days I fly through a Hard"), false);
+assert.ok(visibleWords(about) >= 450, `about words ${visibleWords(about)}`);
 
 const HARD_LINK =
   '<a href="/articles/what-makes-a-sudoku-hard/">Here\'s what actually makes a Sudoku hard</a>';
@@ -258,6 +342,21 @@ assert.equal(noLibrary.includes(HARD_LINK), true);
 
 const build = readFileSync(new URL("./build.mjs", import.meta.url), "utf8");
 assert.match(build, /"404.html"[\s\S]*?ads: false/);
+assert.match(build, /\/assets\/img\/teddy\/teddy\.svg/);
+assert.equal(build.includes("anime style"), false);
+assert.equal(build.includes("teddy-256.webp"), false);
+const teddy = readFileSync(new URL("../assets/img/teddy/teddy.svg", import.meta.url), "utf8");
+const teddyIcon = readFileSync(new URL("../assets/img/teddy/teddy-icon.svg", import.meta.url), "utf8");
+assert.equal(/#FFB08C/i.test(teddy + teddyIcon), false);
+assert.equal(/#F4A0AE|#FFD24A|#E98A9C/i.test(teddy), false);
+assert.match(teddyIcon, /#F4A0AE/i);
+assert.match(teddy, /#E5402A/i);
+assert.match(teddyIcon, /#fbfaf8/i);
+assert.match(teddy, /#1A1A1A/);
+assert.match(teddyIcon, /#1A1A1A/);
+assert.match(teddy, /#A06A42/i);
+assert.match(teddy, /role="img"/);
+assert.match(teddyIcon, /role="img"/);
 assert.match(build, /SudokuSudoku\. All rights reserved\./);
 assert.equal(build.includes("Sudoku Online"), false);
 assert.match(build, /articles\/fewest-and-most-sudoku-clues\.md/);
@@ -282,6 +381,7 @@ const staticPaths = new Set([
   "/terms/",
   "/skills/",
   "/links/",
+  "/how-difficulty-works/",
 ]);
 const difficulties = new Set(["quick", "easy", "not-easy", "hard", "expert", "mental"]);
 
@@ -349,15 +449,126 @@ for (const slug of Object.keys(schedule)) {
 }
 assert.deepEqual(broken, []);
 
-const mistakes = readFileSync(new URL("../articles/02-common-mistakes.md", import.meta.url), "utf8");
-assert.equal(mistakes.includes("—"), false);
+const grading = readFileSync(new URL("../how-difficulty-works-content.html", import.meta.url), "utf8");
+assert.equal(grading.includes("—"), false);
+assert.equal(grading.includes("–"), false);
+const gradingWords = grading.replace(/<[^>]+>/g, " ").match(/[A-Za-z]+/g) || [];
+assert.ok(gradingWords.length >= 600 && gradingWords.length <= 900, `grading words ${gradingWords.length}`);
+const puzzleMatch = grading.match(/data-puzzle="(\d{81})"/);
+assert.ok(puzzleMatch, "example board");
+const cells = [...puzzleMatch[1]].map((digit) => Number(digit));
+const context = { console, Math, performance };
+context.globalThis = context;
+vm.createContext(context);
+vm.runInContext(readFileSync(new URL("../assets/js/solver.js", import.meta.url), "utf8"), context);
+const { grade, countSolutions } = context.SudokuSolver;
+assert.equal(countSolutions(cells, 2), 1);
+const graded = grade(cells);
+assert.equal(graded.solved, true);
+assert.equal(graded.corrupt, false);
+assert.equal(graded.hardestName, "naked_pair");
+assert.equal(graded.steps, 11);
+assert.equal(graded.stalls, 1);
+assert.equal(graded.bottlenecks, 8);
+assert.equal(graded.clues, 25);
+for (const figure of ["1,483", "495", "387", "314", "5.0", "8.9", "51 percent", "18 percent", "24 percent"]) {
+  assert.equal(grading.includes(figure), true, figure);
+}
+assert.match(grading, /August 30, 2021 through March 2, 2024/);
+assert.equal(grading.includes("January 2023"), false);
+assert.match(build, /articles\/world-sudoku-championship-2026\.md/);
+assert.match(build, /href="\/how-difficulty-works\/">How difficulty works<\/a>/);
+assert.match(build, /href="\/terms\/">Terms<\/a>/);
+const game = readFileSync(new URL("../src/game.html", import.meta.url), "utf8");
+assert.match(game, /class="difficulty-help" href="\/how-difficulty-works\/"/);
+assert.match(readFileSync(new URL("../home-copy.mjs", import.meta.url), "utf8"), /href: "\/how-difficulty-works\/"/);
+const hiddenGrade = stripUnpublishedLinks(grading, new Set(["what-makes-a-sudoku-hard"]));
+assert.equal(hiddenGrade.includes('href="/articles/what-makes-a-sudoku-hard/"'), false);
+assert.match(stripUnpublishedLinks(grading, new Set()), /what-makes-a-sudoku-hard/);
+assert.match(readFileSync(new URL("../src/_redirects", import.meta.url), "utf8"), /\/how-difficulty-works \/how-difficulty-works\/ 301/);
+
+function proseWords(markdown) {
+  let text = markdown.replace(/\r\n/g, "\n");
+  text = text.replace(/^# .+$/m, "");
+  text = text.replace(/\*\*Meta Description:\*\*.*/i, "");
+  text = text.replace(/\*\*Keywords:\*\*.*/i, "");
+  text = text.replace(/```[\s\S]*?```/g, " ");
+  text = text.replace(/!\[[^\]]*\]\([^)]*\)/g, " ");
+  text = text.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
+  text = text.replace(/[#>*_`]/g, " ");
+  return (text.match(/[A-Za-z0-9]+(?:'[A-Za-z0-9]+)?/g) || []).length;
+}
+
+function pipeBoard(body) {
+  const cells = [];
+  for (const line of body.replace(/\s+$/, "").split("\n")) {
+    if (!line.trim() || line.startsWith("+")) continue;
+    if (!line.startsWith("|")) return null;
+    const groups = line.split("|").slice(1, -1);
+    if (groups.length !== 3) return null;
+    for (const group of groups) {
+      const tokens = group.trim().split(/\s+/);
+      if (tokens.length !== 3) return null;
+      for (const token of tokens) {
+        if (!/^[1-9.]$/.test(token)) return null;
+        cells.push(token === "." ? 0 : Number(token));
+      }
+    }
+  }
+  return cells.length === 81 ? cells : null;
+}
+
+function exampleBoards(markdown) {
+  const boards = [];
+  for (const match of markdown.matchAll(/```[^\n]*\n([\s\S]*?)```/g)) {
+    if (!match[1].includes("|")) continue;
+    const cells = pipeBoard(match[1]);
+    if (!cells) return null;
+    boards.push(cells);
+  }
+  return boards;
+}
+
+function assertGuideArticle(file, minBoards) {
+  const text = readFileSync(new URL(file, import.meta.url), "utf8");
+  assert.equal(text.includes("\u2014"), false, `${file} em dash`);
+  assert.equal(text.includes("\u2013"), false, `${file} en dash`);
+  assert.equal(text.includes("&mdash;"), false, file);
+  assert.equal(text.includes("&ndash;"), false, file);
+  const words = proseWords(text);
+  assert.ok(words >= 1200, `${file} words ${words}`);
+  const boards = exampleBoards(text);
+  assert.ok(boards, `${file} has a pipe grid that did not parse`);
+  assert.ok(boards.length >= minBoards, `${file} boards ${boards.length}`);
+  boards.forEach((cells, index) => {
+    assert.equal(cells.length, 81, `${file} board ${index + 1}`);
+    assert.equal(countSolutions(cells, 2), 1, `${file} board ${index + 1} solutions`);
+  });
+  return text;
+}
+
+const beginners = assertGuideArticle("../articles/01-beginners-guide.md", 2);
+assert.equal(beginners.includes("publishDate:"), false);
+assert.match(beginners, /^# How to play Sudoku$/m);
+
+const mistakes = assertGuideArticle("../articles/02-common-mistakes.md", 1);
+assert.equal(mistakes.includes("publishDate:"), false);
 assert.equal(mistakes.includes("Print this checklist"), false);
+assert.match(mistakes, /^# 7 Common Sudoku Mistakes \(And How to Fix Them\)$/m);
 
 const contact = readFileSync(new URL("../contact-page-content.html", import.meta.url), "utf8");
 assert.equal(contact.includes("There is no account"), false);
 assert.match(contact, /An account is optional/);
 assert.match(contact, /6-digit code/);
 assert.match(contact, /no password/i);
+assert.match(contact, /id="contact-form"/);
+assert.match(contact, /Bug reports are welcome/);
+assert.match(contact, /Puzzle issues are welcome/);
+assert.match(contact, /Technique questions are welcome/);
+assert.match(contact, /not a promise/);
+assert.equal(contact.includes("—"), false);
+assert.equal(contact.includes("–"), false);
+assert.ok(visibleWords(contact) >= 450, `contact words ${visibleWords(contact)}`);
 
 const home = readFileSync(new URL("../home-copy.mjs", import.meta.url), "utf8");
 assert.match(home, /title: "Free Sudoku, Graded by the Hardest Move \| SudokuSudoku"/);
@@ -405,5 +616,44 @@ assert.match(build, /"terms\/index.html"[\s\S]{0,600}ads:\s*false/);
 assert.match(build, /"terms\/index.html"[\s\S]{0,700}analytics:\s*false/);
 assert.match(build, /"terms\/index.html"[\s\S]{0,800}privacyChoices:\s*false/);
 assert.match(redirects, /\/terms \/terms\/ 301/);
+
+const nytRange = "August 30, 2021 through March 2, 2024";
+const nytSources = {
+  comparison: readFileSync(new URL("../articles/04-nyt-medium-vs-hard.md", import.meta.url), "utf8"),
+  "what-makes": readArticle("what-makes-a-sudoku-hard"),
+  ai: readArticle("why-ai-is-bad-at-sudoku"),
+  generator: readFileSync(new URL("../assets/js/generator.js", import.meta.url), "utf8"),
+  techniques: readFileSync(new URL("./technique-copy.mjs", import.meta.url), "utf8"),
+};
+for (const [label, text] of Object.entries(nytSources)) {
+  assert.equal(text.includes(nytRange), true, label);
+  assert.equal(text.includes("January 2023"), false, label);
+  assert.equal(text.includes("Jan 2023"), false, label);
+  assert.equal(text.includes("—"), false, `${label} em dash`);
+}
+assert.equal(nytSources["what-makes"].includes("publishDate: 2026-10-28"), true);
+assert.equal(nytSources.ai.includes("publishDate: 2026-11-04"), true);
+
+const order = readArticle("sudoku-techniques-in-order");
+assert.equal(order.includes("\u2014"), false);
+assert.equal(order.includes("\u2013"), false);
+const orderBody = order.split("---").slice(2).join("---").replace(/<!--[\s\S]*?-->/g, "");
+const orderWords = orderBody.trim().split(/\s+/).filter(Boolean);
+assert.ok(orderWords.length >= 1000 && orderWords.length <= 1400, `technique order words ${orderWords.length}`);
+const orderSummary = JSON.parse(
+  readFileSync(new URL("../articles/data/technique-order/summary.json", import.meta.url), "utf8")
+);
+assert.equal(orderSummary.nyt.levels.hard.steps.pointing, 1795);
+assert.equal(orderSummary.nyt.levels.medium.steps.pointing, 1211);
+assert.equal(orderSummary.nyt.levels.hard.techniqueSteps, 2917);
+assert.equal(orderSummary.nyt.levels.easy.singlePlacements, 21285);
+assert.equal(orderSummary.generated.levels.expert.puzzles.xwing, 53);
+assert.equal(orderSummary.generated.perLevel, 300);
+for (const figure of ["1,795", "1,211", "2,917", "21,285", "played one on 53 of them"]) {
+  assert.equal(order.includes(figure), true, figure);
+}
+assert.match(order, /articles\/data\/technique-order\/analyze\.mjs/);
+assert.match(order, /href="\/articles\/nyt-medium-vs-hard\/"|\]\(\/articles\/nyt-medium-vs-hard\/\)/);
+assert.match(build, /articles\/sudoku-techniques-in-order\.md/);
 
 console.log("article publish tests passed");
