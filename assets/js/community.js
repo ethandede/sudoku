@@ -24,6 +24,11 @@
   let summaryAt = 0;
   let flushing = null;
   let startGate = Promise.resolve();
+  // One solved report per dealt puzzle. A later finish post for the same deal
+  // must not send a second game_complete, and the next deal must be able to.
+  let gameDeal = 0;
+  let completedDeal = -1;
+  const reportedSolves = new WeakSet();
 
   function readJson(key) {
     try {
@@ -266,6 +271,50 @@
     };
   }
 
+  function puzzleTypeOf(open, info) {
+    if (info && (info.puzzleType === "daily" || info.puzzleType === "practice" || info.puzzleType === "random")) {
+      return info.puzzleType;
+    }
+    if (info && info.practice) return "practice";
+    const isDaily = info && typeof info.isDaily === "boolean" ? info.isDaily : Boolean(open && open.isDaily);
+    return isDaily ? "daily" : "random";
+  }
+
+  function numberField(info, open, infoKey, openKey) {
+    const fromInfo = info && info[infoKey];
+    const value = typeof fromInfo === "number" ? fromInfo : open && open[openKey];
+    return Math.max(0, Math.round(value || 0));
+  }
+
+  // game_complete stands on its own. game_start only runs after a hand-entered
+  // digit, so a fill or a hint-only solve has no gaStart and used to be dropped.
+  function completeFields(open, info) {
+    const difficulty = (info && (info.difficulty || info.kind)) || (open && open.level) || "easy";
+    const hints = numberField(info, open, "hintsUsed", "hintsUsed");
+    const assisted = info && typeof info.assisted === "boolean" ? info.assisted : hints > 0;
+    return {
+      difficulty,
+      time_seconds: numberField(info, open, "elapsed", "elapsed"),
+      mistakes: numberField(info, open, "mistakes", "mistakes"),
+      hints_used: hints,
+      assisted,
+      puzzle_type: puzzleTypeOf(open, info),
+    };
+  }
+
+  function noteSolved(info) {
+    if (!info || info.outcome !== "solved") return;
+    if (reportedSolves.has(info) || completedDeal === gameDeal) return;
+    reportedSolves.add(info);
+    completedDeal = gameDeal;
+    const open = readOpen();
+    if (open && open.gaEnd !== "complete") {
+      open.gaEnd = "complete";
+      writeOpen(open);
+    }
+    trackGame("game_complete", completeFields(open, info));
+  }
+
   function wasLogged(open) {
     if (!open) return false;
     if (open.logged === true || open.logging === true) return true;
@@ -304,6 +353,7 @@
   }
 
   function abandonOpen() {
+    gameDeal += 1;
     closePrevious();
   }
 
@@ -483,6 +533,7 @@
   }
 
   async function openGame(info) {
+    gameDeal += 1;
     closePrevious();
     if (automatedClient()) return null;
     const key = await puzzleKey(info.seed, info.givens);
@@ -581,6 +632,11 @@
       return;
     }
     if (info) noteProgress(info);
+    if (info && info.outcome === "solved") {
+      noteSolved(info);
+      beaconQueue();
+      return;
+    }
     const open = readOpen();
     if (!open || open.done || open.gaEnd || !open.gaStart) {
       beaconQueue();
@@ -613,14 +669,10 @@
   async function commitFinish(info) {
     const open = readOpen();
     if (open && info) noteProgress(info);
+    if (info && info.outcome === "solved") noteSolved(info);
     const current = readOpen();
-    if (info && info.outcome === "solved" && current && current.gaStart && current.gaEnd !== "complete") {
-      trackGame("game_complete", analyticsFields(current, info));
-      current.gaEnd = "complete";
-    } else if (current && !current.gaEnd) {
-      current.gaEnd = "closed";
-    }
     if (!current) return;
+    if (!(info && info.outcome === "solved") && !current.gaEnd) current.gaEnd = "closed";
     if (info && typeof info.elapsed === "number") current.elapsed = Math.round(info.elapsed);
     if (info && typeof info.mistakes === "number") current.mistakes = info.mistakes;
     if (info && typeof info.hintsUsed === "number") current.hintsUsed = info.hintsUsed;
@@ -670,6 +722,7 @@
     abandonOpen,
     skipFinish,
     noteFirstMove,
+    noteSolved,
     leave,
     noteProgress,
     rememberFinish,

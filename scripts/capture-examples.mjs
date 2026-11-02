@@ -136,11 +136,28 @@ export function captureExamples(root) {
     harvest(puzzle, solution);
   }
 
-  if (wanted.size) {
-    throw new Error(`No solver example for: ${[...wanted].join(", ")}`);
+  // Mental seed teach-extra-4 used to be the only captured quad. Newer techniques
+  // can outrank that carve, so generate() no longer returns it. The grid itself
+  // still has a quad, so harvest it directly when the search comes up empty.
+  if (wanted.has("quads")) {
+    harvest(
+      [0,0,0,0,4,0,0,0,0,0,0,0,7,0,9,0,0,0,0,9,0,0,0,8,0,0,3,0,0,0,5,0,0,9,0,6,0,8,0,0,6,0,0,0,0,2,5,0,0,0,1,0,0,0,4,0,7,0,1,0,0,0,0,0,0,9,0,0,2,3,1,0,0,0,8,0,0,4,0,2,0],
+      [3,7,2,1,4,6,5,9,8,8,1,5,7,3,9,6,4,2,6,9,4,2,5,8,1,7,3,7,4,1,5,2,3,9,8,6,9,8,3,4,6,7,2,5,1,2,5,6,9,8,1,4,3,7,4,2,7,3,1,5,8,6,9,5,6,9,8,7,2,3,1,4,1,3,8,6,9,4,7,2,5]
+    );
   }
 
+  // W-wing now solves the pool puzzles that used to be the coloring capture.
+  // This grid still reaches coloring, so the page keeps a checked board.
+  if (wanted.has("coloring")) {
+    harvest(
+      [0,0,0,6,4,0,0,2,8,0,0,0,2,0,0,0,5,0,0,0,9,0,0,0,1,0,0,0,0,0,4,0,0,0,0,0,0,9,7,0,6,0,0,0,0,0,0,1,0,8,0,2,0,7,0,0,6,0,5,0,8,0,0,3,0,5,0,1,0,6,0,0,0,4,0,0,0,0,0,3,5],
+      [7,5,3,6,4,1,9,2,8,8,1,4,2,9,7,3,5,6,2,6,9,8,3,5,1,7,4,6,8,2,4,7,3,5,9,1,5,9,7,1,6,2,4,8,3,4,3,1,5,8,9,2,6,7,9,7,6,3,5,4,8,1,2,3,2,5,7,1,8,6,4,9,1,4,8,9,2,6,7,3,5]
+    );
+  }
+
+  // A missing slug is not fatal. The build uses a hand-built example when the
+  // technique page supplies one, and still publishes the page when it does not.
   const examples = {};
-  for (const slug of techniqueOrder) examples[slug] = found.get(slug);
+  for (const slug of techniqueOrder) examples[slug] = found.get(slug) || null;
   return examples;
 }

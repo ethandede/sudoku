@@ -1,5 +1,5 @@
 // House marks: in-house promos for the reserved ad boxes.
-// Palette A (accent #0c4f86 / #9ed2f8), Open Sans, geometric line art.
+// Palette A (accent #2141a8 / #a9bcff), Open Sans, geometric line art.
 // Teddy stays on the about page. These units do not use him.
 //
 // Ads are not approved. ADSENSE_UNITS_ENABLED must stay false.
@@ -14,6 +14,7 @@ export const ADSENSE_CLIENT = "ca-pub-9345046210950956";
 
 const ADSENSE_SLOT_IDS = {
   "home-below": "REPLACE_WITH_SLOT",
+  "home-rail": "REPLACE_WITH_SLOT",
   "article-end": "REPLACE_WITH_SLOT",
   "about-end": "REPLACE_WITH_SLOT",
   "contact-end": "REPLACE_WITH_SLOT",
@@ -71,13 +72,6 @@ function xLines(x0, y0, x1, y1, inset) {
   const c = pull(x1, y0, cx, cy);
   const d = pull(x0, y1, cx, cy);
   return `<path d="M${a[0]} ${a[1]}L${b[0]} ${b[1]}M${c[0]} ${c[1]}L${d[0]} ${d[1]}" class="hm-pattern"/>`;
-}
-
-function markSvg() {
-  return svg(
-    "16 16",
-    `<path d="M1.25 1.25h13.5v13.5H1.25z" class="hm-accent-stroke"/><path d="M6 1.25v13.5M11 1.25v13.5M1.25 6h13.5M1.25 11h13.5" class="hm-line"/><rect x="6.35" y="6.35" width="4.3" height="4.3" class="hm-accent"/>`
-  );
 }
 
 function xwingGrid() {
@@ -291,7 +285,7 @@ export function promoCatalog({ practiceHref = null, publishedHrefs = PUBLISHED_A
       id: "techniques",
       href: "/techniques/",
       title: "That step has a name.",
-      text: "Pairs, X-wings, chains. Each one on a board the solver actually reached.",
+      text: "The page names the step, then shows the board the solver actually reached.",
       line: "The technique list, on real boards.",
       cue: "See the techniques",
       art: "xwing",
@@ -304,7 +298,7 @@ export function promoCatalog({ practiceHref = null, publishedHrefs = PUBLISHED_A
       title: "Same grid as everyone else.",
       text: "Today's puzzle is Not Easy. One date, one seed, a new grid tomorrow.",
       line: "Today's Not Easy. Same puzzle for everyone.",
-      cue: "Play today's",
+      cue: "Play today's puzzle",
       art: "calendar",
       avoidSections: ["home"],
     },
@@ -312,8 +306,8 @@ export function promoCatalog({ practiceHref = null, publishedHrefs = PUBLISHED_A
       id: "stats",
       href: "/stats/",
       title: "How long is everyone taking?",
-      text: "Median times, give-ups, and the hints people actually use.",
-      line: "Median times, and the hints people use.",
+      text: "See how long a finish takes, and which hints people reach for.",
+      line: "Finish times, and the hints people reach for.",
       cue: "See the stats",
       art: "chart",
       avoidSections: ["stats"],
@@ -375,7 +369,6 @@ function promoLink(promo, plan) {
   return `<a class="house-promo" href="${escapeHtml(promo.href)}" data-promo-slot="${escapeHtml(plan.slot)}" data-promo-target="${escapeHtml(promo.href)}" data-art="${escapeHtml(promo.art)}">
     <span class="house-promo-art" aria-hidden="true">${artSvg(promo.art, size)}</span>
     <span class="house-promo-copy">
-      <span class="house-promo-brand"><span class="house-mark">${markSvg()}</span><span class="house-promo-name">House marks</span><span class="house-promo-from">From SudokuSudoku</span></span>
       <span class="house-promo-title">${escapeHtml(promo.title)}</span>
       <span class="house-promo-text">${escapeHtml(promo.text)}</span>
       <span class="house-promo-line">${escapeHtml(promo.line)}</span>

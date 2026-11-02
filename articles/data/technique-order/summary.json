@@ -1,0 +1,232 @@
+{
+  "solver": "assets/js/solver.js",
+  "nyt": {
+    "source": "https://github.com/vivrao9/nyt-sudoku",
+    "file": "data-collection/nyt-sudoku.db",
+    "window": "2021-08-30 through 2024-03-02",
+    "levels": {
+      "easy": {
+        "n": 495,
+        "solved": 495,
+        "corrupt": 0,
+        "techniqueSteps": 0,
+        "singlePlacements": 21285,
+        "steps": {},
+        "puzzles": {},
+        "first": {
+          "none": 495
+        }
+      },
+      "medium": {
+        "n": 494,
+        "solved": 494,
+        "corrupt": 0,
+        "techniqueSteps": 1211,
+        "singlePlacements": 28118,
+        "steps": {
+          "pointing": 1211
+        },
+        "puzzles": {
+          "pointing": 494
+        },
+        "first": {
+          "pointing": 494
+        }
+      },
+      "hard": {
+        "n": 494,
+        "solved": 494,
+        "corrupt": 0,
+        "techniqueSteps": 2917,
+        "singlePlacements": 28282,
+        "steps": {
+          "pointing": 1795,
+          "claiming": 480,
+          "naked_pair": 409,
+          "hidden_pair": 198,
+          "naked_triple": 24,
+          "hidden_triple": 11
+        },
+        "puzzles": {
+          "pointing": 474,
+          "naked_pair": 289,
+          "claiming": 282,
+          "hidden_pair": 154,
+          "naked_triple": 22,
+          "hidden_triple": 11
+        },
+        "first": {
+          "pointing": 464,
+          "claiming": 16,
+          "naked_pair": 10,
+          "hidden_pair": 4
+        }
+      }
+    }
+  },
+  "generated": {
+    "perLevel": 300,
+    "seed": "technique-order:${level}:${i}",
+    "excluded": [
+      "fromPool",
+      "offSpec"
+    ],
+    "levels": {
+      "hard": {
+        "n": 300,
+        "solved": 300,
+        "corrupt": 0,
+        "techniqueSteps": 1936,
+        "singlePlacements": 16855,
+        "steps": {
+          "pointing": 1146,
+          "naked_pair": 332,
+          "claiming": 331,
+          "hidden_pair": 108,
+          "naked_triple": 14,
+          "hidden_triple": 5
+        },
+        "puzzles": {
+          "pointing": 297,
+          "naked_pair": 243,
+          "claiming": 196,
+          "hidden_pair": 95,
+          "naked_triple": 13,
+          "hidden_triple": 5
+        },
+        "first": {
+          "pointing": 295,
+          "claiming": 3,
+          "hidden_pair": 1,
+          "naked_pair": 1
+        },
+        "seeds": 321,
+        "skippedFromPool": 21,
+        "skippedOffSpec": 0,
+        "relaxedClues": 0
+      },
+      "expert": {
+        "n": 300,
+        "solved": 300,
+        "corrupt": 0,
+        "techniqueSteps": 1847,
+        "singlePlacements": 16618,
+        "steps": {
+          "pointing": 716,
+          "naked_pair": 211,
+          "xywing": 198,
+          "claiming": 190,
+          "skyscraper": 146,
+          "hidden_pair": 119,
+          "wwing": 70,
+          "xwing": 55,
+          "kite": 44,
+          "xyzwing": 28,
+          "naked_triple": 25,
+          "uniquerect": 18,
+          "swordfish": 11,
+          "bug": 7,
+          "hidden_triple": 7,
+          "naked_quad": 2
+        },
+        "puzzles": {
+          "pointing": 241,
+          "xywing": 154,
+          "naked_pair": 140,
+          "claiming": 131,
+          "skyscraper": 125,
+          "hidden_pair": 89,
+          "xwing": 53,
+          "wwing": 51,
+          "kite": 37,
+          "xyzwing": 27,
+          "naked_triple": 21,
+          "uniquerect": 18,
+          "swordfish": 11,
+          "bug": 7,
+          "hidden_triple": 6,
+          "naked_quad": 2
+        },
+        "first": {
+          "pointing": 229,
+          "naked_pair": 18,
+          "claiming": 15,
+          "skyscraper": 11,
+          "hidden_pair": 8,
+          "xywing": 8,
+          "xyzwing": 5,
+          "xwing": 3,
+          "bug": 2,
+          "wwing": 1
+        },
+        "seeds": 301,
+        "skippedFromPool": 1,
+        "skippedOffSpec": 0,
+        "relaxedClues": 0
+      },
+      "mental": {
+        "n": 300,
+        "solved": 300,
+        "corrupt": 0,
+        "techniqueSteps": 2903,
+        "singlePlacements": 17140,
+        "steps": {
+          "pointing": 1012,
+          "xychain": 442,
+          "claiming": 315,
+          "naked_pair": 265,
+          "hidden_pair": 152,
+          "xywing": 135,
+          "wwing": 131,
+          "kite": 118,
+          "skyscraper": 85,
+          "naked_triple": 52,
+          "xyzwing": 48,
+          "uniquerect": 42,
+          "xwing": 41,
+          "coloring": 29,
+          "hidden_triple": 15,
+          "swordfish": 13,
+          "bug": 7,
+          "naked_quad": 1
+        },
+        "puzzles": {
+          "xychain": 286,
+          "pointing": 266,
+          "claiming": 184,
+          "naked_pair": 167,
+          "hidden_pair": 116,
+          "xywing": 106,
+          "wwing": 104,
+          "kite": 92,
+          "skyscraper": 79,
+          "naked_triple": 49,
+          "xyzwing": 46,
+          "uniquerect": 40,
+          "xwing": 35,
+          "coloring": 26,
+          "hidden_triple": 14,
+          "swordfish": 11,
+          "bug": 7,
+          "naked_quad": 1
+        },
+        "first": {
+          "pointing": 250,
+          "claiming": 18,
+          "naked_pair": 9,
+          "xywing": 6,
+          "hidden_pair": 4,
+          "naked_triple": 4,
+          "kite": 3,
+          "skyscraper": 2,
+          "wwing": 2,
+          "xychain": 2
+        },
+        "seeds": 662,
+        "skippedFromPool": 362,
+        "skippedOffSpec": 0,
+        "relaxedClues": 0
+      }
+    }
+  }
+}
