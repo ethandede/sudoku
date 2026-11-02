@@ -109,6 +109,8 @@ const STATIC_PAGES = {
 const ARTICLE_DESCRIPTION = {
   "beginners-guide":
     "How to play Sudoku: the rules, a 4x4 puzzle with one solution, and the same checks you use on the full 9x9 board.",
+  "what-to-do-when-stuck":
+    "What to do when you're stuck on a Sudoku: no singles left, check for a wrong digit, then the pointing, then the pair that fills a cell.",
   "what-makes-a-sudoku-hard":
     "What actually makes a Sudoku hard: a 68-clue puzzle that needs an XY-wing, a 17-clue one you can finish with singles, and 2,280 graded puzzles. Clue count barely predicts difficulty.",
   "history-of-sudoku":
@@ -127,6 +129,7 @@ const ARTICLE_TERM = {
   "beginners-guide": "how to play sudoku",
   "common-mistakes": "sudoku mistakes",
   "nyt-medium-vs-hard": "nyt medium",
+  "what-to-do-when-stuck": "stuck on a sudoku",
   "what-makes-a-sudoku-hard": "makes a sudoku hard",
   "history-of-sudoku": "where sudoku came from",
   "sudoku-techniques-in-order": "sudoku techniques",
