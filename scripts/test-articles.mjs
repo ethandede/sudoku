@@ -19,6 +19,7 @@ import {
 const schedule = {
   "what-makes-a-sudoku-hard": "2026-10-28",
   "history-of-sudoku": "2026-10-28",
+  "how-to-use-sudoku-notes": "2026-10-28",
   "sudoku-techniques-in-order": "2026-10-29",
   "world-sudoku-championship-2026": "2026-10-31",
   "sudoku-variants": "2026-11-04",
@@ -47,27 +48,35 @@ function live(today) {
 
 assert.deepEqual(live("2026-10-21"), []);
 assert.deepEqual(live("2026-10-27"), []);
-assert.deepEqual(live("2026-10-28"), ["what-makes-a-sudoku-hard", "history-of-sudoku"]);
+assert.deepEqual(live("2026-10-28"), [
+  "what-makes-a-sudoku-hard",
+  "history-of-sudoku",
+  "how-to-use-sudoku-notes",
+]);
 assert.deepEqual(live("2026-10-30"), [
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
+  "how-to-use-sudoku-notes",
   "sudoku-techniques-in-order",
 ]);
 assert.deepEqual(live("2026-10-31"), [
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
+  "how-to-use-sudoku-notes",
   "sudoku-techniques-in-order",
   "world-sudoku-championship-2026",
 ]);
 assert.deepEqual(live("2026-11-03"), [
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
+  "how-to-use-sudoku-notes",
   "sudoku-techniques-in-order",
   "world-sudoku-championship-2026",
 ]);
 assert.deepEqual(live("2026-11-04"), [
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
+  "how-to-use-sudoku-notes",
   "sudoku-techniques-in-order",
   "world-sudoku-championship-2026",
   "sudoku-variants",
@@ -76,6 +85,7 @@ assert.deepEqual(live("2026-11-04"), [
 const beforeFewest = [
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
+  "how-to-use-sudoku-notes",
   "sudoku-techniques-in-order",
   "world-sudoku-championship-2026",
   "sudoku-variants",
@@ -89,6 +99,27 @@ assert.deepEqual(live("2026-11-18"), Object.keys(schedule));
 assert.equal(isPublished("", "2026-10-21"), true);
 assert.equal(formatPublishDate("2026-10-28"), "October 28, 2026");
 assert.equal(formatPublishDate("2026-10-31"), "October 31, 2026");
+
+const notesArticle = prepareArticle(readArticle("how-to-use-sudoku-notes"));
+assert.equal(notesArticle.content.includes("—"), false);
+assert.equal(notesArticle.content.includes("–"), false);
+assert.equal(notesArticle.content.includes("```"), false);
+assert.equal(notesArticle.content.includes("By Ethan"), false);
+assert.equal((notesArticle.content.match(/class="puzzle-grid"/g) || []).length, 1);
+assert.equal((notesArticle.content.match(/class="puzzle-cell/g) || []).length, 81);
+assert.match(notesArticle.content, /`642\.395\.17\.3\.2\.9/);
+const notesHtml = marked.parse(notesArticle.content);
+assert.equal(notesHtml.includes("—"), false);
+assert.equal(notesHtml.includes("–"), false);
+assert.equal(notesHtml.includes('href="/techniques/naked-pair/"'), true);
+assert.equal(notesHtml.includes('href="/techniques/naked-single/"'), true);
+assert.equal(notesHtml.includes('href="/techniques/hidden-single/"'), true);
+assert.equal(notesHtml.includes('href="/?practice=naked-pair"'), true);
+assert.deepEqual(notesArticle.relatedSlugs, [
+  "how-to-solve-a-hard-sudoku",
+  "what-to-do-when-stuck",
+  "sudoku-on-your-phone",
+]);
 assert.equal(formatPublishDate("2026-11-04"), "November 4, 2026");
 assert.equal(formatPublishDate("2026-11-18"), "November 18, 2026");
 
@@ -324,6 +355,8 @@ assert.match(teddyIcon, /role="img"/);
 assert.match(build, /SudokuSudoku\. All rights reserved\./);
 assert.equal(build.includes("Sudoku Online"), false);
 assert.match(build, /articles\/fewest-and-most-sudoku-clues\.md/);
+assert.match(build, /articles\/how-to-use-sudoku-notes\.md/);
+assert.match(build, /FORTHCOMING_ARTICLES/);
 
 const techniqueSlugs = new Set(techniques.map((technique) => technique.slug));
 const articleSlugs = new Set([
@@ -366,6 +399,13 @@ function redirectsFrom(text) {
 
 const redirectMap = redirectsFrom(redirects);
 
+const FORTHCOMING = new Set([
+  "how-to-solve-a-hard-sudoku",
+  "what-to-do-when-stuck",
+  "how-to-use-sudoku-notes",
+  "sudoku-on-your-phone",
+]);
+
 function routeExists(path, search) {
   if (path === "/" && search.has("daily") && search.size === 1) return true;
   if (path === "/" && search.has("difficulty") && search.size === 1) {
@@ -379,7 +419,7 @@ function routeExists(path, search) {
   const technique = path.match(/^\/techniques\/([a-z0-9-]+)\/$/);
   if (technique) return techniqueSlugs.has(technique[1]);
   const article = path.match(/^\/articles\/([a-z0-9-]+)\/$/);
-  if (article) return articleSlugs.has(article[1]);
+  if (article) return articleSlugs.has(article[1]) || FORTHCOMING.has(article[1]);
   return false;
 }
 
