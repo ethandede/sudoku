@@ -1,9 +1,10 @@
 // Light accents around the Uiverse chrome in _uiverse.scss.
-// A 1px press is original CSS. Rare UI and Skiper UI are not ported.
+// A 1px press is original CSS. Skiper UI is not ported.
+// The Rare UI counter and delete control live in _rare.scss.
 // The page dot grid, in _brand.scss and _header.scss, is an original
 // radial-gradient. The idea is Magic UI's Dot Pattern (MIT).
 // Icons are Phosphor arrow-left and arrow-right. The MIT notice is in
-// scripts/icons.mjs. Count-up lives in assets/js/stats-page.js.
+// scripts/icons.mjs.
 // Nothing here selects the board, keypad, notes, timer, or technique stepper.
 
 .ph-arrow {
@@ -15,15 +16,18 @@
 }
 
 .skills-back a,
-.articles-page .read-more,
-.house-promo-cue {
+.articles-page .read-more {
   gap: 0.28rem;
 }
 
-.articles-page .read-more,
-.house-promo-cue {
+.articles-page .read-more {
   display: inline-flex;
   align-items: center;
+}
+
+// The cue wraps in narrow rails, so the arrow stays inline with the last word.
+.house-promo-cue .ph-arrow {
+  margin-left: 0.28rem;
 }
 
 .count-up {
@@ -35,13 +39,13 @@
 @media (prefers-reduced-motion: no-preference) {
   .articles-page .article-card,
   .house-slot a.house-promo,
-  .stats-switch button,
-  .articles-page .read-more,
-  .cta-button,
-  .contact-form button[type="submit"],
-  .skills-page .primary-btn,
-  .skills-page .secondary-btn {
-    transition: transform 120ms ease;
+  .stats-switch button {
+    transition:
+      background-color var(--btn-duration) var(--btn-ease),
+      border-color var(--btn-duration) var(--btn-ease),
+      color var(--btn-duration) var(--btn-ease),
+      box-shadow var(--btn-duration) var(--btn-ease),
+      transform var(--btn-duration) var(--btn-ease);
   }
 
   .articles-page .article-card:active,

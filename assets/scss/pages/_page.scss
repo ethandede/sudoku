@@ -13,21 +13,21 @@
   }
 
   .page-content {
-    background: white;
+    background: vars.$paper;
     border-radius: 12px;
     padding: 2.25rem 2.5rem 2.5rem;
-    border: 1px solid #d5dbe2;
+    border: 1px solid vars.$line;
     box-shadow: none;
   }
 
   .page-header {
     margin-bottom: 2rem;
     padding-bottom: 1.5rem;
-    border-bottom: 1px solid #d5dbe2;
+    border-bottom: 1px solid vars.$line;
 
     .page-title {
       font-size: 2.5rem;
-      color: vars.$secondary-color;
+      color: var(--ink);
       line-height: 1.2;
       margin: 0;
     }
@@ -35,12 +35,12 @@
 
   .page-body {
     line-height: 1.8;
-    color: #333;
+    color: var(--text);
     font-size: 1.1rem;
 
     h2 {
       font-size: 1.75rem;
-      color: vars.$secondary-color;
+      color: var(--ink);
       margin-top: 2.5rem;
       margin-bottom: 1rem;
       padding-top: 0.5rem;
@@ -48,7 +48,7 @@
 
     h3 {
       font-size: 1.35rem;
-      color: vars.$text-color;
+      color: var(--text);
       margin-top: 2rem;
       margin-bottom: 0.75rem;
     }
@@ -78,7 +78,37 @@
 
     strong {
       font-weight: 600;
-      color: vars.$secondary-color;
+      color: var(--ink);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+      margin: 0 0 1.5rem;
+
+      th,
+      td {
+        text-align: left;
+        padding: 0.55rem 0.65rem;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+
+      th {
+        font-weight: 700;
+        background: var(--recess);
+      }
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+      max-width: 100%;
+      margin: 0 0 1.5rem;
+
+      table {
+        margin: 0;
+      }
     }
 
     em {
@@ -87,7 +117,7 @@
 
     hr {
       border: none;
-      border-top: 1px solid #e0e0e0;
+      border-top: 1px solid vars.$hairline;
       margin: 2rem 0;
     }
 
@@ -96,7 +126,7 @@
       padding-left: 1.5rem;
       margin: 2rem 0;
       font-style: italic;
-      color: #666;
+      color: vars.$muted;
     }
 
     img {
@@ -108,24 +138,44 @@
 
     .teddy-figure {
       margin: 0 0 1.5rem;
-      max-width: 16rem;
+      width: fit-content;
+      max-width: 100%;
+      padding: 12px 12px 8px;
+      background: vars.$board;
+      border-radius: 1.5rem;
 
-      picture,
-      img {
+      > img,
+      .teddy-art {
         display: block;
         width: 256px;
         max-width: 100%;
+        min-width: 160px;
         height: auto;
-        aspect-ratio: 1 / 1;
+        aspect-ratio: 960 / 1200;
         margin: 0;
-        border-radius: 1.5rem;
+        border-radius: 1rem;
+        background: vars.$board;
+      }
+
+      .teddy-icon {
+        display: block;
+        flex: none;
+        width: 32px;
+        min-width: 22px;
+        height: 32px;
+        aspect-ratio: 1;
+        margin: 0 0.45rem 0 0;
+        border-radius: 0.45rem;
+        background: transparent;
       }
 
       figcaption {
+        display: flex;
+        align-items: center;
         margin-top: 0.5rem;
         font-size: 0.95rem;
         line-height: 1.4;
-        color: #555;
+        color: #33383d;
       }
     }
   }
@@ -175,5 +225,51 @@
     .page-header .page-title {
       font-size: 1.65rem;
     }
+  }
+}
+
+// Phone tables. The level table is wider than a 360px column, so it scrolls
+// inside the card instead of crushing the grader column. Header and cells
+// use the cool tokens so a dark color-scheme cannot paint them black.
+@media (max-width: 480px) {
+  .page-body .level-table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .page-body .level-table table {
+    width: 36rem;
+    min-width: 36rem;
+    max-width: none;
+  }
+
+  .standard-page .page-body .level-table th,
+  .standard-page .page-body .level-table td {
+    background: var(--card);
+    color: var(--text);
+  }
+
+  .standard-page .page-body .level-table th {
+    background: var(--track);
+    color: var(--ink);
+  }
+
+  html[data-theme="light"] .page-body .level-table table {
+    color-scheme: light;
+  }
+
+  html[data-theme="dark"] .page-body .level-table table {
+    color-scheme: dark;
+  }
+}
+
+html[data-theme="dark"] .standard-page .teddy-figure {
+  background: vars.$board;
+
+  figcaption {
+    color: #33383d;
   }
 }

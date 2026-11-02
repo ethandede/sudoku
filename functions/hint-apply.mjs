@@ -73,6 +73,28 @@ function housePhrase(entries, lead) {
   return `${digit} from ${lead}${listPhrase(entries.map((entry) => cellName(entry.index)))}`;
 }
 
+export function removalLabel(step) {
+  const seen = new Set();
+  for (const item of (step && step.eliminate) || []) {
+    if (!item || item.digit < 1 || item.digit > 9) continue;
+    seen.add(`${item.index}:${item.digit}`);
+  }
+  const count = seen.size;
+  if (count === 1) return "Remove 1 candidate";
+  if (count > 1) return `Remove ${count} candidates`;
+  return "Apply";
+}
+
+export function previewSentence(eliminate) {
+  const parts = [];
+  for (const [index, digits] of grouped(eliminate)) {
+    if (digits.length === 1) parts.push(`${digits[0]} in ${cellName(index)}`);
+    else parts.push(`${listPhrase(digits.map(String))} in ${cellName(index)}`);
+  }
+  if (!parts.length) return "";
+  return `Rules out ${listPhrase(parts)}.`;
+}
+
 export function eliminationSentence(eliminate, notes) {
   const noted = [];
   const missing = [];
@@ -105,6 +127,42 @@ export function eliminationSentence(eliminate, notes) {
   return parts.join(" ");
 }
 
+// Solver eliminations, plus naked-subset digits written in pencil notes
+// on every other cell of the house. Those notes are not candidates, so
+// they are cleared from the player's marks and not recorded as removals.
+export function noteClears(step) {
+  const listed = [];
+  for (const item of (step && step.eliminate) || []) {
+    if (!item) continue;
+    listed.push({ index: item.index, digit: item.digit });
+  }
+  if (!step || (step.slug !== "naked-pair" && step.slug !== "naked-triple" && step.slug !== "quads")) {
+    return listed;
+  }
+  const pattern = new Set(step.pattern || []);
+  if (!pattern.size) return listed;
+  if (!listed.every((item) => !pattern.has(item.index))) return listed;
+  const digits = new Set();
+  for (const item of step.candidates || []) {
+    if (!item || !pattern.has(item.index)) continue;
+    for (const digit of item.digits || []) digits.add(digit);
+  }
+  if (!digits.size) {
+    for (const item of listed) digits.add(item.digit);
+  }
+  const seen = new Set(listed.map((item) => `${item.index}:${item.digit}`));
+  for (const index of step.region || []) {
+    if (pattern.has(index)) continue;
+    for (const digit of digits) {
+      const key = `${index}:${digit}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      listed.push({ index, digit });
+    }
+  }
+  return listed;
+}
+
 export function resultCopy(step, notesBefore, placed) {
   if (placesOnApply(step)) {
     if (!placed || !step.place) return step.explain;
@@ -124,11 +182,19 @@ export function applyHintStep(state, step) {
   const before = notes.map((set) => [...set]);
   const removed = (state.removed || []).map((item) => ({ index: item.index, digit: item.digit }));
   const board = (state.board || []).slice();
-  for (const item of step.eliminate || []) {
+  const eliminated = new Set((step.eliminate || []).map((item) => `${item.index}:${item.digit}`));
+  for (const item of noteClears(step)) {
     notes[item.index].delete(item.digit);
+    if (!eliminated.has(`${item.index}:${item.digit}`)) continue;
     if (!removed.some((kept) => kept.index === item.index && kept.digit === item.digit)) {
       removed.push({ index: item.index, digit: item.digit });
     }
+  }
+  const fades = [];
+  for (const item of step.eliminate || []) {
+    if (!item) continue;
+    if ((before[item.index] || []).includes(item.digit)) continue;
+    fades.push({ index: item.index, digit: item.digit });
   }
   let placed = false;
   if (placesOnApply(step)) {
@@ -151,6 +217,7 @@ export function applyHintStep(state, step) {
     notes: notes.map((set) => [...set].sort((a, b) => a - b)),
     removed: removed.filter((item) => board[item.index] === 0),
     placed,
+    fades,
     chain: Boolean(step.place && !placed && !placesOnApply(step)),
     copy: resultCopy(step, before, placed),
   };

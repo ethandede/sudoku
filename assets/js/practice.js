@@ -12,11 +12,17 @@
     "hidden-triple": 5.1,
     quads: 6,
     "x-wing": 7,
-    "xy-wing": 8,
-    swordfish: 9,
-    coloring: 10,
-    "xy-chain": 10.1,
-  };
+  "xy-wing": 8,
+  swordfish: 9,
+  skyscraper: 9.1,
+  "two-string-kite": 9.2,
+  "xyz-wing": 9.3,
+  "w-wing": 9.4,
+  "unique-rectangle": 9.5,
+  "bug-plus-one": 9.6,
+  coloring: 10,
+  "xy-chain": 10.1,
+};
 
   const FILL_LABEL = {
     "naked-single": "Fill all naked singles",
@@ -31,6 +37,12 @@
     "x-wing": "Apply all X-wings",
     swordfish: "Apply all swordfish",
     "xy-wing": "Apply all XY-wings",
+    skyscraper: "Apply all skyscrapers",
+    "two-string-kite": "Apply all two-string kites",
+    "xyz-wing": "Apply all XYZ-wings",
+    "w-wing": "Apply all W-wings",
+    "unique-rectangle": "Apply all unique rectangles",
+    "bug-plus-one": "Apply all BUG+1",
     coloring: "Apply all simple coloring",
     "xy-chain": "Apply all XY-chains",
   };
@@ -52,6 +64,19 @@
     return `${name} is the next move. Find it.`;
   }
 
+  // These display names are gerunds. "Find the Pointing." reads as if the
+  // name were a noun, so the short banner names the move. Every other
+  // technique name is already a noun and stays "Find the {Name}."
+  const VERB_NAME = {
+    Pointing: true,
+    Claiming: true,
+    "Simple coloring": true,
+  };
+
+  function promptShort(name) {
+    return `Find the ${name}${VERB_NAME[name] ? " move" : ""}.`;
+  }
+
   function wantsCandidates(slug) {
     return slug !== "naked-single";
   }
@@ -65,6 +90,8 @@
     "Hidden triple": "Hidden triples",
     "X-wing": "X-wings",
     "XY-wing": "XY-wings",
+    "W-wing": "W-wings",
+    "Unique rectangle": "Unique rectangles",
     "XY-chain": "XY-chains",
   };
 
@@ -85,6 +112,9 @@
       if (!item || board[item.index]) continue;
       const digit = item.digit;
       if (digit < 1 || digit > 9) continue;
+      // A wrong digit on the board can make the solver drop the real answer.
+      // Never record that as an elimination.
+      if (solution && solution[item.index] === digit) continue;
       let exists = false;
       for (let k = 0; k < removed.length; k += 1) {
         if (removed[k].index === item.index && removed[k].digit === digit) {
@@ -277,6 +307,72 @@
     return `${techniqueLabel(batch.name, count)}: ${count} ${noun} ${placed ? "filled" : "changed"}`;
   }
 
+  function reviewCopyShort(batches, nextName) {
+    if (!batches || !batches.length) return "";
+    if (nextName) {
+      const indexes = [];
+      batches.forEach((batch) => {
+        batch.cells.forEach((cell) => {
+          if (!indexes.includes(cell.index)) indexes.push(cell.index);
+        });
+      });
+      return `${indexes.length} to ${nextName}`;
+    }
+    const batch = batches[batches.length - 1];
+    return `${techniqueLabel(batch.name, batch.cells.length)} · ${batch.cells.length}`;
+  }
+
+  // A naked pair is found from the solver's candidates. Applying it also
+  // clears those digits from pencil notes in the rest of the house, even
+  // when the solver does not count those notes as candidates. The chip
+  // counts cells whose placed digit, notes, or solver eliminations changed.
+  function visibleFillTouches(diff) {
+    const beforeBoard = diff.beforeBoard || [];
+    const beforeNotes = diff.beforeNotes || [];
+    const beforeRemoved = diff.beforeRemoved || [];
+    const board = diff.board || [];
+    const notes = diff.notes || [];
+    const removed = diff.removed || [];
+    const slug = diff.slug || "";
+    const name = diff.name || slug;
+    const prior = new Map();
+    beforeRemoved.forEach((item) => {
+      if (!item) return;
+      if (!prior.has(item.index)) prior.set(item.index, new Set());
+      prior.get(item.index).add(item.digit);
+    });
+    const nextRemoved = new Map();
+    removed.forEach((item) => {
+      if (!item) return;
+      if (!nextRemoved.has(item.index)) nextRemoved.set(item.index, new Set());
+      nextRemoved.get(item.index).add(item.digit);
+    });
+    const touches = [];
+    for (let index = 0; index < 81; index += 1) {
+      if ((beforeBoard[index] || 0) !== (board[index] || 0) && board[index]) {
+        touches.push({ slug, name, index, kind: "placed", digits: [board[index]] });
+        continue;
+      }
+      const lost = [];
+      const was = prior.get(index) || new Set();
+      const now = nextRemoved.get(index) || new Set();
+      now.forEach((digit) => {
+        if (!was.has(digit)) lost.push(digit);
+      });
+      if (!diff.auto) {
+        const after = new Set(notes[index] || []);
+        (beforeNotes[index] || []).forEach((digit) => {
+          if (!after.has(digit) && !lost.includes(digit)) lost.push(digit);
+        });
+      }
+      if (lost.length) {
+        lost.sort((a, b) => a - b);
+        touches.push({ slug, name, index, kind: "cleared", digits: lost });
+      }
+    }
+    return touches;
+  }
+
   function cellDetail(cell) {
     const digits = (cell && cell.digits ? cell.digits : []).slice().sort((a, b) => a - b);
     const list = digits.join(", ");
@@ -291,6 +387,7 @@
     rankOf,
     fillLabel,
     promptFor,
+    promptShort,
     wantsCandidates,
     techniqueLabel,
     applyStep,
@@ -299,6 +396,8 @@
     batchesOf,
     highlightOf,
     reviewCopy,
+    reviewCopyShort,
+    visibleFillTouches,
     cellDetail,
   };
 })(typeof globalThis !== "undefined" ? globalThis : window);

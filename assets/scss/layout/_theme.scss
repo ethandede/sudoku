@@ -1,35 +1,37 @@
+@use "../abstracts/variables" as vars;
+
 // Site chrome when the game's dark theme is active.
 html[data-theme="dark"] {
   body {
-    background: #121416;
-    color: #e6e9ed;
+    background: vars.$dark-page;
+    color: vars.$dark-ink;
   }
 
   .site-header {
-    background: #1a1e24;
+    background: vars.$dark-surface;
     box-shadow: none;
 
     .site-logo,
     .nav-primary a,
     .dropdown-menu a {
-      color: #e6e9ed;
+      color: vars.$dark-ink;
     }
 
     .dropdown-menu {
-      background: #242a32;
+      background: #262a2f;
     }
 
     .mobile-menu-toggle span {
-      background: #e6e9ed;
+      background: vars.$dark-ink;
     }
   }
 
   .site-footer {
     background: #0e1012;
-    color: #e6e9ed;
+    color: vars.$dark-ink;
 
     a {
-      color: #e6e9ed;
+      color: vars.$dark-ink;
     }
   }
 
@@ -37,8 +39,8 @@ html[data-theme="dark"] {
   .technique-page,
   .articles-page,
   .article-single-page {
-    background: #121416;
-    color: #e6e9ed;
+    background: vars.$dark-page;
+    color: vars.$dark-ink;
 
     a {
       color: var(--accent-on-dark);
@@ -47,8 +49,8 @@ html[data-theme="dark"] {
     .page-content,
     .article-card,
     .article-content {
-      background: #22262c;
-      color: #e6e9ed;
+      background: vars.$dark-card;
+      color: vars.$dark-ink;
     }
 
     h1,
@@ -57,13 +59,18 @@ html[data-theme="dark"] {
     .page-title,
     .article-title,
     .article-title a {
-      color: #e6e9ed;
+      color: vars.$dark-ink;
     }
 
     p,
     li,
     figcaption {
-      color: #c5ced6;
+      color: vars.$dark-body;
+    }
+
+    .page-body table th,
+    .page-body table td {
+      border-bottom-color: vars.$dark-line;
     }
   }
 }

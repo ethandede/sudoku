@@ -201,15 +201,15 @@ export function personNode() {
   };
 }
 
-export function articleJsonLd({ title, description, url, publishDate }) {
-  return {
+export function articleJsonLd({ title, description, url, publishDate, dateModified, image, author }) {
+  const node = {
     "@type": "Article",
     headline: title,
     description,
     mainEntityOfPage: url,
     datePublished: publishDate,
-    dateModified: publishDate,
-    author: personNode(),
+    dateModified: dateModified || publishDate,
+    author: author || personNode(),
     publisher: {
       "@type": "Organization",
       name: "SudokuSudoku",
@@ -219,4 +219,6 @@ export function articleJsonLd({ title, description, url, publishDate }) {
       },
     },
   };
+  if (image) node.image = image;
+  return node;
 }
