@@ -1,48 +1,55 @@
+@use "../abstracts/variables" as vars;
+
+// Desktop: the board's top edge sits about 152px down (intro plus the toolbar
+// row), and 16px stays clear below it. The board is min(540px, 100dvh minus
+// this), so it always fits on screen. It was 108px, which let the board run
+// past the bottom of short screens.
+$board-offset: 168px;
+
 .sudoku-page,
 .technique-page {
-  --board-bg: #fbfaf8;
-  --cell-bg: #fbfaf8;
-  --given-bg: #fbfaf8;
-  --ink: #1e232b;
+  --board-bg: #{vars.$board};
+  --cell-bg: #{vars.$board};
+  --given-bg: #{vars.$board};
+  --ink: #{vars.$ink};
   --user-ink: var(--accent-color);
-  --line: #1c232c;
-  --thin: #d5dbe2;
-  --selected: #c0dcf1;
+  --line: #{vars.$ink};
+  --thin: #{vars.$line};
+  --selected: #{vars.$selected};
   --selected-ink: var(--ink);
-  --same: #d4e8f7;
-  --peer: #e7f2fb;
-  --given-peer: #e7f2fb;
-  --hover: #e7f2fb;
-  --slash: #b00016;
-  --slash-on-selected: #b00016;
-  --dot: #b00016;
-  --pad: #eef1f4;
-  --pad-ink: #1e232b;
-  --pad-border: #d5dbe2;
-  --map-empty: #d5dbe2;
+  --same: #{vars.$soft};
+  --peer: #{vars.$peer};
+  --given-peer: #{vars.$peer};
+  --hover: #{vars.$peer};
+  --slash: #{vars.$danger};
+  --slash-on-selected: #{vars.$danger};
+  --dot: #{vars.$danger};
+  --pad: #{vars.$pad};
+  --pad-ink: #{vars.$ink};
+  --pad-border: #{vars.$line};
+  --map-empty: #{vars.$line};
   --map-fill: var(--same);
-  --muted: #5c6670;
-  --count-ink: #4a5560;
-  --auto-ink: #4a5560;
-  --note-ink: var(--accent-color);
-  --ghost-ink: #2c4558;
-  --auto-on-selected: #4a5560;
+  --muted: #{vars.$muted};
+  --count-ink: #{vars.$count-ink};
+  --auto-ink: #4a5056;
+  --note-ink: #{vars.$accent-color};
+  --ghost-ink: #2a3a66;
+  --auto-on-selected: #4a5056;
   --note-on-selected: var(--accent-color);
-  --ghost-on-selected: #2c4558;
-  --card: #ffffff;
-  --page: #f4f6f8;
+  --ghost-on-selected: #2a3a66;
+  --card: #{vars.$paper};
+  --page: #{vars.$recess};
   --accent-btn: var(--accent-color);
-  --accent-on: #ffffff;
+  --accent-on: #{vars.$on-accent};
   --focus: var(--accent-color);
-  --danger: #b00016;
-  --hint-pattern: #0b6e5f;
-  --hint-eliminate: #b42318;
-  --hint-place: #0b6e5f;
+  --danger: #{vars.$danger};
+  --hint-pattern: #{vars.$pattern};
+  --hint-place: #{vars.$pattern};
   --hint-place-bg: #d7f3ec;
   --hint-region: #e7f6f2;
-  --fill-placed: #8fbee0;
-  --fill-cleared: #d7ebf8;
-  --fill-ring: #0c4f86;
+  --fill-placed: #a3b5ec;
+  --fill-cleared: #dee5fa;
+  --fill-ring: #{vars.$accent-color};
 
   background: var(--page);
   color: var(--ink);
@@ -57,49 +64,48 @@
 
 html[data-theme="dark"] .sudoku-page,
 html[data-theme="dark"] .technique-page {
-  --board-bg: #1e1d1b;
-  --cell-bg: #1e1d1b;
-  --given-bg: #1e1d1b;
-  --ink: #e6e9ed;
+  --board-bg: #{vars.$dark-board};
+  --cell-bg: #{vars.$dark-board};
+  --given-bg: #{vars.$dark-board};
+  --ink: #{vars.$dark-ink};
   --user-ink: var(--accent-on-dark);
-  --line: #e6e9ed;
-  --thin: #3e4650;
-  --selected: #355068;
+  --line: #{vars.$pad};
+  --thin: #{vars.$dark-thin};
+  --selected: #{vars.$dark-selected};
   --selected-ink: var(--ink);
-  --same: #2c4256;
-  --peer: #24303a;
-  --given-peer: #24303a;
-  --hover: #2a3844;
-  --slash: #ffb4b4;
-  --slash-on-selected: #ffb4b4;
-  --dot: #ffb4b4;
-  --pad: #2a3036;
-  --pad-ink: #e6e9ed;
-  --pad-border: #3e4650;
-  --map-empty: #3c444e;
-  --map-fill: var(--same);
-  --muted: #b7c0c8;
-  --count-ink: #c5ced6;
-  --auto-ink: #c5ced6;
-  --note-ink: var(--accent-on-dark);
-  --ghost-ink: #d4ebfa;
-  --auto-on-selected: #c5ced6;
+  --same: #{vars.$dark-same};
+  --peer: #{vars.$dark-peer};
+  --given-peer: #{vars.$dark-peer};
+  --hover: #{vars.$dark-hover};
+  --slash: #{vars.$dark-danger};
+  --slash-on-selected: #{vars.$dark-danger};
+  --dot: #{vars.$dark-danger};
+  --pad: #{vars.$dark-track};
+  --pad-ink: #{vars.$dark-ink};
+  --pad-border: #{vars.$dark-line};
+  --map-empty: #{vars.$dark-map-empty};
+  --map-fill: #{vars.$dark-map-fill};
+  --muted: #{vars.$dark-muted};
+  --count-ink: #{vars.$dark-body};
+  --auto-ink: #bcc3c6;
+  --note-ink: #{vars.$accent-on-dark};
+  --ghost-ink: #d5defd;
+  --auto-on-selected: #eceeec;
   --note-on-selected: var(--accent-on-dark);
-  --ghost-on-selected: #d4ebfa;
-  --card: #22262c;
-  --page: #121416;
+  --ghost-on-selected: #d5defd;
+  --card: #{vars.$dark-card};
+  --page: #{vars.$dark-page};
   --accent-btn: var(--accent-on-dark);
-  --accent-on: #121416;
+  --accent-on: #{vars.$dark-page};
   --focus: var(--accent-on-dark);
-  --danger: #ffb4b4;
-  --hint-pattern: #7ddec8;
-  --hint-eliminate: #ff8b80;
-  --hint-place: #7ddec8;
+  --danger: #{vars.$dark-danger};
+  --hint-pattern: #{vars.$dark-pattern};
+  --hint-place: #{vars.$dark-pattern};
   --hint-place-bg: #1a3c34;
   --hint-region: #1e3330;
-  --fill-placed: #3f6d90;
-  --fill-cleared: #2c4d66;
-  --fill-ring: #9ed2f8;
+  --fill-placed: #3d4f8f;
+  --fill-cleared: #2c3a63;
+  --fill-ring: #{vars.$accent-on-dark};
 }
 
 .sudoku-shell {
@@ -122,11 +128,11 @@ html[data-theme="dark"] .technique-page {
 }
 
 body:has(.sudoku-page) {
-  background: #f4f6f8;
+  background: vars.$recess;
 }
 
 html[data-theme="dark"] body:has(.sudoku-page) {
-  background: #121416;
+  background: vars.$dark-page;
 }
 
 body:has(.sudoku-page) .site-header {
@@ -137,7 +143,43 @@ body:has(.sudoku-page) .site-header {
   padding: 0;
 }
 
+.game-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 0 0.3rem;
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.game-brand .logo-mark {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  display: block;
+  color: vars.$accent-color;
+}
+
+html[data-theme="dark"] .game-brand .logo-mark {
+  color: vars.$accent-on-dark;
+}
+
+.game-brand-echo {
+  color: var(--accent-color);
+}
+
+html[data-theme="dark"] .game-brand-echo {
+  color: var(--accent-on-dark);
+}
+
 .game-intro {
+  position: relative;
   flex: 0 0 auto;
   min-width: 0;
   padding: 2px 0 0;
@@ -164,25 +206,55 @@ body:has(.sudoku-page) .site-header {
   display: none;
 }
 
+// One toolbar row: level, timer, and errors, then help, settings, and more.
+// The logo is the home link. The status line comes first in the row but
+// after the icons in the markup, so order puts it in front.
 .play-chrome {
   position: relative;
   z-index: 6;
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0.35rem 0;
 }
 
 .icon-row {
+  order: 2;
+  flex: none;
   display: flex;
   align-items: center;
   min-height: 44px;
   gap: 0;
 }
 
-.icon-spacer {
-  flex: 1 1 auto;
+// The practice bar and the resume note are absolute across the toolbar.
+// Keep the icon nav painted above them, on the page color, so the bar stops
+// before the buttons. The row is as wide as the panel column, so its empty
+// left side sits over Undo, Done, and New game. Let those clicks through.
+// The buttons themselves still take the hit.
+.play-chrome:has(#fill-chip:not([hidden])) .icon-row,
+.play-chrome:has(#resume-note:not([hidden])) .icon-row {
+  position: relative;
+  z-index: 8;
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
+
+  .icon-btn {
+    background: var(--page);
+  }
 }
 
-.icon-btn,
-.play-home {
+// The level button is the same height as the bar, and its hard offset hangs
+// 2px below that. Clip the status line so the rounded edge stays hidden.
+.play-chrome:has(#fill-chip:not([hidden])) .status-bar {
+  overflow: hidden;
+}
+
+.icon-btn {
   width: 44px;
   min-width: 44px;
   height: 44px;
@@ -195,7 +267,16 @@ body:has(.sudoku-page) .site-header {
   color: var(--ink);
   padding: 0;
   text-decoration: none;
-  border-radius: 0.45rem;
+  border-radius: var(--btn-radius);
+
+  &:hover {
+    background: color-mix(in srgb, var(--track) 70%, transparent);
+  }
+
+  &:focus-visible {
+    outline: var(--btn-focus-width) solid var(--btn-focus);
+    outline-offset: var(--btn-focus-offset);
+  }
 
   svg {
     width: 22px;
@@ -219,8 +300,8 @@ body:has(.sudoku-page) .site-header {
 #pause-btn {
   width: 44px;
   min-width: 44px;
-  justify-content: flex-start;
-  padding-left: 2px;
+  justify-content: center;
+  padding-left: 0;
 }
 
 #pause-btn svg {
@@ -253,9 +334,9 @@ body:has(.sudoku-page) .site-header {
   margin: 0;
   padding: 0.35rem;
   background: var(--card);
-  border: 1px solid var(--pad-border);
-  border-radius: 0.7rem;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 1px 1px rgba(26, 29, 33, 0.08), 0 16px 32px -20px rgba(26, 29, 33, 0.45);
 
   &.is-open {
     display: flex;
@@ -268,18 +349,36 @@ body:has(.sudoku-page) .site-header {
     border: 0;
     background: transparent;
     color: var(--ink);
-    border-radius: 0.45rem;
+    border-radius: var(--btn-radius);
     padding: 0 0.85rem;
     font: inherit;
     font-weight: 650;
     cursor: pointer;
   }
 
-  button[aria-selected="true"] {
-    background: var(--accent-btn);
-    color: var(--accent-on);
-    border-color: var(--accent-btn);
+  button:hover,
+  button:focus-visible {
+    background: var(--recess);
   }
+
+  button[aria-selected="true"] {
+    background: var(--btn-primary);
+    color: var(--btn-primary-ink);
+    box-shadow: inset 0 1px 0 var(--btn-highlight);
+  }
+}
+
+.difficulty-help {
+  display: block;
+  margin-top: 0.15rem;
+  padding: 0.55rem 0.85rem 0.35rem;
+  border-top: 1px solid var(--pad-border);
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 650;
+  line-height: 1.3;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 .community-line,
@@ -298,11 +397,14 @@ body:has(.sudoku-page) .site-header {
 }
 
 .status-bar {
+  order: 1;
+  flex: 1 1 auto;
+  min-width: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 0.35rem;
-  min-height: 40px;
+  min-height: 44px;
   margin: 0;
 }
 
@@ -319,7 +421,79 @@ body:has(.sudoku-page) .site-header {
   font-weight: 700;
 }
 
+.level-with-mark {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-self: start;
+  width: max-content;
+  max-width: 100%;
+  min-width: 0;
+}
+
+// The generator only keeps a puzzle when uniqueCount is 1. The mark sits
+// beside the level button, in the row, with a gap so it does not touch it.
+.unique-mark {
+  position: relative;
+  z-index: 2;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: var(--accent-color);
+  cursor: pointer;
+
+  svg {
+    display: block;
+    width: 14px;
+    height: 14px;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: var(--btn-focus-width) solid var(--btn-focus);
+    outline-offset: 2px;
+    border-radius: 50%;
+  }
+}
+
+.unique-mark-tip {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  top: calc(100% + 0.4rem);
+  width: max-content;
+  max-width: 14rem;
+  padding: 0.28rem 0.5rem;
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.unique-mark:hover .unique-mark-tip,
+.unique-mark:focus .unique-mark-tip,
+.unique-mark:focus-visible .unique-mark-tip {
+  opacity: 1;
+}
+
+html[data-theme="dark"] .unique-mark {
+  color: var(--accent-on-dark);
+}
+
 .puzzle-label {
+  flex: 0 1 auto;
+  min-width: 0;
   justify-self: start;
   margin: 0;
   max-width: 100%;
@@ -327,20 +501,45 @@ body:has(.sudoku-page) .site-header {
   text-overflow: ellipsis;
   white-space: nowrap;
   border: 0;
-  background: transparent;
+  background: var(--btn-secondary-bg);
   color: var(--ink);
   font: inherit;
   font-size: 1.2rem;
   font-weight: 800;
   line-height: 1;
+  position: relative;
   min-height: 44px;
-  padding: 0;
+  padding: 0 1.75rem 0 0.8rem;
+  border-radius: var(--btn-radius);
+  box-shadow: inset 0 0 0 1px var(--btn-secondary-edge);
   cursor: pointer;
+
+  &:hover {
+    background: color-mix(in srgb, var(--btn-secondary-bg) 78%, var(--recess));
+  }
+
+  // A chevron says the level opens a menu. It is a pseudo-element because
+  // the script replaces the label text. It flips while the menu is open.
+  &::after {
+    content: "";
+    position: absolute;
+    right: 0.8rem;
+    top: 50%;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: translateY(-70%) rotate(45deg);
+  }
+
+  &[aria-expanded="true"]::after {
+    transform: translateY(-20%) rotate(-135deg);
+  }
 }
 
 .timer-group {
   justify-self: center;
-  gap: 0;
+  gap: 0.5rem;
 }
 
 .mistake-counter {
@@ -379,7 +578,7 @@ body:has(.sudoku-page) .site-header {
 
 .fill-chip {
   position: absolute;
-  top: 44px;
+  top: 0;
   left: 0;
   right: 0;
   z-index: 7;
@@ -412,10 +611,74 @@ body:has(.sudoku-page) .site-header {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.92rem;
+  font-size: 0.86rem;
   font-weight: 700;
   line-height: 1.2;
   color: var(--ink);
+}
+
+// Sits on the toolbar, out of the document flow, so the board and keypad
+// stay where a fresh game puts them.
+.resume-note {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  height: 44px;
+  margin: 0;
+  padding: 0 0.35rem 0 0.55rem;
+  background: var(--card);
+  color: var(--ink);
+  border-bottom: 1px solid var(--thin);
+  box-sizing: border-box;
+
+  &[hidden] {
+    display: none;
+  }
+
+  .text-btn {
+    flex: 0 0 auto;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 0.45rem;
+  }
+}
+
+.resume-note-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .resume-note:not([hidden]) {
+    animation: resume-note-in 0.18s linear;
+  }
+}
+
+@keyframes resume-note-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.copy-short {
+  display: none;
 }
 
 .text-btn,
@@ -456,9 +719,9 @@ body:has(.sudoku-page) .site-header {
   min-width: 11rem;
   background: var(--card);
   color: var(--ink);
-  border: 1px solid var(--pad-border);
-  border-radius: 0.6rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 1px 1px rgba(26, 29, 33, 0.08), 0 16px 32px -20px rgba(26, 29, 33, 0.45);
   padding: 0.35rem;
   display: flex;
   flex-direction: column;
@@ -474,13 +737,14 @@ body:has(.sudoku-page) .site-header {
     color: inherit;
     min-height: 44px;
     padding: 0 0.75rem;
-    border-radius: 0.4rem;
+    border-radius: var(--btn-radius);
     font: inherit;
+    font-weight: 650;
     cursor: pointer;
 
     &:hover,
     &:focus-visible {
-      background: var(--peer);
+      background: var(--recess);
     }
   }
 }
@@ -548,7 +812,12 @@ body:has(.sudoku-page) .site-header {
   color: var(--user-ink);
   font: inherit;
   font-weight: 700;
-  font-size: clamp(1.15rem, 8cqi, 2.4rem);
+  font-size: clamp(11px, 3.5cqi, 16px);
+
+  &.given,
+  &.user {
+    font-size: clamp(1.15rem, 8cqi, 2.4rem);
+  }
   line-height: 1;
   min-width: 0;
   min-height: 0;
@@ -625,7 +894,8 @@ body:has(.sudoku-page) .site-header {
   }
 
   &.hint-eliminate {
-    box-shadow: inset 0 0 0 3px var(--hint-eliminate);
+    background: color-mix(in srgb, var(--danger) 8%, var(--cell-bg));
+    box-shadow: inset 0 0 0 2px var(--danger);
     z-index: 2;
   }
 
@@ -684,7 +954,13 @@ body:has(.sudoku-page) .site-header {
     animation: none;
     background: var(--cell-bg);
     box-shadow: inset 0 0 0 0 transparent;
-    transition: background-color 300ms ease, box-shadow 300ms ease;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    &.fill-placed.fill-fading,
+    &.fill-cleared.fill-fading {
+      transition: background-color 300ms ease, box-shadow 300ms ease;
+    }
   }
 
   &.given.fill-placed.fill-fading,
@@ -701,6 +977,16 @@ body:has(.sudoku-page) .site-header {
   &.given.selected.fill-placed.fill-fading,
   &.given.selected.fill-cleared.fill-fading {
     background: var(--selected);
+  }
+}
+
+@keyframes struck-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
   }
 }
 
@@ -733,12 +1019,15 @@ body:has(.sudoku-page) .site-header {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
-  padding: 1px;
+  padding: 2px;
   box-sizing: border-box;
-  font-size: clamp(11px, 3.2cqi, 15px);
+  font-size: clamp(11px, 3.5cqi, 16px);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  letter-spacing: 0;
   font-weight: 650;
   line-height: 1;
-  color: var(--muted);
+  color: var(--auto-ink);
   pointer-events: none;
 
   span {
@@ -761,15 +1050,19 @@ body:has(.sudoku-page) .site-header {
 
   span.struck {
     visibility: visible;
-    color: var(--slash);
-    font-weight: 800;
+    color: var(--danger);
+    font-weight: 700;
     text-decoration: line-through;
-    text-decoration-thickness: 1px;
+    text-decoration-thickness: 2px;
+  }
+
+  span.struck.fading {
+    animation: struck-out 600ms ease-out forwards;
   }
 
   span.auto {
     color: var(--auto-ink);
-    font-weight: 500;
+    font-weight: 600;
     font-style: normal;
     text-decoration: none;
     opacity: 1;
@@ -812,7 +1105,7 @@ body:has(.sudoku-page) .site-header {
 
   span.auto {
     color: var(--auto-on-selected);
-    font-weight: 500;
+    font-weight: 600;
     font-style: normal;
     text-decoration: none;
     opacity: 1;
@@ -845,17 +1138,22 @@ body:has(.sudoku-page) .site-header {
 
   span.struck {
     visibility: visible;
-    color: var(--slash-on-selected);
-    font-weight: 800;
+    color: var(--danger);
+    font-weight: 700;
     opacity: 1;
     text-decoration: line-through;
+    text-decoration-thickness: 2px;
   }
+}
+
+html[data-theme="dark"] .cell.hint-eliminate {
+  background: color-mix(in srgb, var(--danger) 14%, var(--cell-bg));
 }
 
 .cell.hint-pattern .marks,
 .cell.hint-eliminate .marks,
 .cell.hint-place .marks {
-  font-size: clamp(0.68rem, 2.8cqi, 0.9rem);
+  font-size: inherit;
 }
 
 .board-cover {
@@ -922,14 +1220,21 @@ body:has(.sudoku-page) .site-header {
   flex: 0 0 auto;
   min-width: 4.6rem;
   min-height: 44px;
+  height: 44px;
   border: 0;
-  border-radius: 0.6rem;
-  background: var(--pad);
+  border-radius: var(--btn-radius);
+  background: var(--btn-secondary-bg);
   color: var(--ink);
   font: inherit;
-  font-weight: 750;
+  font-weight: 650;
+  letter-spacing: var(--btn-tracking);
   padding: 0 0.85rem;
   cursor: pointer;
+  box-shadow: inset 0 0 0 1px var(--btn-secondary-edge), inset 0 1px 0 var(--btn-highlight);
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--btn-secondary-bg) 78%, var(--recess));
+  }
 }
 
 .undo-btn:disabled {
@@ -951,11 +1256,16 @@ body:has(.sudoku-page) .site-header {
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: stretch;
-  background: var(--pad);
+  background: var(--track);
   border: 0;
-  border-radius: 0.7rem;
-  padding: 0.18rem;
+  border-radius: var(--btn-radius);
+  padding: 0.22rem;
   min-height: 44px;
+  // The same ink edge and offset as Easy, Undo, and Erase. Not var(--line):
+  // on the game page that is the board's ink grid line.
+  box-shadow:
+    inset 0 0 0 var(--btn-edge-width) var(--btn-edge),
+    var(--btn-offset) var(--btn-offset) 0 var(--btn-offset-color);
   container-type: inline-size;
 
   button {
@@ -969,8 +1279,9 @@ body:has(.sudoku-page) .site-header {
     border: 0;
     background: transparent;
     color: var(--pad-ink);
-    border-radius: 0.55rem;
-    font-weight: 750;
+    border-radius: calc(var(--btn-radius) - 0.15rem);
+    font-weight: 650;
+    letter-spacing: var(--btn-tracking);
     font-size: 0.88rem;
     white-space: nowrap;
     min-height: 44px;
@@ -990,8 +1301,9 @@ body:has(.sudoku-page) .site-header {
   }
 
   button[aria-pressed="true"] {
-    background: var(--accent-btn);
-    color: var(--accent-on);
+    background: var(--btn-primary);
+    color: var(--btn-primary-ink);
+    box-shadow: inset 0 1px 0 var(--btn-highlight);
   }
 }
 
@@ -1104,16 +1416,22 @@ kbd {
   align-self: start;
   justify-self: stretch;
   border: 0;
-  background: color-mix(in srgb, var(--pad-ink) 10%, var(--pad));
-  color: var(--pad-ink);
-  border-radius: 0.7rem;
+  background: var(--btn-secondary-bg);
+  color: var(--ink);
+  border-radius: var(--btn-radius);
   min-width: 0;
   min-height: 0;
   width: 100%;
   height: auto;
   aspect-ratio: 1;
   padding: 0;
+  font: inherit;
   cursor: pointer;
+  box-shadow: inset 0 0 0 1px var(--btn-secondary-edge), inset 0 1px 0 var(--btn-highlight);
+
+  &:hover {
+    background: color-mix(in srgb, var(--btn-secondary-bg) 78%, var(--recess));
+  }
 }
 
 .erase-word {
@@ -1149,10 +1467,10 @@ kbd {
   overflow: auto;
   background: var(--card);
   color: var(--ink);
-  border: 1px solid var(--pad-border);
-  border-radius: 0.9rem 0.9rem 0 0;
+  border: 1px solid var(--line);
+  border-radius: 12px 12px 0 0;
   padding: 0.2rem 0.85rem calc(0.6rem + env(safe-area-inset-bottom));
-  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 1px 1px rgba(26, 29, 33, 0.08), 0 -16px 32px -20px rgba(26, 29, 33, 0.45);
   touch-action: none;
 
   &[hidden] {
@@ -1198,6 +1516,7 @@ kbd {
 }
 
 .hint-next,
+.hint-fill,
 .hint-learn,
 .hint-dismiss {
   touch-action: manipulation;
@@ -1213,21 +1532,42 @@ kbd {
   margin-top: 0.15rem;
 }
 
+.game-intro:has(.practice-prompt.is-miss:not([hidden])) {
+  min-height: 3.4rem;
+}
+
 .practice-prompt {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin: 0;
-  width: 100%;
+  padding: 0 0.5rem;
+  background: var(--page);
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.92rem;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.15;
   color: var(--user-ink);
-  padding: 0 0.4rem 0.1rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 
   &[hidden] {
     display: none;
+  }
+
+  &.is-miss {
+    top: 0;
+    white-space: normal;
+    line-height: 1.25;
+    overflow: visible;
+    text-overflow: clip;
   }
 }
 
@@ -1254,6 +1594,10 @@ kbd {
   align-items: center;
   justify-content: center;
   color: var(--user-ink);
+
+  &[hidden] {
+    display: none;
+  }
 }
 
 .hint-dismiss {
@@ -1296,11 +1640,13 @@ kbd {
   button {
     min-height: 48px;
     font-size: 1.05rem;
-    font-weight: 800;
-    border-radius: 0.6rem;
-    border: 1px solid var(--pad-border, #d3d9e0);
-    background: var(--pad, #eef1f5);
-    color: var(--pad-ink, #1e232b);
+    font-weight: 650;
+    letter-spacing: var(--btn-tracking);
+    border-radius: var(--btn-radius);
+    border: 1px solid var(--btn-secondary-edge);
+    background: var(--btn-secondary-bg);
+    color: var(--btn-secondary-ink);
+    box-shadow: inset 0 1px 0 var(--btn-highlight), 0 1px 1px rgba(26, 29, 33, 0.04);
     touch-action: manipulation;
     cursor: pointer;
   }
@@ -1320,18 +1666,6 @@ kbd {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-}
-
-.play-technique {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 48px;
-  padding: 0 1rem;
-  border-radius: 0.6rem;
-  background: var(--accent-btn, var(--accent-color));
-  color: var(--accent-on, #fff);
-  text-decoration: none;
 }
 
 .technique-index {
@@ -1394,10 +1728,57 @@ button:disabled {
 .auto-toggle {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.55rem;
   min-height: 44px;
-  font-size: 1rem;
+  height: 44px;
+  font-size: 0.83rem;
   color: var(--ink);
+
+  // After G4b413l's minimalist switch on Uiverse.io (MIT):
+  // https://uiverse.io/G4b413l/bitter-hound-66. A thin track and a large knob
+  // with a paper ring that slides across. Red and green became track and pen.
+  input {
+    appearance: none;
+    position: relative;
+    width: 2.9rem;
+    height: 1.5rem;
+    margin: 0;
+    flex: none;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(var(--track-fill, var(--btn-secondary-edge)), var(--track-fill, var(--btn-secondary-edge))) center / 100% 0.55rem no-repeat;
+    cursor: pointer;
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 1.5rem;
+      height: 1.5rem;
+      box-sizing: border-box;
+      border: 0.4rem solid var(--paper);
+      border-radius: 50%;
+      background: var(--muted);
+      box-shadow: 0 0 0 1px var(--btn-secondary-edge), 0 1px 2px rgba(26, 29, 33, 0.2);
+      transform: translateY(-50%);
+    }
+  }
+
+  input:checked {
+    --track-fill: color-mix(in srgb, var(--btn-primary) 45%, var(--paper));
+
+    &::before {
+      background: var(--btn-primary);
+      box-shadow: 0 0 0 1px var(--btn-primary-edge), 0 1px 2px rgba(26, 29, 33, 0.2);
+      transform: translate(1.4rem, -50%);
+    }
+  }
+
+  input:focus-visible {
+    outline: var(--btn-focus-width) solid var(--btn-focus);
+    outline-offset: var(--btn-focus-offset);
+  }
 }
 
 .key-help {
@@ -1491,6 +1872,47 @@ button:disabled {
       font-size: 1.5rem;
     }
   }
+
+  // The copy and its ad column share the play area's width, so they line up
+  // with the board instead of centering on the page.
+  .home-below-wrap {
+    width: min(
+      100%,
+      calc(540px + 220px + clamp(16px, 2vw, 32px)),
+      calc(100dvh - #{$board-offset} + 220px + clamp(16px, 2vw, 32px))
+    );
+    margin: 0 auto;
+  }
+
+  .sudoku-copy,
+  .house-home {
+    max-width: none;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .sudoku-copy > * {
+    max-width: 40rem;
+  }
+}
+
+// Wide enough for a 300px sidebar beside a readable column of copy: the
+// 300x250 on top, the 300x600 under it.
+@media (min-width: 900px) {
+  .home-below-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    column-gap: clamp(24px, 3vw, 40px);
+    align-items: start;
+  }
+
+  // AdSense asks for at least 150px between ads and a game. The board ends
+  // at least 16px above the copy, so 140px here keeps the first ad 156px or
+  // more below it at any window height.
+  .house-home {
+    margin: 0;
+    padding-top: 140px;
+  }
 }
 
 .modal[hidden] {
@@ -1501,7 +1923,7 @@ button:disabled {
   position: fixed;
   inset: 0;
   z-index: 3000;
-  background: rgba(16, 12, 20, 0.55);
+  background: rgba(20, 19, 17, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1513,9 +1935,11 @@ button:disabled {
   width: min(100%, 28rem);
   background: var(--card);
   color: var(--ink);
-  border-radius: 0.8rem;
+  // Not var(--line): on the game page that is the board's ink grid line.
+  border: 1px solid var(--thin);
+  border-radius: 12px;
   padding: 1.25rem 1.25rem 1.4rem;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 1px rgba(26, 29, 33, 0.08), 0 18px 40px -24px rgba(26, 29, 33, 0.5);
   overflow: auto;
   max-height: calc(100dvh - 2rem);
 
@@ -1537,12 +1961,20 @@ button:disabled {
 }
 
 .icon-close {
+  width: 44px;
+  height: 44px;
   border: 0;
-  background: transparent;
+  border-radius: var(--btn-radius);
+  background: var(--btn-secondary-bg);
   color: var(--ink);
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   line-height: 1;
   min-width: 44px;
+  box-shadow: inset 0 0 0 1px var(--btn-secondary-edge), inset 0 1px 0 var(--btn-highlight);
+
+  &:hover {
+    background: color-mix(in srgb, var(--btn-secondary-bg) 78%, var(--recess));
+  }
 }
 
 .modal-actions {
@@ -1579,6 +2011,57 @@ button:disabled {
   padding: 0;
 }
 
+// How to play. A reading sheet, so a comfortable measure and quiet headings.
+.help-card {
+  width: min(100%, 32rem);
+
+  h3 {
+    margin: 1.1rem 0 0.35rem;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  p,
+  li {
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.1rem;
+  }
+
+  li + li {
+    margin-top: 0.3rem;
+  }
+
+  kbd {
+    padding: 0.05rem 0.35rem;
+    font-weight: 700;
+  }
+
+  a {
+    color: var(--btn-focus);
+    font-weight: 600;
+  }
+}
+
+.help-rule {
+  color: var(--muted);
+}
+
+// No keyboard on a touch screen, so no shortcut list there.
+@media (hover: none) and (pointer: coarse) {
+  .help-keys {
+    display: none;
+  }
+}
+
 .modal-card.stats-card {
   margin: 0;
   border: 0;
@@ -1593,8 +2076,53 @@ button:disabled {
 .settings-card label {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.65rem;
   min-height: 44px;
+  padding: 0 0.2rem;
+  border-radius: var(--btn-radius);
+}
+
+.settings-card input {
+  margin: 0;
+  flex: none;
+  accent-color: var(--btn-primary);
+}
+
+.settings-card input[type="checkbox"] {
+  appearance: none;
+  width: 2.35rem;
+  height: 1.3rem;
+  border: 1px solid var(--btn-secondary-edge);
+  border-radius: 999px;
+  background-color: var(--track);
+  background-image: radial-gradient(circle at 0.65rem 50%, var(--paper) 0 0.38rem, transparent 0.42rem);
+  box-shadow: inset 0 1px 2px rgba(26, 29, 33, 0.16);
+}
+
+.settings-card input[type="checkbox"]:checked {
+  background-color: var(--btn-primary);
+  border-color: var(--btn-primary-edge);
+  background-image: radial-gradient(circle at 1.65rem 50%, var(--btn-primary-ink) 0 0.38rem, transparent 0.42rem);
+}
+
+.settings-card input[type="radio"] {
+  appearance: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  border: 1px solid var(--btn-secondary-edge);
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: inset 0 1px 0 var(--btn-highlight);
+}
+
+.settings-card input[type="radio"]:checked {
+  border-color: var(--btn-primary);
+  background: radial-gradient(circle, var(--btn-primary) 0 0.32rem, var(--paper) 0.36rem);
+}
+
+.settings-card input:focus-visible {
+  outline: var(--btn-focus-width) solid var(--btn-focus);
+  outline-offset: var(--btn-focus-offset);
 }
 
 .stats-table {
@@ -1769,7 +2297,7 @@ button:disabled {
 }
 
 // Below this the Candidate label and the N badge no longer both fit with an inset.
-@container (max-width: 200px) {
+@container (max-width: 250px) {
   .mode-toggle kbd {
     display: none;
   }
@@ -1789,12 +2317,215 @@ button:disabled {
     padding-right: max(6px, env(safe-area-inset-right));
   }
 
+  .copy-full {
+    display: none;
+  }
+
+  .copy-short {
+    display: inline;
+  }
+
+  .puzzle-label:has(.copy-short) {
+    font-size: 0.92rem;
+  }
+
+  // The board is centered between the toolbar and the mode toggle, so the
+  // toolbar adds no bottom margin of its own.
+  .play-chrome {
+    margin-bottom: 0;
+  }
+
+  // One toolbar row on a phone: the icons and pause drop to 40px and 36px
+  // to make room.
+  // Only the level label may shrink, so a long name ellipsizes instead of
+  // running into the timer.
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.35rem;
+  }
+
+  .level-with-mark {
+    flex: 0 1 auto;
+  }
+
+  .puzzle-label {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .timer-group,
+  .mistake-counter {
+    flex: none;
+  }
+
+  .puzzle-label {
+    font-size: 1rem;
+    // 14px mark and a 4px gap. The padding gives that width back so the
+    // timer, pause, and errors stay on their old marks.
+    padding: 0 calc(1.45rem - 13px) 0 calc(0.6rem - 5px);
+
+    &::after {
+      right: 3px;
+      width: 0.34rem;
+      height: 0.34rem;
+    }
+  }
+
+  .timer-group {
+    gap: 0.15rem;
+  }
+
+  #pause-btn {
+    width: 36px;
+    min-width: 36px;
+  }
+
+  .mistake-label {
+    font-size: 0.92rem;
+  }
+
+  .icon-row .icon-btn {
+    width: 40px;
+    min-width: 40px;
+  }
+
+  // How to play moves into the more menu on a phone, so the level name fits
+  // in the toolbar row.
+  #help-btn {
+    display: none;
+  }
+
+  .fill-chip {
+    // 80px of icon buttons plus the toolbar padding and a small gap, so
+    // Undo and Done sit clear of settings and more.
+    padding-right: calc(84px + max(6px, env(safe-area-inset-right)));
+  }
+
+  .resume-note {
+    right: calc(80px + max(6px, env(safe-area-inset-right)));
+    padding-right: 0.15rem;
+  }
+
+  .resume-note-text {
+    white-space: normal;
+    font-size: 0.72rem;
+    line-height: 1.1;
+  }
+
+  .fill-chip-text {
+    font-size: 0.72rem;
+  }
+
+  .play-chrome:has(#fill-chip:not([hidden])) .icon-row,
+  .play-chrome:has(#resume-note:not([hidden])) .icon-row {
+    background: var(--page);
+  }
+
+  // The phone intro is only as tall as the wordmark, so the banner sits
+  // beside the logo instead of painting over it. The row keeps the brand's
+  // old bottom margin as padding, which holds the board where a normal
+  // game puts it.
+  .game-intro:has(.practice-prompt:not([hidden]):not(.is-miss)) {
+    display: flex;
+    align-items: center;
+    column-gap: 0.35rem;
+    padding-bottom: 0.3rem;
+  }
+
+  .game-intro:has(.practice-prompt:not([hidden]):not(.is-miss)) .game-brand {
+    margin-bottom: 0;
+    flex: none;
+    position: relative;
+    z-index: 3;
+  }
+
+  .practice-prompt:not(.is-miss) {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+    height: auto;
+    justify-content: flex-start;
+    text-align: left;
+    background: transparent;
+    padding: 0;
+    font-size: 0.62rem;
+  }
+
+  .practice-prompt {
+    font-size: 0.78rem;
+  }
+
   .game-intro .supporting-text {
     display: none;
   }
 
+  .board-column {
+    justify-content: center;
+  }
+
+  // Centering is inside the column. The flex gap sits only under the board,
+  // so it would leave the lower gap about 6px larger than the upper one.
+  .play-surface {
+    gap: 0;
+  }
+
+  // Tighter rows under the board leave more height for it on short screens.
+  // Tall phones already fit a full-width board, so their spare height goes
+  // under the keypad to keep it clear of the home bar.
+  .controls {
+    gap: clamp(4px, 0.6dvh, 10px);
+    padding-bottom: clamp(0px, calc(100dvh - 760px), 16px);
+  }
+
+  .aux-row,
+  .auto-toggle {
+    min-height: 32px;
+    height: 32px;
+  }
+
   .sudoku-copy h2 {
     font-size: 1.35rem;
+  }
+}
+
+// "Simple coloring" has to fit the level button at 360px. Only the short
+// practice name shrinks, and only on the narrowest phones. This follows the
+// phone rules above so it wins over the 0.92rem short label.
+@media (max-width: 380px) {
+  .unique-mark {
+    width: 12px;
+    height: 12px;
+
+    svg {
+      width: 12px;
+      height: 12px;
+    }
+  }
+
+  // The mark is 2px smaller than the phone rule above, so the button
+  // keeps those 2px and the row stays put.
+  .puzzle-label {
+    padding-right: calc(1.45rem - 11px);
+  }
+
+  .puzzle-label:has(.copy-short) {
+    // A hair under 0.6rem, so "Simple coloring" still fits once the mark
+    // takes its 4px gap beside the button.
+    font-size: 0.56rem;
+    letter-spacing: -0.03em;
+    padding: 0 8px 0 2px;
+
+    &::after {
+      right: 2px;
+      width: 0.2rem;
+      height: 0.2rem;
+    }
   }
 }
 
@@ -1805,6 +2536,62 @@ button:disabled {
     margin: 0 auto;
     padding-left: max(16px, env(safe-area-inset-left));
     padding-right: max(16px, env(safe-area-inset-right));
+  }
+
+  // The icon row and status line share the board-plus-panel width.
+  // Board is min(540px, 100dvh - $board-offset); the panel is 220px; the gap matches .play-surface.
+  .game-intro,
+  .play-chrome {
+    width: min(
+      100%,
+      calc(540px + 220px + clamp(16px, 2vw, 32px)),
+      calc(100dvh - #{$board-offset} + 220px + clamp(16px, 2vw, 32px))
+    );
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .game-intro {
+    padding-top: 1.25rem;
+  }
+
+  // The banner replaces the tagline under the wordmark. 1.25rem matches the
+  // intro padding above, 22px is the mark, and 0.3rem is the wordmark margin.
+  .practice-prompt:not(.is-miss) {
+    top: calc(1.25rem + 22px + 0.3rem);
+  }
+
+  .play-chrome:has(#fill-chip:not([hidden])) .fill-chip,
+  .resume-note {
+    // Three 44px icon buttons, plus a small gap.
+    padding-right: 140px;
+  }
+
+  .puzzle-label:has(.copy-short) {
+    font-size: 1rem;
+    // 14px mark and a 4px gap. Give that width back so the practice name
+    // still fits in the column.
+    padding: 0 calc(1.45rem - 11px) 0 calc(0.65rem - 7px);
+
+    &::after {
+      right: 3px;
+    }
+  }
+
+  .fill-chip-text {
+    font-size: 0.72rem;
+  }
+
+  // Same columns as .play-surface: the status line spans the board and the
+  // icons sit over the panel, so the timer stays centered on the board.
+  .play-chrome {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    column-gap: clamp(16px, 2vw, 32px);
+  }
+
+  .icon-row {
+    justify-content: flex-end;
   }
 
   .play-surface {
@@ -1830,7 +2617,7 @@ button:disabled {
   .board-wrap {
     // 540px is the pre-redesign board. The dvh cap keeps the border inside the
     // screen under the icon row and status line.
-    width: min(100%, 540px, calc(100dvh - 108px));
+    width: min(100%, 540px, calc(100dvh - #{$board-offset}));
     max-width: 540px;
   }
 
@@ -1939,11 +2726,11 @@ button:disabled {
 }
 
 @mixin standalone-app {
-  background: #f4f6f8;
+  background: vars.$recess;
   overscroll-behavior: none;
 
   body {
-    background: #f4f6f8;
+    background: vars.$recess;
     overscroll-behavior: none;
     padding-top: env(safe-area-inset-top);
     padding-right: env(safe-area-inset-right);
@@ -1952,10 +2739,10 @@ button:disabled {
   }
 
   &[data-theme="dark"] {
-    background: #121416;
+    background: vars.$dark-page;
 
     body {
-      background: #121416;
+      background: vars.$dark-page;
     }
   }
 
@@ -2005,6 +2792,105 @@ html.is-standalone:has(.sudoku-page) body {
   padding: 0;
 }
 
+// The game's action controls share the chrome button's ink edge and hard
+// offset from components/_buttons.scss. Utility icons (home, help,
+// settings, more, pause) stay plain so the header does not read as a row
+// of keys. No hover circle here: these get pressed constantly.
+#hint-btn,
+.puzzle-label,
+.undo-btn,
+.erase-key {
+  box-shadow:
+    inset 0 0 0 var(--btn-edge-width) var(--btn-edge),
+    var(--btn-offset) var(--btn-offset) 0 var(--btn-offset-color);
+}
+
+#hint-btn {
+  background: var(--btn-secondary-bg);
+}
+
+.undo-btn:disabled {
+  box-shadow: inset 0 0 0 1px var(--btn-secondary-edge);
+}
+
+.undo-btn,
+.erase-key,
+.mode-toggle button,
+.number-pad button,
+.text-btn,
+.icon-btn {
+  transition:
+    background-color var(--btn-duration) var(--btn-ease),
+    border-color var(--btn-duration) var(--btn-ease),
+    color var(--btn-duration) var(--btn-ease),
+    box-shadow var(--btn-duration) var(--btn-ease);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .undo-btn,
+  .erase-key,
+  .mode-toggle button,
+  .number-pad button,
+  .text-btn,
+  .icon-btn:not(#hint-btn) {
+    transition:
+      background-color var(--btn-duration) var(--btn-ease),
+      border-color var(--btn-duration) var(--btn-ease),
+      color var(--btn-duration) var(--btn-ease),
+      box-shadow var(--btn-duration) var(--btn-ease),
+      transform var(--btn-duration) var(--btn-ease);
+  }
+
+  .mode-toggle button:active,
+  .number-pad button:active,
+  .text-btn:active,
+  .icon-btn:not(#hint-btn):active {
+    transform: translateY(var(--btn-press));
+  }
+
+  // Sink into the offset, like the chrome buttons.
+  .undo-btn:active:not(:disabled),
+  .erase-key:active,
+  .puzzle-label:active {
+    transform: translate(var(--btn-offset), var(--btn-offset));
+    box-shadow: inset 0 0 0 var(--btn-edge-width) var(--btn-edge);
+  }
+
+  .auto-toggle input::before {
+    transition: transform 0.25s var(--btn-ease), background-color 0.25s var(--btn-ease);
+  }
+
+  .puzzle-label::after {
+    transition: transform var(--btn-duration) var(--btn-ease);
+  }
+
+  .more-menu button,
+  .difficulty-tabs button,
+  .settings-card input,
+  .auto-toggle input,
+  .icon-close {
+    transition:
+      background-color var(--btn-duration) var(--btn-ease),
+      border-color var(--btn-duration) var(--btn-ease),
+      box-shadow var(--btn-duration) var(--btn-ease);
+  }
+}
+
+// The tagline gives its row to the board on a phone. It stays in the page as
+// the heading for search and screen readers.
+@media (max-width: 720px) {
+  html .game-intro h1 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .celebrate .confetti span {
     animation: none;
@@ -2016,8 +2902,19 @@ html.is-standalone:has(.sudoku-page) body {
     animation: none;
   }
 
+  .marks span.struck.fading {
+    animation: none;
+  }
+
   .cell.fill-placed.fill-fading,
-  .cell.fill-cleared.fill-fading {
+  .cell.fill-cleared.fill-fading,
+  .cell.selected.fill-placed.fill-fading,
+  .cell.selected.fill-cleared.fill-fading,
+  .cell.given.fill-placed.fill-fading,
+  .cell.given.fill-cleared.fill-fading,
+  .cell.given.selected.fill-placed.fill-fading,
+  .cell.given.selected.fill-cleared.fill-fading {
+    animation: none;
     transition: none;
   }
 }
