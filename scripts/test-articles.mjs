@@ -599,7 +599,6 @@ for (const [label, text] of Object.entries(nytSources)) {
 assert.equal(nytSources["what-makes"].includes("publishDate: 2026-10-28"), true);
 assert.equal(nytSources.ai.includes("publishDate: 2026-11-04"), true);
 
-<<<<<<< HEAD
 const stops = readArticle("where-the-solver-stops");
 assert.equal(stops.includes("publishDate: 2026-10-27"), true);
 assert.equal(stops.includes("\u2014"), false);
@@ -660,7 +659,7 @@ assert.equal((preparedStops.content.match(/class="puzzle-cell/g) || []).length, 
 assert.equal(preparedStops.content.includes("+-------+-------+-------+"), false);
 assert.match(preparedStops.content, /100007090030020008009600500005300900010080002600004000300000010040000007007000300/);
 assert.match(preparedStops.content, /800000000003600000070090200050007000000045700000100030001000068008500010090000400/);
-=======
+
 const order = readArticle("sudoku-techniques-in-order");
 assert.equal(order.includes("\u2014"), false);
 assert.equal(order.includes("\u2013"), false);
@@ -682,6 +681,5 @@ for (const figure of ["1,795", "1,211", "2,917", "21,285", "played one on 53 of 
 assert.match(order, /articles\/data\/technique-order\/analyze\.mjs/);
 assert.match(order, /href="\/articles\/nyt-medium-vs-hard\/"|\]\(\/articles\/nyt-medium-vs-hard\/\)/);
 assert.match(build, /articles\/sudoku-techniques-in-order\.md/);
->>>>>>> origin/main
 
 console.log("article publish tests passed");
