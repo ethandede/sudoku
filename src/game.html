@@ -2,17 +2,17 @@
   <div class="sudoku-shell">
     <div class="play-column">
       <header class="game-intro">
+        <a class="game-brand" href="/">
+          <svg class="logo-mark" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M1.2 1.2h13.6v13.6H1.2z" fill="none" stroke="currentColor" stroke-width="1.15"/><path d="M5.7 1.2v13.6M10.3 1.2v13.6M1.2 5.7h13.6M1.2 10.3h13.6" fill="none" stroke="currentColor" stroke-width="1" opacity="0.55"/><rect x="6.15" y="6.15" width="3.7" height="3.7" fill="currentColor"/></svg>
+          <span class="game-brand-name">Sudoku<span class="game-brand-echo">Sudoku</span></span>
+        </a>
         <!-- home-intro -->
         <p id="practice-prompt" class="practice-prompt" hidden></p>
       </header>
 
       <div class="play-chrome">
         <div class="icon-row">
-          <a class="play-home icon-btn" href="/" aria-label="SudokuSudoku home">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-8.5Z" fill="currentColor"/></svg>
-          </a>
-          <span class="icon-spacer"></span>
-          <button type="button" id="help-btn" class="icon-btn help-btn" aria-label="Help">?</button>
+          <button type="button" id="help-btn" class="icon-btn help-btn" aria-haspopup="dialog" aria-label="How to play">?</button>
           <button type="button" id="settings-btn" class="icon-btn" aria-haspopup="dialog" aria-label="Settings">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 8.6A3.4 3.4 0 1 0 12 15.4 3.4 3.4 0 0 0 12 8.6Zm8.2 2.6-1.7-.3a6.8 6.8 0 0 0-.8-1.8l1-1.4-1.6-1.6-1.4 1a6.8 6.8 0 0 0-1.8-.8L13.6 4h-2.2l-.3 1.7a6.8 6.8 0 0 0-1.8.8l-1.4-1-1.6 1.6 1 1.4a6.8 6.8 0 0 0-.8 1.8L4 11.2v2.2l1.7.3c.2.6.4 1.2.8 1.8l-1 1.4 1.6 1.6 1.4-1c.6.4 1.2.6 1.8.8l.3 1.7h2.2l.3-1.7c.6-.2 1.2-.4 1.8-.8l1.4 1 1.6-1.6-1-1.4c.4-.6.6-1.2.8-1.8l1.7-.3v-2.2Z"/></svg>
           </button>
@@ -21,6 +21,7 @@
               <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6 10.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z"/></svg>
             </button>
             <div id="more-menu" class="more-menu" role="menu" hidden>
+              <button type="button" role="menuitem" id="more-help">How to play</button>
               <button type="button" role="menuitem" id="more-stats">Stats</button>
               <button type="button" role="menuitem" data-action="hint">Hint</button>
               <button type="button" role="menuitem" id="more-fill">Fill a technique</button>
@@ -39,8 +40,19 @@
           <button type="button" id="fill-undo" class="text-btn">Undo</button>
           <button type="button" id="fill-done" class="text-btn">Done</button>
         </div>
+        <div id="resume-note" class="resume-note" hidden>
+          <p class="resume-note-text">Picked up where you left off.</p>
+          <button type="button" id="resume-no" class="text-btn">New game</button>
+          <button type="button" id="resume-dismiss" class="text-btn" aria-label="Dismiss">×</button>
+        </div>
         <div class="status-bar">
-          <button type="button" id="puzzle-label" class="puzzle-label" aria-haspopup="listbox" aria-expanded="false" aria-controls="difficulty-tabs">Easy</button>
+          <div class="level-with-mark">
+            <button type="button" id="puzzle-label" class="puzzle-label" aria-haspopup="listbox" aria-expanded="false" aria-controls="difficulty-tabs">Easy</button>
+            <span class="unique-mark" tabindex="0" role="img" aria-label="One solution, verified.">
+              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.15" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4.9 8.15 7 10.2 11.2 5.85" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="unique-mark-tip" aria-hidden="true">One solution, verified.</span>
+            </span>
+          </div>
           <div class="timer-group">
             <span id="timer" class="timer" aria-live="off">0:00</span>
             <button type="button" id="pause-btn" class="icon-btn" data-state="running" aria-label="Pause timer">
@@ -69,8 +81,10 @@
         <div class="board-column">
           <div class="board-wrap" id="board-wrap">
             <div id="sudoku-grid" class="sudoku-grid" role="grid" aria-label="Sudoku board"></div>
+            <p id="deal-status" class="sr-only" role="status"></p>
             <div id="board-cover" class="board-cover" hidden>
               <p id="board-cover-text">Paused</p>
+              <p id="practice-unavailable" hidden><a href="/?difficulty=easy">Play a normal game</a></p>
               <button type="button" id="resume-btn">Resume</button>
             </div>
           </div>
@@ -96,7 +110,13 @@
               <button type="button" id="mode-notes" aria-pressed="false" aria-keyshortcuts="N" title="Press N to toggle candidates"><span class="mode-label">Candidate</span><kbd>N</kbd></button>
             </div>
             <button type="button" id="hint-btn" class="icon-btn hint-icon" aria-label="Hint">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.2a6.4 6.4 0 0 0-3.5 11.7c.35.28.55.68.55 1.1v.8h5.9v-.8c0-.42.2-.82.55-1.1A6.4 6.4 0 0 0 12 2.2ZM9.2 17.6h5.6v1.5H9.2Zm.7 2.4h4.2V21.6h-4.2Z"/></svg>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <g class="hint-bulb">
+                  <path class="hint-glass" fill="currentColor" d="M12 2.2a6.4 6.4 0 0 0-3.5 11.7c.35.28.55.68.55 1.1v.8h5.9v-.8c0-.42.2-.82.55-1.1A6.4 6.4 0 0 0 12 2.2Z"/>
+                  <path class="hint-filament" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" d="M10 9.1h1.15l.85-1.7.85 1.7H14"/>
+                </g>
+                <path class="hint-base" fill="currentColor" d="M9.2 17.6h5.6v1.5H9.2Zm.7 2.4h4.2V21.6h-4.2Z"/>
+              </svg>
             </button>
             <button type="button" id="undo-btn" class="undo-btn" aria-label="Undo" disabled>Undo</button>
           </div>
@@ -117,24 +137,15 @@
 
   </div>
 
-  <div class="sudoku-copy">
-    <!-- home-below -->
-  </div>
+  <div class="home-below-wrap">
+    <div class="sudoku-copy">
+      <!-- home-below -->
+    </div>
 
-  <!-- house-slot:home-below -->
+    <!-- house-slot:home-below -->
+  </div>
 
   <div id="live-region" class="sr-only" aria-live="polite"></div>
-
-  <div id="resume-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="resume-title" hidden>
-    <div class="modal-card">
-      <h2 id="resume-title">Resume or start new?</h2>
-      <p id="resume-detail"></p>
-      <div class="modal-actions">
-        <button type="button" id="resume-yes" class="primary-btn">Resume</button>
-        <button type="button" id="resume-no" class="secondary-btn">Start new</button>
-      </div>
-    </div>
-  </div>
 
   <div id="solved-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="solved-title" hidden>
     <div class="modal-card celebrate">
@@ -214,6 +225,48 @@
     </div>
   </div>
 
+  <div id="help-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="help-title" hidden>
+    <div class="modal-card help-card">
+      <div class="modal-head">
+        <h2 id="help-title">How to play</h2>
+        <button type="button" class="icon-close" data-close="help-modal" aria-label="Close how to play">×</button>
+      </div>
+      <p class="help-rule">Fill every row, column, and 3×3 box with the digits 1 to 9, each one once.</p>
+
+      <h3>Entering numbers</h3>
+      <ul>
+        <li><strong>Normal</strong> puts a digit in the selected square. <strong>Candidate</strong> pencils in small notes instead.</li>
+        <li>On a selected empty square, tap one of the small digit spots to toggle that note.</li>
+        <li><strong>Undo</strong> takes back your last move. <strong>Erase</strong> clears the selected square.</li>
+        <li><strong>Auto Candidate Mode</strong> notes every digit that still fits in every empty square.</li>
+      </ul>
+
+      <h3>Hints</h3>
+      <p>The lightbulb points at the next step and names the technique. Tap <strong>Show why</strong> for the reasoning, then <strong>Apply</strong> or <strong>Place it</strong> to make the move. Each hint links to a page on that technique.</p>
+
+      <h3>Mistakes</h3>
+      <p>With <strong>Check guesses as you go</strong> on in Settings, a wrong digit counts as an error, and the fourth ends the game. Turn it off to play with no limit.</p>
+
+      <div class="help-keys">
+        <h3>Keyboard</h3>
+        <ul>
+          <li><kbd>1</kbd> to <kbd>9</kbd> enter a digit</li>
+          <li><kbd>N</kbd> switches between Normal and Candidate</li>
+          <li>Arrow keys move between squares</li>
+          <li><kbd>Backspace</kbd> erases</li>
+          <li><kbd>Enter</kbd> places a hinted digit</li>
+        </ul>
+      </div>
+
+      <h3>Go further</h3>
+      <ul class="help-links">
+        <li><a href="/how-difficulty-works/">How the levels are graded</a></li>
+        <li><a href="/techniques/">All the techniques, easiest first</a></li>
+        <li><a href="/articles/beginners-guide/">How to play Sudoku, step by step</a></li>
+      </ul>
+    </div>
+  </div>
+
   <div id="stats-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="stats-title" hidden>
     <div class="modal-card stats-card">
       <div class="modal-head">
@@ -271,9 +324,10 @@
         <p>Signed in as <strong id="account-signed-email" class="account-email"></strong></p>
         <div class="account-actions">
           <button type="button" id="account-signout" class="secondary-btn">Sign out</button>
-          <button type="button" id="account-delete" class="secondary-btn">Delete my account</button>
+          <div id="account-signout-all"></div>
+          <div id="account-delete-slot"></div>
         </div>
-        <p class="key-help">Delete removes the email and the saved copy on the server. This device keeps its own copy.</p>
+        <p class="key-help">Sign out ends the session on this device only.</p>
       </div>
       <p id="account-status" class="account-status" role="status" hidden></p>
     </div>

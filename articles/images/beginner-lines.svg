@@ -18,9 +18,9 @@
   </g>
   <g font-family="sans-serif" fill="#1f4d63">
     <text x="360" y="80" font-size="22" font-weight="700">Three places to look</text>
-    <text x="360" y="130" font-size="18">Green: one row, digits 19 once.</text>
+    <text x="360" y="130" font-size="18">Green: one row, digits 1–9 once.</text>
     <text x="360" y="164" font-size="18">Blue: one column, the same rule.</text>
-    <text x="360" y="198" font-size="18">Orange: one 3�3 box, the same rule.</text>
+    <text x="360" y="198" font-size="18">Orange: one 3×3 box, the same rule.</text>
     <text x="360" y="250" font-size="18">A digit may sit in a cell only</text>
     <text x="360" y="276" font-size="18">when all three still have room.</text>
   </g>

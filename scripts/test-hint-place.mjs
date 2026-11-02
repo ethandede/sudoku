@@ -215,12 +215,17 @@ async function check(name, fn) {
   }
 }
 
-async function openGame(viewport, save) {
-  const context = await browser.newContext({ viewport });
+async function openGame(viewport, save, options = {}) {
+  const context = await browser.newContext({
+    viewport,
+    colorScheme: options.colorScheme,
+    reducedMotion: options.reducedMotion,
+  });
   await context.addInitScript((payload) => {
-    localStorage.setItem("sudoku-progress", JSON.stringify(payload));
-    localStorage.setItem("sudoku-progress-at", String(payload.updatedAt));
-  }, save);
+    localStorage.setItem("sudoku-progress", JSON.stringify(payload.save));
+    localStorage.setItem("sudoku-progress-at", String(payload.save.updatedAt));
+    if (payload.settings) localStorage.setItem("sudoku-settings", JSON.stringify(payload.settings));
+  }, { save, settings: options.settings || null });
   const page = await context.newPage();
   await page.route("**/*", (route) => {
     const url = route.request().url();
@@ -228,8 +233,7 @@ async function openGame(viewport, save) {
     return route.continue();
   });
   await page.goto(`${origin}/`, { waitUntil: "domcontentloaded" });
-  await page.waitForSelector("#resume-yes", { timeout: 15000 });
-  await page.click("#resume-yes");
+  await page.waitForSelector("#resume-note:not([hidden])", { timeout: 15000 });
   await page.waitForFunction(() => {
     const cover = document.querySelector("#board-cover");
     return document.querySelectorAll(".cell").length === 81 && cover && cover.hidden;
@@ -245,6 +249,10 @@ async function marks(page, index, kind) {
     .evaluateAll((nodes) => nodes.map((node) => node.textContent));
 }
 
+async function hiddenForReal(page, selector) {
+  return page.locator(selector).evaluate((el) => el.hidden && getComputedStyle(el).display === "none");
+}
+
 async function valueAt(page, index) {
   return Number(await page.locator(".cell").nth(index).getAttribute("data-value"));
 }
@@ -258,18 +266,31 @@ async function placeSingle(page) {
   await page.waitForFunction(() => /Placed/.test(document.getElementById("hint-text").textContent));
 }
 
-async function placeChain(page) {
+async function placeChain(page, afterApply) {
   await page.click("#hint-btn");
   await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Show why");
   await page.click("#hint-next");
-  await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Apply");
+  await page.waitForFunction(() => /^Remove \d+ candidates?$/.test(document.getElementById("hint-next").textContent || ""));
+  const why = await page.locator("#hint-text").innerText();
+  assert(/Rules out \d+ in row \d+, column \d+/.test(why), "stage 2 names the ruled-out digit");
+  assert(!why.includes("—"), "stage 2 has no em dash");
   await page.click("#hint-next");
   await page.waitForFunction(() => {
     const next = document.getElementById("hint-next");
     return next && !next.hidden && next.textContent === "Place it";
   });
+  if (afterApply) await afterApply(page);
   await page.click("#hint-next");
   await page.waitForFunction(() => /Placed/.test(document.getElementById("hint-text").textContent));
+}
+
+function openElimination(found) {
+  const empty = (found.step.eliminate || []).filter((item) => found.board[item.index] === 0);
+  return empty.find((item) => item.index !== found.step.place.index) || empty[0] || null;
+}
+
+function fadeMark(page, index, digit) {
+  return page.locator(".cell").nth(index).locator(`.marks span[data-digit="${digit}"]`);
 }
 
 async function expectPlaced(page, found, { notes, auto, chain }) {
@@ -293,8 +314,12 @@ async function expectPlaced(page, found, { notes, auto, chain }) {
   if (chain) {
     const eliminated = (found.step.eliminate || []).find((item) => found.board[item.index] === 0 && item.index !== index);
     if (eliminated) {
-      const struck = await marks(page, eliminated.index, "struck");
-      assert(struck.includes(String(eliminated.digit)), "elimination stays struck after the place");
+      const stuck = await page
+        .locator(".cell")
+        .nth(eliminated.index)
+        .locator(`.marks span.on.struck:not(.fading)[data-digit="${eliminated.digit}"]`)
+        .count();
+      assert(stuck === 0, "elimination does not stay struck after it fades");
       if (auto) assert(!(await marks(page, eliminated.index, "auto")).includes(String(eliminated.digit)), "eliminated digit left auto-candidates");
     }
     assert((await page.locator(".cell").nth(index).locator(".marks span.struck").count()) === 0, "filled cell has no strike");
@@ -325,9 +350,48 @@ for (const [name, found, chain] of [
           const { context, page } = await openGame(viewport, saveFor(found, { auto, notes: plan && plan.notes }));
           try {
             assert((await page.locator("#auto-candidates").isChecked()) === auto, "auto toggle matches");
-            if (chain) await placeChain(page);
-            else await placeSingle(page);
+            const eliminated = chain ? openElimination(found) : null;
+            const watchFade = chain && name === "x-wing chain" && viewportName === "phone" && !auto && !withNotes;
+            const notedDigit =
+              Boolean(withNotes && plan && eliminated && (plan.notes[eliminated.index] || []).includes(eliminated.digit));
+            if (chain) {
+              await placeChain(page, async () => {
+                if (!eliminated) return;
+                const mark = fadeMark(page, eliminated.index, eliminated.digit);
+                const className = (await mark.getAttribute("class")) || "";
+                if (notedDigit) {
+                  assert(!className.includes("struck"), "a noted digit is removed with no strike");
+                  return;
+                }
+                assert(className.includes("struck") && className.includes("fading"), "eliminated digit fades when it was not in notes");
+                if (!watchFade) return;
+                await page.screenshot({ path: "/opt/cursor/artifacts/screenshots/elimination-apply-phone-light.png" });
+                const style = await mark.evaluate((el) => {
+                  const computed = getComputedStyle(el);
+                  return {
+                    color: computed.color,
+                    weight: computed.fontWeight,
+                    thickness: computed.textDecorationThickness,
+                  };
+                });
+                assert(style.color === "rgb(176, 0, 22)", "strike uses the danger color");
+                assert(style.weight === "700", "strike weight");
+                assert(style.thickness === "2px", "strike thickness");
+                const cellStyle = await page.locator(".cell").nth(eliminated.index).evaluate((el) => {
+                  const computed = getComputedStyle(el);
+                  return `${el.className} | ${computed.boxShadow} | ${computed.backgroundColor}`;
+                });
+                assert(cellStyle.includes("176, 0, 22") && cellStyle.includes("2px"), `eliminate ring uses danger (${cellStyle})`);
+                await page.waitForTimeout(720);
+                const after = (await mark.getAttribute("class")) || "";
+                assert(!after.includes("struck"), "the strike is gone after the fade");
+              });
+            } else await placeSingle(page);
             await expectPlaced(page, found, { notes: withNotes, auto, chain });
+            if (watchFade && eliminated) {
+              const afterPlace = (await fadeMark(page, eliminated.index, eliminated.digit).getAttribute("class")) || "";
+              assert(!afterPlace.includes("struck"), "placing does not restart a finished fade");
+            }
             if (name === "pointing chain" && viewportName === "phone" && !auto && !withNotes) {
               await page.screenshot({ path: "/opt/cursor/artifacts/screenshots/chained-place-phone.png" });
             }
@@ -385,6 +449,8 @@ await check("wrong digit then placement", async () => {
   try {
     await page.click("#hint-btn");
     await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Show it");
+    assert(await hiddenForReal(page, "#hint-fill"), "fill stays hidden on a wrong-digit hint");
+    assert(await hiddenForReal(page, "#hint-learn"), "learn stays hidden on a wrong-digit hint");
     await page.click("#hint-next");
     await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Clear it");
     assert(
@@ -440,6 +506,7 @@ await check("undo of a placement restores one step and the next hint places agai
   const { context, page } = await openGame(desktop, saveFor(naked, { notes: plan.notes, auto: true }));
   try {
     await placeSingle(page);
+    assert(await hiddenForReal(page, "#hint-next"), "the place button hides after the digit is placed");
     assert((await valueAt(page, naked.step.place.index)) === naked.step.place.digit, "digit placed");
     await page.evaluate(() => document.getElementById("undo-btn").click());
     await page.waitForFunction((index) => document.querySelectorAll(".cell")[index].dataset.value === "0", naked.step.place.index);
@@ -503,6 +570,233 @@ await check("Enter on the place button places and returns focus to the cell", as
     const focused = await page.evaluate(() => Number(document.activeElement.dataset.index));
     assert(focused === naked.step.place.index, "focus returns to the placed cell");
     assert((await valueAt(page, naked.step.place.index)) === naked.step.place.digit, "Enter placed the digit");
+  } finally {
+    await context.close();
+  }
+});
+
+await check("a noted elimination is removed without a strike", async () => {
+  const eliminated = openElimination(xwing);
+  const banned = new Set(
+    xwing.step.eliminate.filter((item) => item.index === eliminated.index).map((item) => item.digit)
+  );
+  const spare = [1, 2, 3, 4, 5, 6, 7, 8, 9].find((digit) => !banned.has(digit));
+  const notes = emptyNotes();
+  notes[eliminated.index] = [eliminated.digit, spare];
+  const row = Math.floor(eliminated.index / 9) + 1;
+  const col = (eliminated.index % 9) + 1;
+  const { context, page } = await openGame(phone, saveFor(xwing, { auto: false, notes }));
+  try {
+    await page.click("#hint-btn");
+    await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Show why");
+    await page.click("#hint-next");
+    await page.waitForFunction(() => /^Remove \d+ candidates?$/.test(document.getElementById("hint-next").textContent || ""));
+    const why = await page.locator("#hint-text").innerText();
+    assert(why.includes(`${eliminated.digit} in row ${row}, column ${col}`), "stage 2 names this cell");
+    const before = (await fadeMark(page, eliminated.index, eliminated.digit).getAttribute("class")) || "";
+    assert(before.includes("struck") && !before.includes("fading"), "stage 2 strikes the digit in its slot");
+    await page.screenshot({ path: "/opt/cursor/artifacts/screenshots/elimination-stage2-phone-light.png" });
+    await page.click("#hint-next");
+    await page.waitForFunction(() => {
+      const next = document.getElementById("hint-next");
+      return next && !next.hidden && next.textContent === "Place it";
+    });
+    const after = (await fadeMark(page, eliminated.index, eliminated.digit).getAttribute("class")) || "";
+    assert(!after.includes("struck"), "a noted digit is removed with no strike");
+    const left = await marks(page, eliminated.index, "user-note");
+    assert(!left.includes(String(eliminated.digit)), "the noted digit is gone");
+    assert(left.includes(String(spare)), "the other note stays");
+    assert(/Removed /.test(await page.locator("#hint-text").innerText()), "the result stays in the past tense");
+    await page.screenshot({ path: "/opt/cursor/artifacts/screenshots/elimination-apply-noted-phone-light.png" });
+  } finally {
+    await context.close();
+  }
+});
+
+await check("dark stage 2 uses the danger color", async () => {
+  const eliminated = openElimination(xwing);
+  const { context, page } = await openGame(phone, saveFor(xwing, { auto: true }), {
+    colorScheme: "dark",
+    settings: { theme: "dark", version: 1 },
+  });
+  try {
+    await page.click("#hint-btn");
+    await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Show why");
+    await page.click("#hint-next");
+    await page.waitForFunction(() => /^Remove \d+ candidates?$/.test(document.getElementById("hint-next").textContent || ""));
+    const mark = fadeMark(page, eliminated.index, eliminated.digit);
+    const style = await mark.evaluate((el) => {
+      const computed = getComputedStyle(el);
+      return { color: computed.color, weight: computed.fontWeight, thickness: computed.textDecorationThickness };
+    });
+    assert(style.color === "rgb(255, 180, 180)", "dark strike uses the danger color");
+    assert(style.weight === "700", "dark strike weight");
+    assert(style.thickness === "2px", "dark strike thickness");
+    const ring = await page.locator(".cell").nth(eliminated.index).evaluate((el) => {
+      const computed = getComputedStyle(el);
+      return `${el.className} | ${computed.boxShadow} | ${computed.backgroundColor}`;
+    });
+    assert(ring.includes("255, 180, 180") && ring.includes("2px"), `dark eliminate ring uses danger (${ring})`);
+    await page.screenshot({ path: "/opt/cursor/artifacts/screenshots/elimination-stage2-phone-dark.png" });
+    await page.click("#hint-next");
+    await page.waitForFunction(() => {
+      const next = document.getElementById("hint-next");
+      return next && !next.hidden && next.textContent === "Place it";
+    });
+    const fading = (await mark.getAttribute("class")) || "";
+    assert(fading.includes("struck") && fading.includes("fading"), "dark apply fades a digit that was not noted");
+    await page.screenshot({ path: "/opt/cursor/artifacts/screenshots/elimination-apply-phone-dark.png" });
+  } finally {
+    await context.close();
+  }
+});
+
+await check("reduced motion drops an unnoted digit immediately", async () => {
+  const eliminated = openElimination(xwing);
+  const { context, page } = await openGame(phone, saveFor(xwing, { auto: false }), { reducedMotion: "reduce" });
+  try {
+    await page.click("#hint-btn");
+    await page.waitForFunction(() => document.getElementById("hint-next").textContent === "Show why");
+    await page.click("#hint-next");
+    await page.waitForFunction(() => /^Remove \d+ candidates?$/.test(document.getElementById("hint-next").textContent || ""));
+    await page.click("#hint-next");
+    await page.waitForFunction(() => {
+      const next = document.getElementById("hint-next");
+      return next && !next.hidden && next.textContent === "Place it";
+    });
+    const after = (await fadeMark(page, eliminated.index, eliminated.digit).getAttribute("class")) || "";
+    assert(!after.includes("struck") && !after.includes("fading"), "reduced motion removes the digit with no fade");
+  } finally {
+    await context.close();
+  }
+});
+
+function clockSeconds(text) {
+  const [mins, secs] = text.trim().split(":").map(Number);
+  return mins * 60 + secs;
+}
+
+async function openFill(page, label) {
+  await page.click("#more-btn");
+  await page.click("#more-fill");
+  await page.locator("#fill-list button", { hasText: label }).click();
+}
+
+const missSlug = ["swordfish", "xy-chain", "coloring", "bug-plus-one", "unique-rectangle"].find(
+  (slug) => !SudokuSolver.explainTechnique(pointing.board, pointing.removed, slug)
+);
+const missLabel = {
+  swordfish: "Apply all swordfish",
+  "xy-chain": "Apply all XY-chains",
+  coloring: "Apply all simple coloring",
+  "bug-plus-one": "Apply all BUG+1",
+  "unique-rectangle": "Apply all unique rectangles",
+}[missSlug];
+
+await check("fill refuses a wrong digit and a miss adds no undo", async () => {
+  const bad = wrongBoard(pointing);
+  assert(bad, "a wrong digit can sit beside the pointing");
+  const { context, page } = await openGame(phone, saveFor(pointing, { auto: true, board: bad.board }));
+  try {
+    await openFill(page, "Apply all pointing");
+    await page.waitForFunction(() => /wrong/.test(document.getElementById("fill-chip-text").textContent || ""));
+    const text = await page.locator("#fill-chip-text").innerText();
+    assert(text.includes("A digit on the board is wrong. Fix it before using Fill."), text);
+    assert(await page.locator("#fill-undo").isHidden(), "the refusal offers no undo");
+    assert((await valueAt(page, bad.index)) === bad.wrong, "the wrong digit stays");
+    assert(await page.locator("#undo-btn").isDisabled(), "refusing fill pushes no undo entry");
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("sudoku-progress")));
+    assert(saved.fastForwarded !== true, "a refused fill does not flag the game as filled");
+  } finally {
+    await context.close();
+  }
+});
+
+await check("a fill that finds nothing says so and pushes no undo", async () => {
+  assert(missSlug && missLabel, "a technique is absent from the pointing board");
+  const { context, page } = await openGame(phone, saveFor(pointing, { auto: false }));
+  try {
+    await openFill(page, missLabel);
+    await page.waitForFunction(() => /none on the board/.test(document.getElementById("fill-chip-text").textContent || ""));
+    const text = await page.locator("#fill-chip-text").innerText();
+    assert(!/0 steps/.test(text), text);
+    assert(await page.locator("#fill-undo").isHidden(), "a miss offers no undo");
+    assert(await page.locator("#undo-btn").isDisabled(), "a miss pushes no undo entry");
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("sudoku-progress")));
+    assert(saved.fastForwarded !== true, "a miss does not flag the game as filled");
+  } finally {
+    await context.close();
+  }
+});
+
+await check("erasing a correct digit keeps eliminations and erasing a wrong one clears them", async () => {
+  const eliminated = (pointing.step.eliminate || []).find(
+    (item) => pointing.board[item.index] === 0 && pointing.solution[item.index] !== item.digit
+  );
+  assert(eliminated, "pointing removes a candidate");
+  let correct = -1;
+  for (let index = 0; index < 81; index += 1) {
+    if (pointing.puzzle[index] !== 0 || !pointing.board[index]) continue;
+    if (pointing.board[index] !== pointing.solution[index] || index === eliminated.index) continue;
+    correct = index;
+    break;
+  }
+  assert(correct >= 0, "a correct entered digit can be erased");
+  const { context, page } = await openGame(phone, saveFor(pointing, { auto: true }));
+  try {
+    await openFill(page, "Apply all pointing");
+    await page.waitForFunction(() => !document.getElementById("fill-chip").hidden);
+    const gone = String(eliminated.digit);
+    const before = await marks(page, eliminated.index, "auto");
+    assert(!before.includes(gone), `fill removed ${gone}`);
+    await page.locator(".cell").nth(correct).click();
+    await page.click("#erase-btn");
+    const kept = await marks(page, eliminated.index, "auto");
+    assert(!kept.includes(gone), "erasing a correct digit keeps the elimination");
+  } finally {
+    await context.close();
+  }
+
+  let wrongIndex = -1;
+  for (let index = 0; index < 81; index += 1) {
+    if (pointing.puzzle[index] !== 0 || pointing.board[index] || index === eliminated.index) continue;
+    wrongIndex = index;
+    break;
+  }
+  assert(wrongIndex >= 0, "an empty cell can hold a wrong digit");
+  const wrong = pointing.solution[wrongIndex] === 1 ? 2 : 1;
+  const board = pointing.board.slice();
+  board[wrongIndex] = wrong;
+  const seeded = saveFor(pointing, { auto: true, board });
+  seeded.removed = [{ index: eliminated.index, digit: eliminated.digit }];
+  const again = await openGame(phone, seeded);
+  try {
+    const hidden = await marks(again.page, eliminated.index, "auto");
+    assert(!hidden.includes(String(eliminated.digit)), "the stored elimination is hidden");
+    await again.page.locator(".cell").nth(wrongIndex).click();
+    await again.page.click("#erase-btn");
+    const back = await marks(again.page, eliminated.index, "auto");
+    assert(back.includes(String(eliminated.digit)), "erasing the wrong digit clears eliminations");
+  } finally {
+    await again.context.close();
+  }
+});
+
+await check("undo does not rewind the timer", async () => {
+  const index = naked.step.place.index;
+  const { context, page } = await openGame(phone, saveFor(naked, { auto: false }));
+  try {
+    const start = clockSeconds(await page.locator("#timer").innerText());
+    await page.locator(".cell").nth(index).click();
+    await page.keyboard.press(String(naked.step.place.digit));
+    await page.waitForFunction(() => !document.getElementById("undo-btn").disabled);
+    await page.waitForTimeout(1100);
+    const mid = clockSeconds(await page.locator("#timer").innerText());
+    assert(mid >= start, "the clock is running");
+    await page.click("#undo-btn");
+    const after = clockSeconds(await page.locator("#timer").innerText());
+    assert(after >= mid, `undo moved the clock from ${mid}s back to ${after}s`);
+    assert((await valueAt(page, index)) !== naked.step.place.digit, "undo removed the placed digit");
   } finally {
     await context.close();
   }

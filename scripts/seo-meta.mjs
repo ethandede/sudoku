@@ -24,6 +24,9 @@ export const TECHNIQUE_SEARCH = {
   "two-string-kite": "Two-String Kite",
   "xy-wing": "XY-Wing",
   "xyz-wing": "XYZ-Wing",
+  "w-wing": "W-Wing",
+  "unique-rectangle": "Unique Rectangle",
+  "bug-plus-one": "BUG+1",
   coloring: "Simple Coloring",
   "xy-chain": "XY-Chain",
 };
@@ -126,6 +129,7 @@ const ARTICLE_TERM = {
   "nyt-medium-vs-hard": "nyt medium",
   "what-makes-a-sudoku-hard": "makes a sudoku hard",
   "history-of-sudoku": "where sudoku came from",
+  "sudoku-techniques-in-order": "sudoku techniques",
   "world-sudoku-championship-2026": "world sudoku championship",
   "sudoku-variants": "sudoku variants",
   "why-ai-is-bad-at-sudoku": "bad at sudoku",
@@ -174,9 +178,10 @@ export function homeMeta(home) {
 export function techniqueMeta(technique) {
   const search = TECHNIQUE_SEARCH[technique.slug];
   if (!search) throw new Error(`No search name for ${technique.slug}`);
+  const titleName = technique.slug === "xy-wing" ? `${search} (Y-Wing)` : search;
   return {
     path: `/techniques/${technique.slug}/`,
-    title: `${search} Sudoku Technique, Explained on Real Boards | ${BRAND}`,
+    title: `${titleName} Sudoku Technique, Explained on Real Boards | ${BRAND}`,
     description: technique.description,
     term: search.toLowerCase() === "quads" ? "quad" : search.toLowerCase(),
   };

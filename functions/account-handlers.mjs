@@ -359,10 +359,10 @@ function expiredPage(origin) {
   body { margin: 0; font-family: system-ui, sans-serif; background: #f4f6f8; color: #1e232b; }
   main { max-width: 28rem; margin: 0 auto; padding: 2.5rem 1.25rem; }
   h1 { font-size: 1.4rem; line-height: 1.3; }
-  a { color: #0c4f86; font-weight: 700; }
+  a { color: #2141a8; font-weight: 700; }
   @media (prefers-color-scheme: dark) {
     body { background: #121416; color: #e6e9ed; }
-    a { color: #9ed2f8; }
+    a { color: #a9bcff; }
   }
 </style>
 </head>
@@ -479,6 +479,19 @@ export async function handleSync({ request, env, now = Date.now() }) {
   } catch {
     return json({ error: "Progress could not be saved. Try again." }, 503);
   }
+}
+
+export async function handleSignOutAll({ request, env, now = Date.now() }) {
+  const db = database(env);
+  const headers = { "set-cookie": clearCookie() };
+  if (!db) return json({ ok: true }, 200, headers);
+  try {
+    const session = await sessionFor(db, request, now);
+    if (session) await db.prepare("DELETE FROM sessions WHERE user_id = ?").bind(session.user_id).run();
+  } catch {
+    return json({ error: "Could not sign out everywhere." }, 503);
+  }
+  return json({ ok: true }, 200, headers);
 }
 
 export async function handleSignOut({ request, env }) {

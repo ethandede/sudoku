@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { migrateStats } from "../functions/account-merge.mjs";
+import { orderedTechniques } from "./technique-copy.mjs";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const store = new Map();
@@ -31,7 +32,13 @@ function check(name, ok) {
   }
 }
 
-check("badge count is 33", progress.BADGES.length === 33);
+check("badge count is 36", progress.BADGES.length === 36);
+const libraryOrder = orderedTechniques().map((tech) => `${tech.order}:${tech.slug}`).join(",");
+check(
+  "ladder follows technique order",
+  progress.TECHNIQUES.map((tech) => `${tech.order}:${tech.slug}`).join(",") === libraryOrder
+);
+check("xy-wing is before swordfish", progress.TECHNIQUES.findIndex((tech) => tech.slug === "xy-wing") < progress.TECHNIQUES.findIndex((tech) => tech.slug === "swordfish"));
 check("mastered badges cover every technique", progress.TECHNIQUES.every((tech) => progress.BADGES.some((badge) => badge.id === `mastered-${tech.slug}`)));
 
 const empty = progress.load();
@@ -242,6 +249,21 @@ const mergedHints = progress.load();
 check("merge keeps the higher hinted count", mergedHints.techniques.pointing.hinted === 40);
 check("merge keeps the higher expert ledger", mergedHints.hintTotals.levels.expert.solves === 2);
 check("merge keeps check history", mergedHints.history.some((item) => item.checks === 4));
+check("stats markup rolls integer hint counts", progress.hintMarkup(mergedHints, { counts: true }).includes('class="count-up"'));
+check("in-game hint markup does not roll", !progress.hintMarkup(mergedHints, { compact: true, counts: true }).includes("count-up"));
+const beforeReset = progress.load();
+check("history exists before clear", beforeReset.history.length > 0);
+const cleared = progress.clearHistory();
+check("clear history drops the list", cleared.history.length === 0);
+check("clear history keeps technique counts", cleared.techniques.pointing && cleared.techniques.pointing.hinted === 40);
+store.set("sudoku-progress", "{\"version\":1}");
+store.set("sudoku-settings", "{\"theme\":\"dark\"}");
+store.set("sudoku-stats", "{\"daily\":{\"won\":3}}");
+progress.resetRecord();
+check("reset drops the skill record", progress.load().badges.length === 0 && !progress.load().techniques.pointing);
+check("reset drops on-device stats", store.get("sudoku-stats") == null);
+check("reset leaves the puzzle in progress", store.get("sudoku-progress") === "{\"version\":1}");
+check("reset leaves settings", store.get("sudoku-settings") === "{\"theme\":\"dark\"}");
 
 store.set("sudoku-skills", "{");
 progress.recordSolve(
