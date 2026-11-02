@@ -113,6 +113,8 @@ const ARTICLE_DESCRIPTION = {
     "What actually makes a Sudoku hard: a 68-clue puzzle that needs an XY-wing, a 17-clue one you can finish with singles, and 2,280 graded puzzles. Clue count barely predicts difficulty.",
   "history-of-sudoku":
     "Where Sudoku came from: Euler, 1890s Paris, a 1979 Dell magazine, Nikoli, and a Hong Kong judge. It is not Japanese at heart, and it is not new.",
+  "sudoku-on-your-phone":
+    "Sudoku on your phone: there is no app-store app. How SudokuSudoku's board, notes, daily, and offline play work on a phone.",
   "why-ai-is-bad-at-sudoku":
     "Why AI is surprisingly bad at Sudoku: chatbots that write essays often fail a puzzle a child can finish, and a short program never misses.",
   "does-sudoku-keep-your-brain-sharp":
@@ -130,6 +132,7 @@ const ARTICLE_TERM = {
   "what-makes-a-sudoku-hard": "makes a sudoku hard",
   "history-of-sudoku": "where sudoku came from",
   "sudoku-techniques-in-order": "sudoku techniques",
+  "sudoku-on-your-phone": "sudoku on your phone",
   "world-sudoku-championship-2026": "world sudoku championship",
   "sudoku-variants": "sudoku variants",
   "why-ai-is-bad-at-sudoku": "bad at sudoku",
