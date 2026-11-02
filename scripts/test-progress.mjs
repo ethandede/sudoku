@@ -249,6 +249,21 @@ const mergedHints = progress.load();
 check("merge keeps the higher hinted count", mergedHints.techniques.pointing.hinted === 40);
 check("merge keeps the higher expert ledger", mergedHints.hintTotals.levels.expert.solves === 2);
 check("merge keeps check history", mergedHints.history.some((item) => item.checks === 4));
+check("stats markup rolls integer hint counts", progress.hintMarkup(mergedHints, { counts: true }).includes('class="count-up"'));
+check("in-game hint markup does not roll", !progress.hintMarkup(mergedHints, { compact: true, counts: true }).includes("count-up"));
+const beforeReset = progress.load();
+check("history exists before clear", beforeReset.history.length > 0);
+const cleared = progress.clearHistory();
+check("clear history drops the list", cleared.history.length === 0);
+check("clear history keeps technique counts", cleared.techniques.pointing && cleared.techniques.pointing.hinted === 40);
+store.set("sudoku-progress", "{\"version\":1}");
+store.set("sudoku-settings", "{\"theme\":\"dark\"}");
+store.set("sudoku-stats", "{\"daily\":{\"won\":3}}");
+progress.resetRecord();
+check("reset drops the skill record", progress.load().badges.length === 0 && !progress.load().techniques.pointing);
+check("reset drops on-device stats", store.get("sudoku-stats") == null);
+check("reset leaves the puzzle in progress", store.get("sudoku-progress") === "{\"version\":1}");
+check("reset leaves settings", store.get("sudoku-settings") === "{\"theme\":\"dark\"}");
 
 store.set("sudoku-skills", "{");
 progress.recordSolve(

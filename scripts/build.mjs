@@ -23,7 +23,8 @@ import { nextTechnique, orderedTechniques, techniques } from "./technique-copy.m
 import { adsensePushScript, housePair, renderHousePromos } from "./house-promos.mjs";
 import { phosphorArrow } from "./icons.mjs";
 import { faqJsonLd, homeCopy, renderHomeBelow, renderHomeIntro } from "../home-copy.mjs";
-import { articleMeta, assertSiteMeta, staticMeta, techniqueMeta } from "./seo-meta.mjs";
+import { articleMeta, assertSiteMeta, assertUniqueMeta, catalogPages, staticMeta, techniqueMeta } from "./seo-meta.mjs";
+import { dailyMeta, listDailyDates, utcToday } from "../functions/daily-permalink.mjs";
 import { gitDate, gitFirstDate, lastmod } from "./lastmod.mjs";
 import { articleImage, breadcrumbList } from "./schema.mjs";
 
@@ -43,6 +44,8 @@ const articles = [
   { file: "articles/where-the-solver-stops.md", slug: "where-the-solver-stops" },
   { file: "articles/what-makes-a-sudoku-hard.md", slug: "what-makes-a-sudoku-hard" },
   { file: "articles/history-of-sudoku.md", slug: "history-of-sudoku" },
+  { file: "articles/sudoku-techniques-in-order.md", slug: "sudoku-techniques-in-order" },
+  { file: "articles/world-sudoku-championship-2026.md", slug: "world-sudoku-championship-2026" },
   { file: "articles/sudoku-variants.md", slug: "sudoku-variants" },
   { file: "articles/why-ai-is-bad-at-sudoku.md", slug: "why-ai-is-bad-at-sudoku" },
   { file: "articles/does-sudoku-keep-your-brain-sharp.md", slug: "does-sudoku-keep-your-brain-sharp" },
@@ -70,7 +73,7 @@ function shareCard(kind, slug, alt) {
   if (png[0] !== 0x89 || width !== 1200 || height !== 630) {
     throw new Error(`OG image ${relative} must be a 1200x630 PNG`);
   }
-  if (alt.includes("—")) throw new Error(`OG alt for ${slug} has an em dash`);
+  if (alt.includes("\u2014")) throw new Error(`OG alt for ${slug} has an em dash`);
   return {
     shareImage: `${SITE}/og/${kind}/${slug}.png`,
     shareImageAlt: alt,
@@ -272,8 +275,8 @@ function layout({
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f6f8">
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#121416">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#edf0eb">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111316">
   <meta name="color-scheme" content="light dark">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -392,10 +395,14 @@ ${main}
 ${privacyChoiceItem}      </ul>
     </nav>
 ${privacyChoiceNote}    <p class="copyright">&copy; ${year} SudokuSudoku. All rights reserved.</p>
+    <p class="footer-credit">Number counters and the delete control are adapted from <a href="https://rareui.com">Rare UI</a> by Swami Malode.</p>
+    <p class="footer-credit">The dealing animation is adapted from <a href="https://magicui.design/docs/components/number-ticker">Magic UI</a>.</p>
   </div>
 </footer>
-${game ? ["solver", "pools", "generator", "progress", "community", "share", "account-merge", "account", "practice"].map((name) => scriptTag(`/assets/js/${name}.js`)).join("\n") : ""}
+${game ? ["solver", "pools", "generator", "progress", "community", "share", "daily", "account-merge", "rare-delete", "account", "practice"].map((name) => scriptTag(`/assets/js/${name}.js`)).join("\n") : ""}
 ${skills ? scriptTag("/assets/js/progress.js") : ""}
+${skills ? scriptTag("/assets/js/rare-counter.js") : ""}
+${skills ? scriptTag("/assets/js/rare-delete.js") : ""}
 ${scriptTag("/assets/js/silent-update.js")}
 ${scriptTag("/assets/js/hint-apply.js")}
 ${scriptTag("/assets/js/sudoku.js")}
@@ -404,6 +411,8 @@ ${demo ? scriptTag("/assets/js/technique-demo.js") : ""}
 ${contact ? scriptTag("/assets/js/contact.js") : ""}
 ${stats ? scriptTag("/assets/js/account-merge.js") : ""}
 ${stats ? scriptTag("/assets/js/progress.js") : ""}
+${stats ? scriptTag("/assets/js/rare-counter.js") : ""}
+${stats ? scriptTag("/assets/js/rare-delete.js") : ""}
 ${stats ? scriptTag("/assets/js/stats-page.js") : ""}
 ${houseClicks}${adPushes}${privacyChoiceScript}${webAnalyticsTag}</body>
 </html>
@@ -417,7 +426,12 @@ function accountMergeForBrowser(source) {
 
 function hintApplyForBrowser(source) {
   const body = source.replace(/^export /gm, "");
-  return `(function (root) {\n${body}\n  root.SudokuHintApply = {\n    applyHintStep: applyHintStep,\n    placesOnApply: placesOnApply,\n    legalCandidates: legalCandidates,\n    eliminationSentence: eliminationSentence,\n    resultCopy: resultCopy,\n    cellName: cellName\n  };\n})(typeof globalThis !== "undefined" ? globalThis : this);\n`;
+  return `(function (root) {\n${body}\n  root.SudokuHintApply = {\n    applyHintStep: applyHintStep,\n    placesOnApply: placesOnApply,\n    legalCandidates: legalCandidates,\n    eliminationSentence: eliminationSentence,\n    previewSentence: previewSentence,\n    removalLabel: removalLabel,\n    noteClears: noteClears,\n    resultCopy: resultCopy,\n    cellName: cellName\n  };\n})(typeof globalThis !== "undefined" ? globalThis : this);\n`;
+}
+
+function dailyForBrowser(source) {
+  const body = source.replace(/^export /gm, "");
+  return `(function (root) {\n${body}\n  root.SudokuDaily = {\n    DAILY_START,\n    gameRequest,\n    launchFields,\n    dateStatus,\n    parseDailyPath,\n    listDailyDates,\n    dailyMeta\n  };\n})(typeof globalThis !== "undefined" ? globalThis : this);\n`;
 }
 
 function silentUpdateForBrowser(source) {
@@ -552,6 +566,7 @@ write("assets/css/style.css", versionFontUrls(compiled.css, ASSET_VERSION));
 write("assets/js/solver.js", read("assets/js/solver.js"));
 write("assets/js/pools.js", read("assets/js/pools.js"));
 write("assets/js/generator.js", read("assets/js/generator.js"));
+write("assets/js/generate-worker.js", read("assets/js/generate-worker.js"));
 write("assets/js/sudoku.js", read("assets/js/sudoku.js"));
 write("assets/js/technique-demo.js", read("assets/js/technique-demo.js"));
 write("assets/js/progress.js", read("assets/js/progress.js"));
@@ -560,10 +575,13 @@ write("assets/js/skills.js", read("assets/js/skills.js"));
 write("assets/js/contact.js", read("assets/js/contact.js"));
 write("assets/js/community.js", read("assets/js/community.js"));
 write("assets/js/share.js", read("assets/js/share.js"));
+write("assets/js/daily.js", dailyForBrowser(read("functions/daily-permalink.mjs")));
 write("assets/js/account-merge.js", accountMergeForBrowser(read("functions/account-merge.mjs")));
 write("assets/js/silent-update.js", silentUpdateForBrowser(read("functions/silent-update.mjs")));
 write("assets/js/hint-apply.js", hintApplyForBrowser(read("functions/hint-apply.mjs")));
 write("assets/js/account.js", read("assets/js/account.js"));
+write("assets/js/rare-counter.js", read("assets/js/rare-counter.js"));
+write("assets/js/rare-delete.js", read("assets/js/rare-delete.js"));
 write("assets/js/stats-page.js", read("assets/js/stats-page.js"));
 write("assets/js/house-promos.js", read("assets/js/house-promos.js"));
 write("ads.txt", read("ads.txt").trim() + "\n");
@@ -641,8 +659,16 @@ publish(
         belowMarker,
         stripUnpublishedLinks(renderHomeBelow({ techniqueCount: techniques.length }), unpublishedSlugs)
       );
-      const homePromo = houseSlot("home", "/", "home-below", "billboard");
-      return homeGame.replace(homeMarker, `<div class="house-home">\n${homePromo}\n</div>`);
+      // A sidebar beside the copy: a 300x250 and a 300x600. Both start below
+      // the game, at least 150px from the board (AdSense game-page guidance).
+      const homePromos = houseSlots("home", "/", [
+        { slot: "home-below", size: "rectangle" },
+        { slot: "home-rail", size: "halfpage" },
+      ]);
+      return homeGame.replace(
+        homeMarker,
+        `<aside class="house-home">\n${homePromos["home-below"] || ""}\n${homePromos["home-rail"] || ""}\n</aside>`
+      );
     })(),
   }),
   "/",
@@ -668,11 +694,7 @@ const notFoundHtml = layout({
       </header>
       <div class="page-body">
         <figure class="teddy-figure">
-          <picture>
-            <source type="image/avif" srcset="/assets/img/teddy/teddy-128.avif 128w, /assets/img/teddy/teddy-256.avif 256w, /assets/img/teddy/teddy-512.avif 512w" sizes="256px">
-            <source type="image/webp" srcset="/assets/img/teddy/teddy-128.webp 128w, /assets/img/teddy/teddy-256.webp 256w, /assets/img/teddy/teddy-512.webp 512w" sizes="256px">
-            <img src="/assets/img/teddy/teddy-256.webp" width="256" height="256" alt="Teddy, an adult black Australian labradoodle drawn in anime style, holding a pencil over a sudoku grid" loading="lazy" decoding="async">
-          </picture>
+          <img src="/assets/img/teddy/teddy.svg" width="256" height="320" alt="Teddy, a black Australian labradoodle with a curly coat, tan brows, a grey beard, a white chest patch, and a red collar" loading="lazy" decoding="async">
         </figure>
         <p>Teddy can't find this page either.</p>
         <p><a href="/">Play Sudoku</a>, or browse the <a href="/articles/">articles</a>.</p>
@@ -1117,6 +1139,7 @@ publish(
       description:
         "Anonymous solve times and outcomes by Sudoku difficulty, from plays on SudokuSudoku. No account and no IP address are stored.",
       url: `${SITE}/stats/`,
+      license: "https://creativecommons.org/licenses/by/4.0/",
       creator: { "@type": "Organization", name: "SudokuSudoku" },
     },
     main: `<main class="standard-page stats-page">
@@ -1262,6 +1285,15 @@ ${
   );
 });
 
+const dailyToday = utcToday();
+for (const iso of listDailyDates(dailyToday)) {
+  sitemap.push({
+    path: `/daily/${iso}/`,
+    sources: ["assets/js/generator.js", "functions/daily-permalink.mjs"],
+    published: iso,
+  });
+}
+
 write(
   "sitemap.xml",
   `<?xml version="1.0" encoding="UTF-8"?>
@@ -1269,7 +1301,8 @@ write(
 ${sitemap
   .map((entry) => {
     const loc = entry.path === "/" ? "/" : entry.path;
-    const day = lastmod(root, entry.sources);
+    const touched = lastmod(root, entry.sources);
+    const day = entry.published && entry.published > touched ? entry.published : touched;
     return `  <url><loc>${SITE}${loc}</loc><lastmod>${day}</lastmod></url>`;
   })
   .join("\n")}
@@ -1315,8 +1348,8 @@ write(
       scope: "/",
       display: "standalone",
       orientation: "portrait",
-      background_color: "#f4f6f8",
-      theme_color: "#f4f6f8",
+      background_color: "#edf0eb",
+      theme_color: "#edf0eb",
       categories: ["games"],
       icons: manifestIcons,
     },
@@ -1332,8 +1365,8 @@ write(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="robots" content="noindex">
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f6f8">
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#121416">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#edf0eb">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111316">
   <title>${escapeHtml(staticMeta("/offline.html").title)}</title>
   <meta name="description" content="${escapeHtml(staticMeta("/offline.html").description)}">
   <meta name="robots" content="noindex">
@@ -1397,14 +1430,18 @@ const shellPaths = [
   "assets/js/solver.js",
   "assets/js/pools.js",
   "assets/js/generator.js",
+  "assets/js/generate-worker.js",
   "assets/js/progress.js",
   "assets/js/practice.js",
   "assets/js/skills.js",
   "assets/js/sudoku.js",
   "assets/js/community.js",
   "assets/js/share.js",
+  "assets/js/daily.js",
   "assets/js/account-merge.js",
   "assets/js/account.js",
+  "assets/js/rare-counter.js",
+  "assets/js/rare-delete.js",
   "assets/js/silent-update.js",
   "assets/js/hint-apply.js",
   "assets/js/house-promos.js",
@@ -1439,6 +1476,10 @@ write(
 
 assertAssetVersions();
 assertSiteMeta({ dist, home: homeCopy, techniques, articles: parsedArticles });
+assertUniqueMeta([
+  ...catalogPages({ home: homeCopy, techniques, articles: parsedArticles }),
+  ...listDailyDates(dailyToday).map((iso) => dailyMeta(iso)),
+]);
 console.log(`Built ${dist}`);
 
 function assertAssetVersions() {

@@ -64,8 +64,17 @@
     return `${name} is the next move. Find it.`;
   }
 
+  // These display names are gerunds. "Find the Pointing." reads as if the
+  // name were a noun, so the short banner names the move. Every other
+  // technique name is already a noun and stays "Find the {Name}."
+  const VERB_NAME = {
+    Pointing: true,
+    Claiming: true,
+    "Simple coloring": true,
+  };
+
   function promptShort(name) {
-    return `Find the ${name}.`;
+    return `Find the ${name}${VERB_NAME[name] ? " move" : ""}.`;
   }
 
   function wantsCandidates(slug) {
@@ -103,6 +112,9 @@
       if (!item || board[item.index]) continue;
       const digit = item.digit;
       if (digit < 1 || digit > 9) continue;
+      // A wrong digit on the board can make the solver drop the real answer.
+      // Never record that as an elimination.
+      if (solution && solution[item.index] === digit) continue;
       let exists = false;
       for (let k = 0; k < removed.length; k += 1) {
         if (removed[k].index === item.index && removed[k].digit === digit) {
@@ -310,6 +322,57 @@
     return `${techniqueLabel(batch.name, batch.cells.length)} · ${batch.cells.length}`;
   }
 
+  // A naked pair is found from the solver's candidates. Applying it also
+  // clears those digits from pencil notes in the rest of the house, even
+  // when the solver does not count those notes as candidates. The chip
+  // counts cells whose placed digit, notes, or solver eliminations changed.
+  function visibleFillTouches(diff) {
+    const beforeBoard = diff.beforeBoard || [];
+    const beforeNotes = diff.beforeNotes || [];
+    const beforeRemoved = diff.beforeRemoved || [];
+    const board = diff.board || [];
+    const notes = diff.notes || [];
+    const removed = diff.removed || [];
+    const slug = diff.slug || "";
+    const name = diff.name || slug;
+    const prior = new Map();
+    beforeRemoved.forEach((item) => {
+      if (!item) return;
+      if (!prior.has(item.index)) prior.set(item.index, new Set());
+      prior.get(item.index).add(item.digit);
+    });
+    const nextRemoved = new Map();
+    removed.forEach((item) => {
+      if (!item) return;
+      if (!nextRemoved.has(item.index)) nextRemoved.set(item.index, new Set());
+      nextRemoved.get(item.index).add(item.digit);
+    });
+    const touches = [];
+    for (let index = 0; index < 81; index += 1) {
+      if ((beforeBoard[index] || 0) !== (board[index] || 0) && board[index]) {
+        touches.push({ slug, name, index, kind: "placed", digits: [board[index]] });
+        continue;
+      }
+      const lost = [];
+      const was = prior.get(index) || new Set();
+      const now = nextRemoved.get(index) || new Set();
+      now.forEach((digit) => {
+        if (!was.has(digit)) lost.push(digit);
+      });
+      if (!diff.auto) {
+        const after = new Set(notes[index] || []);
+        (beforeNotes[index] || []).forEach((digit) => {
+          if (!after.has(digit) && !lost.includes(digit)) lost.push(digit);
+        });
+      }
+      if (lost.length) {
+        lost.sort((a, b) => a - b);
+        touches.push({ slug, name, index, kind: "cleared", digits: lost });
+      }
+    }
+    return touches;
+  }
+
   function cellDetail(cell) {
     const digits = (cell && cell.digits ? cell.digits : []).slice().sort((a, b) => a - b);
     const list = digits.join(", ");
@@ -334,6 +397,7 @@
     highlightOf,
     reviewCopy,
     reviewCopyShort,
+    visibleFillTouches,
     cellDetail,
   };
 })(typeof globalThis !== "undefined" ? globalThis : window);

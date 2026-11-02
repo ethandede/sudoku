@@ -130,6 +130,8 @@ const ARTICLE_TERM = {
   "where-the-solver-stops": "where our solver stops",
   "what-makes-a-sudoku-hard": "makes a sudoku hard",
   "history-of-sudoku": "where sudoku came from",
+  "sudoku-techniques-in-order": "sudoku techniques",
+  "world-sudoku-championship-2026": "world sudoku championship",
   "sudoku-variants": "sudoku variants",
   "why-ai-is-bad-at-sudoku": "bad at sudoku",
   "does-sudoku-keep-your-brain-sharp": "brain sharp",

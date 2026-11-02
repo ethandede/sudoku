@@ -24,7 +24,14 @@ for (const slug of Object.keys(practice.FILL_LABEL)) {
   assert.equal(practice.promptFor(practice.fillLabel(slug)).includes("—"), false);
   assert.equal(practice.promptShort(practice.fillLabel(slug)).includes("—"), false);
 }
+assert.equal(practice.promptShort("Pointing"), "Find the Pointing move.");
+assert.equal(practice.promptShort("Claiming"), "Find the Claiming move.");
+assert.equal(practice.promptShort("Simple coloring"), "Find the Simple coloring move.");
+assert.equal(practice.promptShort("Naked triple"), "Find the Naked triple.");
+assert.equal(practice.promptShort("Naked pair"), "Find the Naked pair.");
+assert.equal(practice.promptShort("X-wing"), "Find the X-wing.");
 
+const linedUp = {};
 function jump(slug) {
   const result = generator.generateForTechnique(slug, { seed: `practice-${slug}` });
   assert.equal(Boolean(result.metadata && result.metadata.trainApproximate), false, `${slug} approximate`);
@@ -43,14 +50,19 @@ function jump(slug) {
   return { result, jumped };
 }
 
-const hidden = jump("hidden-pair");
-const wing = jump("x-wing");
-const skyscraper = jump("skyscraper");
-const kite = jump("two-string-kite");
-const xyz = jump("xyz-wing");
-const wwing = jump("w-wing");
-const rectangle = jump("unique-rectangle");
-const bug = jump("bug-plus-one");
+for (const slug of Object.keys(practice.FILL_LABEL)) linedUp[slug] = jump(slug);
+const hidden = linedUp["hidden-pair"];
+const wing = linedUp["x-wing"];
+const skyscraper = linedUp.skyscraper;
+const kite = linedUp["two-string-kite"];
+const xyz = linedUp["xyz-wing"];
+const wwing = linedUp["w-wing"];
+const rectangle = linedUp["unique-rectangle"];
+const bug = linedUp["bug-plus-one"];
+for (const slug of ["naked-triple", "hidden-triple", "quads", "coloring", "hidden-single", "naked-single"]) {
+  assert.equal(linedUp[slug].result.metadata.trainApproximate, undefined, `${slug} lined up`);
+  assert.equal(linedUp[slug].jumped.ready, true, `${slug} ready`);
+}
 assert.ok(hidden.jumped.applied.length > 0, "hidden pair jumps past easier steps");
 assert.ok(wing.jumped.applied.length > 0, "x-wing jumps past easier steps");
 assert.equal(practice.wantsCandidates("naked-single"), false);
@@ -163,6 +175,38 @@ assert.equal(
   practice.cellDetail({ name: "Pointing", kind: "cleared", digits: [7, 2] }),
   "Pointing cleared 2, 7 here."
 );
+const noteDiff = practice.visibleFillTouches({
+  beforeBoard: [],
+  beforeNotes: [[1, 2, 3, 5]],
+  beforeRemoved: [],
+  board: [],
+  notes: [[1, 5]],
+  removed: [
+    { index: 0, digit: 2 },
+    { index: 0, digit: 3 },
+    { index: 1, digit: 9 },
+  ],
+  slug: "naked-pair",
+  name: "Naked pair",
+  auto: false,
+});
+assert.equal(noteDiff.length, 2, "a solver elimination counts even when that cell had no note");
+assert.equal(noteDiff[0].digits.join(","), "2,3");
+assert.equal(noteDiff[1].digits.join(","), "9");
+assert.equal(practice.reviewCopy(practice.batchesOf(noteDiff), ""), "Naked pairs: 2 cells changed");
+const pairPuzzle = generator.generateForTechnique("naked-pair", { seed: "practice-naked-pair" });
+const pairBoard = pairPuzzle.puzzle.slice();
+const pairRemoved = [];
+practice.fastForward(pairBoard, pairRemoved, "naked-pair", solver.explain, pairPuzzle.solution);
+const pairStep = solver.explain(pairBoard, pairRemoved);
+assert.equal(pairStep.slug, "naked-pair");
+const pairCells = new Set(pairStep.pattern);
+const pairDigits = new Set();
+pairStep.candidates.forEach((item) => {
+  if (!pairCells.has(item.index)) return;
+  item.digits.forEach((digit) => pairDigits.add(digit));
+});
+assert.equal(pairDigits.size, 2, "a naked pair is the solver's two candidates, not pencil notes");
 const merged = practice.batchesOf([
   { slug: "pointing", name: "Pointing", index: 3, kind: "cleared", digits: [7] },
   { slug: "pointing", name: "Pointing", index: 3, kind: "cleared", digits: [8] },
@@ -198,8 +242,31 @@ assert.match(prepareFn, /showFillReview\(jumped\.touches, name\)/);
 const undoFn = game.slice(game.indexOf("function undo("), game.indexOf("function pushUndo"));
 assert.match(undoFn, /snap\.puzzle/);
 assert.match(undoFn, /clearFillReview\(\)/);
+assert.equal(undoFn.includes("snap.elapsed"), false, "undo does not rewind the timer");
+assert.equal(undoFn.includes("state.elapsed"), false, "undo leaves the clock alone");
 const pushFn = game.slice(game.indexOf("function pushUndo"), game.indexOf("function communitySnapshot"));
 assert.match(pushFn, /puzzle: state\.puzzle\.slice\(\)/);
+assert.equal(pushFn.includes("elapsed"), false, "undo snapshots omit the timer");
+const placeFn = game.slice(game.indexOf("function place("), game.indexOf("function toggleNote"));
+assert.match(placeFn, /replacingWrong/);
+assert.match(
+  placeFn,
+  /number !== state\.solution\[index\] \|\| replacingWrong\) state\.removed = \[\]/,
+  "fixing a wrong digit drops eliminations that depended on it"
+);
+const eraseFn = game.slice(game.indexOf("function erase("), game.indexOf("function runAction"));
+assert.match(
+  eraseFn,
+  /state\.board\[index\] !== 0 && state\.board\[index\] !== state\.solution\[index\]\) state\.removed = \[\]/,
+  "erase clears eliminations only for a wrong digit"
+);
+assert.equal(eraseFn.includes("pushUndo();\n    state.removed = [];"), false);
+const appliedGuard = fillFn.indexOf("if (!result.applied.length)");
+const filledFlag = fillFn.indexOf("state.fastForwarded = true");
+assert.ok(appliedGuard > 0 && filledFlag > appliedGuard, "a no-op fill does not flag the game as filled");
+assert.match(fillFn, /state\.undo\.pop\(\)/, "a no-op fill drops the empty undo entry");
+assert.match(fillFn, /firstWrong\(\) >= 0/, "fill refuses while a digit is wrong");
+assert.match(fillFn, /A digit on the board is wrong\. Fix it before using Fill\./);
 
 const html = fs.readFileSync(path.join(root, "src/game.html"), "utf8");
 assert.match(html, /id="more-fill"/);
@@ -214,15 +281,28 @@ assert.match(chrome, /id="fill-done"/);
 assert.equal(html.slice(html.indexOf('class="play-surface"'), html.indexOf('class="controls"')).includes('id="fill-chip"'), false);
 
 const scss = fs.readFileSync(path.join(root, "assets/scss/pages/_sudoku.scss"), "utf8");
-assert.match(scss, /--fill-placed:\s*#8fbee0/);
-assert.match(scss, /--fill-cleared:\s*#d7ebf8/);
-assert.match(scss, /--fill-ring:\s*#0c4f86/);
-assert.match(scss, /--fill-placed:\s*#3f6d90/);
-assert.match(scss, /--fill-cleared:\s*#2c4d66/);
-assert.match(scss, /--fill-ring:\s*#9ed2f8/);
+assert.match(scss, /--fill-placed:\s*#a3b5ec/);
+assert.match(scss, /--fill-cleared:\s*#dee5fa/);
+assert.match(scss, /--fill-ring:\s*#\{vars\.\$accent-color\}/);
+assert.match(scss, /--fill-placed:\s*#3d4f8f/);
+assert.match(scss, /--fill-cleared:\s*#2c3a63/);
+assert.match(scss, /--fill-ring:\s*#\{vars\.\$accent-on-dark\}/);
+assert.match(scss, /\.practice-prompt\.is-miss/);
+assert.match(scss, /\.game-intro:has\(\.practice-prompt\.is-miss:not\(\[hidden\]\)\)/);
+assert.match(game, /state\.practice && !state\.practiceMiss/);
+assert.match(game, /el\.classList\.add\("is-miss"\)/);
+assert.match(game, /pairText\(el, full, full\)/);
 assert.match(scss, /animation-delay:\s*var\(--fill-delay/);
-assert.match(scss, /transition:\s*background-color 300ms ease/);
-assert.match(scss, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.cell\.fill-placed/);
+assert.match(
+  scss,
+  /@media \(prefers-reduced-motion: no-preference\)[\s\S]*transition:\s*background-color 300ms ease, box-shadow 300ms ease/
+);
+const fadeRule = scss.slice(scss.indexOf("&.fill-placed.fill-fading,"), scss.indexOf("prefers-reduced-motion: no-preference"));
+assert.equal(fadeRule.includes("transition"), false, "fill fade has no transition until motion is allowed");
+assert.match(
+  scss,
+  /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.cell\.fill-placed\.fill-fading[\s\S]*transition:\s*none/
+);
 assert.match(scss, /\.fill-chip[\s\S]*position:\s*absolute/);
 assert.match(scss, /\.selected\.fill-placed[\s\S]*background:\s*var\(--selected\)/);
 
@@ -523,8 +603,24 @@ async function runFillReviewUi(fillUrl) {
         const prompt = document.querySelector("#practice-prompt");
         const label = document.querySelector("#puzzle-label");
         const chipText = document.querySelector("#fill-chip-text");
+        const status = document.querySelector(".status-bar");
         const intro = box(".game-intro");
         const promptBox = prompt.getBoundingClientRect();
+        const chipBox = chip && !chip.hidden ? chip.getBoundingClientRect() : null;
+        const labelBox = label.getBoundingClientRect();
+        const statusBox = status.getBoundingClientRect();
+        let shadowY = 0;
+        const shadow = getComputedStyle(label).boxShadow;
+        if (shadow && shadow !== "none") {
+          for (const part of shadow.split(/,(?![^(]*\))/)) {
+            if (part.includes("inset")) continue;
+            const nums = [...part.matchAll(/(-?[\d.]+)px/g)].map((match) => Number(match[1]));
+            if (nums.length >= 2) shadowY = Math.max(shadowY, nums[1] + (nums[2] || 0) + (nums[3] || 0));
+          }
+        }
+        const clip = getComputedStyle(status).overflowY;
+        const paintedBottom =
+          clip === "hidden" || clip === "clip" ? Math.min(labelBox.bottom + shadowY, statusBox.bottom) : labelBox.bottom + shadowY;
         return {
           board: box(".sudoku-grid").top,
           pad: box("#number-pad").top,
@@ -536,6 +632,7 @@ async function runFillReviewUi(fillUrl) {
           label: label.innerText.replace(/\s+/g, " ").trim(),
           prompt: !prompt.hidden ? prompt.innerText.replace(/\s+/g, " ").trim() : "",
           chip: chip && !chip.hidden ? chipText.innerText.replace(/\s+/g, " ").trim() : "",
+          labelPeeks: Boolean(chipBox) && paintedBottom > chipBox.bottom + 0.5,
         };
       });
     }
@@ -567,6 +664,7 @@ async function runFillReviewUi(fillUrl) {
         checkAssert(!practiceBox.promptOutsideIntro, `${name} prompt leaves the title row`);
         checkAssert(practiceBox.chip.length > 0, `${name} chip is missing`);
         checkAssert(!practiceBox.chipOverflow, `${name} chip overflows: ${practiceBox.chip}`);
+        checkAssert(!practiceBox.labelPeeks, `${name} level button peeks below the practice bar`);
         if (narrow) {
           checkAssert(practiceBox.label === "Naked pair", `${name} label is ${practiceBox.label}`);
           checkAssert(practiceBox.prompt === "Find the Naked pair.", `${name} prompt is ${practiceBox.prompt}`);
@@ -579,7 +677,7 @@ async function runFillReviewUi(fillUrl) {
         if (width === 360 && theme === "light") {
           await practice.page.evaluate(() => {
             document.querySelector("#puzzle-label .copy-short").textContent = "Simple coloring";
-            document.querySelector("#practice-prompt .copy-short").textContent = "Find the Simple coloring.";
+            document.querySelector("#practice-prompt .copy-short").textContent = "Find the Simple coloring move.";
             document.querySelector("#fill-chip-text .copy-short").textContent = "23 to Simple coloring";
           });
           const long = await metrics(practice.page);
@@ -601,6 +699,88 @@ async function runFillReviewUi(fillUrl) {
         await practice.context.close();
       }
     }
+  });
+
+  await check("a rare practice link lines up on a phone", async () => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    await context.addInitScript(() => localStorage.clear());
+    const page = await context.newPage();
+    await page.goto(`${origin}/?practice=naked-triple`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(
+      () => {
+        const prompt = document.getElementById("practice-prompt");
+        const cover = document.getElementById("board-cover");
+        return prompt && !prompt.hidden && cover && cover.hidden;
+      },
+      null,
+      { timeout: 45000 }
+    );
+    const prompt = (await page.locator("#practice-prompt").innerText()).replace(/\s+/g, " ").trim();
+    const label = (await page.locator("#puzzle-label").innerText()).replace(/\s+/g, " ").trim();
+    checkAssert(prompt === "Find the Naked triple.", prompt);
+    checkAssert(label === "Naked triple", label);
+    checkAssert(((await page.locator("#practice-prompt").getAttribute("class")) || "").includes("is-miss") === false, "a lined-up practice is not a miss");
+    await page.click("#hint-btn");
+    await page.waitForFunction(() => document.getElementById("hint-kicker").textContent === "Naked triple");
+    await context.close();
+  });
+
+  await check("a practice miss explains itself on a phone and leaves the level name", async () => {
+    const note = "No puzzle lined up on Quads. This one stays off your records.";
+    const save = {
+      version: 1,
+      updatedAt: Date.now(),
+      kind: "expert",
+      dailyDate: null,
+      puzzle: Array(81).fill(0),
+      solution: Array(81).fill(1),
+      board: Array(81).fill(0),
+      notes: Array.from({ length: 81 }, () => []),
+      removed: [],
+      mistakes: 0,
+      slashed: [],
+      undo: [],
+      selected: 0,
+      mode: "normal",
+      elapsed: 12,
+      auto: false,
+      counted: true,
+      scored: false,
+      metadata: { trainApproximate: true, trainTarget: "quads", path: [] },
+      hintSlugs: [],
+      train: null,
+      practice: "quads",
+      practiceNote: note,
+      practiceMiss: true,
+      practiceFilled: false,
+      fastForwarded: false,
+      puzzleId: "practice-miss",
+      anonPlayId: null,
+      notesUsed: false,
+      over: false,
+    };
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    await context.addInitScript((payload) => {
+      localStorage.clear();
+      const raw = JSON.stringify(payload);
+      localStorage.setItem("sudoku-progress", raw);
+      localStorage.setItem("sudoku-progress:practice:quads", raw);
+      localStorage.setItem("sudoku-progress-at", String(payload.updatedAt));
+    }, save);
+    const page = await context.newPage();
+    await page.goto(`${origin}/?practice=quads`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#resume-note:not([hidden])", { timeout: 15000 });
+    await page.waitForFunction(() => {
+      const prompt = document.getElementById("practice-prompt");
+      return prompt && !prompt.hidden && prompt.classList.contains("is-miss");
+    });
+    const prompt = (await page.locator("#practice-prompt").innerText()).replace(/\s+/g, " ").trim();
+    const label = (await page.locator("#puzzle-label").innerText()).replace(/\s+/g, " ").trim();
+    checkAssert(prompt === note, prompt);
+    checkAssert(label === "Expert", label);
+    const wrap = await page.locator("#practice-prompt").evaluate((el) => getComputedStyle(el).whiteSpace);
+    checkAssert(wrap === "normal", `miss prompt white-space is ${wrap}`);
+    await context.close();
   });
 
   await check("an unknown practice slug explains itself and links to a normal game", async () => {
