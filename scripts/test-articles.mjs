@@ -17,6 +17,7 @@ import {
 } from "./articles.mjs";
 
 const schedule = {
+  "how-to-solve-a-hard-sudoku": "2026-10-24",
   "what-makes-a-sudoku-hard": "2026-10-28",
   "history-of-sudoku": "2026-10-28",
   "sudoku-techniques-in-order": "2026-10-29",
@@ -46,26 +47,36 @@ function live(today) {
 }
 
 assert.deepEqual(live("2026-10-21"), []);
-assert.deepEqual(live("2026-10-27"), []);
-assert.deepEqual(live("2026-10-28"), ["what-makes-a-sudoku-hard", "history-of-sudoku"]);
+assert.deepEqual(live("2026-10-23"), []);
+assert.deepEqual(live("2026-10-24"), ["how-to-solve-a-hard-sudoku"]);
+assert.deepEqual(live("2026-10-27"), ["how-to-solve-a-hard-sudoku"]);
+assert.deepEqual(live("2026-10-28"), [
+  "how-to-solve-a-hard-sudoku",
+  "what-makes-a-sudoku-hard",
+  "history-of-sudoku",
+]);
 assert.deepEqual(live("2026-10-30"), [
+  "how-to-solve-a-hard-sudoku",
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
   "sudoku-techniques-in-order",
 ]);
 assert.deepEqual(live("2026-10-31"), [
+  "how-to-solve-a-hard-sudoku",
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
   "sudoku-techniques-in-order",
   "world-sudoku-championship-2026",
 ]);
 assert.deepEqual(live("2026-11-03"), [
+  "how-to-solve-a-hard-sudoku",
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
   "sudoku-techniques-in-order",
   "world-sudoku-championship-2026",
 ]);
 assert.deepEqual(live("2026-11-04"), [
+  "how-to-solve-a-hard-sudoku",
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
   "sudoku-techniques-in-order",
@@ -74,6 +85,7 @@ assert.deepEqual(live("2026-11-04"), [
   "why-ai-is-bad-at-sudoku",
 ]);
 const beforeFewest = [
+  "how-to-solve-a-hard-sudoku",
   "what-makes-a-sudoku-hard",
   "history-of-sudoku",
   "sudoku-techniques-in-order",
@@ -91,6 +103,33 @@ assert.equal(formatPublishDate("2026-10-28"), "October 28, 2026");
 assert.equal(formatPublishDate("2026-10-31"), "October 31, 2026");
 assert.equal(formatPublishDate("2026-11-04"), "November 4, 2026");
 assert.equal(formatPublishDate("2026-11-18"), "November 18, 2026");
+assert.equal(formatPublishDate("2026-10-24"), "October 24, 2026");
+
+const hardSolve = prepareArticle(readArticle("how-to-solve-a-hard-sudoku"));
+assert.equal(hardSolve.content.includes("—"), false);
+assert.equal(hardSolve.content.includes("–"), false);
+assert.equal(hardSolve.content.includes("```"), false);
+assert.equal(hardSolve.content.includes("By Ethan"), false);
+assert.equal((hardSolve.content.match(/class="puzzle-grid"/g) || []).length, 3);
+assert.equal((hardSolve.content.match(/class="puzzle-cell/g) || []).length, 3 * 81);
+assert.match(hardSolve.content, /`\.4\.\.\.9\.\.17\.\.\.2\.\.\.\.\.\.8/);
+const hardSolveHtml = marked.parse(hardSolve.content);
+assert.equal(hardSolveHtml.includes("—"), false);
+assert.equal(hardSolveHtml.includes("–"), false);
+assert.equal(hardSolveHtml.includes('href="/techniques/hidden-single/"'), true);
+assert.equal(hardSolveHtml.includes('href="/techniques/pointing/"'), true);
+assert.equal(hardSolveHtml.includes('href="/techniques/claiming/"'), true);
+assert.equal(hardSolveHtml.includes('href="/techniques/naked-pair/"'), true);
+assert.equal(hardSolveHtml.includes('href="/?practice=hidden-single"'), true);
+assert.equal(hardSolveHtml.includes('href="/?practice=pointing"'), true);
+assert.equal(hardSolveHtml.includes('href="/?practice=naked-pair"'), true);
+assert.equal(hardSolveHtml.includes('href="/?difficulty=hard"'), true);
+assert.deepEqual(hardSolve.relatedSlugs, [
+  "what-to-do-when-stuck",
+  "how-to-use-sudoku-notes",
+  "what-makes-a-sudoku-hard",
+  "nyt-medium-vs-hard",
+]);
 
 assert.equal(losAngelesToday(new Date("2026-10-22T06:30:00Z"), ""), "2026-10-21");
 assert.equal(losAngelesToday(new Date("2026-10-22T07:00:00Z"), ""), "2026-10-22");
@@ -324,6 +363,8 @@ assert.match(teddyIcon, /role="img"/);
 assert.match(build, /SudokuSudoku\. All rights reserved\./);
 assert.equal(build.includes("Sudoku Online"), false);
 assert.match(build, /articles\/fewest-and-most-sudoku-clues\.md/);
+assert.match(build, /articles\/how-to-solve-a-hard-sudoku\.md/);
+assert.match(build, /FORTHCOMING_ARTICLES/);
 
 const techniqueSlugs = new Set(techniques.map((technique) => technique.slug));
 const articleSlugs = new Set([
@@ -366,6 +407,13 @@ function redirectsFrom(text) {
 
 const redirectMap = redirectsFrom(redirects);
 
+const FORTHCOMING = new Set([
+  "how-to-solve-a-hard-sudoku",
+  "what-to-do-when-stuck",
+  "how-to-use-sudoku-notes",
+  "sudoku-on-your-phone",
+]);
+
 function routeExists(path, search) {
   if (path === "/" && search.has("daily") && search.size === 1) return true;
   if (path === "/" && search.has("difficulty") && search.size === 1) {
@@ -379,7 +427,7 @@ function routeExists(path, search) {
   const technique = path.match(/^\/techniques\/([a-z0-9-]+)\/$/);
   if (technique) return techniqueSlugs.has(technique[1]);
   const article = path.match(/^\/articles\/([a-z0-9-]+)\/$/);
-  if (article) return articleSlugs.has(article[1]);
+  if (article) return articleSlugs.has(article[1]) || FORTHCOMING.has(article[1]);
   return false;
 }
 
