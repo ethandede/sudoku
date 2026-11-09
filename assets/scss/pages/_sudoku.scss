@@ -2333,6 +2333,7 @@ button:disabled {
   // toolbar adds no bottom margin of its own.
   .play-chrome {
     margin-bottom: 0;
+    flex-wrap: wrap;
   }
 
   // One toolbar row on a phone: the icons and pause drop to 40px and 36px
@@ -2361,12 +2362,10 @@ button:disabled {
 
   .puzzle-label {
     font-size: 1rem;
-    // 14px mark and a 4px gap. The padding gives that width back so the
-    // timer, pause, and errors stay on their old marks.
-    padding: 0 calc(1.45rem - 13px) 0 calc(0.6rem - 5px);
+    padding: 0 1.45rem 0 0.6rem;
 
     &::after {
-      right: 3px;
+      right: 0.6rem;
       width: 0.34rem;
       height: 0.34rem;
     }
@@ -2402,23 +2401,39 @@ button:disabled {
     padding-right: calc(84px + max(6px, env(safe-area-inset-right)));
   }
 
+  // Own row under the toolbar. The desktop note stays absolute.
   .resume-note {
-    right: calc(80px + max(6px, env(safe-area-inset-right)));
-    padding-right: 0.15rem;
+    position: static;
+    order: 3;
+    flex: 1 0 100%;
+    height: auto;
+    right: auto;
+    z-index: auto;
+    margin-top: 2px;
+    padding: 0 0.15rem 0 0.45rem;
+    border-bottom: 0;
+    border-radius: 8px;
+
+    .text-btn {
+      min-width: 28px;
+      min-height: 28px;
+      height: 28px;
+      padding: 0 0.35rem;
+      font-size: 0.75rem;
+    }
   }
 
   .resume-note-text {
-    white-space: normal;
-    font-size: 0.72rem;
-    line-height: 1.1;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    line-height: 1.2;
   }
 
   .fill-chip-text {
     font-size: 0.72rem;
   }
 
-  .play-chrome:has(#fill-chip:not([hidden])) .icon-row,
-  .play-chrome:has(#resume-note:not([hidden])) .icon-row {
+  .play-chrome:has(#fill-chip:not([hidden])) .icon-row {
     background: var(--page);
   }
 
@@ -2506,12 +2521,6 @@ button:disabled {
       width: 12px;
       height: 12px;
     }
-  }
-
-  // The mark is 2px smaller than the phone rule above, so the button
-  // keeps those 2px and the row stays put.
-  .puzzle-label {
-    padding-right: calc(1.45rem - 11px);
   }
 
   .puzzle-label:has(.copy-short) {
