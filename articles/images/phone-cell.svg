@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="300" viewBox="0 0 420 300" role="img" aria-label="One selected cell on a phone, with candidate notes 1 and 8 in the standard 3 by 3 spots. The other digits are faint.">
+<rect width="420" height="300" fill="#f7f4ef"/>
+<rect x="24" y="56" width="132" height="132" fill="#fffdf8" stroke="#1f4d63" stroke-width="3"/>
+<text x="90" y="42" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="700" fill="#1f4d63">Candidate mode</text>
+<text x="46" y="86" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1f4d63">1</text>
+<text x="90" y="86" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">2</text>
+<text x="134" y="86" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">3</text>
+<text x="46" y="130" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">4</text>
+<text x="90" y="130" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">5</text>
+<text x="134" y="130" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">6</text>
+<text x="46" y="174" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">7</text>
+<text x="90" y="174" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1f4d63">8</text>
+<text x="134" y="174" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">9</text>
+<text x="24" y="224" font-family="sans-serif" font-size="16" fill="#1f4d63">1 sits top-left. 8 sits bottom-middle.</text>
+<text x="24" y="248" font-family="sans-serif" font-size="16" fill="#1f4d63">On a phone these marks are about 11 pixels.</text>
+</svg>

@@ -123,6 +123,12 @@ const ARTICLE_DESCRIPTION = {
     "Why being stuck on a Sudoku is good for you. Learning science says those stuck moments are where you actually improve, and that shaped the hints and the skill ladder.",
   "fewest-and-most-sudoku-clues":
     "The fewest and most clues a Sudoku can have: 17 is the proven minimum for one answer, 77 clues can still leave two answers, and 40 is the record for a puzzle with no spare clue.",
+  "what-to-do-when-stuck":
+    "What to do when you're stuck on a Sudoku: no singles left, check for a wrong digit, then the pointing, then the pair that fills a cell.",
+  "how-to-use-sudoku-notes":
+    "How to use Sudoku notes: the digits a cell can still be. A real naked pair shows what to write, what a placement clears, and what this site leaves alone.",
+  "sudoku-on-your-phone":
+    "Sudoku on your phone: there is no app-store app. How SudokuSudoku's board, notes, daily, and offline play work on a phone.",
 };
 
 const ARTICLE_TERM = {
@@ -139,6 +145,10 @@ const ARTICLE_TERM = {
   "does-sudoku-keep-your-brain-sharp": "brain sharp",
   "why-being-stuck-is-good-for-you": "stuck on a sudoku",
   "fewest-and-most-sudoku-clues": "fewest and most clues",
+  "what-to-do-when-stuck": "stuck on a sudoku",
+  "how-to-use-sudoku-notes": "sudoku notes",
+  "sudoku-on-your-phone": "sudoku on your phone",
+  "where-the-solver-stops": "where our solver stops",
 };
 
 export function withBrand(title) {
