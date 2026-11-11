@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="280" viewBox="0 0 520 280" role="img" aria-label="Three cells in row 7. Columns 2 and 8 show only notes 1 and 8. Column 1 shows 1, 4, and 8, so removing 1 and 8 leaves 4.">
+<rect width="520" height="280" fill="#f7f4ef"/>
+<rect x="24" y="56" width="132" height="132" fill="#fffdf8" stroke="#1f4d63" stroke-width="3"/>
+<text x="90" y="42" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="700" fill="#1f4d63">Row 7, col 1</text>
+<text x="46" y="86" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1f4d63">1</text>
+<text x="90" y="86" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">2</text>
+<text x="134" y="86" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">3</text>
+<text x="46" y="130" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1f4d63">4</text>
+<text x="90" y="130" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">5</text>
+<text x="134" y="130" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">6</text>
+<text x="46" y="174" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">7</text>
+<text x="90" y="174" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1f4d63">8</text>
+<text x="134" y="174" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">9</text>
+<rect x="184" y="56" width="132" height="132" fill="#fffdf8" stroke="#1f4d63" stroke-width="3"/>
+<text x="250" y="42" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="700" fill="#1f4d63">Row 7, col 2</text>
+<text x="206" y="86" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1f4d63">1</text>
+<text x="250" y="86" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">2</text>
+<text x="294" y="86" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">3</text>
+<text x="206" y="130" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">4</text>
+<text x="250" y="130" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">5</text>
+<text x="294" y="130" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">6</text>
+<text x="206" y="174" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">7</text>
+<text x="250" y="174" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1f4d63">8</text>
+<text x="294" y="174" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">9</text>
+<rect x="344" y="56" width="132" height="132" fill="#fffdf8" stroke="#1f4d63" stroke-width="3"/>
+<text x="410" y="42" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="700" fill="#1f4d63">Row 7, col 8</text>
+<text x="366" y="86" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1f4d63">1</text>
+<text x="410" y="86" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">2</text>
+<text x="454" y="86" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">3</text>
+<text x="366" y="130" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">4</text>
+<text x="410" y="130" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">5</text>
+<text x="454" y="130" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">6</text>
+<text x="366" y="174" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">7</text>
+<text x="410" y="174" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1f4d63">8</text>
+<text x="454" y="174" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="500" fill="#d3cabb">9</text>
+<text x="24" y="224" font-family="sans-serif" font-size="16" fill="#1f4d63">Columns 2 and 8 hold only 1 and 8.</text>
+<text x="24" y="248" font-family="sans-serif" font-size="16" fill="#1f4d63">Column 1 is left with 4.</text>
+</svg>

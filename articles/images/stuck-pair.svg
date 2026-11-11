@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="342" viewBox="0 0 700 342" role="img" aria-label="Same stuck position. Row 5 columns 2 and 9 can only be 2 or 3, so row 5 column 8 loses 2 and 3 and becomes 7.">
+<rect width="700" height="342" fill="#f7f4ef"/>
+<rect x="18" y="18" width="306" height="306" fill="#fffdf8"/>
+<rect x="53" y="155" width="32" height="32" fill="#d9ebe4"/>
+<rect x="291" y="155" width="32" height="32" fill="#d9ebe4"/>
+<rect x="257" y="155" width="32" height="32" fill="#f8e2c8"/>
+<path d="M52 18 V324 M18 52 H324 M86 18 V324 M18 86 H324 M154 18 V324 M18 154 H324 M188 18 V324 M18 188 H324 M256 18 V324 M18 256 H324 M290 18 V324 M18 290 H324" stroke="#d3cabb" stroke-width="1"/>
+<path d="M18 18 V324 M18 18 H324 M120 18 V324 M18 120 H324 M222 18 V324 M18 222 H324 M324 18 V324 M18 324 H324" stroke="#1f4d63" stroke-width="2.5" fill="none"/>
+<text x="35" y="41" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">2</text>
+<text x="69" y="41" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">7</text>
+<text x="103" y="41" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">3</text>
+<text x="137" y="41" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">1</text>
+<text x="171" y="41" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">8</text>
+<text x="205" y="41" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">5</text>
+<text x="239" y="41" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">9</text>
+<text x="273" y="41" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">4</text>
+<text x="307" y="41" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">6</text>
+<text x="69" y="75" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">4</text>
+<text x="137" y="75" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">2</text>
+<text x="307" y="75" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">7</text>
+<text x="35" y="109" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">6</text>
+<text x="35" y="143" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">4</text>
+<text x="239" y="143" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">6</text>
+<text x="307" y="143" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">1</text>
+<text x="35" y="177" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">8</text>
+<text x="103" y="177" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">9</text>
+<text x="171" y="177" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">1</text>
+<text x="239" y="177" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">5</text>
+<text x="103" y="211" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">6</text>
+<text x="171" y="211" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">5</text>
+<text x="239" y="211" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">4</text>
+<text x="103" y="245" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">4</text>
+<text x="137" y="245" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">5</text>
+<text x="171" y="245" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">2</text>
+<text x="205" y="245" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">8</text>
+<text x="273" y="245" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">6</text>
+<text x="307" y="245" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">9</text>
+<text x="205" y="279" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">3</text>
+<text x="35" y="313" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">5</text>
+<text x="69" y="313" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">6</text>
+<text x="137" y="313" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">7</text>
+<text x="171" y="313" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">9</text>
+<text x="205" y="313" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">1</text>
+<text x="239" y="313" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">3</text>
+<text x="307" y="313" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f4d63">4</text>
+<text x="69" y="175" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#1f4d63">23</text>
+<text x="307" y="175" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#1f4d63">23</text>
+<text x="273" y="175" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#1f4d63">237</text>
+<text x="352" y="48" font-family="sans-serif" fill="#1f4d63" font-weight="700" font-size="18">Then the pair</text>
+<text x="352" y="74" font-family="sans-serif" fill="#1f4d63" font-size="15">Green: 2 or 3 only.</text>
+<text x="352" y="100" font-family="sans-serif" fill="#1f4d63" font-size="15">Row 5 column 8 was 2, 3, or 7.</text>
+<text x="352" y="126" font-family="sans-serif" fill="#1f4d63" font-size="15">2 and 3 leave.</text>
+<text x="352" y="152" font-family="sans-serif" fill="#1f4d63" font-size="15">That cell is 7.</text>
+</svg>

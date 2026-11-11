@@ -51,6 +51,10 @@ const articles = [
   { file: "articles/does-sudoku-keep-your-brain-sharp.md", slug: "does-sudoku-keep-your-brain-sharp" },
   { file: "articles/why-being-stuck-is-good-for-you.md", slug: "why-being-stuck-is-good-for-you" },
   { file: "articles/fewest-and-most-sudoku-clues.md", slug: "fewest-and-most-sudoku-clues" },
+  { file: "articles/what-to-do-when-stuck.md", slug: "what-to-do-when-stuck" },
+  { file: "articles/how-to-use-sudoku-notes.md", slug: "how-to-use-sudoku-notes" },
+  { file: "articles/sudoku-on-your-phone.md", slug: "sudoku-on-your-phone" },
+  { file: "articles/where-the-solver-stops.md", slug: "where-the-solver-stops" },
 ];
 
 function read(relativePath) {

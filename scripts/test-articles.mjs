@@ -27,6 +27,10 @@ const schedule = {
   "does-sudoku-keep-your-brain-sharp": "2026-11-11",
   "why-being-stuck-is-good-for-you": "2026-11-11",
   "fewest-and-most-sudoku-clues": "2026-11-18",
+  "what-to-do-when-stuck": "2026-11-25",
+  "how-to-use-sudoku-notes": "2026-12-02",
+  "sudoku-on-your-phone": "2026-12-09",
+  "where-the-solver-stops": "2026-12-16",
 };
 
 function readArticle(slug) {
@@ -97,13 +101,29 @@ const beforeFewest = [
 ];
 assert.deepEqual(live("2026-11-11"), beforeFewest);
 assert.deepEqual(live("2026-11-17"), beforeFewest);
-assert.deepEqual(live("2026-11-18"), Object.keys(schedule));
+const throughFewest = [...beforeFewest, "fewest-and-most-sudoku-clues"];
+assert.deepEqual(live("2026-11-18"), throughFewest);
+assert.deepEqual(live("2026-11-24"), throughFewest);
+const throughStuck = [...throughFewest, "what-to-do-when-stuck"];
+assert.deepEqual(live("2026-11-25"), throughStuck);
+assert.deepEqual(live("2026-12-01"), throughStuck);
+const throughNotes = [...throughStuck, "how-to-use-sudoku-notes"];
+assert.deepEqual(live("2026-12-02"), throughNotes);
+assert.deepEqual(live("2026-12-08"), throughNotes);
+const throughPhone = [...throughNotes, "sudoku-on-your-phone"];
+assert.deepEqual(live("2026-12-09"), throughPhone);
+assert.deepEqual(live("2026-12-15"), throughPhone);
+assert.deepEqual(live("2026-12-16"), Object.keys(schedule));
 assert.equal(isPublished("", "2026-10-21"), true);
 assert.equal(formatPublishDate("2026-10-28"), "October 28, 2026");
 assert.equal(formatPublishDate("2026-10-31"), "October 31, 2026");
 assert.equal(formatPublishDate("2026-11-04"), "November 4, 2026");
 assert.equal(formatPublishDate("2026-11-18"), "November 18, 2026");
 assert.equal(formatPublishDate("2026-10-24"), "October 24, 2026");
+assert.equal(formatPublishDate("2026-11-25"), "November 25, 2026");
+assert.equal(formatPublishDate("2026-12-02"), "December 2, 2026");
+assert.equal(formatPublishDate("2026-12-09"), "December 9, 2026");
+assert.equal(formatPublishDate("2026-12-16"), "December 16, 2026");
 
 const hardSolve = prepareArticle(readArticle("how-to-solve-a-hard-sudoku"));
 assert.equal(hardSolve.content.includes("—"), false);
@@ -215,6 +235,74 @@ assert.equal(cluesHtml.includes('href="/techniques/xy-chain/"'), true);
 assert.equal(cluesHtml.includes('href="/techniques/naked-single/"'), true);
 assert.equal(cluesHtml.includes('href="/?difficulty=quick"'), true);
 assert.equal(cluesHtml.includes('href="/?difficulty=mental"'), true);
+
+const stuck = prepareArticle(readArticle("what-to-do-when-stuck"));
+assert.equal(stuck.content.includes("—"), false);
+assert.equal(stuck.content.includes("–"), false);
+assert.equal(stuck.content.includes("```"), false);
+assert.equal(stuck.content.includes("By Ethan"), false);
+assert.equal((stuck.content.match(/class="puzzle-grid"/g) || []).length, 1);
+assert.equal((stuck.content.match(/class="puzzle-cell/g) || []).length, 81);
+assert.match(stuck.content, /`273185946\.4\.2\.\.\.\.76/);
+const stuckHtml = marked.parse(stuck.content);
+assert.equal(stuckHtml.includes("—"), false);
+assert.equal(stuckHtml.includes("–"), false);
+assert.equal(stuckHtml.includes('href="/techniques/pointing/"'), true);
+assert.equal(stuckHtml.includes('href="/techniques/naked-pair/"'), true);
+assert.equal(stuckHtml.includes('href="/techniques/hidden-single/"'), true);
+assert.equal(stuckHtml.includes('href="/?practice=pointing"'), true);
+assert.equal(stuckHtml.includes('href="/?practice=naked-pair"'), true);
+assert.equal(stuckHtml.includes('href="/?difficulty=hard"'), true);
+assert.deepEqual(stuck.relatedSlugs, [
+  "how-to-solve-a-hard-sudoku",
+  "how-to-use-sudoku-notes",
+  "why-being-stuck-is-good-for-you",
+]);
+
+const notesArticle = prepareArticle(readArticle("how-to-use-sudoku-notes"));
+assert.equal(notesArticle.content.includes("—"), false);
+assert.equal(notesArticle.content.includes("–"), false);
+assert.equal(notesArticle.content.includes("```"), false);
+assert.equal(notesArticle.content.includes("By Ethan"), false);
+assert.equal(notesArticle.content.includes("up to about 16"), true);
+assert.equal((notesArticle.content.match(/class="puzzle-grid"/g) || []).length, 1);
+assert.equal((notesArticle.content.match(/class="puzzle-cell/g) || []).length, 81);
+assert.match(notesArticle.content, /`642\.395\.17\.3\.2\.9/);
+const notesHtml = marked.parse(notesArticle.content);
+assert.equal(notesHtml.includes("—"), false);
+assert.equal(notesHtml.includes("–"), false);
+assert.equal(notesHtml.includes('href="/techniques/naked-pair/"'), true);
+assert.equal(notesHtml.includes('href="/techniques/naked-single/"'), true);
+assert.equal(notesHtml.includes('href="/techniques/hidden-single/"'), true);
+assert.equal(notesHtml.includes('href="/?practice=naked-pair"'), true);
+assert.deepEqual(notesArticle.relatedSlugs, [
+  "how-to-solve-a-hard-sudoku",
+  "what-to-do-when-stuck",
+  "sudoku-on-your-phone",
+]);
+
+const phone = prepareArticle(readArticle("sudoku-on-your-phone"));
+assert.equal(phone.content.includes("—"), false);
+assert.equal(phone.content.includes("–"), false);
+assert.equal(phone.content.includes("```"), false);
+assert.equal(phone.content.includes("By Ethan"), false);
+assert.equal(phone.content.includes("Resume or start new"), false);
+assert.equal(phone.content.includes("Picked up where you left off"), true);
+assert.equal(phone.content.includes("up to about 16"), true);
+assert.equal((phone.content.match(/class="puzzle-grid"/g) || []).length, 1);
+assert.equal((phone.content.match(/class="puzzle-cell/g) || []).length, 81);
+assert.match(phone.content, /`642\.395\.17\.3\.2\.9/);
+const phoneHtml = marked.parse(phone.content);
+assert.equal(phoneHtml.includes("—"), false);
+assert.equal(phoneHtml.includes("–"), false);
+assert.equal(phoneHtml.includes('href="/?daily"'), true);
+assert.equal(phoneHtml.includes('href="/?difficulty=hard"'), true);
+assert.equal(phoneHtml.includes('href="/articles/how-to-use-sudoku-notes/"'), true);
+assert.deepEqual(phone.relatedSlugs, [
+  "how-to-use-sudoku-notes",
+  "how-to-solve-a-hard-sudoku",
+  "what-to-do-when-stuck",
+]);
 
 const unpublished = new Set(["why-being-stuck-is-good-for-you", "sudoku-variants", "why-ai-is-bad-at-sudoku"]);
 let html = wrapTables(stripUnpublishedLinks(marked.parse(rendered), unpublished));
@@ -364,6 +452,10 @@ assert.match(build, /SudokuSudoku\. All rights reserved\./);
 assert.equal(build.includes("Sudoku Online"), false);
 assert.match(build, /articles\/fewest-and-most-sudoku-clues\.md/);
 assert.match(build, /articles\/how-to-solve-a-hard-sudoku\.md/);
+assert.match(build, /articles\/what-to-do-when-stuck\.md/);
+assert.match(build, /articles\/how-to-use-sudoku-notes\.md/);
+assert.match(build, /articles\/sudoku-on-your-phone\.md/);
+assert.match(build, /articles\/where-the-solver-stops\.md/);
 assert.match(build, /FORTHCOMING_ARTICLES/);
 
 const techniqueSlugs = new Set(techniques.map((technique) => technique.slug));
@@ -636,6 +728,66 @@ for (const [label, text] of Object.entries(nytSources)) {
 }
 assert.equal(nytSources["what-makes"].includes("publishDate: 2026-10-28"), true);
 assert.equal(nytSources.ai.includes("publishDate: 2026-11-04"), true);
+
+const stops = readArticle("where-the-solver-stops");
+assert.equal(stops.includes("publishDate: 2026-12-16"), true);
+assert.equal(stops.includes("\u2014"), false);
+assert.equal(stops.includes("\u2013"), false);
+assert.equal(stops.includes("why-ai-is-bad-at-sudoku"), false);
+assert.equal(stops.includes("millisecond"), false);
+assert.equal(stops.includes("seconds"), false);
+const stopsBody = stops.split(/^---$/m).slice(2).join("---").replace(/<!--[\s\S]*?-->/g, " ");
+const stopsWords = stopsBody.trim().split(/\s+/).filter(Boolean);
+assert.ok(stopsWords.length >= 1000 && stopsWords.length <= 1400, `solver-stops words ${stopsWords.length}`);
+const stopsSummary = JSON.parse(
+  readFileSync(new URL("../articles/data/solver-stops/summary.json", import.meta.url), "utf8")
+);
+const escargot = stopsSummary.famous[0];
+const inkala = stopsSummary.famous[1];
+assert.equal(escargot.clues, 23);
+assert.equal(escargot.solutionsAtMost2, 1);
+assert.equal(escargot.solved, false);
+assert.equal(escargot.cellsPlaced, 1);
+assert.equal(escargot.cellsFilled, 24);
+assert.equal(escargot.cellsEmpty, 57);
+assert.equal(escargot.stalls, 1);
+assert.deepEqual(escargot.path, ["hidden-single"]);
+assert.equal(escargot.used.hidden_box, 1);
+assert.deepEqual(escargot.techniques, []);
+assert.equal(inkala.clues, 21);
+assert.equal(inkala.solutionsAtMost2, 1);
+assert.equal(inkala.solved, false);
+assert.equal(inkala.cellsPlaced, 0);
+assert.equal(inkala.cellsFilled, 21);
+assert.equal(inkala.cellsEmpty, 60);
+assert.equal(inkala.stalls, 1);
+assert.deepEqual(inkala.path, []);
+assert.deepEqual(inkala.techniques, []);
+assert.equal(stopsSummary.nyt.levels.easy.n, 495);
+assert.equal(stopsSummary.nyt.levels.medium.n, 494);
+assert.equal(stopsSummary.nyt.levels.hard.n, 494);
+assert.equal(stopsSummary.nyt.levels.easy.solved, 495);
+assert.equal(stopsSummary.nyt.levels.medium.solved, 494);
+assert.equal(stopsSummary.nyt.levels.hard.solved, 494);
+assert.equal(stopsSummary.nyt.levels.easy.corrupt, 0);
+assert.equal(stopsSummary.nyt.levels.medium.corrupt, 0);
+assert.equal(stopsSummary.nyt.levels.hard.corrupt, 0);
+assert.equal(stopsSummary.nyt.levels.easy.notUnique, 0);
+assert.equal(stopsSummary.nyt.levels.medium.notUnique, 0);
+assert.equal(stopsSummary.nyt.levels.hard.notUnique, 0);
+for (const figure of ["1,483", "495", "494", "57", "60", "23", "21"]) {
+  assert.equal(stops.includes(figure), true, figure);
+}
+assert.match(stops, /articles\/data\/solver-stops\/analyze\.mjs/);
+assert.match(stops, /\/articles\/nyt-medium-vs-hard\//);
+assert.match(stops, /\/how-difficulty-works\//);
+const preparedStops = prepareArticle(stops);
+assert.deepEqual(preparedStops.relatedSlugs, ["nyt-medium-vs-hard"]);
+assert.equal((preparedStops.content.match(/class="puzzle-grid"/g) || []).length, 2);
+assert.equal((preparedStops.content.match(/class="puzzle-cell/g) || []).length, 162);
+assert.equal(preparedStops.content.includes("+-------+-------+-------+"), false);
+assert.match(preparedStops.content, /100007090030020008009600500005300900010080002600004000300000010040000007007000300/);
+assert.match(preparedStops.content, /800000000003600000070090200050007000000045700000100030001000068008500010090000400/);
 
 const order = readArticle("sudoku-techniques-in-order");
 assert.equal(order.includes("\u2014"), false);
