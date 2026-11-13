@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { stripUnpublishedLinks } from "./articles.mjs";
 import { techniques } from "./technique-copy.mjs";
-import { faqJsonLd, homeCopy, renderHomeBelow, renderHomeIntro } from "../home-copy.mjs";
+import { faqJsonLd, homeCopy, renderHomeBelow, renderHomeIntro, renderHomeLibrary } from "../home-copy.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (path) => readFileSync(join(root, path), "utf8");
@@ -106,6 +106,43 @@ const livePairs = [...live.matchAll(/<dt>([^<]*)<\/dt><dd>([\s\S]*?)<\/dd>/g)];
 livePairs.forEach((pair, index) => {
   assert.equal(plain(pair[2]), homeCopy.faq[index].answer);
 });
+
+const libraryArticles = [
+  { title: "How to Solve a Hard Sudoku", href: "/articles/how-to-solve-a-hard-sudoku/", publishDate: "2026-10-24" },
+  { title: "What Actually Makes a Sudoku Hard", href: "/articles/what-makes-a-sudoku-hard/", publishDate: "2026-10-28" },
+  { title: "Sudoku Techniques in Order", href: "/articles/sudoku-techniques-in-order/", publishDate: "2026-10-29" },
+  { title: "Does Sudoku Keep Your Brain Sharp?", href: "/articles/does-sudoku-keep-your-brain-sharp/", publishDate: "2026-11-11" },
+  { title: "Why Being Stuck Is Good for You", href: "/articles/why-being-stuck-is-good-for-you/", publishDate: "2026-11-11" },
+  { title: "Sudoku Variants", href: "/articles/sudoku-variants/", publishDate: "2026-11-04" },
+  { title: "The Fewest and Most Clues", href: "/articles/fewest-and-most-sudoku-clues/", publishDate: "2026-11-18" },
+  { title: "How to play", href: "/articles/beginners-guide/", publishDate: "" },
+];
+const library = renderHomeLibrary({ techniques, articles: libraryArticles, today: "2026-11-13" });
+assert.match(library, /id="home-library"/);
+assert.match(library, /href="\/techniques\/"/);
+for (const slug of ["hidden-single", "pointing", "claiming", "naked-pair", "x-wing"]) {
+  assert.match(library, new RegExp(`href="/techniques/${slug}/"`));
+}
+assert.match(library, /href="\/articles\/does-sudoku-keep-your-brain-sharp\/"/);
+assert.match(library, /href="\/articles\/why-being-stuck-is-good-for-you\/"/);
+assert.match(library, /href="\/articles\/sudoku-variants\/"/);
+assert.equal(library.includes("/articles/fewest-and-most-sudoku-clues/"), false);
+assert.equal(library.includes("/articles/beginners-guide/"), false);
+assert.equal(library.includes("/articles/sudoku-techniques-in-order/"), false);
+assert.equal(library.includes("—"), false);
+const earlyLibrary = renderHomeLibrary({ techniques, articles: libraryArticles, today: "2026-10-23" });
+assert.match(earlyLibrary, /href="\/techniques\/claiming\/"/);
+assert.equal(earlyLibrary.includes("Recent notes"), false);
+assert.equal(earlyLibrary.includes("/articles/"), false);
+assert.equal(renderHomeLibrary({ techniques: [], articles: libraryArticles, today: "2026-11-13" }).includes('href="/techniques/"'), false);
+
+const gamePad = game.indexOf('id="number-pad"');
+const gameBoard = game.indexOf('id="sudoku-grid"');
+const gameBelow = game.indexOf("<!-- home-below -->");
+assert.ok(gameBoard > 0 && gameBoard < gamePad && gamePad < gameBelow);
+const homeRender = build.slice(build.indexOf("renderHomeBelow({"));
+assert.equal(homeRender.startsWith("renderHomeBelow({"), true);
+assert.ok(homeRender.indexOf("renderHomeLibrary({") > 0 && homeRender.indexOf("renderHomeLibrary({") < 120);
 
 for (const phrase of ["easybrain", "sudoku.com", "livesudoku", "sudoku.cba.si", "sudoku app no ads"]) {
   assert.equal(below.toLowerCase().includes(phrase), false, phrase);

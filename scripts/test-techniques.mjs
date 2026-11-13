@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import { captureExamples } from "./capture-examples.mjs";
-import { nextTechnique, orderedTechniques, techniques } from "./technique-copy.mjs";
+import { nextTechnique, orderedTechniques, techniqueArticles, techniques } from "./technique-copy.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const copy = readFileSync(new URL("./technique-copy.mjs", import.meta.url), "utf8");
@@ -114,11 +114,34 @@ for (const slug of EXPANDED) {
   if (missing.length) lessonFlags.push(`${slug}: ${missing.join(", ")}`);
 }
 
+const ARTICLE_SLUGS = new Set([
+  "beginners-guide",
+  "common-mistakes",
+  "nyt-medium-vs-hard",
+  "how-to-solve-a-hard-sudoku",
+  "what-makes-a-sudoku-hard",
+  "history-of-sudoku",
+  "sudoku-techniques-in-order",
+  "world-sudoku-championship-2026",
+  "sudoku-variants",
+  "why-ai-is-bad-at-sudoku",
+  "does-sudoku-keep-your-brain-sharp",
+  "why-being-stuck-is-good-for-you",
+  "fewest-and-most-sudoku-clues",
+  "what-to-do-when-stuck",
+  "how-to-use-sudoku-notes",
+  "sudoku-on-your-phone",
+  "where-the-solver-stops",
+]);
+
 for (const technique of techniques) {
   for (const slug of technique.related) {
     assert.ok(bySlug.has(slug), `${technique.slug} related ${slug}`);
   }
   assert.equal(Number.isFinite(technique.order), true, `${technique.slug} order`);
+  const reading = techniqueArticles[technique.slug];
+  assert.ok(reading && reading.length >= 1 && reading.length <= 3, `${technique.slug} articles`);
+  for (const slug of reading) assert.ok(ARTICLE_SLUGS.has(slug), `${technique.slug} article ${slug}`);
 }
 
 console.log(

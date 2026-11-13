@@ -1,7 +1,9 @@
 // The only home-page marketing copy.
 // Swap approved lines here. The build reads this file.
 // Do not paste these sentences into templates.
-//
+
+import { isPublished } from "./scripts/articles.mjs";
+
 // title:       document <title>, og:title, and twitter:title
 // description: meta description
 // term:        search phrase that must appear in the title and description
@@ -146,6 +148,39 @@ export function renderHomeBelow({ techniqueCount = 0 } = {}) {
         </div>
         <ul class="home-links">${linkList}</ul>
         <dl class="home-faq">${faq}</dl>`;
+}
+
+const HOME_TECHNIQUES = ["hidden-single", "pointing", "claiming", "naked-pair", "x-wing"];
+
+export function renderHomeLibrary({ techniques = [], articles = [], today } = {}) {
+  const bySlug = new Map(techniques.map((technique) => [technique.slug, technique]));
+  const techniqueLinks = techniques.length
+    ? [
+        { href: "/techniques/", text: "All techniques" },
+        ...HOME_TECHNIQUES.filter((slug) => bySlug.has(slug)).map((slug) => ({
+          href: `/techniques/${slug}/`,
+          text: bySlug.get(slug).name,
+        })),
+      ]
+    : [];
+  const latest = articles
+    .filter((article) => article && article.publishDate && article.href && today && isPublished(article.publishDate, today))
+    .slice()
+    .sort((a, b) => (a.publishDate < b.publishDate ? 1 : a.publishDate > b.publishDate ? -1 : 0))
+    .slice(0, 3);
+  if (!techniqueLinks.length && !latest.length) return "";
+  const techniqueList = techniqueLinks
+    .map((link) => `<li><a href="${escapeHtml(link.href)}">${escapeHtml(link.text)}</a></li>`)
+    .join("");
+  const notes = latest
+    .map((article) => `<li><a href="${escapeHtml(article.href)}">${escapeHtml(article.title || "Article")}</a></li>`)
+    .join("");
+  return `<section id="home-library" class="home-library">
+        <h2>Learn the move</h2>
+        <p>The hint names the move. These pages are the long version.</p>
+        ${techniqueList ? `<ul class="home-links">${techniqueList}</ul>` : ""}
+        ${notes ? `<h3>Recent notes</h3>\n<ul class="home-notes">${notes}</ul>` : ""}
+      </section>`;
 }
 
 export function faqJsonLd() {

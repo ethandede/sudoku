@@ -1254,6 +1254,32 @@ export const techniques = [
   },
 ];
 
+// Articles that actually discuss the technique. The build keeps the first two
+// whose publish date has arrived and drops the rest. Order is the closer
+// piece first. A later article takes a slot when its date lands.
+export const techniqueArticles = {
+  "naked-single": ["beginners-guide", "common-mistakes"],
+  "hidden-single": ["beginners-guide", "common-mistakes"],
+  pointing: ["how-to-solve-a-hard-sudoku", "nyt-medium-vs-hard", "what-to-do-when-stuck"],
+  claiming: ["what-to-do-when-stuck", "how-to-solve-a-hard-sudoku", "nyt-medium-vs-hard"],
+  "naked-pair": ["how-to-solve-a-hard-sudoku", "what-makes-a-sudoku-hard", "how-to-use-sudoku-notes"],
+  "hidden-pair": ["what-to-do-when-stuck", "how-to-solve-a-hard-sudoku", "what-makes-a-sudoku-hard"],
+  "naked-triple": ["what-makes-a-sudoku-hard", "sudoku-techniques-in-order"],
+  "hidden-triple": ["sudoku-techniques-in-order", "what-makes-a-sudoku-hard"],
+  quads: ["what-makes-a-sudoku-hard", "sudoku-techniques-in-order"],
+  "x-wing": ["sudoku-techniques-in-order", "world-sudoku-championship-2026"],
+  skyscraper: ["sudoku-techniques-in-order", "world-sudoku-championship-2026"],
+  "two-string-kite": ["sudoku-techniques-in-order", "world-sudoku-championship-2026"],
+  "xy-wing": ["what-makes-a-sudoku-hard", "sudoku-techniques-in-order"],
+  "xyz-wing": ["sudoku-techniques-in-order", "world-sudoku-championship-2026"],
+  "w-wing": ["sudoku-techniques-in-order"],
+  swordfish: ["what-makes-a-sudoku-hard", "sudoku-techniques-in-order"],
+  "unique-rectangle": ["sudoku-techniques-in-order"],
+  "bug-plus-one": ["sudoku-techniques-in-order"],
+  coloring: ["where-the-solver-stops", "what-makes-a-sudoku-hard"],
+  "xy-chain": ["why-ai-is-bad-at-sudoku", "where-the-solver-stops", "what-makes-a-sudoku-hard"],
+};
+
 export function techniqueOrderValue(technique, index = 0) {
   return Number.isFinite(technique.order) ? technique.order : 1000 + index;
 }
