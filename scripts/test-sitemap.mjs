@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { isPublished, losAngelesToday, parseFrontMatter } from "./articles.mjs";
 import { applyDailyPage } from "../functions/daily-page.mjs";
 import { DAILY_START, dailyMeta, listDailyDates, shiftIso, utcToday } from "../functions/daily-permalink.mjs";
 import { gitDate, lastmod } from "./lastmod.mjs";
@@ -25,7 +26,11 @@ const entries = [...xml.matchAll(/<loc>([^<]+)<\/loc><lastmod>([^<]+)<\/lastmod>
   lastmod: match[2],
 }));
 assert.equal(entries.length > 10, true);
-for (const entry of entries) assert.match(entry.lastmod, /^\d{4}-\d{2}-\d{2}$/);
+for (const entry of entries) {
+  assert.match(entry.lastmod, /^\d{4}-\d{2}-\d{2}$/);
+  const path = entry.loc.slice("https://sudokusudoku.com".length);
+  assert.ok(path.endsWith("/") || path.endsWith(".html"), entry.loc);
+}
 
 function entry(path) {
   const found = entries.find((item) => item.loc === `https://sudokusudoku.com${path}`);
@@ -40,6 +45,30 @@ assert.equal(entry("/techniques/x-wing/").lastmod, gitDate(root, "scripts/techni
 assert.equal(xml.includes("<lastmod></lastmod>"), false);
 assert.equal(entries.some((item) => item.loc.endsWith("/skills/")), false);
 assert.equal(entries.some((item) => item.loc.endsWith("/404.html")), false);
+
+const homeHtml = readFileSync(join(root, "dist/index.html"), "utf8");
+const gridAt = homeHtml.indexOf('id="sudoku-grid"');
+const padAt = homeHtml.indexOf('id="number-pad"');
+const libraryAt = homeHtml.indexOf('id="home-library"');
+const copyAt = homeHtml.indexOf('class="sudoku-copy"');
+assert.ok(gridAt > 0 && gridAt < padAt && padAt < copyAt && copyAt < libraryAt);
+assert.match(homeHtml, /href="\/techniques\/"/);
+assert.match(homeHtml, /href="\/techniques\/claiming\/"/);
+assert.equal(homeHtml.includes('href="/techniques/claiming"'), false);
+const laToday = losAngelesToday();
+for (const name of readdirSync(join(root, "articles"))) {
+  if (!name.endsWith(".md")) continue;
+  const { data } = parseFrontMatter(readFileSync(join(root, "articles", name), "utf8"));
+  if (!data.slug || !data.publishDate || isPublished(data.publishDate, laToday)) continue;
+  assert.equal(homeHtml.includes(`/articles/${data.slug}/`), false, data.slug);
+}
+const claiming = readFileSync(join(root, "dist/techniques/claiming/index.html"), "utf8");
+assert.match(claiming, /<link rel="canonical" href="https:\/\/sudokusudoku.com\/techniques\/claiming\/">/);
+assert.match(claiming, /<h2>Related<\/h2>/);
+assert.match(claiming, /<h2>Related reading<\/h2>/);
+assert.match(claiming, /href="\/articles\/how-to-solve-a-hard-sudoku\/"/);
+assert.equal(claiming.includes("/articles/what-to-do-when-stuck/"), isPublished("2026-11-25", laToday));
+assert.match(claiming, /href="\/\?practice=claiming"/);
 
 const today = utcToday();
 const dailyDates = listDailyDates(today);

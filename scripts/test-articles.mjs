@@ -506,6 +506,59 @@ const FORTHCOMING = new Set([
   "sudoku-on-your-phone",
 ]);
 
+function parsedRedirectRules(text) {
+  return text.split("\n").flatMap((line) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) return [];
+    const [from, to, code] = trimmed.split(/\s+/);
+    if (code !== "301" || !from || !to) return [];
+    return [{ from, to }];
+  });
+}
+
+function matchRedirect(source, pathname) {
+  if (source.includes("*")) {
+    const prefix = source.slice(0, source.indexOf("*"));
+    if (!pathname.startsWith(prefix)) return null;
+    return { splat: pathname.slice(prefix.length) };
+  }
+  const left = source.split("/").filter(Boolean);
+  const right = pathname.split("/").filter(Boolean);
+  if (left.length !== right.length) return null;
+  const params = {};
+  for (let i = 0; i < left.length; i += 1) {
+    if (left[i].startsWith(":")) params[left[i].slice(1)] = right[i];
+    else if (left[i] !== right[i]) return null;
+  }
+  return params;
+}
+
+function redirectTarget(pathname, rules) {
+  for (const rule of rules) {
+    const params = matchRedirect(rule.from, pathname);
+    if (!params) continue;
+    let to = rule.to;
+    for (const [key, value] of Object.entries(params)) to = to.replaceAll(`:${key}`, value);
+    if (params.splat != null) to = to.replaceAll(":splat", params.splat);
+    return to;
+  }
+  return null;
+}
+
+const pageRedirects = parsedRedirectRules(redirects);
+const slashPages = new Set([
+  ...staticPaths,
+  ...techniques.map((technique) => `/techniques/${technique.slug}/`),
+  ...articleSlugs,
+  ...FORTHCOMING,
+].flatMap((path) => (String(path).startsWith("/") ? [path] : [`/articles/${path}/`])));
+for (const path of slashPages) {
+  if (path === "/") continue;
+  assert.equal(redirectTarget(path.slice(0, -1), pageRedirects), path, path);
+}
+assert.equal(redirectTarget("/techniques/index.html", pageRedirects), "/techniques/");
+assert.equal(redirectTarget("/articles/index.html", pageRedirects), "/articles/");
+
 function routeExists(path, search) {
   if (path === "/" && search.has("daily") && search.size === 1) return true;
   if (path === "/" && search.has("difficulty") && search.size === 1) {

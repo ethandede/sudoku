@@ -77,10 +77,22 @@ function visibleH1(html) {
     .trim();
 }
 
+const bareLinks = [];
 for (const file of walk(join(root, "dist"))) {
   const html = readFileSync(file, "utf8");
   const canonical = html.match(/<link rel="canonical" href="([^"]+)">/);
   assert.ok(canonical, file);
+  assert.ok(canonical[1].endsWith("/") || canonical[1].endsWith(".html"), `${file} ${canonical[1]}`);
+  const ogUrl = html.match(/<meta property="og:url" content="([^"]+)"/);
+  if (ogUrl) assert.equal(ogUrl[1], canonical[1], file);
+  for (const match of html.matchAll(/href="([^"]+)"/g)) {
+    let href = match[1];
+    if (href.startsWith(SITE)) href = href.slice(SITE.length) || "/";
+    if (!href.startsWith("/")) continue;
+    const path = href.split(/[?#]/)[0];
+    if (path === "/" || path.endsWith("/") || /\.[a-z0-9]+$/i.test(path)) continue;
+    bareLinks.push(`${file} ${match[1]}`);
+  }
   const isHome = canonical[1] === `${SITE}/`;
   for (const data of graphs(html)) {
     assert.equal(data["@context"], "https://schema.org", file);
@@ -102,8 +114,12 @@ for (const file of walk(join(root, "dist"))) {
     });
     assert.equal(list.at(-1).name, visibleH1(html), file);
     assert.equal(list.at(-1).item, canonical[1], file);
+    for (const item of list) {
+      assert.ok(item.item.endsWith("/") || item.item.endsWith(".html"), `${file} ${item.item}`);
+    }
   }
 }
+assert.deepEqual(bareLinks, []);
 
 function articleNode(relativePath) {
   const html = readFileSync(join(root, "dist", relativePath), "utf8");

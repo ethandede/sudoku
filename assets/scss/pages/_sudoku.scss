@@ -1658,8 +1658,19 @@ kbd {
 
 .play-technique,
 .related-techniques a,
+.related-reading a,
 .next-technique a {
   font-weight: 800;
+}
+
+.related-reading {
+  margin: 0.2rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li + li {
+    margin-top: 0.35rem;
+  }
 }
 
 .next-technique a {
@@ -1847,6 +1858,24 @@ button:disabled {
   margin: 0.4rem 0 0;
   padding: 0;
   list-style: none;
+
+  a {
+    font-weight: 700;
+  }
+}
+
+.home-library {
+  margin-top: 1.75rem;
+}
+
+.home-notes {
+  margin: 0.35rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    margin: 0 0 0.45rem;
+  }
 
   a {
     font-weight: 700;

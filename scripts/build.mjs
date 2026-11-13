@@ -19,10 +19,10 @@ import {
   wrapTables,
 } from "./articles.mjs";
 import { resolveTechniqueExamples } from "./example-board.mjs";
-import { nextTechnique, orderedTechniques, techniques } from "./technique-copy.mjs";
+import { nextTechnique, orderedTechniques, techniqueArticles, techniques } from "./technique-copy.mjs";
 import { adsensePushScript, housePair, renderHousePromos } from "./house-promos.mjs";
 import { phosphorArrow } from "./icons.mjs";
-import { faqJsonLd, homeCopy, renderHomeBelow, renderHomeIntro } from "../home-copy.mjs";
+import { faqJsonLd, homeCopy, renderHomeBelow, renderHomeIntro, renderHomeLibrary } from "../home-copy.mjs";
 import { articleMeta, assertSiteMeta, assertUniqueMeta, catalogPages, staticMeta, techniqueMeta } from "./seo-meta.mjs";
 import { dailyMeta, listDailyDates, utcToday } from "../functions/daily-permalink.mjs";
 import { gitDate, gitFirstDate, lastmod } from "./lastmod.mjs";
@@ -671,7 +671,14 @@ publish(
       homeGame = homeGame.replace(introMarker, renderHomeIntro());
       homeGame = homeGame.replace(
         belowMarker,
-        stripUnpublishedLinks(renderHomeBelow({ techniqueCount: techniques.length }), unpublishedSlugs)
+        stripUnpublishedLinks(
+          `${renderHomeBelow({ techniqueCount: techniques.length })}\n${renderHomeLibrary({
+            techniques,
+            articles: parsedArticles,
+            today: articleToday,
+          })}`,
+          unpublishedSlugs
+        )
       );
       // A sidebar beside the copy: a 300x250 and a 300x600. Both start below
       // the game, at least 150px from the board (AdSense game-page guidance).
@@ -1226,6 +1233,18 @@ publish(
   })
 );
 
+function relatedReadingHtml(technique) {
+  const picks = (techniqueArticles[technique.slug] || [])
+    .map((slug) => articlesBySlug.get(slug))
+    .filter((article) => article && article.published)
+    .slice(0, 2);
+  if (!picks.length) return "";
+  const items = picks
+    .map((article) => `<li><a href="${article.href}">${escapeHtml(article.title)}</a></li>`)
+    .join("");
+  return `<h2>Related reading</h2>\n<ul class="related-reading">${items}</ul>`;
+}
+
 techniques.forEach((technique) => {
   const example = examples[technique.slug];
   const related = technique.related
@@ -1278,6 +1297,7 @@ techniques.forEach((technique) => {
         ${nextHtml}
         <h2>Related</h2>
         <p class="related-techniques">${related}</p>
+        ${relatedReadingHtml(technique)}
       </div>
       ${houseSlot("technique", path, "technique-end")}
     </article>
